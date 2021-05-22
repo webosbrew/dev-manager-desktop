@@ -1,16 +1,18 @@
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
+import { DeviceListComponent } from './device-list/device-list.component';
+import { DeviceSetupComponent } from './device-setup/device-setup.component';
 import { PageNotFoundComponent } from './shared/components';
 
-import { HomeRoutingModule } from './home/home-routing.module';
-import { DetailRoutingModule } from './detail/detail-routing.module';
 
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'home',
+    redirectTo: 'devices',
     pathMatch: 'full'
   },
+  { path: 'devices', component: DeviceListComponent },
+  { path: 'devices/setup', component: DeviceSetupComponent },
   {
     path: '**',
     component: PageNotFoundComponent
@@ -20,8 +22,6 @@ const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' }),
-    HomeRoutingModule,
-    DetailRoutingModule
   ],
   exports: [RouterModule]
 })

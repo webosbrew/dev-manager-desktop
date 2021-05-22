@@ -41,7 +41,8 @@
     "lint": "ng lint"
   },
   "dependencies": {
-    "@electron/remote": "1.0.4"
+    "@electron/remote": "1.0.4",
+    "@webosose/ares-cli": "2.1.0"
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "11.1.1",
@@ -63,6 +64,7 @@
     "@angular/router": "11.2.8",
     "@ngx-translate/core": "13.0.0",
     "@ngx-translate/http-loader": "6.0.0",
+    "@schematics/angular": "9.1.0",
     "@types/jasmine": "3.6.7",
     "@types/jasminewd2": "2.0.8",
     "@types/mocha": "8.2.1",
@@ -70,6 +72,7 @@
     "@typescript-eslint/eslint-plugin": "4.16.1",
     "@typescript-eslint/eslint-plugin-tslint": "4.15.0",
     "@typescript-eslint/parser": "4.16.1",
+    "bootstrap": "4.1.1",
     "chai": "4.3.4",
     "conventional-changelog-cli": "2.1.1",
     "core-js": "3.6.5",
@@ -90,6 +93,7 @@
     "karma-jasmine-html-reporter": "1.5.4",
     "mocha": "8.3.2",
     "nan": "2.14.2",
+    "ngx-bootstrap": "6.2.0",
     "npm-run-all": "4.1.5",
     "rxjs": "6.6.6",
     "spectron": "14.0.0",

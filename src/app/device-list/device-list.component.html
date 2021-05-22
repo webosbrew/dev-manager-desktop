@@ -1,0 +1,21 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>IP</th>
+      <th>Port</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tr *ngFor="let device of (deviceManager.devices$ | async)">
+    <td>{{device.name}}</td>
+    <td>{{device.host}}</td>
+    <td>{{device.port}}</td>
+    <td>
+      <button class="btn">Shell</button>
+      <button class="btn ml-2">Edit</button>
+      <button class="btn ml-2">Delete</button>
+    </td>
+  </tr>
+</table>
+<button class="btn" (click)="openSetupDevice()">Setup device</button>

@@ -6,7 +6,7 @@ import { ipcRenderer, webFrame } from 'electron';
 import * as remote from '@electron/remote';
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
-
+import * as novacom from '@webosose/ares-cli/lib/base/novacom';
 @Injectable({
   providedIn: 'root'
 })
@@ -16,6 +16,7 @@ export class ElectronService {
   remote: typeof remote;
   childProcess: typeof childProcess;
   fs: typeof fs;
+  novacom: typeof novacom;
 
   get isElectron(): boolean {
     return !!(window && window.process && window.process.type);
@@ -33,6 +34,7 @@ export class ElectronService {
 
       this.childProcess = window.require('child_process');
       this.fs = window.require('fs');
+      this.novacom = window.require('@webosose/ares-cli/lib/base/novacom');
     }
   }
 }
