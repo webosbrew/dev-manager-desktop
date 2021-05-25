@@ -50,7 +50,7 @@ export class DeviceSetupComponent implements OnInit, OnDestroy {
 }
 
 export interface SetupStep {
-  onContinue(): void
+  onContinue(): Promise<void>
   readonly canContinue: boolean;
   readonly isLastStep: boolean;
 }

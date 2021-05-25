@@ -36,7 +36,8 @@
     </div>
     <div class="col-md-6" *ngIf="sshAuth == 'devKey' || sshAuth == 'localKey'">
       <label for="sshPrivkeyPassphrase">Passphrase</label>
-      <input type="text" class="form-control" id="sshPrivkeyPassphrase" formControlName="sshPrivkeyPassphrase" required>
+      <input type="text" class="form-control" id="sshPrivkeyPassphrase" formControlName="sshPrivkeyPassphrase"
+        [required]="sshAuth == 'devKey'">
     </div>
     <div class="col-md-12">
       <label for="deviceDescription">Description</label>

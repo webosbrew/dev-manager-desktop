@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Route, Router } from '@angular/router';
-import { DeviceEditSpec, DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
-import { SetupStep } from '../device-setup.component';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ElectronService } from '../../core/services';
+import { Device, DeviceEditSpec, DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
+import { SetupStep } from '../device-setup.component';
+
 @Component({
   selector: 'app-info',
   templateUrl: './info.component.html',
@@ -17,17 +19,19 @@ export class InfoComponent implements OnInit, SetupStep {
   constructor(
     private router: Router,
     private route: ActivatedRoute,
+    private electron: ElectronService,
     private deviceManager: DeviceManagerService,
     fb: FormBuilder,
   ) {
     this.formGroup = fb.group({
-      name: ['test', Validators.required],
-      address: ['127.0.0.1', Validators.required],
-      port: ['22', Validators.required],
+      name: ['tv', Validators.required],
+      address: ['', Validators.required],
+      port: ['9922', Validators.required],
       description: [],
-      sshUsername: ['root', Validators.required],
-      sshAuth: ['password', Validators.required],
-      sshPassword: ['1'],
+      // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
+      sshUsername: ['prisoner', Validators.pattern(/^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$/)],
+      sshAuth: ['devKey', Validators.required],
+      sshPassword: [],
       sshPrivkey: [],
       sshPrivkeyPassphrase: [],
     });
@@ -44,26 +48,53 @@ export class InfoComponent implements OnInit, SetupStep {
     return this.formGroup.valid;
   }
 
-  onContinue() {
-    this.deviceManager.addDevice(this.createDeviceSpec()).then(value => {
-      console.log(value);
-      // this.router.navigate(['verify'], { relativeTo: this.route.parent });
-    })
+  get setupInfo(): SetupInfo {
+    return this.formGroup.value as SetupInfo;
   }
 
-  createDeviceSpec(): DeviceEditSpec {
-    let value = this.formGroup.value as SetupInfo;
-    return {
-      name: value.name,
-      port: value.port,
-      host: value.address,
-      username: value.sshUsername,
-      profile: 'ose',
-    };
+  async onContinue(): Promise<void> {
+    let path = this.electron.path;
+    let fs = this.electron.fs;
+    let ssh2 = this.electron.ssh2;
+    let value = this.setupInfo;
+    let spec = toDeviceSpec(value);
+    if (value.sshAuth == 'devKey') {
+      let keyPath = path.join(path.resolve(process.env.HOME || process.env.USERPROFILE, '.ssh'), spec.privateKey.openSsh);
+      if (fs.existsSync(keyPath)) {
+        // Show alert to prompt for overwrite
+        if (!await this.confirmOverwritePrivKey(spec.privateKey.openSsh)) {
+          return;
+        }
+      }
+      // Fetch SSH privKey
+      let privKey = await this.deviceManager.getPrivKey(value.address);
+      // Throw error if key parse failed
+      ssh2.utils.parseKey(privKey, spec.passphrase);
+      fs.writeFileSync(keyPath, privKey);
+    }
+    let added = await this.deviceManager.addDevice(spec);
+    try {
+      this.deviceManager.deviceInfo(added.name);
+    } catch (e) {
+      // Something wrong happened. Ask user if they want to delete added device
+      if (!await this.confirmVerififcationFailure(added, e)) {
+        await this.deviceManager.removeDevice(added.name);
+      }
+    }
+    // Close setup wizard
   }
+
+  private async confirmOverwritePrivKey(name: string): Promise<boolean> {
+    return false;
+  }
+
+  private async confirmVerififcationFailure(added: Device, e: Error): Promise<boolean> {
+    return true;
+  }
+
 }
 
-class SetupInfo {
+interface SetupInfo {
   name: string;
   address: string;
   port: number;
@@ -73,4 +104,31 @@ class SetupInfo {
   sshPassword?: string;
   sshPrivkey?: string;
   sshPrivkeyPassphrase?: string;
+}
+
+function toDeviceSpec(value: SetupInfo): DeviceEditSpec {
+  var spec: DeviceEditSpec = {
+    name: value.name,
+    port: value.port,
+    host: value.address,
+    username: value.sshUsername,
+    profile: 'ose'
+  };
+  switch (value.sshAuth) {
+    case 'password': {
+      spec.password = value.sshPassword;
+      break;
+    }
+    case 'devKey': {
+      spec.privateKey = { openSsh: `${value.name}_webos` };
+      spec.passphrase = value.sshPrivkeyPassphrase;
+      break;
+    }
+    case 'localKey': {
+      spec.privateKey = { openSsh: value.sshPrivkey };
+      spec.passphrase = value.sshPrivkeyPassphrase;
+      break;
+    }
+  }
+  return spec;
 }

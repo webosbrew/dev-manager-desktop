@@ -1,4 +1,10 @@
 <table class="table">
+  <colgroup>
+    <col>
+    <col>
+    <col>
+    <col class="w-100">
+  </colgroup>
   <thead>
     <tr>
       <th>Name</th>
@@ -11,10 +17,10 @@
     <td>{{device.name}}</td>
     <td>{{device.host}}</td>
     <td>{{device.port}}</td>
-    <td>
+    <td class="text-right">
       <button class="btn">Shell</button>
       <button class="btn ml-2">Edit</button>
-      <button class="btn ml-2" (click)="removeDevice(device.name)">Delete</button>
+      <button class="btn btn-danger ml-2" (click)="removeDevice(device.name)">Delete</button>
     </td>
   </tr>
 </table>

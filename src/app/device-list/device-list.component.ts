@@ -15,8 +15,8 @@ export class DeviceListComponent implements OnInit {
   }
 
   removeDevice(name: string) {
-    this.deviceManager.removeDevice(name).then(result => {
-      this.deviceManager.load();
+    this.deviceManager.removeDevice(name).catch(reason => {
+      console.log(reason);
     });
   }
 
