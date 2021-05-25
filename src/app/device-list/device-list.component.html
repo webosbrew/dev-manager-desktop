@@ -14,13 +14,46 @@
     </tr>
   </thead>
   <tr *ngFor="let device of (deviceManager.devices$ | async)">
-    <td>{{device.name}}</td>
+    <td [class.font-weight-bold]="device.default">{{device.name}}</td>
     <td>{{device.host}}</td>
     <td>{{device.port}}</td>
     <td class="text-right">
-      <button class="btn">Shell</button>
-      <button class="btn ml-2">Edit</button>
-      <button class="btn btn-danger ml-2" (click)="removeDevice(device.name)">Delete</button>
+      <!-- <button class="btn btn-primary">
+        <i class="bi bi-terminal"></i>
+      </button> -->
+      <!-- <button class="btn ml-2">
+        <i class="bi bi-pencil"></i>
+      </button> -->
+      <div class="btn-group ml-2" dropdown>
+        <button id="button-basic" dropdownToggle type="button" class="btn dropdown-toggle"
+          aria-controls="dropdown-basic">
+          Options <span class="caret"></span>
+        </button>
+        <ul id="dropdown-basic" *dropdownMenu class="dropdown-menu dropdown-menu-right" role="menu"
+          aria-labelledby="button-basic">
+          <li role="menuitem">
+            <button class="dropdown-item" (click)="installHbChannel(device.name)">
+              <i class="bi bi-download mr-3"></i>Install Homebrew
+            </button>
+          </li>
+          <li class="divider dropdown-divider"></li>
+          <li role="menuitem" *ngIf="!device.default">
+            <button class="dropdown-item" (click)="markDefault(device.name)">
+              <i class="bi bi-check-lg mr-3"></i>Set Default
+            </button>
+          </li>
+          <li role="menuitem">
+            <button class="dropdown-item">
+              <i class="bi bi-pencil mr-3"></i>Edit
+            </button>
+          </li>
+          <li role="menuitem" *ngIf="!device.indelible">
+            <button class="dropdown-item text-danger" (click)="removeDevice(device.name)">
+              <i class="bi bi-trash mr-3"></i>Delete
+            </button>
+          </li>
+        </ul>
+      </div>
     </td>
   </tr>
 </table>

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ElectronService } from '../../core/services';
 import { Device, DeviceEditSpec, DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
+import { ElectronService } from '../../core/services/electron/electron.service';
 import { SetupStep } from '../device-setup.component';
 
 @Component({
@@ -17,8 +17,6 @@ export class InfoComponent implements OnInit, SetupStep {
   isLastStep: boolean = false;
 
   constructor(
-    private router: Router,
-    private route: ActivatedRoute,
     private electron: ElectronService,
     private deviceManager: DeviceManagerService,
     fb: FormBuilder,

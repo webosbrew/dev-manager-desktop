@@ -1,22 +1,19 @@
-import { BrowserModule } from '@angular/platform-browser';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
-import { CoreModule } from './core/core.module';
-import { SharedModule } from './shared/shared.module';
-
-import { AppRoutingModule } from './app-routing.module';
-
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 // NG Translate
-import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-
-
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { CoreModule } from './core/core.module';
 import { DeviceListComponent } from './device-list/device-list.component';
 import { DeviceSetupComponent } from './device-setup/device-setup.component';
 import { InfoComponent } from './device-setup/info/info.component';
-import { VerifyComponent } from './device-setup/verify/verify.component';
+import { SharedModule } from './shared/shared.module';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -24,15 +21,22 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
 }
 
 @NgModule({
-  declarations: [AppComponent, DeviceListComponent, DeviceSetupComponent, InfoComponent, VerifyComponent],
+  declarations: [
+    AppComponent,
+    DeviceListComponent,
+    DeviceSetupComponent,
+    InfoComponent
+  ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     FormsModule,
     HttpClientModule,
     CoreModule,
     SharedModule,
     AppRoutingModule,
     ReactiveFormsModule,
+    BsDropdownModule.forRoot(),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

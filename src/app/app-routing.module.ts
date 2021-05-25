@@ -3,7 +3,6 @@ import { RouterModule, Routes } from '@angular/router';
 import { DeviceListComponent } from './device-list/device-list.component';
 import { DeviceSetupComponent } from './device-setup/device-setup.component';
 import { InfoComponent } from './device-setup/info/info.component';
-import { VerifyComponent } from './device-setup/verify/verify.component';
 import { PageNotFoundComponent } from './shared/components';
 
 
@@ -18,7 +17,6 @@ const routes: Routes = [
     path: 'devices/setup', component: DeviceSetupComponent,
     children: [
       { path: 'info', component: InfoComponent },
-      { path: 'verify', component: VerifyComponent },
       { path: '', redirectTo: 'info', pathMatch: 'full' },
     ]
   },

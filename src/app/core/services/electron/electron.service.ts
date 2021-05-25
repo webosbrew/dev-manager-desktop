@@ -4,6 +4,7 @@
 import { Injectable } from '@angular/core';
 import * as remote from '@electron/remote';
 import * as novacom from '@webosose/ares-cli/lib/base/novacom';
+import * as install from '@webosose/ares-cli/lib/install';
 import * as childProcess from 'child_process';
 import { ipcRenderer, webFrame } from 'electron';
 import * as fs from 'fs';
@@ -21,6 +22,7 @@ export class ElectronService {
   fs: typeof fs;
   path: typeof path;
   novacom: typeof novacom;
+  installer: typeof install;
   ssh2: typeof ssh2;
 
   get isElectron(): boolean {
@@ -41,6 +43,7 @@ export class ElectronService {
       this.fs = window.require('fs');
       this.path = window.require('path');
       this.novacom = window.require('@webosose/ares-cli/lib/base/novacom');
+      this.installer = window.require('@webosose/ares-cli/lib/install');
       this.ssh2 = window.require('ssh2');
     }
   }

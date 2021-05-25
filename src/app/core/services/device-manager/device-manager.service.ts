@@ -2,7 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from "@angular/core";
 import novacom from '@webosose/ares-cli/lib/base/novacom';
 import { BehaviorSubject, Observable } from "rxjs";
-import { ElectronService } from "..";
+import { ElectronService } from '../electron/electron.service';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -28,9 +29,9 @@ export class DeviceManagerService {
   async list(): Promise<Device[]> {
     return new Promise<Device[]>((resolve, reject) => {
       let resolver = this.newResolver();
-      resolver.load((result: any) => {
-        if (result instanceof Error) {
-          reject(result);
+      resolver.load((error: any) => {
+        if (error instanceof Error) {
+          reject(error);
         } else {
           resolve(resolver.devices);
         }
@@ -41,29 +42,60 @@ export class DeviceManagerService {
   async addDevice(spec: DeviceEditSpec): Promise<Device> {
     return new Promise<any>((resolve, reject) => {
       let resolver = this.newResolver();
-      resolver.modifyDeviceFile('add', spec, (result: any) => {
-        if (result instanceof Error) {
-          reject(result);
+      resolver.modifyDeviceFile('add', spec, (error: any, result: any) => {
+        if (error instanceof Error) {
+          reject(error);
         } else {
-          resolve(result);
+          let devices = result as Device[];
+          this.onDevicesUpdated(devices);
+          resolve(devices.find((device) => spec.name == device.name));
         }
       });
-    }).then(async () => {
-      let devices = await this.list();
-      this.onDevicesUpdated(devices);
-      return devices.find((device) => spec.name == device.name);
+    });
+  }
+
+  async modifyDevice(name: string, spec: Partial<DeviceEditSpec>): Promise<Device> {
+    return new Promise<any>((resolve, reject) => {
+      let resolver = this.newResolver();
+      let target = { name, ...spec };
+      resolver.modifyDeviceFile('modify', target, (error: any, result: any) => {
+        if (error instanceof Error) {
+          reject(error);
+        } else {
+          let devices = result as Device[];
+          this.onDevicesUpdated(devices);
+          resolve(devices.find((device) => spec.name == device.name));
+        }
+      });
+    });
+  }
+
+  async setDefault(name: string): Promise<Device> {
+    return new Promise<any>((resolve, reject) => {
+      let resolver = this.newResolver();
+      let target = { name, default: true };
+      resolver.modifyDeviceFile('default', target, (error: any, result: any) => {
+        if (error instanceof Error) {
+          reject(error);
+        } else {
+          let devices = result as Device[];
+          this.onDevicesUpdated(devices);
+          resolve(devices.find((device) => name == device.name));
+        }
+      });
     });
   }
 
   async removeDevice(name: string): Promise<void> {
     return new Promise<any>((resolve, reject) => {
       let resolver = this.newResolver();
-      resolver.modifyDeviceFile('remove', { name }, (result: any) => {
-        if (result instanceof Error) {
-          reject(result);
+      resolver.modifyDeviceFile('remove', { name }, (error: any, result: any) => {
+        if (error instanceof Error) {
+          reject(error);
         } else {
+          let devices = result as Device[];
+          this.onDevicesUpdated(devices);
           resolve(null);
-          this.load();
         }
       });
     });
@@ -100,13 +132,14 @@ export class DeviceManagerService {
   private newResolver(): Resolver {
     return new this.novacom.Resolver() as any as Resolver;
   }
+
   private async newSession(target: string): Promise<Session> {
     return new Promise<Session>((resolve, reject) => {
-      let session = new this.novacom.Session(target, result => {
+      let session: any = new this.novacom.Session(target, result => {
         if (result instanceof Error) {
           reject(result);
         } else {
-          resolve(session);
+          resolve(session as Session);
         }
       });
     });
@@ -119,6 +152,7 @@ export interface Device {
   host: string;
   port: number;
   indelible: boolean;
+  default: boolean;
 }
 
 export interface DeviceInfo {
@@ -148,16 +182,17 @@ export interface DeviceEditSpec {
   password?: string;
 
   description?: string;
+  default?: boolean;
 }
 
 
 type RunOutput = WritableStream | Function | null;
 interface Resolver {
   readonly devices: Device[];
-  load(next: (result: any) => void): void;
-  modifyDeviceFile(op: 'add' | 'remove', device: Partial<DeviceEditSpec>, next: (result: any) => void): void;
+  load(next: (error: any, result: any) => void): void;
+  modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>, next: (error: any, result: any) => void): void;
 }
 
 interface Session {
-  run(cmd: string, stdin: ReadableStream | null, stdout: RunOutput, stderr: RunOutput, next: (result: any) => void): void;
+  run(cmd: string, stdin: ReadableStream | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
 }
