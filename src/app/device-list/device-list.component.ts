@@ -14,6 +14,12 @@ export class DeviceListComponent implements OnInit {
   ngOnInit(): void {
   }
 
+  removeDevice(name: string) {
+    this.deviceManager.removeDevice(name).then(result => {
+      this.deviceManager.load();
+    });
+  }
+
   openSetupDevice() {
     this.router.navigateByUrl('/devices/setup');
   }

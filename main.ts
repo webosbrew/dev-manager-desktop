@@ -27,6 +27,7 @@ function createWindow(): BrowserWindow {
       enableRemoteModule : true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
     },
   });
+  win.setMenuBarVisibility(false);
 
   if (serve) {
 
