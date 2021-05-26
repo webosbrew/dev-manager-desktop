@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { Device } from '../../../../types/novacom';
 import { DeviceManagerService } from '../../../core/services/device-manager/device-manager.service';
 import { ElectronService } from '../../../core/services/electron/electron.service';
-import { InstallManagerService, PackageInfo } from '../../../core/services/install-manager/install-manager.service';
+import { AppManagerService, PackageInfo } from '../../../core/services/app-manager/app-manager.service';
 
 @Component({
   selector: 'app-apps',
@@ -18,14 +18,14 @@ export class AppsComponent implements OnInit {
   constructor(
    private electron: ElectronService,
     private deviceManager: DeviceManagerService,
-    private installManager: InstallManagerService
+    private appManager: AppManagerService
   ) {
     this.dialog = electron.remote.dialog;
     deviceManager.devices$.subscribe((devices) => {
       let device = devices.find((dev) => dev.default);
       if (device) {
-        this.packages$ = this.installManager.packages$(device.name);
-        this.installManager.load(device.name);
+        this.packages$ = this.appManager.packages$(device.name);
+        this.appManager.load(device.name);
       } else {
         this.packages$ = null;
       }
@@ -61,7 +61,7 @@ export class AppsComponent implements OnInit {
       return;
     }
     const file = files[0];
-    this.installManager.install(this.device.name, file.path).then(() => {
+    this.appManager.install(this.device.name, file.path).then(() => {
       console.log('Package installed');
     });
   }
@@ -75,11 +75,15 @@ export class AppsComponent implements OnInit {
       return;
     }
     const path = open.filePaths[0];
-    await this.installManager.install(this.device.name, path);
+    await this.appManager.install(this.device.name, path);
+  }
+
+  launchApp(id: string) {
+    this.appManager.launch(this.device.name, id);
   }
 
   removePackage(id: string) {
-    this.installManager.remove(this.device.name, id).then(() => {
+    this.appManager.remove(this.device.name, id).then(() => {
       console.log(`Package ${id} removed`);
     })
   }

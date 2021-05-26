@@ -16,8 +16,9 @@
       "dom"
     ]
   },
-  "files": [
-    "main.ts"
+  "include": [
+    "main.ts",
+    "backend/**/*.ts",
   ],
   "exclude": [
     "node_modules",

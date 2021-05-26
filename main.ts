@@ -1,9 +1,8 @@
 import { app, BrowserWindow, protocol } from 'electron';
-import { ProtocolRequest, ProtocolResponse } from 'electron/main';
 import * as path from 'path';
 import * as url from 'url';
-import { AresPullProtoHandler } from './src/backend/ares-pull-proto';
-
+import { AresPullProtoHandler } from './backend/ares-pull-proto';
+import * as windowStateKeeper from 'electron-window-state';
 // Initialize remote module
 require('@electron/remote/main').initialize();
 
@@ -13,11 +12,15 @@ const args = process.argv.slice(1),
 
 function createWindow(): BrowserWindow {
   // Create the browser window.
+  let mainWindowState = windowStateKeeper({
+    defaultWidth: 1024,
+    defaultHeight: 720
+  });
   win = new BrowserWindow({
-    x: 0,
-    y: 0,
-    width: 1024,
-    height: 720,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     resizable: false,
     webPreferences: {
       nodeIntegration: true,
@@ -26,6 +29,8 @@ function createWindow(): BrowserWindow {
       enableRemoteModule: true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
     },
   });
+
+  mainWindowState.manage(win);
   win.setMenuBarVisibility(false);
 
   if (serve) {
@@ -35,7 +40,7 @@ function createWindow(): BrowserWindow {
     require('electron-reload')(__dirname, {
       electron: require(`${__dirname}/node_modules/electron`)
     });
-    win.loadURL('http://localhost:4200');
+    win.loadURL('http://localhost:4210');
 
   } else {
     win.loadURL(url.format({

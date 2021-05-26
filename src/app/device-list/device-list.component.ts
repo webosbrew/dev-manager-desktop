@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { DeviceManagerService } from '../core/services/device-manager/device-manager.service';
-import { InstallManagerService } from '../core/services/install-manager/install-manager.service';
 
 @Component({
   selector: 'app-device-list',
@@ -11,8 +10,7 @@ import { InstallManagerService } from '../core/services/install-manager/install-
 export class DeviceListComponent implements OnInit {
 
   constructor(
-    private deviceManager: DeviceManagerService,
-    private installManager: InstallManagerService,
+    public deviceManager: DeviceManagerService,
     private router: Router
   ) { }
 
@@ -27,14 +25,6 @@ export class DeviceListComponent implements OnInit {
 
   markDefault(name: string) {
     this.deviceManager.setDefault(name).catch(reason => {
-      console.log(reason);
-    });
-  }
-
-  installHbChannel(name: string) {
-    this.installManager.list(name).then(result => {
-      console.log(result);
-    }).catch(reason => {
       console.log(reason);
     });
   }

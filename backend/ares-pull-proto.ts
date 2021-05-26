@@ -1,7 +1,7 @@
 import * as novacom from '@webosose/ares-cli/lib/base/novacom';
 import { ProtocolRequest, ProtocolResponse } from "electron";
 import { Config, NodeSSH } from 'node-ssh';
-import { Device, Resolver } from '../types/novacom';
+import { Device, Resolver } from '../src/types/novacom';
 
 export function AresPullProtoHandler(request: ProtocolRequest, callback: ((response: Buffer | ProtocolResponse) => void)): void {
   const url = new URL(request.url);

@@ -29,9 +29,9 @@
     "build": "npm run electron:serve-tsc && ng build --base-href ./",
     "build:dev": "npm run build -- -c dev",
     "build:prod": "npm run build -- -c production",
-    "ng:serve": "ng serve -c web -o",
+    "ng:serve": "ng serve -c web -o --port 4210",
     "electron:serve-tsc": "tsc -p tsconfig.serve.json",
-    "electron:serve": "wait-on tcp:4200 && npm run electron:serve-tsc && npx electron . --serve",
+    "electron:serve": "wait-on tcp:4210 && npm run electron:serve-tsc && npx electron . --serve",
     "electron:local": "npm run build:prod && npx electron .",
     "electron:build": "npm run build:prod && electron-builder build --publish=never",
     "test": "ng test --watch=false",
@@ -43,6 +43,7 @@
   "dependencies": {
     "@electron/remote": "1.0.4",
     "@webosose/ares-cli": "2.1.0",
+    "electron-window-state": "5.0.3",
     "node-ssh": "11.1.1",
     "ssh2": "0.8.9"
   },

@@ -10,6 +10,13 @@ input, button, textarea, :focus {
     outline: none;
 }
 
+button, a {
+  cursor: pointer !important;
+  ::before {
+    cursor: pointer !important;
+  }
+}
+
 /* disable image and anchor dragging */
 a:not([draggable=true]), img:not([draggable=true]) {
     -webkit-user-drag: none;

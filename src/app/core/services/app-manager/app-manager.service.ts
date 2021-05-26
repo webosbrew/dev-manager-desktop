@@ -1,17 +1,20 @@
 import { Injectable } from '@angular/core';
 import * as install from '@webosose/ares-cli/lib/install';
+import * as launch from '@webosose/ares-cli/lib/launch';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ElectronService } from '../electron/electron.service';
 @Injectable({
   providedIn: 'root'
 })
-export class InstallManagerService {
+export class AppManagerService {
 
-  private installer: typeof install;
+  private installLib: typeof install;
+  private launchLib: typeof launch;
   private packagesSubjects: Map<string, BehaviorSubject<PackageInfo[]>>;
 
   constructor(electron: ElectronService) {
-    this.installer = electron.installer;
+    this.installLib = electron.installLib;
+    this.launchLib = electron.launchLib;
     this.packagesSubjects = new Map();
   }
 
@@ -25,7 +28,7 @@ export class InstallManagerService {
 
   async list(device: string): Promise<PackageInfo[]> {
     return new Promise((resolve, reject) => {
-      this.installer.list({ device }, (error: any, result: any[]) => {
+      this.installLib.list({ device }, (error: any, result: any[]) => {
         if (error instanceof Error) {
           reject(error);
         } else {
@@ -37,7 +40,7 @@ export class InstallManagerService {
 
   async install(device: string, path: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.installer.install({ device, appId: 'com.ares.defaultDame', opkg: false }, path, (error: any) => {
+      this.installLib.install({ device, appId: 'com.ares.defaultDame', opkg: false }, path, (error: any) => {
         if (error) {
           reject(error);
         } else {
@@ -49,7 +52,7 @@ export class InstallManagerService {
 
   async remove(device: string, pkgName: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.installer.remove({ device, opkg: false }, pkgName, (error: any) => {
+      this.installLib.remove({ device, opkg: false }, pkgName, (error: any) => {
         if (error) {
           reject(error);
         } else {
@@ -57,6 +60,30 @@ export class InstallManagerService {
         }
       });
     }).then(() => this.load(device));
+  }
+
+  async launch(device: string, appId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.launchLib.launch({ device, inspect: false }, appId, {}, (error: any) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(null);
+        }
+      });
+    })
+  }
+
+  async close(device: string, appId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.launchLib.close({ device, inspect: false }, appId, {}, (error: any) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(null);
+        }
+      });
+    })
   }
 
   private obtainSubject(device: string): BehaviorSubject<PackageInfo[]> {
