@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AutoLookupComponent } from './auto-lookup.component';
+import { AddDeviceComponent } from './add-device.component';
 
-describe('AutoLookupComponent', () => {
-  let component: AutoLookupComponent;
-  let fixture: ComponentFixture<AutoLookupComponent>;
+describe('AddDeviceComponent', () => {
+  let component: AddDeviceComponent;
+  let fixture: ComponentFixture<AddDeviceComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AutoLookupComponent ]
+      declarations: [ AddDeviceComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AutoLookupComponent);
+    fixture = TestBed.createComponent(AddDeviceComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

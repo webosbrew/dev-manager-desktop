@@ -1,22 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Device, DeviceEditSpec } from '../../../types/novacom';
-import { DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
-import { ElectronService } from '../../core/services/electron/electron.service';
-import { SetupStep } from '../device-setup.component';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { Device, DeviceEditSpec } from '../../types/novacom';
+import { DeviceManagerService } from '../core/services/device-manager/device-manager.service';
+import { ElectronService } from '../core/services/electron/electron.service';
 
 @Component({
   selector: 'app-info',
-  templateUrl: './info.component.html',
-  styleUrls: ['./info.component.scss']
+  templateUrl: './add-device.component.html',
+  styleUrls: ['./add-device.component.scss']
 })
-export class InfoComponent implements OnInit, SetupStep {
+export class AddDeviceComponent implements OnInit {
 
   formGroup: FormGroup;
 
-  isLastStep = false;
-
   constructor(
+    public modal: NgbActiveModal,
     private electron: ElectronService,
     private deviceManager: DeviceManagerService,
     fb: FormBuilder,
@@ -40,10 +39,6 @@ export class InfoComponent implements OnInit, SetupStep {
 
   get sshAuth(): string | null {
     return this.formGroup.get('sshAuth').value;
-  }
-
-  get canContinue(): boolean {
-    return this.formGroup.valid;
   }
 
   get setupInfo(): SetupInfo {

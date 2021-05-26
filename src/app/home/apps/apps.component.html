@@ -32,24 +32,21 @@
               <button class="btn" (click)="launchApp(pkg.id)">
                 <i class="bi bi-play-fill"></i>
               </button>
-              <button id="button-basic" dropdownToggle type="button" class="btn dropdown-toggle"
-                aria-controls="dropdown-basic">
-                Options <span class="caret"></span>
-              </button>
-              <ul id="dropdown-basic" *dropdownMenu class="dropdown-menu dropdown-menu-right" role="menu"
-                aria-labelledby="button-basic">
-                <li role="menuitem">
-                  <button class="dropdown-item">
+              <div class="btn-group" ngbDropdown display="dynamic" role="group"
+                aria-label="Button group with nested dropdown">
+                <button class="btn" ngbDropdownToggle>
+                  Options <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" ngbDropdownMenu>
+                  <li ngbDropdownItem>
                     <i class="bi bi-download mr-3"></i>Update
-                  </button>
-                </li>
-                <li class="divider dropdown-divider"></li>
-                <li role="menuitem">
-                  <button class="dropdown-item text-danger" (click)="removePackage(pkg.id)">
+                  </li>
+                  <li class="divider dropdown-divider"></li>
+                  <li ngbDropdownItem class="text-danger" (click)="removePackage(pkg.id)">
                     <i class="bi bi-trash mr-3"></i>Uninstall
-                  </button>
-                </li>
-              </ul>
+                  </li>
+                </ul>
+              </div>
             </div>
           </td>
         </tr>

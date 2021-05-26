@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { DeviceManagerService } from '../core/services/device-manager/device-manager.service';
-
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { AddDeviceComponent } from '../add-device/add-device.component';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -11,6 +12,7 @@ export class HomeComponent implements OnInit {
 
   constructor(
     public deviceManager: DeviceManagerService,
+    private modalService: NgbModal,
     private router: Router
   ) { }
 
@@ -30,6 +32,6 @@ export class HomeComponent implements OnInit {
   }
 
   openSetupDevice() {
-    this.router.navigateByUrl('/setup');
+    this.modalService.open(AddDeviceComponent, { size: 'lg', centered: true, scrollable: true });
   }
 }
