@@ -11,16 +11,16 @@ import { ElectronService } from '../electron/electron.service';
 export class DeviceManagerService {
 
   private novacom: typeof novacom;
-  private subject: BehaviorSubject<Device[]>;
+  private devicesSubject: BehaviorSubject<Device[]>;
 
   constructor(electron: ElectronService, private http: HttpClient) {
     this.novacom = electron.novacom;
-    this.subject = new BehaviorSubject([]);
+    this.devicesSubject = new BehaviorSubject([]);
     this.load();
   }
 
   get devices$(): Observable<Device[]> {
-    return this.subject.asObservable();
+    return this.devicesSubject.asObservable();
   }
 
   load() {
@@ -34,7 +34,6 @@ export class DeviceManagerService {
         if (error instanceof Error) {
           reject(error);
         } else {
-          console.log(resolver.devices);
           resolve(resolver.devices.sort((a, b) => a.name.localeCompare(b.name)));
         }
       });
@@ -128,7 +127,7 @@ export class DeviceManagerService {
   }
 
   private onDevicesUpdated(devices: Device[]) {
-    this.subject.next(devices);
+    this.devicesSubject.next(devices);
   }
 
   private newResolver(): Resolver {

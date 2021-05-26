@@ -14,7 +14,7 @@ export class InfoComponent implements OnInit, SetupStep {
 
   formGroup: FormGroup;
 
-  isLastStep: boolean = false;
+  isLastStep = false;
 
   constructor(
     private electron: ElectronService,
@@ -22,13 +22,13 @@ export class InfoComponent implements OnInit, SetupStep {
     fb: FormBuilder,
   ) {
     this.formGroup = fb.group({
-      name: ['tv', Validators.required],
-      address: ['', Validators.required],
-      port: ['9922', Validators.required],
+      name: ['tv'],
+      address: [''],
+      port: ['9922'],
       description: [],
       // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
       sshUsername: ['prisoner', Validators.pattern(/^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$/)],
-      sshAuth: ['devKey', Validators.required],
+      sshAuth: ['devKey'],
       sshPassword: [],
       sshPrivkey: [],
       sshPrivkeyPassphrase: [],

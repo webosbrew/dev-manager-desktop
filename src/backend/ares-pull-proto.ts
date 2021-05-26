@@ -4,7 +4,7 @@ import { Config, NodeSSH } from 'node-ssh';
 import { Device, Resolver } from '../types/novacom';
 
 export function AresPullProtoHandler(request: ProtocolRequest, callback: ((response: Buffer | ProtocolResponse) => void)): void {
-  let url = new URL(request.url);
+  const url = new URL(request.url);
   newSession(url.hostname).then(ssh => {
     ssh.exec('cat', [url.pathname], { stream: 'stdout', encoding: 'binary' }).then(stdout => {
       callback(Buffer.from(stdout, 'binary'));
@@ -18,7 +18,7 @@ export function AresPullProtoHandler(request: ProtocolRequest, callback: ((respo
 
 async function newSession(target: string): Promise<NodeSSH> {
   return new Promise<Device>((resolve, reject) => {
-    let resolver = new novacom.Resolver() as any as Resolver;
+    const resolver = new novacom.Resolver() as any as Resolver;
     resolver.load((error) => {
       if (error) {
         reject(error);
@@ -27,7 +27,7 @@ async function newSession(target: string): Promise<NodeSSH> {
       }
     });
   }).then(device => {
-    let config: Config = {
+    const config: Config = {
       host: device.host,
       port: device.port,
       username: device.username
