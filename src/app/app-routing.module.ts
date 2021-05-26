@@ -7,16 +7,21 @@ import { HomeComponent } from './home/home.component';
 import { DeviceSetupComponent } from './device-setup/device-setup.component';
 import { InfoComponent } from './device-setup/info/info.component';
 import { PageNotFoundComponent } from './shared/components/page-not-found/page-not-found.component';
+import { PrepareAccountComponent } from './device-setup/prepare-account/prepare-account.component';
+import { EnableDevmodeComponent } from './device-setup/enable-devmode/enable-devmode.component';
+import { InstallDevmodeComponent } from './device-setup/install-devmode/install-devmode.component';
+import { EnableKeyservComponent } from './device-setup/enable-keyserv/enable-keyserv.component';
+import { AutoLookupComponent } from './device-setup/auto-lookup/auto-lookup.component';
 
 
 const routes: Routes = [
   {
     path: '',
-    redirectTo: 'devices',
+    redirectTo: 'home',
     pathMatch: 'full'
   },
   {
-    path: 'devices', component: HomeComponent,
+    path: 'home', component: HomeComponent,
     children: [
       { path: 'apps', component: AppsComponent },
       { path: 'files', component: FilesComponent },
@@ -25,15 +30,20 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'devices/setup', component: DeviceSetupComponent,
+    path: 'setup', component: DeviceSetupComponent,
     children: [
+      { path: 'prepare-account', component: PrepareAccountComponent },
+      { path: 'install-devmode', component: InstallDevmodeComponent },
+      { path: 'enable-devmode', component: EnableDevmodeComponent },
+      { path: 'enable-keyserv', component: EnableKeyservComponent },
+      { path: 'auto-lookup', component: AutoLookupComponent },
       { path: 'info', component: InfoComponent },
-      { path: '', redirectTo: 'info', pathMatch: 'full' },
+      { path: '', redirectTo: 'prepare-account', pathMatch: 'full' },
     ]
   },
   {
     path: '**',
-    component: PageNotFoundComponent
+    redirectTo: 'home'
   }
 ];
 

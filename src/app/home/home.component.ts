@@ -30,6 +30,6 @@ export class HomeComponent implements OnInit {
   }
 
   openSetupDevice() {
-    this.router.navigateByUrl('/devices/setup');
+    this.router.navigateByUrl('/setup');
   }
 }
