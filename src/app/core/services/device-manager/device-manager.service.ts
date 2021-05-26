@@ -2,9 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from "@angular/core";
 import novacom from '@webosose/ares-cli/lib/base/novacom';
 import { BehaviorSubject, Observable } from "rxjs";
-import { Device, DeviceEditSpec, Resolver } from '../../../../types/novacom';
+import { Device, DeviceEditSpec, Resolver, Session } from '../../../../types/novacom';
 import { ElectronService } from '../electron/electron.service';
-
+import * as util from 'util';
+import { cleanupSession } from '../../../shared/util/ares-utils';
 @Injectable({
   providedIn: 'root'
 })
@@ -12,10 +13,12 @@ export class DeviceManagerService {
 
   private novacom: typeof novacom;
   private devicesSubject: BehaviorSubject<Device[]>;
+  private util: typeof util;
 
   constructor(electron: ElectronService, private http: HttpClient) {
     this.novacom = electron.novacom;
     this.devicesSubject = new BehaviorSubject([]);
+    this.util = electron.util;
     this.load();
   }
 
@@ -28,77 +31,37 @@ export class DeviceManagerService {
   }
 
   async list(): Promise<Device[]> {
-    return new Promise<Device[]>((resolve, reject) => {
-      let resolver = this.newResolver();
-      resolver.load((error: any) => {
-        if (error instanceof Error) {
-          reject(error);
-        } else {
-          resolve(resolver.devices.sort((a, b) => a.name.localeCompare(b.name)));
-        }
-      });
-    });
+    const resolver = this.newResolver();
+    const load = this.util.promisify(resolver.load);
+    return load.call(resolver).then(() => resolver.devices.sort((a, b) => a.name.localeCompare(b.name)));
   }
 
   async addDevice(spec: DeviceEditSpec): Promise<Device> {
-    return new Promise<any>((resolve, reject) => {
-      let resolver = this.newResolver();
-      resolver.modifyDeviceFile('add', spec, (error: any, result: any) => {
-        if (error instanceof Error) {
-          reject(error);
-        } else {
-          let devices = result as Device[];
-          this.onDevicesUpdated(devices);
-          resolve(devices.find((device) => spec.name == device.name));
-        }
-      });
+    return this.modifyDeviceFile('add', spec).then(devices => {
+      this.onDevicesUpdated(devices);
+      return devices.find((device) => spec.name == device.name);
     });
   }
 
   async modifyDevice(name: string, spec: Partial<DeviceEditSpec>): Promise<Device> {
-    return new Promise<any>((resolve, reject) => {
-      let resolver = this.newResolver();
-      let target = { name, ...spec };
-      resolver.modifyDeviceFile('modify', target, (error: any, result: any) => {
-        if (error instanceof Error) {
-          reject(error);
-        } else {
-          let devices = result as Device[];
-          this.onDevicesUpdated(devices);
-          resolve(devices.find((device) => spec.name == device.name));
-        }
-      });
+    let target = { name, ...spec };
+    return this.modifyDeviceFile('modify', target).then(devices => {
+      this.onDevicesUpdated(devices);
+      return devices.find((device) => spec.name == device.name);
     });
   }
 
   async setDefault(name: string): Promise<Device> {
-    return new Promise<any>((resolve, reject) => {
-      let resolver = this.newResolver();
-      let target = { name, default: true };
-      resolver.modifyDeviceFile('default', target, (error: any, result: any) => {
-        if (error instanceof Error) {
-          reject(error);
-        } else {
-          let devices = result as Device[];
-          this.onDevicesUpdated(devices);
-          resolve(devices.find((device) => name == device.name));
-        }
-      });
+    let target = { name, default: true };
+    return this.modifyDeviceFile('modify', target).then(devices => {
+      this.onDevicesUpdated(devices);
+      return devices.find((device) => name == device.name);
     });
   }
 
   async removeDevice(name: string): Promise<void> {
-    return new Promise<any>((resolve, reject) => {
-      let resolver = this.newResolver();
-      resolver.modifyDeviceFile('remove', { name }, (error: any, result: any) => {
-        if (error instanceof Error) {
-          reject(error);
-        } else {
-          let devices = result as Device[];
-          this.onDevicesUpdated(devices);
-          resolve(null);
-        }
-      });
+    return this.modifyDeviceFile('remove', { name }).then(devices => {
+      this.onDevicesUpdated(devices);
     });
   }
 
@@ -123,7 +86,13 @@ export class DeviceManagerService {
           resolve(JSON.parse(outStr) as DeviceInfo);
         }
       })
-    });
+    }).finally(() => cleanupSession());
+  }
+
+  private async modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>): Promise<Device[]> {
+    const resolver = this.newResolver();
+    const impl = this.util.promisify(resolver.modifyDeviceFile);
+    return impl.call(resolver, op, device);
   }
 
   private onDevicesUpdated(devices: Device[]) {
@@ -163,7 +132,3 @@ export interface DeviceInfo {
   webos_release_codename?: string
 }
 
-type RunOutput = WritableStream | Function | null;
-interface Session {
-  run(cmd: string, stdin: ReadableStream | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
-}

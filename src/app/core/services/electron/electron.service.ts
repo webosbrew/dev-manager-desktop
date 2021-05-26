@@ -10,7 +10,7 @@ import { ipcRenderer, webFrame } from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ssh2 from 'ssh2';
-
+import * as util from 'util';
 @Injectable({
   providedIn: 'root'
 })
@@ -21,6 +21,7 @@ export class ElectronService {
   childProcess: typeof childProcess;
   fs: typeof fs;
   path: typeof path;
+  util: typeof util;
   novacom: typeof novacom;
   installLib: typeof install;
   launchLib: typeof launch;
@@ -44,6 +45,7 @@ export class ElectronService {
       this.childProcess = window.require('child_process');
       this.fs = window.require('fs');
       this.path = window.require('path');
+      this.util = window.require('util');
       this.ssh2 = window.require('ssh2');
       this.novacom = window.require('@webosose/ares-cli/lib/base/novacom');
       this.installLib = window.require('@webosose/ares-cli/lib/install');

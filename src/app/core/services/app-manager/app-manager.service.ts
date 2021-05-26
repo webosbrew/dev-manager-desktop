@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
+import * as util from 'util';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ElectronService } from '../electron/electron.service';
+import { cleanupSession } from '../../../shared/util/ares-utils';
 @Injectable({
   providedIn: 'root'
 })
@@ -10,11 +12,13 @@ export class AppManagerService {
 
   private installLib: typeof install;
   private launchLib: typeof launch;
+  private util: typeof util;
   private packagesSubjects: Map<string, BehaviorSubject<PackageInfo[]>>;
 
   constructor(electron: ElectronService) {
     this.installLib = electron.installLib;
     this.launchLib = electron.launchLib;
+    this.util = electron.util;
     this.packagesSubjects = new Map();
   }
 
@@ -27,63 +31,36 @@ export class AppManagerService {
   }
 
   async list(device: string): Promise<PackageInfo[]> {
-    return new Promise((resolve, reject) => {
-      this.installLib.list({ device }, (error: any, result: any[]) => {
-        if (error instanceof Error) {
-          reject(error);
-        } else {
-          resolve(result.map(item => new PackageInfo(item)));
-        }
-      });
-    });
+    const list: (...args: any[]) => Promise<any[]> = this.util.promisify(this.installLib.list);
+    return list({ device })
+      .then((result: any[]) => result.map(item => new PackageInfo(item)))
+      .finally(() => cleanupSession());
   }
 
   async install(device: string, path: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.installLib.install({ device, appId: 'com.ares.defaultDame', opkg: false }, path, (error: any) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(null);
-        }
-      });
-    }).then(() => this.load(device));
+    const install = this.util.promisify(this.installLib.install);
+    return install({ device, appId: 'com.ares.defaultDame', opkg: false }, path)
+      .then(() => this.load(device))
+      .finally(() => cleanupSession());
   }
 
   async remove(device: string, pkgName: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.installLib.remove({ device, opkg: false }, pkgName, (error: any) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(null);
-        }
-      });
-    }).then(() => this.load(device));
+    const remove = this.util.promisify(this.installLib.remove);
+    return remove({ device, opkg: false }, pkgName)
+      .then(() => this.load(device))
+      .finally(() => cleanupSession());
   }
 
   async launch(device: string, appId: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.launchLib.launch({ device, inspect: false }, appId, {}, (error: any) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(null);
-        }
-      });
-    })
+    const launch = this.util.promisify(this.launchLib.launch);
+    return launch({ device, inspect: false }, appId, {})
+      .finally(() => cleanupSession());
   }
 
   async close(device: string, appId: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.launchLib.close({ device, inspect: false }, appId, {}, (error: any) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(null);
-        }
-      });
-    })
+    const close = this.util.promisify(this.launchLib.close);
+    return close({ device, inspect: false }, appId, {})
+      .finally(() => cleanupSession());
   }
 
   private obtainSubject(device: string): BehaviorSubject<PackageInfo[]> {

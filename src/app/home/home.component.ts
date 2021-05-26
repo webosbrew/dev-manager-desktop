@@ -3,11 +3,11 @@ import { Router } from '@angular/router';
 import { DeviceManagerService } from '../core/services/device-manager/device-manager.service';
 
 @Component({
-  selector: 'app-device-list',
-  templateUrl: './device-list.component.html',
-  styleUrls: ['./device-list.component.scss']
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss']
 })
-export class DeviceListComponent implements OnInit {
+export class HomeComponent implements OnInit {
 
   constructor(
     public deviceManager: DeviceManagerService,

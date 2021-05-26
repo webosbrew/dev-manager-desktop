@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Device } from '../../../../types/novacom';
-import { DeviceManagerService } from '../../../core/services/device-manager/device-manager.service';
-import { ElectronService } from '../../../core/services/electron/electron.service';
-import { AppManagerService, PackageInfo } from '../../../core/services/app-manager/app-manager.service';
+import { Device } from '../../../types/novacom';
+import { AppManagerService, PackageInfo } from '../../core/services/app-manager/app-manager.service';
+import { DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
+import { ElectronService } from '../../core/services/electron/electron.service';
 
 @Component({
   selector: 'app-apps',

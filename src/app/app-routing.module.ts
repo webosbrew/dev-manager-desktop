@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { AppsComponent } from './app/home/apps/apps.component';
-import { FilesComponent } from './app/home/files/files.component';
-import { TerminalComponent } from './app/home/terminal/terminal.component';
-import { DeviceListComponent } from './device-list/device-list.component';
+import { AppsComponent } from './home/apps/apps.component';
+import { FilesComponent } from './home/files/files.component';
+import { TerminalComponent } from './home/terminal/terminal.component';
+import { HomeComponent } from './home/home.component';
 import { DeviceSetupComponent } from './device-setup/device-setup.component';
 import { InfoComponent } from './device-setup/info/info.component';
 import { PageNotFoundComponent } from './shared/components/page-not-found/page-not-found.component';
@@ -16,7 +16,7 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'devices', component: DeviceListComponent,
+    path: 'devices', component: HomeComponent,
     children: [
       { path: 'apps', component: AppsComponent },
       { path: 'files', component: FilesComponent },
