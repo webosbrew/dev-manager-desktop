@@ -53,7 +53,7 @@ export class DeviceManagerService {
 
   async setDefault(name: string): Promise<Device> {
     let target = { name, default: true };
-    return this.modifyDeviceFile('modify', target).then(devices => {
+    return this.modifyDeviceFile('default', target).then(devices => {
       this.onDevicesUpdated(devices);
       return devices.find((device) => name == device.name);
     });

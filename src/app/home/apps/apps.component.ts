@@ -16,7 +16,7 @@ export class AppsComponent implements OnInit {
   packages$: Observable<PackageInfo[]>;
   device: Device;
   constructor(
-   private electron: ElectronService,
+    private electron: ElectronService,
     private deviceManager: DeviceManagerService,
     private appManager: AppManagerService
   ) {
@@ -67,7 +67,6 @@ export class AppsComponent implements OnInit {
   }
 
   async openInstallChooser() {
-    console.log('openInstallChooser');
     const open = await this.dialog.showOpenDialog(this.electron.remote.getCurrentWindow(), {
       filters: [{ name: 'IPK package', extensions: ['ipk'] }]
     });
