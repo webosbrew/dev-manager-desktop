@@ -1,15 +1,18 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-import { TranslateModule } from '@ngx-translate/core';
-
-import { PageNotFoundComponent } from './components/';
-import { WebviewDirective } from './directives/';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
+import { WebviewDirective } from './directives/';
+import { AresPullUriPipe } from './pipes/ares-pull-uri.pipe';
 
 @NgModule({
-  declarations: [PageNotFoundComponent, WebviewDirective],
+  declarations: [
+    PageNotFoundComponent,
+    WebviewDirective,
+    AresPullUriPipe,
+  ],
   imports: [CommonModule, TranslateModule, FormsModule],
-  exports: [TranslateModule, WebviewDirective, FormsModule]
+  exports: [TranslateModule, WebviewDirective, FormsModule, AresPullUriPipe]
 })
-export class SharedModule {}
+export class SharedModule { }

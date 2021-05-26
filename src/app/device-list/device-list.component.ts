@@ -13,7 +13,8 @@ export class DeviceListComponent implements OnInit {
   constructor(
     private deviceManager: DeviceManagerService,
     private installManager: InstallManagerService,
-    private router: Router) { }
+    private router: Router
+  ) { }
 
   ngOnInit(): void {
   }

@@ -14,11 +14,11 @@ export class InstallManagerService {
 
   async list(device: string): Promise<PackageInfo[]> {
     return new Promise((resolve, reject) => {
-      this.installer.list({ device }, (error: any, result: any) => {
+      this.installer.list({ device }, (error: any, result: any[]) => {
         if (error instanceof Error) {
           reject(error);
         } else {
-          resolve(result as PackageInfo[]);
+          resolve(result.map(item => new PackageInfo(item)));
         }
       });
     });
@@ -26,10 +26,22 @@ export class InstallManagerService {
 
 }
 
-export interface PackageInfo {
+export class PackageInfo {
   id: string;
   type: string;
+  title: string;
   appDescription?: string;
   vendor: string;
   version: string;
+  folderPath: string;
+  icon: string;
+
+  constructor(info: Partial<PackageInfo>) {
+    console.log(info);
+    Object.assign(this, info);
+  }
+
+  get iconPath(): string {
+    return `${this.folderPath}/${this.icon}`;
+  }
 }

@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from "@angular/core";
 import novacom from '@webosose/ares-cli/lib/base/novacom';
 import { BehaviorSubject, Observable } from "rxjs";
+import { Device, DeviceEditSpec, Resolver } from '../../../../types/novacom';
 import { ElectronService } from '../electron/electron.service';
 
 @Injectable({
@@ -33,7 +34,8 @@ export class DeviceManagerService {
         if (error instanceof Error) {
           reject(error);
         } else {
-          resolve(resolver.devices);
+          console.log(resolver.devices);
+          resolve(resolver.devices.sort((a, b) => a.name.localeCompare(b.name)));
         }
       });
     });
@@ -145,16 +147,6 @@ export class DeviceManagerService {
     });
   }
 }
-
-export interface Device {
-  name: string;
-  description: string;
-  host: string;
-  port: number;
-  indelible: boolean;
-  default: boolean;
-}
-
 export interface DeviceInfo {
   core_os_kernel_version?: string
   core_os_name?: string
@@ -171,28 +163,8 @@ export interface DeviceInfo {
   webos_release: string
   webos_release_codename?: string
 }
-export interface DeviceEditSpec {
-  name: string;
-  host: string;
-  port: number;
-  username: string;
-  profile: 'ose';
-  privateKey?: { openSsh: string };
-  passphrase?: string;
-  password?: string;
-
-  description?: string;
-  default?: boolean;
-}
-
 
 type RunOutput = WritableStream | Function | null;
-interface Resolver {
-  readonly devices: Device[];
-  load(next: (error: any, result: any) => void): void;
-  modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>, next: (error: any, result: any) => void): void;
-}
-
 interface Session {
   run(cmd: string, stdin: ReadableStream | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
 }

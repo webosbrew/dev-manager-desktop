@@ -1,0 +1,46 @@
+<table>
+  <colgroup>
+    <col class="w-100">
+    <col>
+    <col>
+  </colgroup>
+  <tbody>
+    <tr class="app-item" *ngFor="let pkg of packages">
+      <td class="app-desc">
+        <img class="app-icon" [src]="pkg.iconPath | aresPullUri:device.name">
+        <div class="app-headline ml-3">
+          <div class="app-title">{{pkg.title}}</div>
+          <div class="app-description">{{pkg.appDescription}}</div>
+        </div>
+      </td>
+      <td>
+        <span>{{pkg.version}}</span>
+      </td>
+      <td>
+        <div class="btn-group ml-2" dropdown>
+          <button class="btn">
+            <i class="bi bi-play-fill"></i>
+          </button>
+          <button id="button-basic" dropdownToggle type="button" class="btn dropdown-toggle"
+            aria-controls="dropdown-basic">
+            Options <span class="caret"></span>
+          </button>
+          <ul id="dropdown-basic" *dropdownMenu class="dropdown-menu dropdown-menu-right" role="menu"
+            aria-labelledby="button-basic">
+            <li role="menuitem">
+              <button class="dropdown-item">
+                <i class="bi bi-download mr-3"></i>Update
+              </button>
+            </li>
+            <li class="divider dropdown-divider"></li>
+            <li role="menuitem" *ngIf="!device.indelible">
+              <button class="dropdown-item text-danger" (click)="removeDevice(device.name)">
+                <i class="bi bi-trash mr-3"></i>Uninstall
+              </button>
+            </li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

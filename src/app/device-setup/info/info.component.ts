@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Device, DeviceEditSpec, DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
+import { Device, DeviceEditSpec } from '../../../types/novacom';
+import { DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
 import { ElectronService } from '../../core/services/electron/electron.service';
 import { SetupStep } from '../device-setup.component';
 

@@ -14,6 +14,9 @@ import { DeviceListComponent } from './device-list/device-list.component';
 import { DeviceSetupComponent } from './device-setup/device-setup.component';
 import { InfoComponent } from './device-setup/info/info.component';
 import { SharedModule } from './shared/shared.module';
+import { AppsComponent } from './app/home/apps/apps.component';
+import { FilesComponent } from './app/home/files/files.component';
+import { TerminalComponent } from './app/home/terminal/terminal.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -25,7 +28,10 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppComponent,
     DeviceListComponent,
     DeviceSetupComponent,
-    InfoComponent
+    InfoComponent,
+    AppsComponent,
+    FilesComponent,
+    TerminalComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,60 +1,63 @@
-<table class="table">
-  <colgroup>
-    <col>
-    <col>
-    <col>
-    <col class="w-100">
-  </colgroup>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>IP</th>
-      <th>Port</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tr *ngFor="let device of (deviceManager.devices$ | async)">
-    <td [class.font-weight-bold]="device.default">{{device.name}}</td>
-    <td>{{device.host}}</td>
-    <td>{{device.port}}</td>
-    <td class="text-right">
-      <!-- <button class="btn btn-primary">
-        <i class="bi bi-terminal"></i>
-      </button> -->
-      <!-- <button class="btn ml-2">
-        <i class="bi bi-pencil"></i>
-      </button> -->
-      <div class="btn-group ml-2" dropdown>
-        <button id="button-basic" dropdownToggle type="button" class="btn dropdown-toggle"
-          aria-controls="dropdown-basic">
-          Options <span class="caret"></span>
-        </button>
-        <ul id="dropdown-basic" *dropdownMenu class="dropdown-menu dropdown-menu-right" role="menu"
-          aria-labelledby="button-basic">
-          <li role="menuitem">
-            <button class="dropdown-item" (click)="installHbChannel(device.name)">
-              <i class="bi bi-download mr-3"></i>Install Homebrew
-            </button>
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-3 d-none d-md-block bg-light sidebar">
+      <div class="sidebar-sticky">
+        <select class="form-control" (change)="markDefault($event.target.value)">
+          <option *ngFor="let device of (deviceManager.devices$ | async)" [selected]="device.default"
+            [value]="device.name">
+            {{device.name}}
+          </option>
+        </select>
+
+        <ul class="nav flex-column mt-2">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="apps" routerLinkActive="active">
+              <i class="bi bi-window-dock mr-1"></i>
+              Apps
+            </a>
           </li>
-          <li class="divider dropdown-divider"></li>
-          <li role="menuitem" *ngIf="!device.default">
-            <button class="dropdown-item" (click)="markDefault(device.name)">
-              <i class="bi bi-check-lg mr-3"></i>Set Default
-            </button>
+          <!-- <li class="nav-item">
+            <a class="nav-link" routerLink="files" routerLinkActive="active">
+              <i class="bi bi-folder-fill mr-1"></i>
+              Files
+            </a>
           </li>
-          <li role="menuitem">
-            <button class="dropdown-item">
-              <i class="bi bi-pencil mr-3"></i>Edit
-            </button>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="terminal" routerLinkActive="active">
+              <i class="bi bi-terminal-fill mr-1"></i>
+              Terminal
+            </a>
           </li>
-          <li role="menuitem" *ngIf="!device.indelible">
-            <button class="dropdown-item text-danger" (click)="removeDevice(device.name)">
-              <i class="bi bi-trash mr-3"></i>Delete
-            </button>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="info" routerLinkActive="active">
+              <i class="bi bi-info-circle-fill mr-1"></i>
+              Info
+            </a>
+          </li> -->
+        </ul>
+
+        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+          <span>Options</span>
+        </h6>
+        <ul class="nav flex-column mb-2">
+          <li class="nav-item">
+            <a class="nav-link" href (click)="!!openSetupDevice()">
+              <i class="bi bi-tv-fill mr-1"></i>
+              Setup Device
+            </a>
           </li>
+          <!-- <li class="nav-item">
+            <a class="nav-link" href="#">
+              <i class="bi bi-gear-fill mr-1"></i>
+              Settings
+            </a>
+          </li> -->
         </ul>
       </div>
-    </td>
-  </tr>
-</table>
-<button class="btn" (click)="openSetupDevice()">Setup device</button>
+    </nav>
+
+    <main role="main" class="col-md-8 ml-sm-auto col-lg-9 p-4">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

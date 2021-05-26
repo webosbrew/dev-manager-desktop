@@ -1,6 +1,8 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, protocol } from 'electron';
+import { ProtocolRequest, ProtocolResponse } from 'electron/main';
 import * as path from 'path';
 import * as url from 'url';
+import { AresPullProtoHandler } from './src/backend/ares-pull-proto';
 
 // Initialize remote module
 require('@electron/remote/main').initialize();
@@ -10,10 +12,6 @@ const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
 
 function createWindow(): BrowserWindow {
-
-  const electronScreen = screen;
-  const size = electronScreen.getPrimaryDisplay().workAreaSize;
-
   // Create the browser window.
   win = new BrowserWindow({
     x: 0,
@@ -25,7 +23,7 @@ function createWindow(): BrowserWindow {
       nodeIntegration: true,
       allowRunningInsecureContent: (serve) ? true : false,
       contextIsolation: false,  // false if you want to run 2e2 test with Spectron
-      enableRemoteModule : true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
+      enableRemoteModule: true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
     },
   });
   win.setMenuBarVisibility(false);
@@ -64,6 +62,10 @@ try {
   // Some APIs can only be used after this event occurs.
   // Added 400 ms to fix the black background issue while using transparent window. More detais at https://github.com/electron/electron/issues/15947
   app.on('ready', () => setTimeout(createWindow, 400));
+
+  app.whenReady().then(() => {
+    protocol.registerBufferProtocol('ares-pull', AresPullProtoHandler);
+  });
 
   // Quit when all windows are closed.
   app.on('window-all-closed', () => {

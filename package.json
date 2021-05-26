@@ -43,6 +43,7 @@
   "dependencies": {
     "@electron/remote": "1.0.4",
     "@webosose/ares-cli": "2.1.0",
+    "node-ssh": "11.1.1",
     "ssh2": "0.8.9"
   },
   "devDependencies": {

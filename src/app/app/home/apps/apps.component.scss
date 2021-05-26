@@ -1,0 +1,29 @@
+tr.app-item {
+
+  td.app-desc {
+    display: flex;
+    flex-flow: row;
+    min-height: 60px;
+    vertical-align: middle;
+
+    img.app-icon {
+      width: 48px;
+      height: 48px;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+
+    .app-headline {
+      margin-top: auto;
+      margin-bottom: auto;
+
+      .app-title {
+        font-weight: bold;
+        font-size: larger;
+      }
+      .app-descrption {
+      }
+    }
+  }
+
+}
