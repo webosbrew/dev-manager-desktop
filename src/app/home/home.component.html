@@ -42,8 +42,14 @@
         <ul class="nav flex-column mb-2">
           <li class="nav-item">
             <a class="nav-link" (click)="openSetupDevice()">
-              <i class="bi bi-tv-fill mr-1"></i>
-              Setup Device
+              <i class="bi bi-plus-lg mr-1"></i>
+              Add Device
+            </a>
+          </li>
+          <li class="nav-item" *ngIf="selectedDevice && !selectedDevice.indelible">
+            <a class="nav-link text-danger" (click)="removeDevice(selectedDevice.name)">
+              <i class="bi bi-trash mr-1"></i>
+              Remove Device
             </a>
           </li>
           <!-- <li class="nav-item">

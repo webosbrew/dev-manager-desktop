@@ -45,7 +45,7 @@ export class AddDeviceComponent implements OnInit {
     return this.formGroup.value as SetupInfo;
   }
 
-  async onContinue(): Promise<void> {
+  async addDevice(): Promise<void> {
     let path = this.electron.path;
     let fs = this.electron.fs;
     let ssh2 = this.electron.ssh2;
@@ -75,6 +75,7 @@ export class AddDeviceComponent implements OnInit {
       }
     }
     // Close setup wizard
+    this.modal.close(added);
   }
 
   private async confirmOverwritePrivKey(name: string): Promise<boolean> {
