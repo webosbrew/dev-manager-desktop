@@ -2,7 +2,6 @@
 // the resulting javascript file will look as if you never imported the module at all.
 
 import { Injectable } from '@angular/core';
-import * as remote from '@electron/remote';
 import * as novacom from '@webosose/ares-cli/lib/base/novacom';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as childProcess from 'child_process';
@@ -17,7 +16,7 @@ import * as ssh2 from 'ssh2';
 export class ElectronService {
   ipcRenderer: typeof ipcRenderer;
   webFrame: typeof webFrame;
-  remote: typeof remote;
+  remote: Electron.Remote;
   childProcess: typeof childProcess;
   fs: typeof fs;
   path: typeof path;
@@ -32,11 +31,12 @@ export class ElectronService {
   constructor() {
     // Conditional imports
     if (this.isElectron) {
-      this.ipcRenderer = window.require('electron').ipcRenderer;
-      this.webFrame = window.require('electron').webFrame;
+      const electron = window.require('electron');
+      this.ipcRenderer = electron.ipcRenderer;
+      this.webFrame = electron.webFrame;
+      this.remote = window.require('@electron/remote');
 
       // If you want to use remote object in renderer process, please set enableRemoteModule to true in main.ts
-      // this.remote = window.require('@electron/remote');
       // console.log('remote - globalShortcut', this.remote.globalShortcut);
 
       this.childProcess = window.require('child_process');

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Device } from '../../../../types/novacom';
 import { DeviceManagerService } from '../../../core/services/device-manager/device-manager.service';
+import { ElectronService } from '../../../core/services/electron/electron.service';
 import { InstallManagerService, PackageInfo } from '../../../core/services/install-manager/install-manager.service';
 
 @Component({
@@ -11,12 +12,15 @@ import { InstallManagerService, PackageInfo } from '../../../core/services/insta
 })
 export class AppsComponent implements OnInit {
 
+  dialog: Electron.Dialog;
   packages$: Observable<PackageInfo[]>;
   device: Device;
   constructor(
+   private electron: ElectronService,
     private deviceManager: DeviceManagerService,
     private installManager: InstallManagerService
   ) {
+    this.dialog = electron.remote.dialog;
     deviceManager.devices$.subscribe((devices) => {
       let device = devices.find((dev) => dev.default);
       if (device) {
@@ -60,6 +64,18 @@ export class AppsComponent implements OnInit {
     this.installManager.install(this.device.name, file.path).then(() => {
       console.log('Package installed');
     });
+  }
+
+  async openInstallChooser() {
+    console.log('openInstallChooser');
+    const open = await this.dialog.showOpenDialog(this.electron.remote.getCurrentWindow(), {
+      filters: [{ name: 'IPK package', extensions: ['ipk'] }]
+    });
+    if (open.canceled) {
+      return;
+    }
+    const path = open.filePaths[0];
+    await this.installManager.install(this.device.name, path);
   }
 
   removePackage(id: string) {
