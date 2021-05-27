@@ -1,8 +1,8 @@
 import { app, BrowserWindow, protocol } from 'electron';
+import * as windowStateKeeper from 'electron-window-state';
 import * as path from 'path';
 import * as url from 'url';
-import { AresPullProtoHandler } from './backend/ares-pull-proto';
-import * as windowStateKeeper from 'electron-window-state';
+import { AresPullProtoHandler } from './src/backend/ares-pull-proto';
 // Initialize remote module
 require('@electron/remote/main').initialize();
 

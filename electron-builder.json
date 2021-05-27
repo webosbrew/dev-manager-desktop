@@ -1,5 +1,5 @@
 {
-  "productName": "angular-electron",
+  "productName": "webos-dev-manager",
   "directories": {
     "output": "release/"
   },
@@ -23,7 +23,8 @@
     "!.eslintrc.json",
     "!karma.conf.js",
     "!angular.webpack.js",
-    "!*.map"
+    "!*.map",
+    "src/backend/**/*"
   ],
   "win": {
     "icon": "dist/assets/icons",

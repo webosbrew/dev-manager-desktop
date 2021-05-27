@@ -18,7 +18,7 @@
   },
   "include": [
     "main.ts",
-    "backend/**/*.ts",
+    "src/backend/**/*.ts",
   ],
   "exclude": [
     "node_modules",
