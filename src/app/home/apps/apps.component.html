@@ -1,4 +1,5 @@
-<div class="w-100 h-100">
+<div class="w-100 h-100" (drop)="dropFiles($event)" (dragover)="onDragOver($event)" (dragenter)="onDragEnter($event)"
+  (dragleave)="onDragLeave($event)">
   <nav class="navbar navbar-light sticky-top bg-light">
     <div class="mr-auto"></div>
     <form class="form-inline">
@@ -7,8 +8,7 @@
       </button>
     </form>
   </nav>
-  <div class="m-3" (drop)="dropFiles($event)" (dragover)="onDragOver($event)" (dragenter)="onDragEnter($event)"
-    (dragleave)="onDragLeave($event)">
+  <div class="m-3">
     <table>
       <colgroup>
         <col class="w-100">
@@ -42,7 +42,7 @@
                     <i class="bi bi-download mr-3"></i>Update
                   </li>
                   <li class="divider dropdown-divider"></li>
-                  <li ngbDropdownItem class="text-danger" (click)="removePackage(pkg.id)">
+                  <li ngbDropdownItem class="text-danger" (click)="removePackage(pkg)">
                     <i class="bi bi-trash mr-3"></i>Uninstall
                   </li>
                 </ul>

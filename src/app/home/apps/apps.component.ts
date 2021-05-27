@@ -91,9 +91,12 @@ export class AppsComponent implements OnInit {
     this.appManager.launch(this.device.name, id);
   }
 
-  removePackage(id: string) {
-    this.appManager.remove(this.device.name, id).then(() => {
-      console.log(`Package ${id} removed`);
+  async removePackage(pkg: PackageInfo) {
+    let ref = MessageDialogComponent.open(this.modalService, {
+      title: this.translate.instant('MESSAGES.TITLE_REMOVE_APP'),
+      message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_APP', { name: pkg.title }),
     })
+    if (!await ref.result) return;
+    await this.appManager.remove(this.device.name, pkg.id);
   }
 }
