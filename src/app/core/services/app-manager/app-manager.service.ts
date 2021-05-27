@@ -27,7 +27,9 @@ export class AppManagerService {
   }
 
   load(device: string) {
-    this.list(device).then(pkgs => this.onPackagesUpdated(device, pkgs));
+    this.list(device)
+      .then(pkgs => this.onPackagesUpdated(device, pkgs))
+      .catch((error: any) => this.obtainSubject(device).error(error));
   }
 
   async list(device: string): Promise<PackageInfo[]> {

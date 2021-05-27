@@ -15,7 +15,9 @@ export class MessageDialogComponent implements OnInit, MessageDialogConfig {
   }
 
   static open(service: NgbModal, config: MessageDialogConfig): NgbModalRef {
-    const ref = service.open(MessageDialogComponent);
+    const ref = service.open(MessageDialogComponent, {
+      centered: true
+    });
     Object.assign(ref.componentInstance, config);
     return ref;
   }
@@ -25,4 +27,6 @@ export class MessageDialogComponent implements OnInit, MessageDialogConfig {
 interface MessageDialogConfig {
   title?: string;
   message?: string;
+  negative?: string | null;
+  positive?: string | null;
 }

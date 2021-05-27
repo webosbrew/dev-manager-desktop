@@ -4,7 +4,9 @@ import { Device } from '../../../types/novacom';
 import { AppManagerService, PackageInfo } from '../../core/services/app-manager/app-manager.service';
 import { DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
 import { ElectronService } from '../../core/services/electron/electron.service';
-
+import { MessageDialogComponent } from '../../shared/components/message-dialog/message-dialog.component';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-apps',
   templateUrl: './apps.component.html',
@@ -17,6 +19,8 @@ export class AppsComponent implements OnInit {
   device: Device;
   constructor(
     private electron: ElectronService,
+    private modalService: NgbModal,
+    private translate: TranslateService,
     private deviceManager: DeviceManagerService,
     private appManager: AppManagerService
   ) {
@@ -25,6 +29,12 @@ export class AppsComponent implements OnInit {
       let device = devices.find((dev) => dev.default);
       if (device) {
         this.packages$ = this.appManager.packages$(device.name);
+        this.packages$.subscribe(() => { }, (error) => {
+          MessageDialogComponent.open(modalService, {
+            title: translate.instant('MESSAGES.TITLE_CONNECTION_ERROR'),
+            message: translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name })
+          })
+        });
         this.appManager.load(device.name);
       } else {
         this.packages$ = null;

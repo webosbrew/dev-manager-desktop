@@ -33,7 +33,9 @@ export class DeviceManagerService {
   async list(): Promise<Device[]> {
     const resolver = this.newResolver();
     const load = this.util.promisify(resolver.load);
-    return load.call(resolver).then(() => resolver.devices.sort((a, b) => a.name.localeCompare(b.name)));
+    return load.call(resolver)
+      .then(() => resolver.devices.sort((a, b) => a.name.localeCompare(b.name)))
+      .catch((error: any) => this.devicesSubject.error(error));
   }
 
   async addDevice(spec: DeviceEditSpec): Promise<Device> {
