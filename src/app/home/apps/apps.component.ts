@@ -1,12 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
-import { Device } from '../../../types/novacom';
-import { AppManagerService, PackageInfo } from '../../core/services/app-manager/app-manager.service';
-import { DeviceManagerService } from '../../core/services/device-manager/device-manager.service';
-import { ElectronService } from '../../core/services/electron/electron.service';
-import { MessageDialogComponent } from '../../shared/components/message-dialog/message-dialog.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
+import { Observable } from 'rxjs';
+import { Device } from '../../../types/novacom';
+import { AppManagerService, DeviceManagerService, ElectronService, PackageInfo } from '../../core/services';
+import { MessageDialogComponent } from '../../shared/components/message-dialog/message-dialog.component';
 @Component({
   selector: 'app-apps',
   templateUrl: './apps.component.html',

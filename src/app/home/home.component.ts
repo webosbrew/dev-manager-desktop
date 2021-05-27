@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { DeviceManagerService } from '../core/services/device-manager/device-manager.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { AddDeviceComponent } from '../add-device/add-device.component';
-import { Device } from '../../types/novacom';
-import { MessageDialogComponent } from '../shared/components/message-dialog/message-dialog.component';
 import { TranslateService } from '@ngx-translate/core';
+import { Device } from '../../types/novacom';
+import { AddDeviceComponent } from '../add-device/add-device.component';
+import { DeviceManagerService } from '../core/services';
+import { MessageDialogComponent } from '../shared/components/message-dialog/message-dialog.component';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',

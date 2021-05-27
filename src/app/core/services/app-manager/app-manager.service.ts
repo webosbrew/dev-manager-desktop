@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
-import * as util from 'util';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ElectronService } from '../electron/electron.service';
+import * as util from 'util';
+import { ElectronService } from '..';
 import { cleanupSession } from '../../../shared/util/ares-utils';
 @Injectable({
   providedIn: 'root'

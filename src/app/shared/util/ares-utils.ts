@@ -4,7 +4,7 @@ function isNovacomListener(f: any): boolean {
   return f.prototype != null;
 }
 
-export function cleanupSession() {
+export function cleanupSession(): void {
   const emitter: EventEmitter = process;
   for (const ev of ['SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGTERM', 'exit']) {
     emitter.listeners(ev)
