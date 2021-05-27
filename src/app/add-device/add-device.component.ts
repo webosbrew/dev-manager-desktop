@@ -3,8 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
 import { Device, DeviceEditSpec } from '../../types/novacom';
-import { DeviceManagerService } from '../core/services/device-manager/device-manager.service';
-import { ElectronService } from '../core/services/electron/electron.service';
+import { DeviceManagerService, ElectronService } from '../core/services';
 import { MessageDialogComponent } from '../shared/components/message-dialog/message-dialog.component';
 
 @Component({

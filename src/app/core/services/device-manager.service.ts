@@ -2,10 +2,10 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from "@angular/core";
 import novacom from '@webosose/ares-cli/lib/base/novacom';
 import { BehaviorSubject, Observable } from "rxjs";
-import { Device, DeviceEditSpec, Resolver, Session } from '../../../../types/novacom';
-import { ElectronService } from '../electron/electron.service';
+import { Device, DeviceEditSpec, Resolver, Session } from '../../../types/novacom';
+import { ElectronService } from './electron.service';
 import * as util from 'util';
-import { cleanupSession } from '../../../shared/util/ares-utils';
+import { cleanupSession } from '../../shared/util/ares-utils';
 @Injectable({
   providedIn: 'root'
 })

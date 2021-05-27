@@ -3,8 +3,8 @@ import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
 import { BehaviorSubject, Observable } from 'rxjs';
 import * as util from 'util';
-import { ElectronService } from '..';
-import { cleanupSession } from '../../../shared/util/ares-utils';
+import { ElectronService } from './electron.service';
+import { cleanupSession } from '../../shared/util/ares-utils';
 @Injectable({
   providedIn: 'root'
 })

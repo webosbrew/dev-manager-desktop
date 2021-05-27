@@ -1,6 +1,3 @@
-import { AppManagerService, PackageInfo } from "./app-manager/app-manager.service";
-import { DeviceManagerService } from "./device-manager/device-manager.service";
-import { ElectronService } from "./electron/electron.service";
-
-export { AppManagerService, DeviceManagerService, ElectronService, PackageInfo };
-
+export * from "./app-manager.service";
+export * from "./device-manager.service";
+export * from "./electron.service";
