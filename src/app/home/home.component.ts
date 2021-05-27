@@ -23,15 +23,15 @@ export class HomeComponent implements OnInit {
   ) {
     deviceManager.devices$.subscribe((devices) => {
       this.selectedDevice = devices.find((device) => device.default);
-    })
+    });
   }
 
   ngOnInit(): void {
   }
 
-  async removeDevice(name: string) {
+  async removeDevice(name: string): Promise<void> {
     try {
-      let ref = MessageDialogComponent.open(this.modalService, {
+      const ref = MessageDialogComponent.open(this.modalService, {
         title: this.translate.instant('MESSAGES.TITLE_REMOVE_DEVICE'),
         message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_DEVICE', { name })
       });
@@ -44,13 +44,13 @@ export class HomeComponent implements OnInit {
     await this.deviceManager.removeDevice(name);
   }
 
-  markDefault(name: string) {
+  markDefault(name: string): void {
     this.deviceManager.setDefault(name).catch(reason => {
       console.log(reason);
     });
   }
 
-  openSetupDevice() {
+  openSetupDevice(): void {
     this.modalService.open(AddDeviceComponent, { size: 'lg', centered: true, scrollable: true });
   }
 }

@@ -12,7 +12,7 @@ const args = process.argv.slice(1),
 
 function createWindow(): BrowserWindow {
   // Create the browser window.
-  let mainWindowState = windowStateKeeper({
+  const mainWindowState = windowStateKeeper({
     defaultWidth: 1024,
     defaultHeight: 720
   });

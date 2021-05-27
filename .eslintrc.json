@@ -5,6 +5,10 @@
     "es6": true,
     "es2017": true
   },
+  "ignorePatterns": [
+    "**/*.e2e.ts",
+    "**/*.spec.ts"
+  ],
   "overrides": [
     {
       "files": [

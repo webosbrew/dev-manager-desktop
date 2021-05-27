@@ -59,13 +59,13 @@ export class AddDeviceComponent implements OnInit {
   }
 
   private async doAddDevice(): Promise<Device> {
-    let path = this.electron.path;
-    let fs = this.electron.fs;
-    let ssh2 = this.electron.ssh2;
-    let value = this.setupInfo;
-    let spec = toDeviceSpec(value);
+    const path = this.electron.path;
+    const fs = this.electron.fs;
+    const ssh2 = this.electron.ssh2;
+    const value = this.setupInfo;
+    const spec = toDeviceSpec(value);
     if (value.sshAuth == 'devKey') {
-      let keyPath = path.join(path.resolve(process.env.HOME || process.env.USERPROFILE, '.ssh'), spec.privateKey.openSsh);
+      const keyPath = path.join(path.resolve(process.env.HOME || process.env.USERPROFILE, '.ssh'), spec.privateKey.openSsh);
       let writePrivKey = true;
       if (fs.existsSync(keyPath)) {
         // Show alert to prompt for overwrite
@@ -73,13 +73,13 @@ export class AddDeviceComponent implements OnInit {
       }
       if (writePrivKey) {
         // Fetch SSH privKey
-        let privKey = await this.deviceManager.getPrivKey(value.address);
+        const privKey = await this.deviceManager.getPrivKey(value.address);
         // Throw error if key parse failed
         ssh2.utils.parseKey(privKey, spec.passphrase);
         fs.writeFileSync(keyPath, privKey);
       }
     }
-    let added = await this.deviceManager.addDevice(spec);
+    const added = await this.deviceManager.addDevice(spec);
     try {
       console.log(added);
       const info = await this.deviceManager.deviceInfo(added.name);
@@ -97,7 +97,7 @@ export class AddDeviceComponent implements OnInit {
   }
 
   private async confirmOverwritePrivKey(name: string): Promise<boolean> {
-    let ref = MessageDialogComponent.open(this.modalService, {
+    const ref = MessageDialogComponent.open(this.modalService, {
       title: this.translate.instant('MESSAGES.TITLE_OVERWRITE_PRIVKEY'),
       message: this.translate.instant('MESSAGES.CONFIRM_OVERWRITE_PRIVKEY', { name })
     });
@@ -105,7 +105,7 @@ export class AddDeviceComponent implements OnInit {
   }
 
   private async confirmVerificationFailure(added: Device, e: Error): Promise<boolean> {
-    let ref = MessageDialogComponent.open(this.modalService, {
+    const ref = MessageDialogComponent.open(this.modalService, {
       title: this.translate.instant('MESSAGES.TITLE_VERIFICATION_FAILED'),
       message: this.translate.instant('MESSAGES.CONFIRM_VERIFICATION_FAILED')
     });
@@ -127,7 +127,7 @@ interface SetupInfo {
 }
 
 function toDeviceSpec(value: SetupInfo): DeviceEditSpec {
-  var spec: DeviceEditSpec = {
+  const spec: DeviceEditSpec = {
     name: value.name,
     port: value.port,
     host: value.address,

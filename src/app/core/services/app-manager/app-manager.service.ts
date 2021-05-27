@@ -34,34 +34,34 @@ export class AppManagerService {
 
   async list(device: string): Promise<PackageInfo[]> {
     const list: (...args: any[]) => Promise<any[]> = this.util.promisify(this.installLib.list);
-    return list({ device })
+    return await list({ device })
       .then((result: any[]) => result.map(item => new PackageInfo(item)))
       .finally(() => cleanupSession());
   }
 
   async install(device: string, path: string): Promise<void> {
     const install = this.util.promisify(this.installLib.install);
-    return install({ device, appId: 'com.ares.defaultDame', opkg: false }, path)
+    return await install({ device, appId: 'com.ares.defaultDame', opkg: false }, path)
       .then(() => this.load(device))
       .finally(() => cleanupSession());
   }
 
   async remove(device: string, pkgName: string): Promise<void> {
-    const remove = this.util.promisify(this.installLib.remove);
-    return remove({ device, opkg: false }, pkgName)
+    const remove: (...args: any[]) => Promise<void> = this.util.promisify(this.installLib.remove);
+    return await remove({ device, opkg: false }, pkgName)
       .then(() => this.load(device))
       .finally(() => cleanupSession());
   }
 
   async launch(device: string, appId: string): Promise<void> {
-    const launch = this.util.promisify(this.launchLib.launch);
-    return launch({ device, inspect: false }, appId, {})
+    const launch: (...args: any[]) => Promise<void> = this.util.promisify(this.launchLib.launch);
+    return await launch({ device, inspect: false }, appId, {})
       .finally(() => cleanupSession());
   }
 
   async close(device: string, appId: string): Promise<void> {
-    const close = this.util.promisify(this.launchLib.close);
-    return close({ device, inspect: false }, appId, {})
+    const close: (...args: any[]) => Promise<void> = this.util.promisify(this.launchLib.close);
+    return await close({ device, inspect: false }, appId, {})
       .finally(() => cleanupSession());
   }
 

@@ -33,7 +33,7 @@ export interface Resolver {
   modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>, next: (error: any, result: any) => void): void;
 }
 
-export type RunOutput = WritableStream | Function | null;
+export type RunOutput = WritableStream | ((buf: Buffer) => void) | null;
 export interface Session {
   run(cmd: string, stdin: ReadableStream | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
 }

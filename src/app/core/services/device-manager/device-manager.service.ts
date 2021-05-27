@@ -26,14 +26,14 @@ export class DeviceManagerService {
     return this.devicesSubject.asObservable();
   }
 
-  load() {
+  load(): void {
     this.list().then(devices => this.onDevicesUpdated(devices));
   }
 
   async list(): Promise<Device[]> {
     const resolver = this.newResolver();
-    const load = this.util.promisify(resolver.load);
-    return load.call(resolver)
+    const load = this.util.promisify(resolver.load.bind(resolver));
+    return await load()
       .then(() => resolver.devices.sort((a, b) => a.name.localeCompare(b.name)))
       .catch((error: any) => this.devicesSubject.error(error));
   }
@@ -46,7 +46,7 @@ export class DeviceManagerService {
   }
 
   async modifyDevice(name: string, spec: Partial<DeviceEditSpec>): Promise<Device> {
-    let target = { name, ...spec };
+    const target = { name, ...spec };
     return this.modifyDeviceFile('modify', target).then(devices => {
       this.onDevicesUpdated(devices);
       return devices.find((device) => spec.name == device.name);
@@ -54,7 +54,7 @@ export class DeviceManagerService {
   }
 
   async setDefault(name: string): Promise<Device> {
-    let target = { name, default: true };
+    const target = { name, default: true };
     return this.modifyDeviceFile('default', target).then(devices => {
       this.onDevicesUpdated(devices);
       return devices.find((device) => name == device.name);
@@ -74,8 +74,8 @@ export class DeviceManagerService {
   }
 
   async deviceInfo(name: string): Promise<DeviceInfo> {
-    return await this.newSession(name).then(session => new Promise<DeviceInfo>(async (resolve, reject) => {
-      var outStr = '', errStr = '';
+    return await this.newSession(name).then(session => new Promise<DeviceInfo>((resolve, reject) => {
+      let outStr = '', errStr = '';
       session.run('cat /var/run/nyx/os_info.json', null, (stdout: Buffer) => {
         outStr += stdout.toString();
       }, (stderr: Buffer) => {
@@ -86,14 +86,14 @@ export class DeviceManagerService {
         } else {
           resolve(JSON.parse(outStr) as DeviceInfo);
         }
-      })
+      });
     })).finally(() => cleanupSession());
   }
 
   private async modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>): Promise<Device[]> {
     const resolver = this.newResolver();
-    const impl = this.util.promisify(resolver.modifyDeviceFile);
-    return impl.call(resolver, op, device);
+    const impl = this.util.promisify(resolver.modifyDeviceFile.bind(resolver));
+    return await impl(op, device);
   }
 
   private onDevicesUpdated(devices: Device[]) {
@@ -106,7 +106,7 @@ export class DeviceManagerService {
 
   private async newSession(target: string): Promise<Session> {
     return new Promise<Session>((resolve, reject) => {
-      let session: any = new this.novacom.Session(target, (error: any) => {
+      const session: any = new this.novacom.Session(target, (error: any) => {
         if (error) {
           reject(error);
         } else {

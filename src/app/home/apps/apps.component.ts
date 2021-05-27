@@ -26,14 +26,14 @@ export class AppsComponent implements OnInit {
   ) {
     this.dialog = electron.remote.dialog;
     deviceManager.devices$.subscribe((devices) => {
-      let device = devices.find((dev) => dev.default);
+      const device = devices.find((dev) => dev.default);
       if (device) {
         this.packages$ = this.appManager.packages$(device.name);
         this.packages$.subscribe(() => { }, (error) => {
           MessageDialogComponent.open(modalService, {
             title: translate.instant('MESSAGES.TITLE_CONNECTION_ERROR'),
             message: translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name })
-          })
+          });
         });
         this.appManager.load(device.name);
       } else {
@@ -92,10 +92,10 @@ export class AppsComponent implements OnInit {
   }
 
   async removePackage(pkg: PackageInfo) {
-    let ref = MessageDialogComponent.open(this.modalService, {
+    const ref = MessageDialogComponent.open(this.modalService, {
       title: this.translate.instant('MESSAGES.TITLE_REMOVE_APP'),
       message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_APP', { name: pkg.title }),
-    })
+    });
     if (!await ref.result) return;
     await this.appManager.remove(this.device.name, pkg.id);
   }
