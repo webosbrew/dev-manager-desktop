@@ -42,7 +42,7 @@
     "lint": "ng lint"
   },
   "dependencies": {
-    "@electron/remote": "1.0.4",
+    "@electron/remote": "1.1.0",
     "@webosose/ares-cli": "2.1.0",
     "electron-window-state": "5.0.3",
     "node-ssh": "11.1.1",
@@ -67,9 +67,9 @@
     "@angular/platform-browser": "12.0.2",
     "@angular/platform-browser-dynamic": "12.0.2",
     "@angular/router": "12.0.2",
+    "@ng-bootstrap/ng-bootstrap": "9.1.1",
     "@ngx-translate/core": "13.0.0",
     "@ngx-translate/http-loader": "6.0.0",
-    "@ng-bootstrap/ng-bootstrap": "9.1.1",
     "@schematics/angular": "12.0.2",
     "@types/jasmine": "3.6.7",
     "@types/jasminewd2": "2.0.8",
@@ -84,7 +84,7 @@
     "conventional-changelog-cli": "2.1.1",
     "core-js": "3.6.5",
     "cross-env": "7.0.3",
-    "electron": "12.0.2",
+    "electron": "13.0.1",
     "electron-builder": "22.10.5",
     "electron-reload": "1.5.0",
     "eslint": "^7.26.0",
