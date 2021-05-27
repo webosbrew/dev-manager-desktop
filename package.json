@@ -1,11 +1,11 @@
 {
-  "name": "angular-electron",
-  "version": "9.0.7",
-  "description": "Angular 11 with Electron (Typescript + SASS + Hot Reload)",
-  "homepage": "https://github.com/maximegris/angular-electron",
+  "name": "dev-manager-desktop",
+  "version": "1.0.0",
+  "description": "Device Manager for webOS",
+  "homepage": "https://github.com/webosbrew/dev-manager-desktop",
   "author": {
-    "name": "Maxime GRIS",
-    "email": "maxime.gris@gmail.com"
+    "name": "webOS Homebrew Team",
+    "email": "mariotaku.lee@gmail.com"
   },
   "keywords": [
     "angular",
@@ -18,7 +18,8 @@
     "sass",
     "windows",
     "mac",
-    "linux"
+    "linux",
+    "webos"
   ],
   "main": "main.js",
   "private": true,

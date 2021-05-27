@@ -19,8 +19,8 @@ function createWindow(): BrowserWindow {
   win = new BrowserWindow({
     x: mainWindowState.x,
     y: mainWindowState.y,
-    width: mainWindowState.width,
-    height: mainWindowState.height,
+    width: 1024,
+    height: 720,
     resizable: false,
     webPreferences: {
       nodeIntegration: true,
