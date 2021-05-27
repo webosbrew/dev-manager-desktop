@@ -4,6 +4,8 @@ import { DeviceManagerService } from '../core/services/device-manager/device-man
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AddDeviceComponent } from '../add-device/add-device.component';
 import { Device } from '../../types/novacom';
+import { MessageDialogComponent } from '../shared/components/message-dialog/message-dialog.component';
+import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -16,7 +18,8 @@ export class HomeComponent implements OnInit {
   constructor(
     public deviceManager: DeviceManagerService,
     private modalService: NgbModal,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService,
   ) {
     deviceManager.devices$.subscribe((devices) => {
       this.selectedDevice = devices.find((device) => device.default);
@@ -26,10 +29,19 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  removeDevice(name: string) {
-    this.deviceManager.removeDevice(name).catch(reason => {
-      console.log(reason);
-    });
+  async removeDevice(name: string) {
+    try {
+      let ref = MessageDialogComponent.open(this.modalService, {
+        title: this.translate.instant('MESSAGES.TITLE_REMOVE_DEVICE'),
+        message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_DEVICE', { name })
+      });
+      if (!await ref.result) {
+        return;
+      }
+    } catch (e) {
+      return;
+    }
+    await this.deviceManager.removeDevice(name);
   }
 
   markDefault(name: string) {

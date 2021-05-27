@@ -72,21 +72,20 @@ export class DeviceManagerService {
   }
 
   async deviceInfo(name: string): Promise<DeviceInfo> {
-    return new Promise<DeviceInfo>(async (resolve, reject) => {
-      let session = await this.newSession(name);
+    return await this.newSession(name).then(session => new Promise<DeviceInfo>(async (resolve, reject) => {
       var outStr = '', errStr = '';
       session.run('cat /var/run/nyx/os_info.json', null, (stdout: Buffer) => {
         outStr += stdout.toString();
       }, (stderr: Buffer) => {
         errStr += stderr.toString();
-      }, result => {
-        if (result instanceof Error) {
-          reject(result);
+      }, (error) => {
+        if (error) {
+          reject(error);
         } else {
           resolve(JSON.parse(outStr) as DeviceInfo);
         }
       })
-    }).finally(() => cleanupSession());
+    })).finally(() => cleanupSession());
   }
 
   private async modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>): Promise<Device[]> {
@@ -105,9 +104,9 @@ export class DeviceManagerService {
 
   private async newSession(target: string): Promise<Session> {
     return new Promise<Session>((resolve, reject) => {
-      let session: any = new this.novacom.Session(target, result => {
-        if (result instanceof Error) {
-          reject(result);
+      let session: any = new this.novacom.Session(target, (error: any) => {
+        if (error) {
+          reject(error);
         } else {
           resolve(session as Session);
         }

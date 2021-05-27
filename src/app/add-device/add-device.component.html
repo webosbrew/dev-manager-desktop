@@ -27,15 +27,17 @@
           <option value="localKey">Local Private Key</option>
         </select>
       </div>
-      <div class="col-md-12" *ngIf="sshAuth == 'password'">
+      <div class="col-md-12" [hidden]="sshAuth != 'password'">
         <label for="sshPassword">SSH Password</label>
-        <input type="password" class="form-control" id="sshPassword" formControlName="sshPassword" required>
+        <input type="password" class="form-control" id="sshPassword" formControlName="sshPassword"
+          [required]="sshAuth == 'password'">
       </div>
-      <div class="col-md-6" *ngIf="sshAuth == 'localKey'">
+      <div class="col-md-6" [hidden]="sshAuth != 'localKey'">
         <label for="sshPrivkey">Private Key Name</label>
-        <input type="text" class="form-control" id="sshPrivkey" formControlName="sshPrivkey" required>
+        <input type="text" class="form-control" id="sshPrivkey" formControlName="sshPrivkey"
+          [required]="sshAuth == 'localKey'">
       </div>
-      <div class="col-md-6" *ngIf="sshAuth == 'devKey' || sshAuth == 'localKey'">
+      <div class="col-md-6" [hidden]="sshAuth != 'devKey' && sshAuth != 'localKey'">
         <label for="sshPrivkeyPassphrase">Passphrase</label>
         <input type="text" class="form-control" id="sshPrivkeyPassphrase" formControlName="sshPrivkeyPassphrase"
           [required]="sshAuth == 'devKey'">

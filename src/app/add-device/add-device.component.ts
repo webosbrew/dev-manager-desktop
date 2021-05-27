@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { TranslateService } from '@ngx-translate/core';
 import { Device, DeviceEditSpec } from '../../types/novacom';
 import { DeviceManagerService } from '../core/services/device-manager/device-manager.service';
 import { ElectronService } from '../core/services/electron/electron.service';
+import { MessageDialogComponent } from '../shared/components/message-dialog/message-dialog.component';
 
 @Component({
   selector: 'app-info',
@@ -16,6 +18,8 @@ export class AddDeviceComponent implements OnInit {
 
   constructor(
     public modal: NgbActiveModal,
+    private modalService: NgbModal,
+    private translate: TranslateService,
     private electron: ElectronService,
     private deviceManager: DeviceManagerService,
     fb: FormBuilder,
@@ -45,7 +49,16 @@ export class AddDeviceComponent implements OnInit {
     return this.formGroup.value as SetupInfo;
   }
 
-  async addDevice(): Promise<void> {
+  addDevice() {
+    this.doAddDevice().catch(error => {
+      MessageDialogComponent.open(this.modalService, {
+        title: this.translate.instant('MESSAGES.TITLE_ADD_DEVICE_FAILED'),
+        message: this.translate.instant('MESSAGES.ERROR_ADD_DEVICE_FAILED', { error })
+      });
+    });
+  }
+
+  private async doAddDevice(): Promise<Device> {
     let path = this.electron.path;
     let fs = this.electron.fs;
     let ssh2 = this.electron.ssh2;
@@ -53,37 +66,50 @@ export class AddDeviceComponent implements OnInit {
     let spec = toDeviceSpec(value);
     if (value.sshAuth == 'devKey') {
       let keyPath = path.join(path.resolve(process.env.HOME || process.env.USERPROFILE, '.ssh'), spec.privateKey.openSsh);
+      let writePrivKey = true;
       if (fs.existsSync(keyPath)) {
         // Show alert to prompt for overwrite
-        if (!await this.confirmOverwritePrivKey(spec.privateKey.openSsh)) {
-          return;
-        }
+        writePrivKey = await this.confirmOverwritePrivKey(spec.privateKey.openSsh);
       }
-      // Fetch SSH privKey
-      let privKey = await this.deviceManager.getPrivKey(value.address);
-      // Throw error if key parse failed
-      ssh2.utils.parseKey(privKey, spec.passphrase);
-      fs.writeFileSync(keyPath, privKey);
+      if (writePrivKey) {
+        // Fetch SSH privKey
+        let privKey = await this.deviceManager.getPrivKey(value.address);
+        // Throw error if key parse failed
+        ssh2.utils.parseKey(privKey, spec.passphrase);
+        fs.writeFileSync(keyPath, privKey);
+      }
     }
     let added = await this.deviceManager.addDevice(spec);
     try {
-      this.deviceManager.deviceInfo(added.name);
+      console.log(added);
+      const info = await this.deviceManager.deviceInfo(added.name);
+      console.log(info);
     } catch (e) {
+      console.log('Failed to get device info', e);
       // Something wrong happened. Ask user if they want to delete added device
-      if (!await this.confirmVerififcationFailure(added, e)) {
+      if (!await this.confirmVerificationFailure(added, e)) {
         await this.deviceManager.removeDevice(added.name);
       }
     }
     // Close setup wizard
     this.modal.close(added);
+    return added;
   }
 
   private async confirmOverwritePrivKey(name: string): Promise<boolean> {
-    return false;
+    let ref = MessageDialogComponent.open(this.modalService, {
+      title: this.translate.instant('MESSAGES.TITLE_OVERWRITE_PRIVKEY'),
+      message: this.translate.instant('MESSAGES.CONFIRM_OVERWRITE_PRIVKEY', { name })
+    });
+    return await ref.result;
   }
 
-  private async confirmVerififcationFailure(added: Device, e: Error): Promise<boolean> {
-    return true;
+  private async confirmVerificationFailure(added: Device, e: Error): Promise<boolean> {
+    let ref = MessageDialogComponent.open(this.modalService, {
+      title: this.translate.instant('MESSAGES.TITLE_VERIFICATION_FAILED'),
+      message: this.translate.instant('MESSAGES.CONFIRM_VERIFICATION_FAILED')
+    });
+    return await ref.result;
   }
 
 }
@@ -106,7 +132,8 @@ function toDeviceSpec(value: SetupInfo): DeviceEditSpec {
     port: value.port,
     host: value.address,
     username: value.sshUsername,
-    profile: 'ose'
+    profile: 'ose',
+    default: true
   };
   switch (value.sshAuth) {
     case 'password': {

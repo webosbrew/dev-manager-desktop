@@ -1,12 +1,22 @@
 {
+  "MESSAGES": {
+    "TITLE_REMOVE_DEVICE": "Remove Device",
+    "CONFIRM_REMOVE_DEVICE": "Remove device \"{{name}}\"?",
+    "TITLE_OVERWRITE_PRIVKEY": "Overwrite Private Key",
+    "CONFIRM_OVERWRITE_PRIVKEY": "Private key with same name already exists. Do you want to overwrite it?",
+    "TITLE_VERIFICATION_FAILED": "Verification Failed",
+    "CONFIRM_VERIFICATION_FAILED": "Add this device anyway?",
+    "TITLE_ADD_DEVICE_FAILED": "Failed to Add Device",
+    "ERROR_ADD_DEVICE_FAILED": "{{error}}"
+  },
   "PAGES": {
-      "HOME": {
-          "TITLE": "App works !",
-          "GO_TO_DETAIL": "Go to Detail"
-      },
-      "DETAIL": {
-        "TITLE": "Detail page !",
-        "BACK_TO_HOME": "Back to Home"
+    "HOME": {
+      "TITLE": "App works !",
+      "GO_TO_DETAIL": "Go to Detail"
+    },
+    "DETAIL": {
+      "TITLE": "Detail page !",
+      "BACK_TO_HOME": "Back to Home"
     }
   }
 }
