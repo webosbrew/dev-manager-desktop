@@ -24,31 +24,35 @@ function createWindow(): BrowserWindow {
     resizable: false,
     webPreferences: {
       nodeIntegration: true,
-      allowRunningInsecureContent: (serve) ? true : false,
+      allowRunningInsecureContent: serve,
       contextIsolation: false,  // false if you want to run 2e2 test with Spectron
-      enableRemoteModule: true // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
+      enableRemoteModule: true, // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
+      devTools: serve
     },
   });
 
   mainWindowState.manage(win);
   win.setMenuBarVisibility(false);
+  const loadApp = () => {
 
-  if (serve) {
+    if (serve) {
 
-    win.webContents.openDevTools();
+      win.webContents.openDevTools();
 
-    require('electron-reload')(__dirname, {
-      electron: require(`${__dirname}/node_modules/electron`)
-    });
-    win.loadURL('http://localhost:4210');
+      require('electron-reload')(__dirname, {
+        electron: require(`${__dirname}/node_modules/electron`)
+      });
+      win.loadURL('http://localhost:4210');
 
-  } else {
-    win.loadURL(url.format({
-      pathname: path.join(__dirname, 'dist/index.html'),
-      protocol: 'file:',
-      slashes: true
-    }));
-  }
+    } else {
+      win.loadURL(url.format({
+        pathname: path.join(__dirname, 'dist/index.html'),
+        protocol: 'file:',
+        slashes: true
+      }));
+    }
+  };
+  loadApp();
 
   // Emitted when the window is closed.
   win.on('closed', () => {
@@ -57,6 +61,7 @@ function createWindow(): BrowserWindow {
     // when you should delete the corresponding element.
     win = null;
   });
+  win.webContents.on('did-fail-load', () => loadApp());
 
   return win;
 }
