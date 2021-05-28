@@ -8,18 +8,9 @@
     "email": "mariotaku.lee@gmail.com"
   },
   "keywords": [
-    "angular",
-    "angular 11",
-    "electron",
-    "nodejs",
-    "typescript",
-    "spectron",
-    "eslint",
-    "sass",
-    "windows",
-    "mac",
-    "linux",
-    "webos"
+    "webos",
+    "webosbrew",
+    "electron"
   ],
   "main": "main.js",
   "private": true,
