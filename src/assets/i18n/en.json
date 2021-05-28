@@ -13,6 +13,11 @@
     "TITLE_REMOVE_APP": "Remove App",
     "CONFIRM_REMOVE_APP": "Remove app \"{{name}}\"?"
   },
+  "ACTIONS": {
+    "OK": "OK",
+    "CANCEL": "Cancel",
+    "REMOVE": "Remove"
+  },
   "PAGES": {
     "HOME": {
       "TITLE": "App works !",

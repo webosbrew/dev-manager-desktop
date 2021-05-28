@@ -5,6 +5,7 @@
   <p>{{message}}</p>
 </div>
 <div class="modal-footer">
-  <button type="button" class="btn" (click)="modal.close(false)">Cancel</button>
-  <button type="button" class="btn btn-primary" (click)="modal.close(true)">OK</button>
+  <button type="button" class="btn" (click)="modal.close(false)" *ngIf="negative">{{negative}}</button>
+  <button type="button" class="btn" (click)="modal.close(true)" *ngIf="positive"
+    [ngClass]="['btn-' + positiveStyle]">{{positive}}</button>
 </div>

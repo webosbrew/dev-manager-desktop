@@ -33,7 +33,10 @@ export class HomeComponent implements OnInit {
     try {
       const ref = MessageDialogComponent.open(this.modalService, {
         title: this.translate.instant('MESSAGES.TITLE_REMOVE_DEVICE'),
-        message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_DEVICE', { name })
+        message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_DEVICE', { name }),
+        positive: this.translate.instant('ACTIONS.REMOVE'),
+        positiveStyle: 'danger',
+        negative: this.translate.instant('ACTIONS.CANCEL')
       });
       if (!await ref.result) {
         return;

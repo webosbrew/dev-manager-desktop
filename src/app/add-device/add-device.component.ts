@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Device, DeviceEditSpec } from '../../types/novacom';
 import { DeviceManagerService, ElectronService } from '../core/services';
 import { MessageDialogComponent } from '../shared/components/message-dialog/message-dialog.component';
+import { ProgressDialogComponent } from '../shared/components/progress-dialog/progress-dialog.component';
 
 @Component({
   selector: 'app-info',
@@ -48,12 +49,16 @@ export class AddDeviceComponent implements OnInit {
     return this.formGroup.value as SetupInfo;
   }
 
-  addDevice() {
+  addDevice(): void {
+    const progress = ProgressDialogComponent.open(this.modalService);
     this.doAddDevice().catch(error => {
       MessageDialogComponent.open(this.modalService, {
         title: this.translate.instant('MESSAGES.TITLE_ADD_DEVICE_FAILED'),
-        message: this.translate.instant('MESSAGES.ERROR_ADD_DEVICE_FAILED', { error })
+        message: this.translate.instant('MESSAGES.ERROR_ADD_DEVICE_FAILED', { error: error.message }),
+        positive: this.translate.instant('ACTIONS.OK'),
       });
+    }).finally(() => {
+      progress.close(true);
     });
   }
 
@@ -98,7 +103,9 @@ export class AddDeviceComponent implements OnInit {
   private async confirmOverwritePrivKey(name: string): Promise<boolean> {
     const ref = MessageDialogComponent.open(this.modalService, {
       title: this.translate.instant('MESSAGES.TITLE_OVERWRITE_PRIVKEY'),
-      message: this.translate.instant('MESSAGES.CONFIRM_OVERWRITE_PRIVKEY', { name })
+      message: this.translate.instant('MESSAGES.CONFIRM_OVERWRITE_PRIVKEY', { name }),
+      positive: this.translate.instant('ACTIONS.OK'),
+      negative: this.translate.instant('ACTIONS.CANCEL'),
     });
     return await ref.result;
   }
@@ -106,7 +113,9 @@ export class AddDeviceComponent implements OnInit {
   private async confirmVerificationFailure(added: Device, e: Error): Promise<boolean> {
     const ref = MessageDialogComponent.open(this.modalService, {
       title: this.translate.instant('MESSAGES.TITLE_VERIFICATION_FAILED'),
-      message: this.translate.instant('MESSAGES.CONFIRM_VERIFICATION_FAILED')
+      message: this.translate.instant('MESSAGES.CONFIRM_VERIFICATION_FAILED'),
+      positive: this.translate.instant('ACTIONS.OK'),
+      negative: this.translate.instant('ACTIONS.CANCEL'),
     });
     return await ref.result;
   }

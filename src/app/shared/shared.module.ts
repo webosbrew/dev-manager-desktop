@@ -6,6 +6,8 @@ import { PageNotFoundComponent } from './components/page-not-found/page-not-foun
 import { WebviewDirective } from './directives/';
 import { AresPullUriPipe } from './pipes/ares-pull-uri.pipe';
 import { MessageDialogComponent } from './components/message-dialog/message-dialog.component';
+import { ProgressDialogComponent } from './components/progress-dialog/progress-dialog.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -13,8 +15,9 @@ import { MessageDialogComponent } from './components/message-dialog/message-dial
     WebviewDirective,
     AresPullUriPipe,
     MessageDialogComponent,
+    ProgressDialogComponent,
   ],
-  imports: [CommonModule, TranslateModule, FormsModule],
+  imports: [CommonModule, TranslateModule, FormsModule, NgbModule],
   exports: [TranslateModule, WebviewDirective, FormsModule, AresPullUriPipe]
 })
 export class SharedModule { }

@@ -8,6 +8,9 @@ import { NgbModal, NgbModalRef, NgbActiveModal } from '@ng-bootstrap/ng-bootstra
 export class MessageDialogComponent implements OnInit, MessageDialogConfig {
   title: string;
   message: string;
+  positive: string;
+  negative?: string;
+  positiveStyle?: ButtonStyle = 'primary';
 
   constructor(public modal: NgbActiveModal) { }
 
@@ -24,9 +27,12 @@ export class MessageDialogComponent implements OnInit, MessageDialogConfig {
 
 }
 
+type ButtonStyle = 'danger' | 'primary';
+
 interface MessageDialogConfig {
   title?: string;
-  message?: string;
+  message: string;
+  positive: string | null;
   negative?: string | null;
-  positive?: string | null;
+  positiveStyle?: ButtonStyle;
 }
