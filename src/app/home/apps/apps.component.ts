@@ -30,7 +30,7 @@ export class AppsComponent implements OnInit {
         this.packages$.subscribe(() => { }, (error) => {
           MessageDialogComponent.open(modalService, {
             title: translate.instant('MESSAGES.TITLE_CONNECTION_ERROR'),
-            message: translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name })
+            message: translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name, message: error.message })
           });
         });
         this.appManager.load(device.name);

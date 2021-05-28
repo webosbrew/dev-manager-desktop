@@ -9,7 +9,7 @@
     "TITLE_ADD_DEVICE_FAILED": "Failed to Add Device",
     "ERROR_ADD_DEVICE_FAILED": "{{error}}",
     "TITLE_CONNECTION_ERROR": "Connection Error",
-    "ERROR_CONNECTION_ERROR": "Failed to connect to device {{name}}",
+    "ERROR_CONNECTION_ERROR": "Failed to connect to {{name}}.",
     "TITLE_REMOVE_APP": "Remove App",
     "CONFIRM_REMOVE_APP": "Remove app \"{{name}}\"?"
   },
