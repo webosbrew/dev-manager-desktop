@@ -17,6 +17,7 @@ import { FilesComponent } from './home/files/files.component';
 import { HomeComponent } from './home/home.component';
 import { TerminalComponent } from './home/terminal/terminal.component';
 import { SharedModule } from './shared/shared.module';
+import { InfoComponent } from './home/info/info.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -31,6 +32,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppsComponent,
     FilesComponent,
     TerminalComponent,
+    InfoComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,37 @@
+<div class="p-4">
+  <div class="card" *ngIf="osInfo">
+    <div class="card-body">
+      <h5 class="card-title">Device - {{osInfo.webos_name}}</h5>
+      <p class="card-text">
+        <strong>Firmware version: </strong><span>{{osInfo.webos_manufacturing_version}}</span>
+        <br>
+        <strong>webOS version: </strong><span>{{osInfo.webos_release}}</span>
+      </p>
+    </div>
+  </div>
+  <div class="card mt-4" *ngIf="devModeInfo">
+    <div class="card-body">
+      <h5 class="card-title">Dev Mode</h5>
+      <p class="card-text">
+        <strong>Remaining duration: </strong><span>{{devModeRemaining | async}}</span>
+      </p>
+      <div>
+        <button class="btn btn-primary" (click)="renewDevMode()">Renew Session</button>
+      </div>
+    </div>
+  </div>
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5 class="card-title">Homebrew Channel</h5>
+      <p class="card-text">
+        <ng-container *ngIf="homebrewAppInfo">
+          <strong>Version: </strong><span>{{homebrewAppInfo.version}}</span>
+        </ng-container>
+      </p>
+      <div>
+        <button class="btn btn-primary" (click)="installHbChannel()" *ngIf="!homebrewAppInfo">Install</button>
+        <button class="btn btn-primary" (click)="installHbChannel()" *ngIf="homebrewAppInfo">Update</button>
+      </div>
+    </div>
+  </div>
+</div>

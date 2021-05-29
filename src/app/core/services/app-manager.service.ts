@@ -1,11 +1,11 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable } from '@angular/core';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
 import { BehaviorSubject, Observable } from 'rxjs';
 import * as util from 'util';
-import { ElectronService } from './electron.service';
-import { cleanupSession } from '../../shared/util/ares-utils';
 import { Session } from '../../../types/novacom';
+import { cleanupSession } from '../../shared/util/ares-utils';
+import { ElectronService } from './electron.service';
 @Injectable({
   providedIn: 'root'
 })

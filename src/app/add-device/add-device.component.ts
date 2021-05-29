@@ -86,7 +86,7 @@ export class AddDeviceComponent implements OnInit {
     const added = await this.deviceManager.addDevice(spec);
     try {
       console.log(added);
-      const info = await this.deviceManager.deviceInfo(added.name);
+      const info = await this.deviceManager.osInfo(added.name);
       console.log(info);
     } catch (e) {
       console.log('Failed to get device info', e);

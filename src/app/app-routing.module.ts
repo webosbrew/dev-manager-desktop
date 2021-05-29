@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { AppsComponent } from './home/apps/apps.component';
 import { FilesComponent } from './home/files/files.component';
 import { HomeComponent } from './home/home.component';
+import { InfoComponent } from './home/info/info.component';
 import { TerminalComponent } from './home/terminal/terminal.component';
 
 
@@ -18,6 +19,7 @@ const routes: Routes = [
       { path: 'apps', component: AppsComponent },
       { path: 'files', component: FilesComponent },
       { path: 'terminal', component: TerminalComponent },
+      { path: 'info', component: InfoComponent },
       { path: '', redirectTo: 'apps', pathMatch: 'full' },
     ]
   },

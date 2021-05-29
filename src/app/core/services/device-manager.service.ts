@@ -73,8 +73,8 @@ export class DeviceManagerService {
     }).toPromise();
   }
 
-  async deviceInfo(name: string): Promise<DeviceInfo> {
-    return await this.newSession(name).then(session => new Promise<DeviceInfo>((resolve, reject) => {
+  async osInfo(name: string): Promise<SystemInfo> {
+    return await this.newSession(name).then(session => new Promise<SystemInfo>((resolve, reject) => {
       let outStr = '', errStr = '';
       session.run('cat /var/run/nyx/os_info.json', null, (stdout: Buffer) => {
         outStr += stdout.toString();
@@ -84,7 +84,23 @@ export class DeviceManagerService {
         if (error) {
           reject(error);
         } else {
-          resolve(JSON.parse(outStr) as DeviceInfo);
+          resolve(JSON.parse(outStr) as SystemInfo);
+        }
+      });
+    })).finally(() => cleanupSession());
+  }
+
+  async devModeToken(name: string): Promise<string> {
+    return await this.newSession(name).then(session => new Promise<string>((resolve, reject) => {
+      let outStr = '';
+      session.run('cat /var/luna/preferences/devmode_enabled', null, (stdout: Buffer) => {
+        outStr += stdout.toString();
+      }, () => {
+      }, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(outStr);
         }
       });
     })).finally(() => cleanupSession());
@@ -116,7 +132,7 @@ export class DeviceManagerService {
     return new this.novacom.Resolver() as any as Resolver;
   }
 }
-export interface DeviceInfo {
+export interface SystemInfo {
   core_os_kernel_version?: string
   core_os_name?: string
   core_os_release?: string
@@ -132,4 +148,3 @@ export interface DeviceInfo {
   webos_release: string
   webos_release_codename?: string
 }
-
