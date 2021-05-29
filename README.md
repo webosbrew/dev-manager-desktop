@@ -1,6 +1,6 @@
 # Device/DevMode Manager for webOS TV
 
-Easy tool to manage developer mode and sideload applications on your webOS TV
+Easy tool to manage developer mode and sideload applications on your webOS TV - [Download Now](https://github.com/webosbrew/dev-manager-desktop/releases/latest)
 
 ## Features
 
