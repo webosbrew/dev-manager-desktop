@@ -1,4 +1,5 @@
 <div>
-  <div class="h-100 w-100" #termwin>
+  <div class="h-100 w-100 terminal-container" #termwin>
   </div>
+  <div class="terminal-resize" *ngIf="pendingResize">{{pendingResize.rows}} &times; {{pendingResize.cols}}</div>
 </div>

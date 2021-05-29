@@ -21,8 +21,8 @@ function createWindow(): BrowserWindow {
     y: mainWindowState.y,
     width: mainWindowState.width,
     height: mainWindowState.height,
-    minWidth: 960,
-    minHeight: 600,
+    minWidth: 800,
+    minHeight: 500,
     resizable: true,
     webPreferences: {
       nodeIntegration: true,

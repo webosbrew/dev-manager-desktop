@@ -1,9 +1,9 @@
 import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { fromEvent, Observable } from 'rxjs';
+import { fromEvent, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { ClientChannel } from 'ssh2';
 import { Terminal } from 'xterm';
-import { FitAddon } from 'xterm-addon-fit';
+import { FitAddon, ITerminalDimensions } from 'xterm-addon-fit';
 import { DeviceManagerService } from '../../core/services/device-manager.service';
 import { ElectronService } from '../../core/services/electron.service';
 import { cleanupSession } from '../../shared/util/ares-utils';
@@ -20,6 +20,8 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('termwin')
   termwin: ElementRef<HTMLElement>;
   private stream: ClientChannel;
+  private resizeSubscription: Subscription;
+  pendingResize: ITerminalDimensions = null;
 
   constructor(
     private electron: ElectronService,
@@ -38,7 +40,8 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
-    fromEvent(window, 'resize').pipe(debounceTime(1000)).subscribe(() => {
+    this.resizeSubscription = fromEvent(window, 'resize').pipe(debounceTime(500)).subscribe(() => {
+      this.pendingResize = null;
       this.fitAddon.fit();
     });
   }
@@ -50,10 +53,16 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.resizeSubscription.unsubscribe();
     if (this.stream) {
       this.stream.end();
       this.stream = null;
     }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.pendingResize = this.fitAddon.proposeDimensions();
   }
 
   async openDefaultShell(): Promise<void> {
@@ -74,11 +83,9 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
         session.end();
         this.stream = null;
         cleanupSession();
-        console.log('SSH session cleaned up');
-      }).on('data', (data) => {
+      }).on('data', (data: any) => {
         this.term.write(data);
       });
-
     });
   }
 }
