@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { Device } from '../../../types/novacom';
 import { AppManagerService, DeviceManagerService, ElectronService, PackageInfo } from '../../core/services';
 import { MessageDialogComponent } from '../../shared/components/message-dialog/message-dialog.component';
@@ -16,6 +16,9 @@ export class AppsComponent implements OnInit {
   dialog: Electron.Dialog;
   packages$: Observable<PackageInfo[]>;
   device: Device;
+
+  private subscription: Subscription;
+
   constructor(
     private electron: ElectronService,
     private modalService: NgbModal,
@@ -27,16 +30,7 @@ export class AppsComponent implements OnInit {
     deviceManager.devices$.subscribe((devices) => {
       const device = devices.find((dev) => dev.default);
       if (device) {
-        this.packages$ = this.appManager.packages$(device.name);
-        this.packages$.subscribe(() => { }, (error) => {
-          MessageDialogComponent.open(modalService, {
-            title: translate.instant('MESSAGES.TITLE_CONNECTION_ERROR'),
-            message: translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name, message: error.message }),
-            positive: this.translate.instant('ACTIONS.OK'),
-            negative: this.translate.instant('ACTIONS.CANCEL')
-          });
-        });
-        this.appManager.load(device.name);
+        this.loadPackages(device);
       } else {
         this.packages$ = null;
       }
@@ -62,6 +56,29 @@ export class AppsComponent implements OnInit {
 
   onDragLeave(event: DragEvent): void {
     console.log('onDragLeave', event.dataTransfer.items.length && event.dataTransfer.items[0]);
+  }
+
+  private loadPackages(device: Device): void {
+    this.packages$ = this.appManager.packages$(device.name);
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    this.subscription = this.packages$.subscribe({
+      error: (error) => {
+        const ref = MessageDialogComponent.open(this.modalService, {
+          title: this.translate.instant('MESSAGES.TITLE_CONNECTION_ERROR'),
+          message: this.translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name, message: error.message }),
+          positive: this.translate.instant('ACTIONS.RETRY'),
+          negative: this.translate.instant('ACTIONS.CANCEL')
+        });
+        ref.result.then((value) => {
+          if (value) {
+            this.loadPackages(device);
+          }
+        });
+      }
+    });
+    this.appManager.load(device.name);
   }
 
   async dropFiles(event: DragEvent): Promise<void> {

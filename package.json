@@ -67,6 +67,7 @@
     "@types/jasminewd2": "2.0.8",
     "@types/mocha": "8.2.1",
     "@types/node": "14.14.35",
+    "@types/ssh2": "0.5.46",
     "@typescript-eslint/eslint-plugin": "4.23.0",
     "@typescript-eslint/eslint-plugin-tslint": "4.15.0",
     "@typescript-eslint/parser": "4.23.0",
@@ -100,6 +101,8 @@
     "typescript": "4.2.4",
     "wait-on": "5.0.1",
     "webdriver-manager": "12.1.8",
+    "xterm": "4.12.0",
+    "xterm-addon-fit": "0.5.0",
     "zone.js": "~0.11.4"
   },
   "engines": {

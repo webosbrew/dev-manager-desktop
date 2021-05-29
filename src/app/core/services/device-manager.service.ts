@@ -90,6 +90,18 @@ export class DeviceManagerService {
     })).finally(() => cleanupSession());
   }
 
+  async newSession(name: string): Promise<Session> {
+    return new Promise<Session>((resolve, reject) => {
+      const session: any = new this.novacom.Session(name, (error: any) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(session as Session);
+        }
+      });
+    });
+  }
+
   private async modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>): Promise<Device[]> {
     const resolver = this.newResolver();
     const impl = this.util.promisify(resolver.modifyDeviceFile.bind(resolver));
@@ -102,18 +114,6 @@ export class DeviceManagerService {
 
   private newResolver(): Resolver {
     return new this.novacom.Resolver() as any as Resolver;
-  }
-
-  private async newSession(target: string): Promise<Session> {
-    return new Promise<Session>((resolve, reject) => {
-      const session: any = new this.novacom.Session(target, (error: any) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(session as Session);
-        }
-      });
-    });
   }
 }
 export interface DeviceInfo {

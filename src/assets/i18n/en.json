@@ -15,6 +15,7 @@
   },
   "ACTIONS": {
     "OK": "OK",
+    "RETRY": "Retry",
     "CANCEL": "Cancel",
     "REMOVE": "Remove"
   },

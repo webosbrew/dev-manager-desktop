@@ -1,4 +1,4 @@
-
+import { Client } from 'ssh2';
 export interface Device {
   name: string;
   description: string;
@@ -35,5 +35,7 @@ export interface Resolver {
 
 export type RunOutput = WritableStream | ((buf: Buffer) => void) | null;
 export interface Session {
+  readonly ssh: Client;
   run(cmd: string, stdin: ReadableStream | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
+  end(): void;
 }

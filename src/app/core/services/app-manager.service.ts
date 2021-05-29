@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -15,7 +15,7 @@ export class AppManagerService {
   private util: typeof util;
   private packagesSubjects: Map<string, BehaviorSubject<PackageInfo[]>>;
 
-  constructor(electron: ElectronService) {
+  constructor(electron: ElectronService, private zone: NgZone) {
     this.installLib = electron.installLib;
     this.launchLib = electron.launchLib;
     this.util = electron.util;
@@ -26,10 +26,11 @@ export class AppManagerService {
     return this.obtainSubject(device).asObservable();
   }
 
-  load(device: string) {
+  load(device: string): void {
+    const subject = this.obtainSubject(device);
     this.list(device)
-      .then(pkgs => this.onPackagesUpdated(device, pkgs))
-      .catch((error: any) => this.obtainSubject(device).error(error));
+      .then(pkgs => subject.next(pkgs))
+      .catch((error: any) => subject.error(error));
   }
 
   async list(device: string): Promise<PackageInfo[]> {
@@ -72,10 +73,6 @@ export class AppManagerService {
       this.packagesSubjects.set(device, subject);
     }
     return subject;
-  }
-
-  private onPackagesUpdated(device: string, pkgs: PackageInfo[]) {
-    this.obtainSubject(device).next(pkgs);
   }
 
 }
