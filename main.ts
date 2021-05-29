@@ -19,9 +19,11 @@ function createWindow(): BrowserWindow {
   win = new BrowserWindow({
     x: mainWindowState.x,
     y: mainWindowState.y,
-    width: 1024,
-    height: 720,
-    resizable: false,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
+    minWidth: 960,
+    minHeight: 600,
+    resizable: true,
     webPreferences: {
       nodeIntegration: true,
       allowRunningInsecureContent: serve,

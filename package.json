@@ -71,6 +71,7 @@
     "@typescript-eslint/eslint-plugin": "4.23.0",
     "@typescript-eslint/eslint-plugin-tslint": "4.15.0",
     "@typescript-eslint/parser": "4.23.0",
+    "angular-resize-event": "2.1.0",
     "bootstrap": "4.1.1",
     "bootstrap-icons": "1.5.0",
     "chai": "4.3.4",

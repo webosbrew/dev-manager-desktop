@@ -14,6 +14,7 @@ export function AresPullProtoHandler(request: ProtocolRequest, callback: ((respo
     });
     channel.on('close', () => {
       callback(Buffer.concat(buffers));
+      ssh.end();
     });
   }).catch(error => {
     console.error(error);
@@ -25,7 +26,7 @@ const sessions: Map<string, Client> = new Map();
 
 async function obtainSession(target: string): Promise<Client> {
   if (sessions.has(target)) {
-    return sessions.get(target);
+    return Promise.resolve(sessions.get(target));
   }
   const resolver = new novacom.Resolver() as any as Resolver;
   await util.promisify(resolver.load.bind(resolver))();

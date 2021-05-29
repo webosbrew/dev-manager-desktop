@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import * as util from 'util';
 import { ElectronService } from './electron.service';
 import { cleanupSession } from '../../shared/util/ares-utils';
+import { Session } from '../../../types/novacom';
 @Injectable({
   providedIn: 'root'
 })
@@ -15,7 +16,7 @@ export class AppManagerService {
   private util: typeof util;
   private packagesSubjects: Map<string, BehaviorSubject<PackageInfo[]>>;
 
-  constructor(electron: ElectronService, private zone: NgZone) {
+  constructor(electron: ElectronService) {
     this.installLib = electron.installLib;
     this.launchLib = electron.launchLib;
     this.util = electron.util;
@@ -35,35 +36,55 @@ export class AppManagerService {
 
   async list(device: string): Promise<PackageInfo[]> {
     const list: (...args: any[]) => Promise<any[]> = this.util.promisify(this.installLib.list);
-    return await list({ device })
+    const options: InstallOptions = { device };
+    return await list(options)
       .then((result: any[]) => result.map(item => new PackageInfo(item)))
-      .finally(() => cleanupSession());
+      .finally(() => {
+        options.session?.end();
+        cleanupSession();
+      });
   }
 
   async install(device: string, path: string): Promise<void> {
     const install = this.util.promisify(this.installLib.install);
-    return await install({ device, appId: 'com.ares.defaultDame', opkg: false }, path)
+    const options: InstallOptions = { device, appId: 'com.ares.defaultDame', opkg: false };
+    return await install(options, path)
       .then(() => this.load(device))
-      .finally(() => cleanupSession());
+      .finally(() => {
+        options.session?.end();
+        cleanupSession();
+      });
   }
 
   async remove(device: string, pkgName: string): Promise<void> {
     const remove: (...args: any[]) => Promise<void> = this.util.promisify(this.installLib.remove);
-    return await remove({ device, opkg: false }, pkgName)
+    const options: InstallOptions = { device, opkg: false };
+    return await remove(options, pkgName)
       .then(() => this.load(device))
-      .finally(() => cleanupSession());
+      .finally(() => {
+        options.session?.end();
+        cleanupSession();
+      });
   }
 
   async launch(device: string, appId: string): Promise<void> {
     const launch: (...args: any[]) => Promise<void> = this.util.promisify(this.launchLib.launch);
-    return await launch({ device, inspect: false }, appId, {})
-      .finally(() => cleanupSession());
+    const options: InstallOptions = { device, inspect: false };
+    return await launch(options, appId, {})
+      .finally(() => {
+        options.session?.end();
+        cleanupSession();
+      });
   }
 
   async close(device: string, appId: string): Promise<void> {
     const close: (...args: any[]) => Promise<void> = this.util.promisify(this.launchLib.close);
-    return await close({ device, inspect: false }, appId, {})
-      .finally(() => cleanupSession());
+    const options: InstallOptions = { device, inspect: false };
+    return await close(options, appId, {})
+      .finally(() => {
+        options.session?.end();
+        cleanupSession();
+      });
   }
 
   private obtainSubject(device: string): BehaviorSubject<PackageInfo[]> {
@@ -94,4 +115,9 @@ export class PackageInfo {
   get iconPath(): string {
     return `${this.folderPath}/${this.icon}`;
   }
+}
+
+interface InstallOptions {
+  session?: Session
+  [key: string]: any;
 }

@@ -1,8 +1,9 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { fromEvent, Observable } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { ClientChannel } from 'ssh2';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
-import { Session } from '../../../types/novacom';
 import { DeviceManagerService } from '../../core/services/device-manager.service';
 import { ElectronService } from '../../core/services/electron.service';
 import { cleanupSession } from '../../shared/util/ares-utils';
@@ -19,7 +20,6 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('termwin')
   termwin: ElementRef<HTMLElement>;
   private stream: ClientChannel;
-  private destroySession: () => void;
 
   constructor(
     private electron: ElectronService,
@@ -32,26 +32,31 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
-    // this.container = document.getElementById('termwin');
-    // this.term.open(this.container);
+    this.term.onKey(() => {
+      if (!this.stream || this.stream.destroyed) {
+        this.openDefaultShell();
+      }
+    });
 
-
+    fromEvent(window, 'resize').pipe(debounceTime(1000)).subscribe(() => {
+      this.fitAddon.fit();
+    });
   }
 
   ngAfterViewInit(): void {
     this.term.open(this.termwin.nativeElement);
-    // this.fitAddon.fit();
+    this.fitAddon.fit();
     this.openDefaultShell();
   }
 
   ngOnDestroy(): void {
     if (this.stream) {
       this.stream.end();
+      this.stream = null;
     }
   }
 
-  async openDefaultShell() {
-    console.log('openDefaultShell');
+  async openDefaultShell(): Promise<void> {
     const device = (await this.deviceManager.list()).find(dev => dev.default);
     const session = await this.deviceManager.newSession(device.name);
     session.ssh.shell((err, stream) => {
@@ -61,10 +66,13 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
         stream.write(arg1.key);
       });
 
+      this.term.writeln(`>>> Connected to ${device.name}.`);
+      this.term.writeln('');
       stream.on('close', () => {
-        this.term.writeln('\n\n\nConnection closed.');
+        this.term.writeln('>>> Connection closed. Press any key to reconnect.');
         disposable.dispose();
         session.end();
+        this.stream = null;
         cleanupSession();
         console.log('SSH session cleaned up');
       }).on('data', (data) => {

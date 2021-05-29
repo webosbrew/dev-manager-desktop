@@ -7,10 +7,11 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 // NG Translate
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { AngularResizedEventModule } from 'angular-resize-event';
+import { AddDeviceComponent } from './add-device/add-device.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CoreModule } from './core/core.module';
-import { AddDeviceComponent } from './add-device/add-device.component';
 import { AppsComponent } from './home/apps/apps.component';
 import { FilesComponent } from './home/files/files.component';
 import { HomeComponent } from './home/home.component';
@@ -47,7 +48,8 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
         useFactory: HttpLoaderFactory,
         deps: [HttpClient]
       }
-    })
+    }),
+    AngularResizedEventModule
   ],
   providers: [],
   bootstrap: [AppComponent]

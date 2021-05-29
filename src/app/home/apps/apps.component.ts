@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, Subscription } from 'rxjs';
 import { Device } from '../../../types/novacom';
@@ -18,6 +18,7 @@ export class AppsComponent implements OnInit {
   device: Device;
 
   private subscription: Subscription;
+  private errorDialog: NgbModalRef;
 
   constructor(
     private electron: ElectronService,
@@ -33,6 +34,9 @@ export class AppsComponent implements OnInit {
         this.loadPackages(device);
       } else {
         this.packages$ = null;
+        if (this.subscription) {
+          this.subscription.unsubscribe();
+        }
       }
       this.device = device;
     });
@@ -65,17 +69,18 @@ export class AppsComponent implements OnInit {
     }
     this.subscription = this.packages$.subscribe({
       error: (error) => {
-        const ref = MessageDialogComponent.open(this.modalService, {
+        if (this.errorDialog) return;
+        this.errorDialog = MessageDialogComponent.open(this.modalService, {
           title: this.translate.instant('MESSAGES.TITLE_CONNECTION_ERROR'),
           message: this.translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name, message: error.message }),
           positive: this.translate.instant('ACTIONS.RETRY'),
           negative: this.translate.instant('ACTIONS.CANCEL')
         });
-        ref.result.then((value) => {
+        this.errorDialog.result.then((value) => {
           if (value) {
             this.loadPackages(device);
           }
-        });
+        }).finally(() => this.errorDialog = null);
       }
     });
     this.appManager.load(device.name);
