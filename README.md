@@ -7,7 +7,6 @@ Easy tool to manage developer mode and sideload applications on your webOS TV
  - Portable - no need to install LG SDK or IDE
  - Add device without need to use command line
  - Install apps on TV with a few clicks
- - Access terminal quickly
 
 ![Add Device](https://user-images.githubusercontent.com/830358/120070405-527dd280-c0c5-11eb-8455-5b9873df42fa.png)
 
