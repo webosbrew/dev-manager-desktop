@@ -35,6 +35,7 @@
   "dependencies": {
     "@electron/remote": "1.1.0",
     "@webosose/ares-cli": "2.1.0",
+    "electron-dl": "3.2.1",
     "electron-window-state": "5.0.3",
     "node-ssh": "11.1.1",
     "ssh2": "0.8.9"
@@ -66,6 +67,7 @@
     "@types/jasmine": "3.6.7",
     "@types/jasminewd2": "2.0.8",
     "@types/mocha": "8.2.1",
+    "@types/moment-duration-format": "2.2.2",
     "@types/node": "14.14.35",
     "@types/ssh2": "0.5.46",
     "@typescript-eslint/eslint-plugin": "4.23.0",
@@ -93,6 +95,8 @@
     "karma-jasmine": "4.0.1",
     "karma-jasmine-html-reporter": "1.5.4",
     "mocha": "8.3.2",
+    "moment": "2.29.1",
+    "moment-duration-format": "2.3.2",
     "nan": "2.14.2",
     "npm-run-all": "4.1.5",
     "rxjs": "6.6.6",

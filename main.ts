@@ -1,10 +1,14 @@
-import { app, BrowserWindow, protocol } from 'electron';
+import { app, BrowserWindow, ipcMain, protocol } from 'electron';
+import * as electronDl from 'electron-dl';
 import * as windowStateKeeper from 'electron-window-state';
 import * as path from 'path';
 import * as url from 'url';
 import { AresPullProtoHandler } from './src/backend/ares-pull-proto';
+import { DownloadFileHandler } from './src/backend/ipc-handlers';
 // Initialize remote module
 require('@electron/remote/main').initialize();
+
+electronDl();
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -77,6 +81,7 @@ try {
 
   app.whenReady().then(() => {
     protocol.registerBufferProtocol('ares-pull', AresPullProtoHandler);
+    ipcMain.on('downloadFile', DownloadFileHandler);
   });
 
   // Quit when all windows are closed.
@@ -95,7 +100,6 @@ try {
       createWindow();
     }
   });
-
 } catch (e) {
   // Catch Error
   // throw e;

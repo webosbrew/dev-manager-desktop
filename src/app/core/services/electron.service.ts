@@ -53,4 +53,18 @@ export class ElectronService {
       this.launchLib = window.require('@webosose/ares-cli/lib/launch');
     }
   }
+
+  async downloadFile(url: string, target: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.ipcRenderer.send('downloadFile', url, target);
+      this.ipcRenderer.once(`downloadFile:${url}`, (event, result) => {
+        console.log(result);
+        if (result instanceof Error) {
+          reject(result);
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  }
 }
