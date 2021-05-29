@@ -1,5 +1,15 @@
+## <small>1.0.2 (2021-05-29)</small>
+
+* Fixed some SSH connection leaks ([6ff4d6e](https://github.com/webosbrew/dev-manager-desktop/commit/6ff4d6e))
+* Improved message dialog ([a8e0481](https://github.com/webosbrew/dev-manager-desktop/commit/a8e0481))
+* Terminal feature ([71759d6](https://github.com/webosbrew/dev-manager-desktop/commit/71759d6))
+* Terminal resize display ([4cce31a](https://github.com/webosbrew/dev-manager-desktop/commit/4cce31a))
+
+
+
 ## <small>1.0.1 (2021-05-28)</small>
 
+* 1.0.1 ([25ccbbf](https://github.com/webosbrew/dev-manager-desktop/commit/25ccbbf))
 * Add device confirmation ([6b510ca](https://github.com/webosbrew/dev-manager-desktop/commit/6b510ca))
 * Add device flow ([d1374cc](https://github.com/webosbrew/dev-manager-desktop/commit/d1374cc))
 * Add device WIP ([fb5cad0](https://github.com/webosbrew/dev-manager-desktop/commit/fb5cad0))
