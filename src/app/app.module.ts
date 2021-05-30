@@ -20,6 +20,7 @@ import { InfoComponent } from './home/info/info.component';
 import { TerminalComponent } from './home/terminal/terminal.component';
 import { ExternalLinkDirective } from './shared/directives';
 import { SharedModule } from './shared/shared.module';
+import { ConnHintComponent } from './add-device/conn-hint/conn-hint.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -37,6 +38,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     InfoComponent,
     KeyserverHintComponent,
     ExternalLinkDirective,
+    ConnHintComponent,
   ],
   imports: [
     BrowserModule,

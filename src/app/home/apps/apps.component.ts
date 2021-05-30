@@ -6,6 +6,7 @@ import { Device } from '../../../types/novacom';
 import { AppManagerService, DeviceManagerService, ElectronService, PackageInfo } from '../../core/services';
 import { MessageDialogComponent } from '../../shared/components/message-dialog/message-dialog.component';
 import { ProgressDialogComponent } from '../../shared/components/progress-dialog/progress-dialog.component';
+import { MessageTraceComponent } from '../../shared/components/message-dialog/message-trace/message-trace.component';
 @Component({
   selector: 'app-apps',
   templateUrl: './apps.component.html',
@@ -69,12 +70,16 @@ export class AppsComponent implements OnInit {
     }
     this.subscription = this.packages$.subscribe({
       error: (error) => {
-        if (this.errorDialog) return;
+        if (this.errorDialog && !this.errorDialog.closed) return;
         this.errorDialog = MessageDialogComponent.open(this.modalService, {
           title: this.translate.instant('MESSAGES.TITLE_CONNECTION_ERROR'),
-          message: this.translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name, message: error.message }),
+          message: MessageTraceComponent,
           positive: this.translate.instant('ACTIONS.RETRY'),
-          negative: this.translate.instant('ACTIONS.CANCEL')
+          negative: this.translate.instant('ACTIONS.CANCEL'),
+          messageExtras: {
+            message: this.translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name }),
+            error: error
+          }
         });
         this.errorDialog.result.then((value) => {
           if (value) {

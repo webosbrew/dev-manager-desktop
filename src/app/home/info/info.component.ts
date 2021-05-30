@@ -69,7 +69,6 @@ export class InfoComponent implements OnInit, OnDestroy {
     const apps = await this.appManager.list(this.device.name);
     this.homebrewAppInfo = apps.find((pkg) => pkg.id == 'org.webosbrew.hbchannel');
     this.homebrewRepoManifest = await this.appsRepo.showApp('org.webosbrew.hbchannel');
-    console.log(this.homebrewRepoManifest);
   }
 
   async installHbChannel(): Promise<void> {

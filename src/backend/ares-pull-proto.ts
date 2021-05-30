@@ -31,6 +31,9 @@ async function obtainSession(target: string): Promise<Client> {
   const resolver = new novacom.Resolver() as any as Resolver;
   await util.promisify(resolver.load.bind(resolver))();
   const device = resolver.devices.find((device: Device) => device.name == target);
+  if (!device) {
+    throw new Error(`Device ${target} not found`);
+  }
   const client = new Client();
   return new Promise<Client>((resolve, reject) => {
     client.on('ready', () => {

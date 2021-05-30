@@ -4,9 +4,10 @@ import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
 import { Device, DeviceEditSpec } from '../../types/novacom';
 import { DeviceManagerService, ElectronService } from '../core/services';
-import { MessageDialogComponent } from '../shared/components/message-dialog/message-dialog.component';
+import { MessageDialogComponent, MessageDialogConfig } from '../shared/components/message-dialog/message-dialog.component';
 import { ProgressDialogComponent } from '../shared/components/progress-dialog/progress-dialog.component';
 import { KeyserverHintComponent } from './keyserver-hint/keyserver-hint.component';
+import { ConnHintComponent } from './conn-hint/conn-hint.component';
 @Component({
   selector: 'app-info',
   templateUrl: './add-device.component.html',
@@ -26,7 +27,7 @@ export class AddDeviceComponent implements OnInit {
   ) {
     this.formGroup = fb.group({
       name: ['tv'],
-      address: [''],
+      address: ['127.0.0.1'],
       port: ['9922'],
       description: [],
       // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
@@ -34,7 +35,7 @@ export class AddDeviceComponent implements OnInit {
       sshAuth: ['devKey'],
       sshPassword: [],
       sshPrivkey: [],
-      sshPrivkeyPassphrase: [],
+      sshPrivkeyPassphrase: ['114514'],
     });
   }
 
@@ -52,11 +53,15 @@ export class AddDeviceComponent implements OnInit {
   addDevice(): void {
     const progress = ProgressDialogComponent.open(this.modalService);
     this.doAddDevice().catch(error => {
-      MessageDialogComponent.open(this.modalService, {
-        title: this.translate.instant('MESSAGES.TITLE_ADD_DEVICE_FAILED'),
-        message: this.translate.instant('MESSAGES.ERROR_ADD_DEVICE_FAILED', { error: error.message }),
-        positive: this.translate.instant('ACTIONS.OK'),
-      });
+      if (error instanceof Error) {
+        MessageDialogComponent.open(this.modalService, {
+          title: this.translate.instant('MESSAGES.TITLE_ADD_DEVICE_FAILED'),
+          message: this.translate.instant('MESSAGES.ERROR_ADD_DEVICE_FAILED', { error: error.message }),
+          positive: this.translate.instant('ACTIONS.OK'),
+        });
+      } else if (error.positive) {
+        MessageDialogComponent.open(this.modalService, error);
+      }
     }).finally(() => {
       progress.close(true);
     });
@@ -68,6 +73,7 @@ export class AddDeviceComponent implements OnInit {
     const ssh2 = this.electron.ssh2;
     const value = this.setupInfo;
     const spec = toDeviceSpec(value);
+    await this.testConnectivity(value);
     if (value.sshAuth == 'devKey') {
       const keyPath = path.join(path.resolve(process.env.HOME || process.env.USERPROFILE, '.ssh'), spec.privateKey.openSsh);
       let writePrivKey = true;
@@ -108,6 +114,19 @@ export class AddDeviceComponent implements OnInit {
       negative: this.translate.instant('ACTIONS.CANCEL'),
     });
     return await ref.result;
+  }
+
+  private async testConnectivity(info: SetupInfo): Promise<void> {
+    try {
+      await this.deviceManager.checkConnectivity(info.address, info.port);
+    } catch (e) {
+      const config: MessageDialogConfig = {
+        title: this.translate.instant('MESSAGES.TITLE_DEVICE_CONN_FAILED'),
+        message: ConnHintComponent,
+        positive: this.translate.instant('ACTIONS.OK'),
+      };
+      throw config;
+    }
   }
 
   private async fetchPrivKey(info: SetupInfo) {

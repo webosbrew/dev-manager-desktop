@@ -36,7 +36,7 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
     this.term.loadAddon(this.fitAddon);
     this.term.onKey(() => {
       if (!this.stream || this.stream.destroyed) {
-        this.openDefaultShell();
+        this.openDefaultShell().catch(this.connError.bind(this));
       }
     });
 
@@ -49,7 +49,7 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.term.open(this.termwin.nativeElement);
     this.fitAddon.fit();
-    this.openDefaultShell();
+    this.openDefaultShell().catch(this.connError.bind(this));
   }
 
   ngOnDestroy(): void {
@@ -58,6 +58,10 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
       this.stream.end();
       this.stream = null;
     }
+  }
+
+  connError(error: any): void {
+    this.term.writeln('>>> Connection error. Press any key to reconnect.');
   }
 
   @HostListener('window:resize')

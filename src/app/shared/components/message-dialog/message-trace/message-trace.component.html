@@ -1,0 +1,12 @@
+<p>
+  {{message}}
+  <a href="#" (click)="collapse.toggle()" [attr.aria-expanded]="isDetailsExpanded" aria-controls="collapseExample">
+    Details
+  </a>
+</p>
+
+<div #collapse="ngbCollapse" [(ngbCollapse)]="!isDetailsExpanded">
+  <div class="card card-body">
+    {{error}}
+  </div>
+</div>

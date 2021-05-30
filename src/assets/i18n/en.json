@@ -12,7 +12,8 @@
     "ERROR_CONNECTION_ERROR": "Failed to connect to {{name}}.",
     "TITLE_REMOVE_APP": "Remove App",
     "CONFIRM_REMOVE_APP": "Remove app \"{{name}}\"?",
-    "TITLE_KEYSERV_FETCH_RETRY": "Failed to fetch Private Key"
+    "TITLE_KEYSERV_FETCH_RETRY": "Failed to fetch private key",
+    "TITLE_DEVICE_CONN_FAILED": "Unable to connect to device"
   },
   "ACTIONS": {
     "OK": "OK",

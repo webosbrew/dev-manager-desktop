@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable } from "rxjs";
 import { Device, DeviceEditSpec, Resolver, Session } from '../../../types/novacom';
 import { ElectronService } from './electron.service';
 import * as util from 'util';
+import * as net from 'net';
 import { cleanupSession } from '../../shared/util/ares-utils';
 @Injectable({
   providedIn: 'root'
@@ -14,11 +15,13 @@ export class DeviceManagerService {
   private novacom: typeof novacom;
   private devicesSubject: BehaviorSubject<Device[]>;
   private util: typeof util;
+  private net: typeof net;
 
   constructor(electron: ElectronService, private http: HttpClient) {
     this.novacom = electron.novacom;
-    this.devicesSubject = new BehaviorSubject([]);
     this.util = electron.util;
+    this.net = electron.net;
+    this.devicesSubject = new BehaviorSubject([]);
     this.load();
   }
 
@@ -71,6 +74,18 @@ export class DeviceManagerService {
     return this.http.get(`http://${address}:9991/webos_rsa`, {
       responseType: 'text'
     }).toPromise();
+  }
+
+  async checkConnectivity(address: string, port: number): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const conn = this.net.createConnection(port, address);
+      conn.on("connect", function (e) {
+        resolve(true);
+        conn.end();
+      }).on("error", function (e) {
+        reject(e);
+      });
+    });
   }
 
   async osInfo(name: string): Promise<SystemInfo> {
