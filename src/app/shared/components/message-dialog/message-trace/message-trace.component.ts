@@ -9,6 +9,7 @@ export class MessageTraceComponent implements OnInit {
 
   message: string;
   error: any;
+  detailsExpanded: boolean;
 
   constructor() { }
 
