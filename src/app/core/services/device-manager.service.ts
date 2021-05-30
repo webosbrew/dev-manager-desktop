@@ -23,6 +23,20 @@ export class DeviceManagerService {
     this.net = electron.net;
     this.devicesSubject = new BehaviorSubject([]);
     this.load();
+
+    const session = electron.remote.session;
+    const filter = {
+      urls: ['http://*/webos_rsa']
+    };
+    session.defaultSession.webRequest.onHeadersReceived(filter, (details, callback) => {
+      callback({
+        cancel: false,
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Access-Control-Allow-Origin': ['*']
+        }
+      });
+    });
   }
 
   get devices$(): Observable<Device[]> {
@@ -71,7 +85,7 @@ export class DeviceManagerService {
   }
 
   async getPrivKey(address: string): Promise<string> {
-    return this.http.get(`http://${address}:9991/webos_rsa`, {
+    return await this.http.get(`http://${address}:9991/webos_rsa`, {
       responseType: 'text'
     }).toPromise();
   }

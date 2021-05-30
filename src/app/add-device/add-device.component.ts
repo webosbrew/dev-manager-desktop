@@ -27,7 +27,7 @@ export class AddDeviceComponent implements OnInit {
   ) {
     this.formGroup = fb.group({
       name: ['tv'],
-      address: ['127.0.0.1'],
+      address: [''],
       port: ['9922'],
       description: [],
       // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
@@ -35,7 +35,7 @@ export class AddDeviceComponent implements OnInit {
       sshAuth: ['devKey'],
       sshPassword: [],
       sshPrivkey: [],
-      sshPrivkeyPassphrase: ['114514'],
+      sshPrivkeyPassphrase: [''],
     });
   }
 
@@ -85,7 +85,10 @@ export class AddDeviceComponent implements OnInit {
         // Fetch SSH privKey
         const privKey = await this.fetchPrivKey(value);
         // Throw error if key parse failed
-        ssh2.utils.parseKey(privKey, spec.passphrase);
+        const parsedKey = ssh2.utils.parseKey(privKey, spec.passphrase);
+        if (parsedKey instanceof Error) {
+          throw parsedKey;
+        }
         fs.writeFileSync(keyPath, privKey);
       }
     }
