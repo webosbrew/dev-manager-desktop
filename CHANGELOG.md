@@ -1,5 +1,21 @@
+## 1.1.0 (2021-05-30)
+
+* Added missing field ([be7dfd8](https://github.com/webosbrew/dev-manager-desktop/commit/be7dfd8))
+* Better error handling ([1254e75](https://github.com/webosbrew/dev-manager-desktop/commit/1254e75))
+* Compares hbchannel version ([615812a](https://github.com/webosbrew/dev-manager-desktop/commit/615812a))
+* Device info screen ([39f0413](https://github.com/webosbrew/dev-manager-desktop/commit/39f0413))
+* Fixed add device flow ([3b97f23](https://github.com/webosbrew/dev-manager-desktop/commit/3b97f23))
+* Key server hint ([1140864](https://github.com/webosbrew/dev-manager-desktop/commit/1140864))
+* Package download WIP ([1c6aa32](https://github.com/webosbrew/dev-manager-desktop/commit/1c6aa32))
+* Update README.md ([be1957c](https://github.com/webosbrew/dev-manager-desktop/commit/be1957c))
+* Update README.md ([049acfc](https://github.com/webosbrew/dev-manager-desktop/commit/049acfc))
+* Update README.md ([ee9ef9a](https://github.com/webosbrew/dev-manager-desktop/commit/ee9ef9a))
+
+
+
 ## <small>1.0.2 (2021-05-29)</small>
 
+* 1.0.2 ([5103127](https://github.com/webosbrew/dev-manager-desktop/commit/5103127))
 * Fixed some SSH connection leaks ([6ff4d6e](https://github.com/webosbrew/dev-manager-desktop/commit/6ff4d6e))
 * Improved message dialog ([a8e0481](https://github.com/webosbrew/dev-manager-desktop/commit/a8e0481))
 * Terminal feature ([71759d6](https://github.com/webosbrew/dev-manager-desktop/commit/71759d6))
