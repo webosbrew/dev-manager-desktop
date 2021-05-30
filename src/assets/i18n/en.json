@@ -11,7 +11,8 @@
     "TITLE_CONNECTION_ERROR": "Connection Error",
     "ERROR_CONNECTION_ERROR": "Failed to connect to {{name}}.",
     "TITLE_REMOVE_APP": "Remove App",
-    "CONFIRM_REMOVE_APP": "Remove app \"{{name}}\"?"
+    "CONFIRM_REMOVE_APP": "Remove app \"{{name}}\"?",
+    "TITLE_KEYSERV_FETCH_RETRY": "Failed to fetch Private Key"
   },
   "ACTIONS": {
     "OK": "OK",

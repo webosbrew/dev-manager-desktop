@@ -6,7 +6,7 @@ import { Device, DeviceEditSpec } from '../../types/novacom';
 import { DeviceManagerService, ElectronService } from '../core/services';
 import { MessageDialogComponent } from '../shared/components/message-dialog/message-dialog.component';
 import { ProgressDialogComponent } from '../shared/components/progress-dialog/progress-dialog.component';
-
+import { KeyserverHintComponent } from './keyserver-hint/keyserver-hint.component';
 @Component({
   selector: 'app-info',
   templateUrl: './add-device.component.html',
@@ -77,7 +77,7 @@ export class AddDeviceComponent implements OnInit {
       }
       if (writePrivKey) {
         // Fetch SSH privKey
-        const privKey = await this.deviceManager.getPrivKey(value.address);
+        const privKey = await this.fetchPrivKey(value);
         // Throw error if key parse failed
         ssh2.utils.parseKey(privKey, spec.passphrase);
         fs.writeFileSync(keyPath, privKey);
@@ -108,6 +108,27 @@ export class AddDeviceComponent implements OnInit {
       negative: this.translate.instant('ACTIONS.CANCEL'),
     });
     return await ref.result;
+  }
+
+  private async fetchPrivKey(info: SetupInfo) {
+    let retryCount = 0;
+    while (retryCount < 3) {
+      try {
+        return await this.deviceManager.getPrivKey(info.address);
+      } catch (e) {
+        const confirm = MessageDialogComponent.open(this.modalService, {
+          title: this.translate.instant('MESSAGES.TITLE_KEYSERV_FETCH_RETRY'),
+          message: KeyserverHintComponent,
+          positive: this.translate.instant('ACTIONS.RETRY'),
+          negative: this.translate.instant('ACTIONS.CANCEL'),
+        });
+        if (await confirm.result) {
+          retryCount++;
+          continue;
+        }
+        throw e;
+      }
+    }
   }
 
   private async confirmVerificationFailure(added: Device, e: Error): Promise<boolean> {

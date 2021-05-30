@@ -9,15 +9,17 @@ import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { AngularResizedEventModule } from 'angular-resize-event';
 import { AddDeviceComponent } from './add-device/add-device.component';
+import { KeyserverHintComponent } from './add-device/keyserver-hint/keyserver-hint.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CoreModule } from './core/core.module';
 import { AppsComponent } from './home/apps/apps.component';
 import { FilesComponent } from './home/files/files.component';
 import { HomeComponent } from './home/home.component';
-import { TerminalComponent } from './home/terminal/terminal.component';
-import { SharedModule } from './shared/shared.module';
 import { InfoComponent } from './home/info/info.component';
+import { TerminalComponent } from './home/terminal/terminal.component';
+import { ExternalLinkDirective } from './shared/directives';
+import { SharedModule } from './shared/shared.module';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -33,6 +35,8 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     FilesComponent,
     TerminalComponent,
     InfoComponent,
+    KeyserverHintComponent,
+    ExternalLinkDirective,
   ],
   imports: [
     BrowserModule,
