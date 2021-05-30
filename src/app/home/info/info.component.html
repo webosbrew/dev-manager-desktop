@@ -29,8 +29,11 @@
         </ng-container>
       </p>
       <div>
-        <button class="btn btn-primary" (click)="installHbChannel()" *ngIf="!homebrewAppInfo">Install</button>
-        <button class="btn btn-primary" (click)="installHbChannel()" *ngIf="homebrewAppInfo">Update</button>
+        <button class="btn btn-primary mr-2" (click)="installHbChannel()"
+          *ngIf="!homebrewAppInfo && homebrewRepoManifest">Install</button>
+        <button class="btn btn-primary mr-2" (click)="installHbChannel()"
+          *ngIf="homebrewAppInfo && homebrewRepoManifest && homebrewRepoHasUpdate">Update</button>
+        <a class="btn btn-primary mr-2" href="https://github.com/webosbrew/webos-homebrew-channel"><i class="bi bi-github mr-2"></i>Github Repo</a>
       </div>
     </div>
   </div>

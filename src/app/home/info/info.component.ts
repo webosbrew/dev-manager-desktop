@@ -4,11 +4,13 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import { Observable, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
+import * as semver from 'semver';
 import { Device } from '../../../types/novacom';
 import { AppManagerService, DeviceManagerService, ElectronService, PackageInfo, SystemInfo } from '../../core/services';
 import { AppsRepoService, RepositoryItem } from '../../core/services/apps-repo.service';
 import { DevModeResponse, DevModeService } from '../../core/services/dev-mode.service';
 import { ProgressDialogComponent } from '../../shared/components/progress-dialog/progress-dialog.component';
+
 @Component({
   selector: 'app-info',
   templateUrl: './info.component.html',
@@ -21,6 +23,7 @@ export class InfoComponent implements OnInit, OnDestroy {
   devModeRemaining: Observable<string>;
   homebrewAppInfo: PackageInfo;
   homebrewRepoManifest: RepositoryItem;
+  homebrewRepoHasUpdate: boolean;
 
   constructor(
     private electron: ElectronService,
@@ -69,6 +72,9 @@ export class InfoComponent implements OnInit, OnDestroy {
     const apps = await this.appManager.list(this.device.name);
     this.homebrewAppInfo = apps.find((pkg) => pkg.id == 'org.webosbrew.hbchannel');
     this.homebrewRepoManifest = await this.appsRepo.showApp('org.webosbrew.hbchannel');
+    if (this.homebrewRepoManifest && this.homebrewAppInfo) {
+      this.homebrewRepoHasUpdate = semver.gt(this.homebrewRepoManifest.manifest.version, this.homebrewAppInfo.version);
+    }
   }
 
   async installHbChannel(): Promise<void> {
