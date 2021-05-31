@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable, ReplaySubject, Subject } from 'rxjs';
 import * as util from 'util';
 import { Session } from '../../../types/novacom';
 import { cleanupSession } from '../../shared/util/ares-utils';
@@ -14,7 +14,7 @@ export class AppManagerService {
   private installLib: typeof install;
   private launchLib: typeof launch;
   private util: typeof util;
-  private packagesSubjects: Map<string, BehaviorSubject<PackageInfo[]>>;
+  private packagesSubjects: Map<string, Subject<PackageInfo[]>>;
 
   constructor(private electron: ElectronService) {
     this.installLib = electron.installLib;
@@ -43,6 +43,10 @@ export class AppManagerService {
         options.session?.end();
         cleanupSession();
       });
+  }
+
+  async info(device: string, id: string): Promise<PackageInfo | null> {
+    return this.list(device).then(pkgs => pkgs.find(pkg => pkg.id == id));
   }
 
   async install(device: string, path: string): Promise<void> {
@@ -95,10 +99,10 @@ export class AppManagerService {
       });
   }
 
-  private obtainSubject(device: string): BehaviorSubject<PackageInfo[]> {
+  private obtainSubject(device: string): Subject<PackageInfo[]> {
     let subject = this.packagesSubjects.get(device);
     if (!subject) {
-      subject = new BehaviorSubject([]);
+      subject = new ReplaySubject(1);
       this.packagesSubjects.set(device, subject);
     }
     return subject;

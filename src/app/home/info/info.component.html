@@ -1,4 +1,11 @@
 <div class="p-4">
+  <div class="card" *ngIf="infoError">
+    <div class="card-body">
+      <h5 class="card-title">Unable to get device info</h5>
+      <p class="card-text">Failed to connect to {{device.name}}</p>
+      <button class="btn btn-primary" (click)="loadPackages(device)">{{'ACTIONS.RETRY' | translate}}</button>
+    </div>
+  </div>
   <div class="card" *ngIf="osInfo">
     <div class="card-body">
       <h5 class="card-title">Device - {{osInfo.webos_name}}</h5>
@@ -9,7 +16,7 @@
       </p>
     </div>
   </div>
-  <div class="card mt-4" *ngIf="devModeInfo">
+  <div class="card mt-4" *ngIf="osInfo && devModeInfo">
     <div class="card-body">
       <h5 class="card-title">Dev Mode</h5>
       <p class="card-text">
@@ -20,7 +27,7 @@
       </div>
     </div>
   </div>
-  <div class="card mt-4">
+  <div class="card mt-4" *ngIf="osInfo">
     <div class="card-body">
       <h5 class="card-title">Homebrew Channel</h5>
       <p class="card-text">
@@ -33,7 +40,8 @@
           *ngIf="!homebrewAppInfo && homebrewRepoManifest">Install</button>
         <button class="btn btn-primary mr-2" (click)="installHbChannel()"
           *ngIf="homebrewAppInfo && homebrewRepoManifest && homebrewRepoHasUpdate">Update</button>
-        <a class="btn btn-primary mr-2" href="https://github.com/webosbrew/webos-homebrew-channel"><i class="bi bi-github mr-2"></i>Github Repo</a>
+        <a class="btn btn-primary mr-2" href="https://github.com/webosbrew/webos-homebrew-channel"><i
+            class="bi bi-github mr-2"></i>Github Repo</a>
       </div>
     </div>
   </div>

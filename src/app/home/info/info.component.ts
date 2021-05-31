@@ -21,9 +21,9 @@ export class InfoComponent implements OnInit, OnDestroy {
   homebrewAppInfo: PackageInfo;
   homebrewRepoManifest: RepositoryItem;
   homebrewRepoHasUpdate: boolean;
+  infoError: any;
 
   constructor(
-    private electron: ElectronService,
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
     private appManager: AppManagerService,
@@ -34,9 +34,9 @@ export class InfoComponent implements OnInit, OnDestroy {
       const device = devices.find((dev) => dev.default);
       this.device = device;
       if (device) {
-        this.loadDeviceInfo();
-        this.loadDevModeInfo();
-        this.loadHomebrewInfo();
+        this.loadDeviceInfo()
+          .then(() => Promise.all([this.loadDevModeInfo(), this.loadHomebrewInfo()]))
+          .catch(() => { });
       }
     });
   }
@@ -55,7 +55,12 @@ export class InfoComponent implements OnInit, OnDestroy {
   }
 
   private async loadDeviceInfo(): Promise<void> {
-    this.osInfo = await this.deviceManager.osInfo(this.device.name);
+    this.infoError = null;
+    try {
+      this.osInfo = await this.deviceManager.osInfo(this.device.name);
+    } catch (e) {
+      this.infoError = e;
+    }
   }
 
   private async loadDevModeInfo(): Promise<void> {
@@ -66,8 +71,7 @@ export class InfoComponent implements OnInit, OnDestroy {
   }
 
   private async loadHomebrewInfo(): Promise<void> {
-    const apps = await this.appManager.list(this.device.name);
-    this.homebrewAppInfo = apps.find((pkg) => pkg.id == 'org.webosbrew.hbchannel');
+    this.homebrewAppInfo = await this.appManager.info(this.device.name, 'org.webosbrew.hbchannel');
     this.homebrewRepoManifest = await this.appsRepo.showApp('org.webosbrew.hbchannel');
     if (this.homebrewRepoManifest && this.homebrewAppInfo) {
       this.homebrewRepoHasUpdate = this.homebrewRepoManifest.manifest.hasUpdate(this.homebrewAppInfo.version);

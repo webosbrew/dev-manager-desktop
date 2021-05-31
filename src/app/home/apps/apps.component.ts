@@ -20,7 +20,7 @@ export class AppsComponent implements OnInit {
   device: Device;
 
   private subscription: Subscription;
-  private errorDialog: NgbModalRef;
+  private packagesError: any;
 
   constructor(
     private electron: ElectronService,
@@ -37,6 +37,7 @@ export class AppsComponent implements OnInit {
         this.loadPackages(device);
       } else {
         this.packages$ = null;
+        this.packagesError = null;
         if (this.subscription) {
           this.subscription.unsubscribe();
         }
@@ -65,35 +66,18 @@ export class AppsComponent implements OnInit {
     console.log('onDragLeave', event.dataTransfer.items.length && event.dataTransfer.items[0]);
   }
 
-  private loadPackages(device: Device): void {
+  loadPackages(device: Device): void {
     this.packages$ = this.appManager.packages$(device.name);
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
     this.subscription = this.packages$.subscribe({
       next: async (pkgs) => {
+        this.packagesError = null;
         if (pkgs.length) {
           this.repoPackages = await this.appsRepo.showApps(...pkgs.map((pkg) => pkg.id));
         }
-      },
-      error: (error) => {
-        if (this.errorDialog && !this.errorDialog.closed) return;
-        this.errorDialog = MessageDialogComponent.open(this.modalService, {
-          title: this.translate.instant('MESSAGES.TITLE_CONNECTION_ERROR'),
-          message: MessageTraceComponent,
-          positive: this.translate.instant('ACTIONS.RETRY'),
-          negative: this.translate.instant('ACTIONS.CANCEL'),
-          messageExtras: {
-            message: this.translate.instant('MESSAGES.ERROR_CONNECTION_ERROR', { name: device.name }),
-            error: error
-          }
-        });
-        this.errorDialog.result.then((value) => {
-          if (value) {
-            this.loadPackages(device);
-          }
-        }).finally(() => this.errorDialog = null);
-      }
+      }, error: (error) => this.packagesError = error
     });
     this.appManager.load(device.name);
   }
