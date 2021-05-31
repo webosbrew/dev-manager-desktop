@@ -1,5 +1,12 @@
+## 1.2.0 (2021-05-31)
+
+* App update ([f07f4f6](https://github.com/webosbrew/dev-manager-desktop/commit/f07f4f6))
+
+
+
 ## 1.1.0 (2021-05-30)
 
+* 1.1.0 ([7f7b43f](https://github.com/webosbrew/dev-manager-desktop/commit/7f7b43f))
 * Added missing field ([be7dfd8](https://github.com/webosbrew/dev-manager-desktop/commit/be7dfd8))
 * Better error handling ([1254e75](https://github.com/webosbrew/dev-manager-desktop/commit/1254e75))
 * Compares hbchannel version ([615812a](https://github.com/webosbrew/dev-manager-desktop/commit/615812a))
