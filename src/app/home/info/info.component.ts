@@ -4,11 +4,8 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import { Observable, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
-import * as semver from 'semver';
 import { Device } from '../../../types/novacom';
-import { AppManagerService, DeviceManagerService, ElectronService, PackageInfo, SystemInfo } from '../../core/services';
-import { AppsRepoService, RepositoryItem } from '../../core/services/apps-repo.service';
-import { DevModeResponse, DevModeService } from '../../core/services/dev-mode.service';
+import { AppManagerService, AppsRepoService, DeviceManagerService, DevModeResponse, DevModeService, ElectronService, PackageInfo, RepositoryItem, SystemInfo } from '../../core/services';
 import { ProgressDialogComponent } from '../../shared/components/progress-dialog/progress-dialog.component';
 
 @Component({
@@ -73,7 +70,7 @@ export class InfoComponent implements OnInit, OnDestroy {
     this.homebrewAppInfo = apps.find((pkg) => pkg.id == 'org.webosbrew.hbchannel');
     this.homebrewRepoManifest = await this.appsRepo.showApp('org.webosbrew.hbchannel');
     if (this.homebrewRepoManifest && this.homebrewAppInfo) {
-      this.homebrewRepoHasUpdate = semver.gt(this.homebrewRepoManifest.manifest.version, this.homebrewAppInfo.version);
+      this.homebrewRepoHasUpdate = this.homebrewRepoManifest.manifest.hasUpdate(this.homebrewAppInfo.version);
     }
   }
 
@@ -81,11 +78,11 @@ export class InfoComponent implements OnInit, OnDestroy {
     const item = this.homebrewRepoManifest;
     if (!item) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const path = this.electron.path, app = this.electron.remote.app;
-    const tempPath = app.getPath('temp');
-    const ipkPath = path.join(tempPath, `devmgr_temp_${Date.now()}_${item.id}.ipk`);
-    await this.electron.downloadFile(item.manifest.ipkUrl, ipkPath);
-    await this.appManager.install(this.device.name, ipkPath);
+    try {
+      await this.appManager.installUrl(this.device.name, item.manifest.ipkUrl);
+    } catch (e) {
+      // Ignore
+    }
     progress.close(true);
   }
 }

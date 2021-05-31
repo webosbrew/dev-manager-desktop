@@ -16,7 +16,7 @@ export class AppManagerService {
   private util: typeof util;
   private packagesSubjects: Map<string, BehaviorSubject<PackageInfo[]>>;
 
-  constructor(electron: ElectronService) {
+  constructor(private electron: ElectronService) {
     this.installLib = electron.installLib;
     this.launchLib = electron.launchLib;
     this.util = electron.util;
@@ -54,6 +54,14 @@ export class AppManagerService {
         options.session?.end();
         cleanupSession();
       });
+  }
+
+  async installUrl(device: string, url: string): Promise<void> {
+    const path = this.electron.path, app = this.electron.remote.app;
+    const tempPath = app.getPath('temp');
+    const ipkPath = path.join(tempPath, `devmgr_temp_${Date.now()}.ipk`);
+    await this.electron.downloadFile(url, ipkPath);
+    return await this.install(device, ipkPath);
   }
 
   async remove(device: string, pkgName: string): Promise<void> {

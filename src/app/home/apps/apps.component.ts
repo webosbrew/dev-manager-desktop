@@ -3,7 +3,7 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, Subscription } from 'rxjs';
 import { Device } from '../../../types/novacom';
-import { AppManagerService, DeviceManagerService, ElectronService, PackageInfo } from '../../core/services';
+import { AppManagerService, DeviceManagerService, ElectronService, PackageInfo, AppsRepoService, RepositoryItem } from '../../core/services';
 import { MessageDialogComponent } from '../../shared/components/message-dialog/message-dialog.component';
 import { ProgressDialogComponent } from '../../shared/components/progress-dialog/progress-dialog.component';
 import { MessageTraceComponent } from '../../shared/components/message-dialog/message-trace/message-trace.component';
@@ -16,6 +16,7 @@ export class AppsComponent implements OnInit {
 
   dialog: Electron.Dialog;
   packages$: Observable<PackageInfo[]>;
+  repoPackages: Map<string, RepositoryItem>;
   device: Device;
 
   private subscription: Subscription;
@@ -26,7 +27,8 @@ export class AppsComponent implements OnInit {
     private modalService: NgbModal,
     private translate: TranslateService,
     private deviceManager: DeviceManagerService,
-    private appManager: AppManagerService
+    private appManager: AppManagerService,
+    private appsRepo: AppsRepoService,
   ) {
     this.dialog = electron.remote.dialog;
     deviceManager.devices$.subscribe((devices) => {
@@ -69,6 +71,11 @@ export class AppsComponent implements OnInit {
       this.subscription.unsubscribe();
     }
     this.subscription = this.packages$.subscribe({
+      next: async (pkgs) => {
+        if (pkgs.length) {
+          this.repoPackages = await this.appsRepo.showApps(...pkgs.map((pkg) => pkg.id));
+        }
+      },
       error: (error) => {
         if (this.errorDialog && !this.errorDialog.closed) return;
         this.errorDialog = MessageDialogComponent.open(this.modalService, {
@@ -131,7 +138,21 @@ export class AppsComponent implements OnInit {
     });
     if (!await confirm.result) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    await this.appManager.remove(this.device.name, pkg.id);
+    try {
+      await this.appManager.remove(this.device.name, pkg.id);
+    } catch (e) {
+      // Ignore
+    }
+    progress.close(true);
+  }
+
+  async updateApp(pkg: PackageInfo): Promise<void> {
+    const progress = ProgressDialogComponent.open(this.modalService);
+    try {
+      await this.appManager.installUrl(this.device.name, this.repoPackages.get(pkg.id).manifest.ipkUrl);
+    } catch (e) {
+      // Ignore
+    }
     progress.close(true);
   }
 }

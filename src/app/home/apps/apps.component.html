@@ -28,20 +28,26 @@
             <span>{{pkg.version}}</span>
           </td>
           <td>
-            <div class="btn-group ml-2" dropdown>
-              <button class="btn" (click)="launchApp(pkg.id)">
-                <i class="bi bi-play-fill"></i>
-              </button>
+            <div class="d-flex justify-content-end">
+              <ng-container [ngSwitch]="repoPackages?.get(pkg.id)?.manifest?.hasUpdate(pkg.version)">
+                <button class="btn btn-primary ml-2" (click)="updateApp(pkg)" *ngSwitchCase="true">
+                  <i class="bi bi-download mr-2"></i>Update
+                </button>
+                <button class="btn btn-primary ml-2" (click)="launchApp(pkg.id)" *ngSwitchDefault>
+                  <i class="bi bi-play-fill mr-2"></i>Launch
+                </button>
+              </ng-container>
               <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
                 aria-label="Button group with nested dropdown">
-                <button class="btn" ngbDropdownToggle>
+                <button class="btn ml-2" ngbDropdownToggle>
                   Options <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" ngbDropdownMenu>
-                  <!-- <li ngbDropdownItem>
-                    <i class="bi bi-download mr-3"></i>Update
-                  </li> -->
-                  <!-- <li class="divider dropdown-divider"></li> -->
+                  <a ngbDropdownItem [href]="repoPackages?.get(pkg.id)?.manifest?.sourceUrl"
+                    *ngIf="repoPackages?.get(pkg.id)?.manifest">
+                    <i class="bi bi-globe2 mr-3"></i>Website
+                  </a>
+                  <li class="divider dropdown-divider"></li>
                   <li ngbDropdownItem class="text-danger" (click)="removePackage(pkg)">
                     <i class="bi bi-trash mr-3"></i>Uninstall
                   </li>
