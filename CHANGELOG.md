@@ -1,5 +1,12 @@
+## <small>1.2.1 (2021-05-31)</small>
+
+* Not using modals for load errors ([5686fd9](https://github.com/webosbrew/dev-manager-desktop/commit/5686fd9))
+
+
+
 ## 1.2.0 (2021-05-31)
 
+* 1.2.0 ([1d9b9bf](https://github.com/webosbrew/dev-manager-desktop/commit/1d9b9bf))
 * App update ([f07f4f6](https://github.com/webosbrew/dev-manager-desktop/commit/f07f4f6))
 
 
