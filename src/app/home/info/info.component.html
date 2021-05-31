@@ -14,6 +14,9 @@
         <br>
         <strong>webOS version: </strong><span>{{osInfo.webos_release}}</span>
       </p>
+      <div>
+        <button class="btn btn-primary" (click)="openCrashLogs()">Crash Logs</button>
+      </div>
     </div>
   </div>
   <div class="card mt-4" *ngIf="osInfo && devModeInfo">

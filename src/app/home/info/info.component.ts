@@ -1,13 +1,13 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import 'moment-duration-format';
 import { Observable, timer } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Device } from '../../../types/novacom';
-import { AppManagerService, AppsRepoService, DeviceManagerService, DevModeResponse, DevModeService, ElectronService, PackageInfo, RepositoryItem, SystemInfo } from '../../core/services';
+import { AppManagerService, AppsRepoService, DeviceManagerService, DevModeResponse, DevModeService, PackageInfo, RepositoryItem, SystemInfo } from '../../core/services';
 import { ProgressDialogComponent } from '../../shared/components/progress-dialog/progress-dialog.component';
-
+import { CrashesComponent } from './crashes/crashes.component';
 @Component({
   selector: 'app-info',
   templateUrl: './info.component.html',
@@ -88,5 +88,15 @@ export class InfoComponent implements OnInit, OnDestroy {
       // Ignore
     }
     progress.close(true);
+  }
+
+  openCrashLogs(): void {
+    this.modalService.open(CrashesComponent, {
+      size: 'lg',
+      scrollable: true,
+      injector: Injector.create({
+        providers: [{ provide: 'device', useValue: this.device }]
+      })
+    });
   }
 }

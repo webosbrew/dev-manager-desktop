@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from "@angular/core";
 import novacom from '@webosose/ares-cli/lib/base/novacom';
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
 import { Device, DeviceEditSpec, Resolver, Session } from '../../../types/novacom';
 import { ElectronService } from './electron.service';
 import * as util from 'util';
 import * as net from 'net';
 import { cleanupSession } from '../../shared/util/ares-utils';
+import { Exclude, plainToClass } from 'class-transformer';
 @Injectable({
   providedIn: 'root'
 })
@@ -17,7 +18,7 @@ export class DeviceManagerService {
   private util: typeof util;
   private net: typeof net;
 
-  constructor(electron: ElectronService, private http: HttpClient) {
+  constructor(private electron: ElectronService, private http: HttpClient) {
     this.novacom = electron.novacom;
     this.util = electron.util;
     this.net = electron.net;
@@ -135,6 +136,39 @@ export class DeviceManagerService {
     })).finally(() => cleanupSession());
   }
 
+  async listCrashReports(name: string): Promise<CrashReport[]> {
+    return await this.newSession(name).then(session => new Promise<CrashReport[]>((resolve, reject) => {
+      let outStr = '';
+      session.run('find /var/log/reports/librdx/ -name \'*.gz\' -print0', null, (stdout: Buffer) => {
+        outStr += stdout.toString();
+      }, () => {
+      }, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(outStr.split('\0').filter(l => l.length).map(l => new CrashReport(name, l, this)));
+        }
+      });
+    })).finally(() => cleanupSession());
+  }
+
+  async zcat(name: string, path: string): Promise<string> {
+    return await this.newSession(name).then(session => new Promise<string>((resolve, reject) => {
+      let outStr = '';
+      session.run(`xargs -0 zcat`, this.electron.stream.Readable.from(path), (stdout: Buffer) => {
+        outStr += stdout.toString();
+      }, (stderr) => {
+        console.error(stderr.toString());
+      }, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(outStr);
+        }
+      });
+    })).finally(() => cleanupSession());
+  }
+
   async newSession(name: string): Promise<Session> {
     return new Promise<Session>((resolve, reject) => {
       const session: any = new this.novacom.Session(name, (error: any) => {
@@ -176,4 +210,23 @@ export interface SystemInfo {
   webos_prerelease?: string
   webos_release: string
   webos_release_codename?: string
+}
+
+export class CrashReport {
+  name: string;
+  content: Observable<string>;
+  private subject: Subject<string>;
+
+  constructor(public device: string, public path: string, private dm: DeviceManagerService) {
+    this.path = path;
+    this.name = path.substring(path.lastIndexOf('/') + 1);
+    this.subject = new ReplaySubject(1);
+    this.content = this.subject.asObservable();
+  }
+
+  load() {
+    this.dm.zcat(this.device, this.path)
+      .then(content => this.subject.next(content.trim()))
+      .catch(error => this.subject.error(error));
+  }
 }

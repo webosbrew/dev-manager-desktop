@@ -1,4 +1,5 @@
 import { Client } from 'ssh2';
+import { Readable, Writable } from 'stream';
 export interface Device {
   name: string;
   description: string;
@@ -33,9 +34,9 @@ export interface Resolver {
   modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>, next: (error: any, result: any) => void): void;
 }
 
-export type RunOutput = WritableStream | ((buf: Buffer) => void) | null;
+export type RunOutput = Writable | ((buf: Buffer) => void) | null;
 export interface Session {
   readonly ssh: Client;
-  run(cmd: string, stdin: ReadableStream | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
+  run(cmd: string, stdin: Readable | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
   end(): void;
 }
