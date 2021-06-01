@@ -33,7 +33,6 @@ function createWindow(): BrowserWindow {
       allowRunningInsecureContent: serve,
       contextIsolation: false,  // false if you want to run 2e2 test with Spectron
       enableRemoteModule: true, // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
-      devTools: serve
     },
   });
 

@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { plainToClass, Type } from 'class-transformer';
 import { map } from 'rxjs/operators';
 import * as semver from 'semver';
 import { ElectronService } from './electron.service';
@@ -29,7 +28,7 @@ export class AppsRepoService {
   }
 
   async showApp(id: string): Promise<RepositoryItem> {
-    return this.http.get(`${baseUrl}/apps/${id}.json`).pipe(map((body) => plainToClass(RepositoryItem, body))).toPromise();
+    return this.http.get(`${baseUrl}/apps/${id}.json`).pipe(map((body) => new RepositoryItem(body))).toPromise();
   }
 
   async showApps(...ids: string[]): Promise<Map<string, RepositoryItem>> {
@@ -42,6 +41,10 @@ export class PackageManifest {
   id: string;
   version: string;
   ipkUrl: string;
+
+  constructor(data: Partial<PackageManifest>) {
+    Object.assign(this, data);
+  }
 
   hasUpdate(version: string): boolean {
     let v1 = this.version, v2 = version;
@@ -69,8 +72,14 @@ export class PackageManifest {
 export class RepositoryItem {
   id: string;
   title: string;
-  @Type(() => PackageManifest)
   manifest?: PackageManifest;
   manifestUrl?: string;
+
+  constructor(data: Partial<RepositoryItem>) {
+    Object.assign(this, data);
+    if (data.manifest) {
+      this.manifest = new PackageManifest(data.manifest);
+    }
+  }
 
 }
