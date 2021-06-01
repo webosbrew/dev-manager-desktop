@@ -55,7 +55,7 @@ jobs:
         name: Release ${{ steps.tagName.outputs.tag }}
         prerelease: true
         allowUpdates: true
-        artifact: release/*.exe
+        artifacts: release/*.exe
 
     - name: Create Release (Linux)
       id: create_release_linux
@@ -66,7 +66,7 @@ jobs:
         name: Release ${{ steps.tagName.outputs.tag }}
         prerelease: true
         allowUpdates: true
-        artifact: release/*.AppImage
+        artifacts: release/*.AppImage
 
     - name: Create Release (macOS)
       id: create_release_macos
@@ -77,4 +77,4 @@ jobs:
         name: Release ${{ steps.tagName.outputs.tag }}
         prerelease: true
         allowUpdates: true
-        artifact: release/*.dmg
+        artifacts: release/*.dmg
