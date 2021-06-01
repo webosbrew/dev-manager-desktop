@@ -1,5 +1,12 @@
+## <small>1.2.3 (2021-06-01)</small>
+
+* Multi platform release ([228b9d4](https://github.com/webosbrew/dev-manager-desktop/commit/228b9d4))
+
+
+
 ## <small>1.2.2 (2021-06-01)</small>
 
+* 1.2.2 ([b49c5f1](https://github.com/webosbrew/dev-manager-desktop/commit/b49c5f1))
 * Crash log viewer ([c67d99d](https://github.com/webosbrew/dev-manager-desktop/commit/c67d99d))
 * Fixed build error ([f064032](https://github.com/webosbrew/dev-manager-desktop/commit/f064032))
 
