@@ -1,5 +1,14 @@
+## <small>1.2.4 (2021-06-01)</small>
+
+* Removed class-transformer ([b79db06](https://github.com/webosbrew/dev-manager-desktop/commit/b79db06))
+* Removed some workflows to reduce CO2 emission ([ce02693](https://github.com/webosbrew/dev-manager-desktop/commit/ce02693))
+* Updated release name ([e3a332b](https://github.com/webosbrew/dev-manager-desktop/commit/e3a332b))
+
+
+
 ## <small>1.2.3 (2021-06-01)</small>
 
+* 1.2.3 ([daf80d6](https://github.com/webosbrew/dev-manager-desktop/commit/daf80d6))
 * Multi platform release ([228b9d4](https://github.com/webosbrew/dev-manager-desktop/commit/228b9d4))
 
 
