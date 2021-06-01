@@ -1,5 +1,13 @@
+## <small>1.2.2 (2021-06-01)</small>
+
+* Crash log viewer ([c67d99d](https://github.com/webosbrew/dev-manager-desktop/commit/c67d99d))
+* Fixed build error ([f064032](https://github.com/webosbrew/dev-manager-desktop/commit/f064032))
+
+
+
 ## <small>1.2.1 (2021-05-31)</small>
 
+* 1.2.1 ([da2634b](https://github.com/webosbrew/dev-manager-desktop/commit/da2634b))
 * Not using modals for load errors ([5686fd9](https://github.com/webosbrew/dev-manager-desktop/commit/5686fd9))
 
 
