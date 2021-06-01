@@ -11,11 +11,18 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
     # The type of runner that the job will run on
-    runs-on: windows-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
+
+    - uses: olegtarasov/get-tag@v2.1
+      id: tagName
 
     - name: Cache node modules
       uses: actions/cache@v2
@@ -39,12 +46,35 @@ jobs:
     - name: Build the app
       run: npm run electron:build
 
-    - name: Create Release
-      id: create_release
+    - name: Create Release (Windows)
+      id: create_release_windows
       uses: ncipollo/release-action@v1
+      if: runner.os == 'Windows'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        name: Release ${{ github.ref }}
+        name: Release ${{ steps.tagName.outputs.tag }}
         prerelease: true
         allowUpdates: true
         artifact: release/*.exe
+
+    - name: Create Release (Linux)
+      id: create_release_linux
+      uses: ncipollo/release-action@v1
+      if: runner.os == 'Linux'
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: Release ${{ steps.tagName.outputs.tag }}
+        prerelease: true
+        allowUpdates: true
+        artifact: release/*.AppImage
+
+    - name: Create Release (macOS)
+      id: create_release_macos
+      uses: ncipollo/release-action@v1
+      if: runner.os == 'macOS'
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: Release ${{ steps.tagName.outputs.tag }}
+        prerelease: true
+        allowUpdates: true
+        artifact: release/*.dmg
