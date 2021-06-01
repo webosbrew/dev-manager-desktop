@@ -52,7 +52,7 @@ jobs:
       if: runner.os == 'Windows'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        name: Release ${{ steps.tagName.outputs.tag }}
+        name: Dev Manager ${{ steps.tagName.outputs.tag }}
         prerelease: true
         allowUpdates: true
         artifacts: release/*.exe
@@ -63,7 +63,7 @@ jobs:
       if: runner.os == 'Linux'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        name: Release ${{ steps.tagName.outputs.tag }}
+        name: Dev Manager ${{ steps.tagName.outputs.tag }}
         prerelease: true
         allowUpdates: true
         artifacts: release/*.AppImage
@@ -74,7 +74,7 @@ jobs:
       if: runner.os == 'macOS'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        name: Release ${{ steps.tagName.outputs.tag }}
+        name: Dev Manager ${{ steps.tagName.outputs.tag }}
         prerelease: true
         allowUpdates: true
         artifacts: release/*.dmg
