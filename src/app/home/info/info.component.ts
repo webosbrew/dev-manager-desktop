@@ -33,11 +33,7 @@ export class InfoComponent implements OnInit, OnDestroy {
     deviceManager.devices$.subscribe((devices) => {
       const device = devices.find((dev) => dev.default);
       this.device = device;
-      if (device) {
-        this.loadDeviceInfo()
-          .then(() => Promise.all([this.loadDevModeInfo(), this.loadHomebrewInfo()]))
-          .catch(() => { });
-      }
+      this.loadInfo();
     });
   }
 
@@ -46,6 +42,13 @@ export class InfoComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
 
+  }
+
+  loadInfo(): void {
+    if (!this.device) return;
+    this.loadDeviceInfo()
+      .then(() => Promise.all([this.loadDevModeInfo(), this.loadHomebrewInfo()]))
+      .catch(() => { });
   }
 
   async renewDevMode(): Promise<void> {

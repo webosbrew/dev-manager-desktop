@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, Subscription } from 'rxjs';
 import { Device } from '../../../types/novacom';
-import { AppManagerService, DeviceManagerService, ElectronService, PackageInfo, AppsRepoService, RepositoryItem } from '../../core/services';
+import { AppManagerService, AppsRepoService, DeviceManagerService, ElectronService, PackageInfo, RepositoryItem } from '../../core/services';
 import { MessageDialogComponent } from '../../shared/components/message-dialog/message-dialog.component';
 import { ProgressDialogComponent } from '../../shared/components/progress-dialog/progress-dialog.component';
-import { MessageTraceComponent } from '../../shared/components/message-dialog/message-trace/message-trace.component';
+
 @Component({
   selector: 'app-apps',
   templateUrl: './apps.component.html',
@@ -18,9 +18,9 @@ export class AppsComponent implements OnInit {
   packages$: Observable<PackageInfo[]>;
   repoPackages: Map<string, RepositoryItem>;
   device: Device;
+  packagesError: any;
 
   private subscription: Subscription;
-  private packagesError: any;
 
   constructor(
     private electron: ElectronService,
