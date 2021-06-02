@@ -1,5 +1,12 @@
+## <small>1.3.1 (2021-06-02)</small>
+
+* Fixed few errors ([2bc2115](https://github.com/webosbrew/dev-manager-desktop/commit/2bc2115))
+
+
+
 ## 1.3.0 (2021-06-02)
 
+* 1.3.0 ([5ebadfd](https://github.com/webosbrew/dev-manager-desktop/commit/5ebadfd))
 * available apps dropdown improvement ([da5092f](https://github.com/webosbrew/dev-manager-desktop/commit/da5092f))
 * central repo support ([9857b54](https://github.com/webosbrew/dev-manager-desktop/commit/9857b54))
 * Code cleanup a bit ([366c6b7](https://github.com/webosbrew/dev-manager-desktop/commit/366c6b7))
