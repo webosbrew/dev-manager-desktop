@@ -35,7 +35,7 @@ export class AppsComponent implements OnInit {
     deviceManager.selected$.subscribe((device) => {
       this.device = device;
       if (device) {
-        this.loadPackages(device);
+        this.loadPackages();
       } else {
         this.packages$ = null;
         this.packagesError = null;
@@ -66,7 +66,8 @@ export class AppsComponent implements OnInit {
     console.log('onDragLeave', event.dataTransfer.items.length && event.dataTransfer.items[0]);
   }
 
-  loadPackages(device: Device): void {
+  loadPackages(): void {
+    const device = this.device;
     this.packages$ = this.appManager.packages$(device.name);
     if (this.subscription) {
       this.subscription.unsubscribe();

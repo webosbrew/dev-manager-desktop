@@ -19,7 +19,8 @@
         </td>
         <td>
           <div class="d-flex justify-content-end">
-            <ng-container [ngSwitch]="item.manifest?.hasUpdate(parent.instPackages?.get(item.id)?.version)">
+            <ng-container [ngSwitch]="item.manifest?.hasUpdate(instPackages?.get(item.id)?.version)"
+              *ngIf="parent.instPackages as instPackages">
               <button class="btn btn-primary ml-2" (click)="parent.launchApp(pkg.id)" *ngSwitchCase="false">
                 <i class="bi bi-play-fill mr-2"></i>Launch
               </button>

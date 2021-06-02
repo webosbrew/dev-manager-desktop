@@ -3,8 +3,8 @@
     <div class="card" *ngIf="parent.packagesError">
       <div class="card-body">
         <h5 class="card-title">Unable to load apps</h5>
-        <p class="card-text">Failed to connect to {{device.name}}</p>
-        <button class="btn btn-primary" (click)="loadPackages(device)">{{'ACTIONS.RETRY' | translate}}</button>
+        <p class="card-text">Failed to connect to {{parent.device.name}}</p>
+        <button class="btn btn-primary" (click)="parent.loadPackages()">{{'ACTIONS.RETRY' | translate}}</button>
       </div>
     </div>
   </div>
