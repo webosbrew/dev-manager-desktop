@@ -16,6 +16,7 @@ export class AppsComponent implements OnInit {
 
   dialog: Electron.Dialog;
   packages$: Observable<PackageInfo[]>;
+  instPackages: Map<string, PackageInfo>;
   repoPackages: Map<string, RepositoryItem>;
   device: Device;
   packagesError: any;
@@ -74,6 +75,7 @@ export class AppsComponent implements OnInit {
       next: async (pkgs) => {
         this.packagesError = null;
         if (pkgs.length) {
+          this.instPackages = new Map(pkgs.map((pkg) => [pkg.id, pkg]));
           this.repoPackages = await this.appsRepo.showApps(...pkgs.map((pkg) => pkg.id));
         }
       }, error: (error) => this.packagesError = error

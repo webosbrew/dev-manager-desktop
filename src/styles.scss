@@ -1,6 +1,8 @@
 @import '~bootstrap/scss/bootstrap';
 @import "~bootstrap-icons/font/bootstrap-icons.css";
 @import "./styles/no-select.scss";
+@import "./styles/app-item.scss";
+@import "./styles/overflow.scss";
 
 /* You can add global styles to this file, and also import other style files */
 html, body {
@@ -83,9 +85,7 @@ html, body {
   height: calc(100vh);
   .setup-detail {
     flex: 1 1 auto;
-  }
-  .bottom-bar {
-    flex: 0 0 auto;
+    height: 100vh;
   }
 }
 

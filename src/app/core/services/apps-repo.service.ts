@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as semver from 'semver';
 import { ElectronService } from './electron.service';
@@ -35,6 +36,11 @@ export class AppsRepoService {
     return new Map(await Promise.all(ids.map((id) => this.showApp(id).then(pkg => [pkg.id, pkg]).catch(() => null)))
       .then(list => list.filter(v => v != null)));
   }
+
+  allApps$(page = 0): Observable<RepositoryPage> {
+    const suffix = page > 1 ? `apps/${page}.json` : 'apps.json';
+    return this.http.get(`${baseUrl}/${suffix}`).pipe(map((body) => new RepositoryPage(body)));
+  }
 }
 
 export class PackageManifest {
@@ -46,7 +52,8 @@ export class PackageManifest {
     Object.assign(this, data);
   }
 
-  hasUpdate(version: string): boolean {
+  hasUpdate(version: string): boolean | null {
+    if (!version) return null;
     let v1 = this.version, v2 = version;
     const segs1 = this.version.split('.', 4), segs2 = version.split('.', 4);
     let suffix1 = '', suffix2 = '';
@@ -81,5 +88,19 @@ export class RepositoryItem {
       this.manifest = new PackageManifest(data.manifest);
     }
   }
+}
 
+export class RepositoryPage {
+  paging: {
+    page: number;
+    count: number;
+    maxPage: number;
+    itemsTotal: number;
+  };
+  packages: RepositoryItem[];
+
+  constructor(data: Partial<RepositoryPage>) {
+    this.paging = data.paging;
+    this.packages = data.packages?.map((item) => new RepositoryItem(item));
+  }
 }

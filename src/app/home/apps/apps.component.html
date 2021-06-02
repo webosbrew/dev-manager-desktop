@@ -1,38 +1,26 @@
-<div class="w-100 h-100" [ngSwitch]="packages$ | async">
-  <div class="p-4" *ngSwitchCase="null">
-    <div class="card" *ngIf="packagesError">
-      <div class="card-body">
-        <h5 class="card-title">Unable to load apps</h5>
-        <p class="card-text">Failed to connect to {{device.name}}</p>
-        <button class="btn btn-primary" (click)="loadPackages(device)">{{'ACTIONS.RETRY' | translate}}</button>
-      </div>
+<div class="w-100 h-100 d-flex flex-column overflow-hidden">
+  <nav class="navbar navbar-light bg-light">
+    <div class="mr-auto">
+      <ul ngbNav #nav="ngbNav" class="nav-pills">
+        <li ngbNavItem>
+          <a ngbNavLink>Installed</a>
+          <ng-template ngbNavContent>
+            <app-installed></app-installed>
+          </ng-template>
+        </li>
+        <li ngbNavItem>
+          <a ngbNavLink>Available</a>
+          <ng-template ngbNavContent>
+            <app-channel></app-channel>
+          </ng-template>
+        </li>
+      </ul>
     </div>
-  </div>
-  <div class="w-100 h-100" (drop)="dropFiles($event)" (dragover)="onDragOver($event)" (dragenter)="onDragEnter($event)"
-    (dragleave)="onDragLeave($event)" *ngSwitchDefault>
-    <nav class="navbar navbar-light sticky-top bg-light">
-      <div class="mr-auto">
-        <ul ngbNav #nav="ngbNav" class="nav-pills">
-          <li ngbNavItem>
-            <a ngbNavLink>Installed</a>
-            <ng-template ngbNavContent>
-              <app-installed></app-installed>
-            </ng-template>
-          </li>
-          <li ngbNavItem>
-            <a ngbNavLink>Available</a>
-            <ng-template ngbNavContent>
-              <app-channel></app-channel>
-            </ng-template>
-          </li>
-        </ul>
-      </div>
-      <form class="form-inline">
-        <button class="btn btn-primary" (click)="openInstallChooser()">
-          <i class="bi bi-folder-fill mr-2"></i>Install
-        </button>
-      </form>
-    </nav>
-    <div [ngbNavOutlet]="nav"></div>
-  </div>
+    <form class="form-inline">
+      <button class="btn btn-primary" (click)="openInstallChooser()">
+        <i class="bi bi-folder-fill mr-2"></i>Install
+      </button>
+    </form>
+  </nav>
+  <div class="p-3 flex-fill overflow-auto" [ngbNavOutlet]="nav"></div>
 </div>

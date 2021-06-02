@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-
+import { Component, Host, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { AppsRepoService, RepositoryPage } from '../../../core/services';
+import { AppsComponent } from '../apps.component';
 @Component({
   selector: 'app-channel',
   templateUrl: './channel.component.html',
@@ -7,9 +9,19 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ChannelComponent implements OnInit {
 
-  constructor() { }
+  page = 1;
+  repoPage$: Observable<RepositoryPage>;
 
-  ngOnInit(): void {
+  constructor(
+    @Host() public parent: AppsComponent,
+    private appsRepo: AppsRepoService) {
   }
 
+  ngOnInit(): void {
+    this.loadPage(1);
+  }
+
+  loadPage(page: number): void {
+    this.repoPage$ = this.appsRepo.allApps$(page);
+  }
 }
