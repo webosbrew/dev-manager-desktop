@@ -23,7 +23,7 @@
     <div class="card-body">
       <h5 class="card-title">Dev Mode</h5>
       <p class="card-text">
-        <strong>Remaining duration: </strong><span>{{devModeRemaining | async}}</span>
+        <strong *ngIf="devModeRemaining">Remaining duration: </strong><span>{{devModeRemaining | async}}</span>
       </p>
       <div>
         <button class="btn btn-primary" (click)="renewDevMode()">Renew Session</button>

@@ -30,9 +30,8 @@ export class InfoComponent implements OnInit, OnDestroy {
     private appsRepo: AppsRepoService,
     private devMode: DevModeService
   ) {
-    deviceManager.devices$.subscribe((devices) => {
-      const device = devices.find((dev) => dev.default);
-      this.device = device;
+    deviceManager.selected$.subscribe((selected) => {
+      this.device = selected;
       this.loadInfo();
     });
   }
@@ -67,10 +66,18 @@ export class InfoComponent implements OnInit, OnDestroy {
   }
 
   private async loadDevModeInfo(): Promise<void> {
-    const token = await this.deviceManager.devModeToken(this.device.name);
-    this.devModeInfo = await this.devMode.checkDevMode(token);
-    const expireDate = moment().add(this.devModeInfo.errorMsg, 'h');
-    this.devModeRemaining = timer(0, 1000).pipe(map(() => moment.duration(expireDate.diff(moment())).format('hh:mm:ss')));
+    try {
+      const token = await this.deviceManager.devModeToken(this.device.name);
+      const devModeInfo = await this.devMode.checkDevMode(token);
+      this.devModeInfo = devModeInfo;
+      if (devModeInfo.errorCode == '200') {
+        const expireDate = moment().add(devModeInfo.errorMsg, 'h');
+        this.devModeRemaining = timer(0, 1000).pipe(map(() => moment.duration(expireDate.diff(moment())).format('hh:mm:ss')));
+      }
+    } catch (e) {
+      this.devModeInfo = null;
+      this.devModeRemaining = null;
+    }
   }
 
   private async loadHomebrewInfo(): Promise<void> {

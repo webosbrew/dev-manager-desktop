@@ -14,7 +14,8 @@ import { ElectronService } from './electron.service';
 export class DeviceManagerService {
 
   private novacom: typeof novacom;
-  private devicesSubject: BehaviorSubject<Device[]>;
+  private devicesSubject: Subject<Device[]>;
+  private selectedSubject: Subject<Device>;
   private util: typeof util;
   private net: typeof net;
 
@@ -23,6 +24,7 @@ export class DeviceManagerService {
     this.util = electron.util;
     this.net = electron.net;
     this.devicesSubject = new BehaviorSubject([]);
+    this.selectedSubject = new BehaviorSubject(null);
     this.load();
 
     const session = electron.remote.session;
@@ -42,6 +44,10 @@ export class DeviceManagerService {
 
   get devices$(): Observable<Device[]> {
     return this.devicesSubject.asObservable();
+  }
+
+  get selected$(): Observable<Device> {
+    return this.selectedSubject.asObservable();
   }
 
   load(): void {
@@ -189,6 +195,7 @@ export class DeviceManagerService {
 
   private onDevicesUpdated(devices: Device[]) {
     this.devicesSubject.next(devices);
+    this.selectedSubject.next(devices.find((device) => device.default) ?? devices[0]);
   }
 
   private newResolver(): Resolver {

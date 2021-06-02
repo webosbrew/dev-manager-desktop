@@ -23,16 +23,16 @@ export class AppsComponent implements OnInit {
   private subscription: Subscription;
 
   constructor(
+    public deviceManager: DeviceManagerService,
     private electron: ElectronService,
     private modalService: NgbModal,
     private translate: TranslateService,
-    private deviceManager: DeviceManagerService,
     private appManager: AppManagerService,
     private appsRepo: AppsRepoService,
   ) {
     this.dialog = electron.remote.dialog;
-    deviceManager.devices$.subscribe((devices) => {
-      const device = devices.find((dev) => dev.default);
+    deviceManager.selected$.subscribe((device) => {
+      this.device = device;
       if (device) {
         this.loadPackages(device);
       } else {
@@ -42,7 +42,6 @@ export class AppsComponent implements OnInit {
           this.subscription.unsubscribe();
         }
       }
-      this.device = device;
     });
   }
 
