@@ -1,5 +1,16 @@
+## 1.3.0 (2021-06-02)
+
+* available apps dropdown improvement ([da5092f](https://github.com/webosbrew/dev-manager-desktop/commit/da5092f))
+* central repo support ([9857b54](https://github.com/webosbrew/dev-manager-desktop/commit/9857b54))
+* Code cleanup a bit ([366c6b7](https://github.com/webosbrew/dev-manager-desktop/commit/366c6b7))
+* hbchannel repo WIP ([4838e7d](https://github.com/webosbrew/dev-manager-desktop/commit/4838e7d))
+* Help link for adding device ([f93ce06](https://github.com/webosbrew/dev-manager-desktop/commit/f93ce06))
+
+
+
 ## <small>1.2.4 (2021-06-01)</small>
 
+* 1.2.4 ([b1aaf8c](https://github.com/webosbrew/dev-manager-desktop/commit/b1aaf8c))
 * Removed class-transformer ([b79db06](https://github.com/webosbrew/dev-manager-desktop/commit/b79db06))
 * Removed some workflows to reduce CO2 emission ([ce02693](https://github.com/webosbrew/dev-manager-desktop/commit/ce02693))
 * Updated release name ([e3a332b](https://github.com/webosbrew/dev-manager-desktop/commit/e3a332b))
