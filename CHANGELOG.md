@@ -1,5 +1,12 @@
+## <small>1.3.2 (2021-06-02)</small>
+
+* Fixed build ([d218ee5](https://github.com/webosbrew/dev-manager-desktop/commit/d218ee5))
+
+
+
 ## <small>1.3.1 (2021-06-02)</small>
 
+* 1.3.1 ([7f76a0a](https://github.com/webosbrew/dev-manager-desktop/commit/7f76a0a))
 * Fixed few errors ([2bc2115](https://github.com/webosbrew/dev-manager-desktop/commit/2bc2115))
 
 
