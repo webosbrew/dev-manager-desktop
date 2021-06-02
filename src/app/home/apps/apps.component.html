@@ -11,63 +11,28 @@
   <div class="w-100 h-100" (drop)="dropFiles($event)" (dragover)="onDragOver($event)" (dragenter)="onDragEnter($event)"
     (dragleave)="onDragLeave($event)" *ngSwitchDefault>
     <nav class="navbar navbar-light sticky-top bg-light">
-      <div class="mr-auto"></div>
+      <div class="mr-auto">
+        <ul ngbNav #nav="ngbNav" class="nav-pills">
+          <li ngbNavItem>
+            <a ngbNavLink>Installed</a>
+            <ng-template ngbNavContent>
+              <app-installed></app-installed>
+            </ng-template>
+          </li>
+          <li ngbNavItem>
+            <a ngbNavLink>Available</a>
+            <ng-template ngbNavContent>
+              <app-channel></app-channel>
+            </ng-template>
+          </li>
+        </ul>
+      </div>
       <form class="form-inline">
         <button class="btn btn-primary" (click)="openInstallChooser()">
           <i class="bi bi-folder-fill mr-2"></i>Install
         </button>
       </form>
     </nav>
-    <div class="m-3">
-      <table>
-        <colgroup>
-          <col class="w-100">
-          <col>
-          <col>
-        </colgroup>
-        <tbody>
-          <tr class="app-item" *ngFor="let pkg of (packages$ | async)">
-            <td class="app-desc">
-              <img class="app-icon" [src]="pkg.iconPath | aresPullUri:device.name">
-              <div class="app-headline ml-3">
-                <div class="app-title">{{pkg.title}}</div>
-                <div class="app-description">{{pkg.appDescription}}</div>
-              </div>
-            </td>
-            <td>
-              <span>{{pkg.version}}</span>
-            </td>
-            <td>
-              <div class="d-flex justify-content-end">
-                <ng-container [ngSwitch]="repoPackages?.get(pkg.id)?.manifest?.hasUpdate(pkg.version)">
-                  <button class="btn btn-primary ml-2" (click)="updateApp(pkg)" *ngSwitchCase="true">
-                    <i class="bi bi-download mr-2"></i>Update
-                  </button>
-                  <button class="btn btn-primary ml-2" (click)="launchApp(pkg.id)" *ngSwitchDefault>
-                    <i class="bi bi-play-fill mr-2"></i>Launch
-                  </button>
-                </ng-container>
-                <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
-                  aria-label="Button group with nested dropdown">
-                  <button class="btn ml-2" ngbDropdownToggle>
-                    Options <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" ngbDropdownMenu>
-                    <a ngbDropdownItem [href]="repoPackages?.get(pkg.id)?.manifest?.sourceUrl"
-                      *ngIf="repoPackages?.get(pkg.id)?.manifest">
-                      <i class="bi bi-globe2 mr-3"></i>Website
-                    </a>
-                    <li class="divider dropdown-divider"></li>
-                    <li ngbDropdownItem class="text-danger" (click)="removePackage(pkg)">
-                      <i class="bi bi-trash mr-3"></i>Uninstall
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <div [ngbNavOutlet]="nav"></div>
   </div>
 </div>

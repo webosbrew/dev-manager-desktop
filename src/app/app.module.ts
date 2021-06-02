@@ -22,6 +22,8 @@ import { ExternalLinkDirective } from './shared/directives';
 import { SharedModule } from './shared/shared.module';
 import { ConnHintComponent } from './add-device/conn-hint/conn-hint.component';
 import { CrashesComponent } from './home/info/crashes/crashes.component';
+import { InstalledComponent } from './home/apps/installed/installed.component';
+import { ChannelComponent } from './home/apps/channel/channel.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -41,6 +43,8 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     ExternalLinkDirective,
     ConnHintComponent,
     CrashesComponent,
+    InstalledComponent,
+    ChannelComponent,
   ],
   imports: [
     BrowserModule,

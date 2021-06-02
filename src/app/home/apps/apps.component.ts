@@ -23,10 +23,10 @@ export class AppsComponent implements OnInit {
   private subscription: Subscription;
 
   constructor(
-    public deviceManager: DeviceManagerService,
     private electron: ElectronService,
     private modalService: NgbModal,
     private translate: TranslateService,
+    private deviceManager: DeviceManagerService,
     private appManager: AppManagerService,
     private appsRepo: AppsRepoService,
   ) {
@@ -129,10 +129,10 @@ export class AppsComponent implements OnInit {
     progress.close(true);
   }
 
-  async updateApp(pkg: PackageInfo): Promise<void> {
+  async installPackage(item: RepositoryItem): Promise<void> {
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.installUrl(this.device.name, this.repoPackages.get(pkg.id).manifest.ipkUrl);
+      await this.appManager.installUrl(this.device.name, item.manifest.ipkUrl);
     } catch (e) {
       // Ignore
     }
