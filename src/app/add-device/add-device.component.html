@@ -51,6 +51,7 @@
 </div>
 
 <div class="modal-footer">
-  <button type="button" class="btn btn-light" (click)="modal.dismiss('cancelled')">Close</button>
-  <button type="button" class="btn btn-primary" [disabled]="!formGroup.valid" (click)="addDevice()">Add</button>
+  <a class="btn btn-outline-primary mr-auto" href="https://webostv.developer.lge.com/develop/app-test/using-devmode-app/">Help</a>
+  <button class="btn btn-light" (click)="modal.dismiss('cancelled')">Close</button>
+  <button class="btn btn-primary" [disabled]="!formGroup.valid" (click)="addDevice()">Add</button>
 </div>
