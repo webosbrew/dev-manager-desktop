@@ -60,8 +60,9 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  connError(error: any): void {
+  connError(error: Error): void {
     this.term.writeln('>>> Connection error. Press any key to reconnect.');
+    this.term.writeln(`>>> ${String(error)}`);
   }
 
   @HostListener('window:resize')
@@ -73,7 +74,10 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
     const device = (await this.deviceManager.list()).find(dev => dev.default);
     const session = await this.deviceManager.newSession(device.name);
     session.ssh.shell((err, stream) => {
-      if (err) throw err;
+      if (err) {
+        this.connError(err);
+        return;
+      }
       this.stream = stream;
       const disposable = this.term.onKey((arg1) => {
         stream.write(arg1.key);
