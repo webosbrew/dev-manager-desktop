@@ -2,6 +2,7 @@
 // the resulting javascript file will look as if you never imported the module at all.
 
 import { Injectable } from '@angular/core';
+import * as appdata from '@webosose/ares-cli/lib/base/cli-appdata';
 import * as novacom from '@webosose/ares-cli/lib/base/novacom';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
@@ -28,6 +29,7 @@ export class ElectronService {
   net: typeof net;
   stream: typeof stream;
   novacom: typeof novacom;
+  appdata: typeof appdata;
   installLib: typeof install;
   launchLib: typeof launch;
   ssh2: typeof ssh2;
@@ -55,6 +57,7 @@ export class ElectronService {
       this.stream = window.require('stream');
       this.ssh2 = window.require('ssh2');
       this.novacom = window.require('@webosose/ares-cli/lib/base/novacom');
+      this.appdata = window.require('@webosose/ares-cli/lib/base/cli-appdata');
       this.installLib = window.require('@webosose/ares-cli/lib/install');
       this.launchLib = window.require('@webosose/ares-cli/lib/launch');
     }

@@ -1,7 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from "@angular/core";
+import * as appdata from '@webosose/ares-cli/lib/base/cli-appdata';
 import novacom from '@webosose/ares-cli/lib/base/novacom';
+import * as fs from 'fs';
 import * as net from 'net';
+import * as path from 'path';
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
 import * as util from 'util';
 import { Device, DeviceEditSpec, Resolver, Session } from '../../../types/novacom';
@@ -14,15 +17,21 @@ import { ElectronService } from './electron.service';
 export class DeviceManagerService {
 
   private novacom: typeof novacom;
+  private appdata: typeof appdata;
   private devicesSubject: Subject<Device[]>;
   private selectedSubject: Subject<Device>;
   private util: typeof util;
   private net: typeof net;
+  private fs: typeof fs;
+  private path: typeof path;
 
   constructor(private electron: ElectronService, private http: HttpClient) {
     this.novacom = electron.novacom;
+    this.appdata = electron.appdata;
     this.util = electron.util;
     this.net = electron.net;
+    this.fs = electron.fs;
+    this.path = electron.path;
     this.devicesSubject = new BehaviorSubject([]);
     this.selectedSubject = new BehaviorSubject(null);
     this.load();
@@ -199,7 +208,24 @@ export class DeviceManagerService {
   }
 
   private newResolver(): Resolver {
-    return new this.novacom.Resolver() as any as Resolver;
+    const resolver = new this.novacom.Resolver() as any;
+    const superSave = resolver.save;
+    const appdata = new this.appdata();
+    const getPath = this.util.promisify(appdata.getPath.bind(appdata));
+    resolver.save = (devicesData: any, next: any) => {
+      superSave(devicesData, async (err: any, result: any) => {
+        if (err) {
+          const datapath = await getPath();
+          for (const conffile of this.fs.readdirSync(datapath)) {
+            this.fs.chmodSync(this.path.join(datapath, conffile), 0o600);
+          }
+          superSave(devicesData, next);
+        } else {
+          next(err, result);
+        }
+      });
+    };
+    return resolver as Resolver;
   }
 }
 export interface SystemInfo {
