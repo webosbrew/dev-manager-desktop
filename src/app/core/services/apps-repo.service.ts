@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import * as semver from 'semver';
+import { AllowCORSHandler } from '../../shared/util/cors-skip';
 import { ElectronService } from './electron.service';
 
 const baseUrl = 'https://repo.webosbrew.org/api';
@@ -19,13 +20,7 @@ export class AppsRepoService {
     const filter = {
       urls: ['https://repo.webosbrew.org/*']
     };
-    session.defaultSession.webRequest.onHeadersReceived(filter, (details, callback) => {
-      details.responseHeaders['access-control-allow-origin'] = ['*'];
-      callback({
-        cancel: false,
-        responseHeaders: details.responseHeaders
-      });
-    });
+    session.defaultSession.webRequest.onHeadersReceived(filter, AllowCORSHandler);
   }
 
   async showApp(id: string): Promise<RepositoryItem> {

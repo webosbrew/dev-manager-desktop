@@ -9,6 +9,7 @@ import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
 import * as util from 'util';
 import { Device, DeviceEditSpec, Resolver, Session } from '../../../types/novacom';
 import { cleanupSession } from '../../shared/util/ares-utils';
+import { AllowCORSHandler } from '../../shared/util/cors-skip';
 import { ElectronService } from './electron.service';
 
 @Injectable({
@@ -38,17 +39,9 @@ export class DeviceManagerService {
 
     const session = electron.remote.session;
     const filter = {
-      urls: ['http://*/webos_rsa']
+      urls: ['http://*/*']
     };
-    session.defaultSession.webRequest.onHeadersReceived(filter, (details, callback) => {
-      callback({
-        cancel: false,
-        responseHeaders: {
-          ...details.responseHeaders,
-          'Access-Control-Allow-Origin': ['*']
-        }
-      });
-    });
+    session.defaultSession.webRequest.onHeadersReceived(filter, AllowCORSHandler);
   }
 
   get devices$(): Observable<Device[]> {

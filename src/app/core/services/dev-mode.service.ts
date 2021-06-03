@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { AllowCORSHandler } from '../../shared/util/cors-skip';
 import { ElectronService } from './electron.service';
 
 @Injectable({
@@ -15,15 +16,7 @@ export class DevModeService {
     const filter = {
       urls: ['https://developer.lge.com/*']
     };
-    session.defaultSession.webRequest.onHeadersReceived(filter, (details, callback) => {
-      callback({
-        cancel: false,
-        responseHeaders: {
-          ...details.responseHeaders,
-          'Access-Control-Allow-Origin': ['*']
-        }
-      });
-    });
+    session.defaultSession.webRequest.onHeadersReceived(filter, AllowCORSHandler);
   }
 
   async checkDevMode(sessionToken: string): Promise<DevModeResponse> {
