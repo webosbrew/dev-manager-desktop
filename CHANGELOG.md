@@ -1,5 +1,13 @@
+## <small>1.3.4 (2021-06-03)</small>
+
+* Fixing read-only conf file problem ([ec965b8](https://github.com/webosbrew/dev-manager-desktop/commit/ec965b8))
+* Update README.md ([416f70f](https://github.com/webosbrew/dev-manager-desktop/commit/416f70f))
+
+
+
 ## <small>1.3.3 (2021-06-02)</small>
 
+* 1.3.3 ([0f88019](https://github.com/webosbrew/dev-manager-desktop/commit/0f88019))
 
 
 
