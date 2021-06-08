@@ -1,5 +1,12 @@
+## <small>1.3.6 (2021-06-08)</small>
+
+* Fixed external link check ([664192b](https://github.com/webosbrew/dev-manager-desktop/commit/664192b))
+
+
+
 ## <small>1.3.5 (2021-06-08)</small>
 
+* 1.3.5 ([4d8876c](https://github.com/webosbrew/dev-manager-desktop/commit/4d8876c))
 * Better shell error ([0ea5ab4](https://github.com/webosbrew/dev-manager-desktop/commit/0ea5ab4))
 * Fixed #1 ([c05c5f8](https://github.com/webosbrew/dev-manager-desktop/commit/c05c5f8)), closes [#1](https://github.com/webosbrew/dev-manager-desktop/issues/1)
 * Fixed info page connection leak ([009ebfa](https://github.com/webosbrew/dev-manager-desktop/commit/009ebfa))
