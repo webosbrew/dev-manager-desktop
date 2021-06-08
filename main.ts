@@ -1,10 +1,11 @@
 import { app, BrowserWindow, ipcMain, protocol } from 'electron';
-import * as electronDl from 'electron-dl';
-import * as windowStateKeeper from 'electron-window-state';
-import * as path from 'path';
-import * as url from 'url';
+import electronDl from 'electron-dl';
+import windowStateKeeper from 'electron-window-state';
+import path from 'path';
+import url from 'url';
 import { AresPullProtoHandler } from './src/backend/ares-pull-proto';
 import { DownloadFileHandler } from './src/backend/ipc-handlers';
+
 // Initialize remote module
 require('@electron/remote/main').initialize();
 

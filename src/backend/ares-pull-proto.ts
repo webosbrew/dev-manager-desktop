@@ -1,24 +1,32 @@
-import * as novacom from '@webosose/ares-cli/lib/base/novacom';
+import novacom from '@webosose/ares-cli/lib/base/novacom';
+import AsyncLock from 'async-lock';
 import { ProtocolRequest, ProtocolResponse } from "electron";
 import { Client, ClientChannel, ConnectConfig } from 'ssh2';
+import util from 'util';
 import { Device, Resolver } from '../types/novacom';
-import * as util from 'util';
+
+const lock: AsyncLock = new AsyncLock();
+
 export function AresPullProtoHandler(request: ProtocolRequest, callback: ((response: Buffer | ProtocolResponse) => void)): void {
   const url = new URL(request.url);
-  obtainSession(url.hostname).then(async ssh => {
-    const exec = util.promisify(ssh.exec.bind(ssh));
-    const channel: ClientChannel = await exec(`cat ${url.pathname}`, { pty: false });
-    const buffers: Buffer[] = [];
-    channel.on('data', (data: Buffer) => {
-      buffers.push(data);
-    });
-    channel.on('close', () => {
-      callback(Buffer.concat(buffers));
-      ssh.end();
-    });
-  }).catch(error => {
-    console.error(error);
-    callback({ error: -1 });
+  lock.acquire(url.hostname, async (done) => {
+    try {
+      const ssh = await obtainSession(url.hostname);
+      const exec = util.promisify(ssh.exec.bind(ssh));
+      const channel: ClientChannel = await exec(`cat ${url.pathname}`, { pty: false });
+      const buffers: Buffer[] = [];
+      channel.on('data', (data: Buffer) => {
+        buffers.push(data);
+      });
+      channel.on('close', () => {
+        done(null, Buffer.concat(buffers));
+      });
+    } catch (e) {
+      done(e, null);
+    }
+  }).then((buffer) => callback(buffer), (reason) => {
+    console.log(reason);
+    callback(null);
   });
 }
 
@@ -51,7 +59,7 @@ async function obtainSession(target: string): Promise<Client> {
       host: device.host,
       port: device.port,
       username: device.username,
-      keepaliveInterval: 15000, // 15s
+      keepaliveInterval: 0, // disable keep-alive
     };
     if (device.privateKey) {
       config.privateKey = device.privateKey;
