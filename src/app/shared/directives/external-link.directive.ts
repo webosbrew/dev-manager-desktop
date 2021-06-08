@@ -22,6 +22,8 @@ export class ExternalLinkDirective {
   }
 
   private isLinkExternal() {
-    return !this.href.includes(location.hostname);
+    const url = new URL(this.href);
+    if (location.protocol == 'file:' && url.protocol != location.protocol) return true;
+    return !url.hostname.endsWith(location.hostname);
   }
 }
