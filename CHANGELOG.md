@@ -1,5 +1,15 @@
+## <small>1.3.5 (2021-06-08)</small>
+
+* Better shell error ([0ea5ab4](https://github.com/webosbrew/dev-manager-desktop/commit/0ea5ab4))
+* Fixed #1 ([c05c5f8](https://github.com/webosbrew/dev-manager-desktop/commit/c05c5f8)), closes [#1](https://github.com/webosbrew/dev-manager-desktop/issues/1)
+* Fixed info page connection leak ([009ebfa](https://github.com/webosbrew/dev-manager-desktop/commit/009ebfa))
+* Fixing CORS issue ([344f18e](https://github.com/webosbrew/dev-manager-desktop/commit/344f18e))
+
+
+
 ## <small>1.3.4 (2021-06-03)</small>
 
+* 1.3.4 ([9e65cb4](https://github.com/webosbrew/dev-manager-desktop/commit/9e65cb4))
 * Fixing read-only conf file problem ([ec965b8](https://github.com/webosbrew/dev-manager-desktop/commit/ec965b8))
 * Update README.md ([416f70f](https://github.com/webosbrew/dev-manager-desktop/commit/416f70f))
 
