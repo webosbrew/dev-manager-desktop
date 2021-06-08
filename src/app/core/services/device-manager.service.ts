@@ -113,17 +113,18 @@ export class DeviceManagerService {
 
   async osInfo(name: string): Promise<SystemInfo> {
     return await this.newSession(name).then(session => new Promise<SystemInfo>((resolve, reject) => {
-      let outStr = '', errStr = '';
+      let outStr = '';
       session.run('cat /var/run/nyx/os_info.json', null, (stdout: Buffer) => {
         outStr += stdout.toString();
       }, (stderr: Buffer) => {
-        errStr += stderr.toString();
+        console.error(stderr.toString());
       }, (error) => {
         if (error) {
           reject(error);
         } else {
           resolve(JSON.parse(outStr) as SystemInfo);
         }
+        session.end();
       });
     })).finally(() => cleanupSession());
   }
@@ -133,13 +134,15 @@ export class DeviceManagerService {
       let outStr = '';
       session.run('cat /var/luna/preferences/devmode_enabled', null, (stdout: Buffer) => {
         outStr += stdout.toString();
-      }, () => {
+      }, (stderr) => {
+        console.error(stderr.toString());
       }, (error) => {
         if (error) {
           reject(error);
         } else {
           resolve(outStr);
         }
+        session.end();
       });
     })).finally(() => cleanupSession());
   }
@@ -149,13 +152,15 @@ export class DeviceManagerService {
       let outStr = '';
       session.run('find /var/log/reports/librdx/ -name \'*.gz\' -print0', null, (stdout: Buffer) => {
         outStr += stdout.toString();
-      }, () => {
+      }, (stderr) => {
+        console.error(stderr.toString());
       }, (error) => {
         if (error) {
           reject(error);
         } else {
           resolve(outStr.split('\0').filter(l => l.length).map(l => new CrashReport(name, l, this)));
         }
+        session.end();
       });
     })).finally(() => cleanupSession());
   }
@@ -173,6 +178,7 @@ export class DeviceManagerService {
         } else {
           resolve(outStr);
         }
+        session.end();
       });
     })).finally(() => cleanupSession());
   }
