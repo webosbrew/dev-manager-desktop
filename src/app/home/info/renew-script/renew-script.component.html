@@ -1,0 +1,35 @@
+<div class="modal-header">
+  <h5 class="modal-title">Renew Script</h5>
+</div>
+<div class="modal-body">
+  <p>Copy following code and save as a shell script. It can be executed anywhere in your local area network.</p>
+  <pre><![CDATA[#!/bin/sh]]>
+<ng-container><![CDATA[
+cat > /tmp/webos_privkey_{{device.name}} << END_OF_PRIVKEY
+{{decryptedPrivKey}}
+END_OF_PRIVKEY
+
+chmod 600 /tmp/webos_privkey_{{device.name}}
+]]></ng-container>
+<![CDATA[sessionToken=$(ssh -i /tmp/webos_privkey_{{device.name}} \
+ -o ConnectTimeout=3 -o StrictHostKeyChecking=no \
+ -p {{device.port}} {{device.username}}@{{device.host}} \
+ cat /var/luna/preferences/devmode_enabled)
+if [ -z "${sessionToken}" ]; then
+  sessionToken=$(cat /tmp/webos_devmode_token_{{device.name}}.txt)
+else
+  echo ${sessionToken} > /tmp/webos_devmode_token_{{device.name}}.txt
+fi
+
+if [ -z "${sessionToken}" ]; then
+  echo "Unable to get token" >&2
+  exit 1
+fi
+
+checkSession=$(curl --max-time 3 -s "https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken=${sessionToken}")
+
+echo $checkSession]]></pre>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-primary" (click)="modal.close('Close click')">Close</button>
+</div>

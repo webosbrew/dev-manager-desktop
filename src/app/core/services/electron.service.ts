@@ -56,6 +56,7 @@ export class ElectronService {
       this.net = window.require('net');
       this.stream = window.require('stream');
       this.ssh2 = window.require('ssh2');
+
       this.novacom = window.require('@webosose/ares-cli/lib/base/novacom');
       this.appdata = window.require('@webosose/ares-cli/lib/base/cli-appdata');
       this.installLib = window.require('@webosose/ares-cli/lib/install');

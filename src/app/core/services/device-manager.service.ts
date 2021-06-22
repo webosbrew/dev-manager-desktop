@@ -150,7 +150,7 @@ export class DeviceManagerService {
   async listCrashReports(name: string): Promise<CrashReport[]> {
     return await this.newSession(name).then(session => new Promise<CrashReport[]>((resolve, reject) => {
       let outStr = '';
-      session.run('find /var/log/reports/librdx/ -name \'*.gz\' -print0', null, (stdout: Buffer) => {
+      session.run('find /tmp/faultmanager/crash/ -name \'*.gz\' -print0', null, (stdout: Buffer) => {
         outStr += stdout.toString();
       }, (stderr) => {
         console.error(stderr.toString());
