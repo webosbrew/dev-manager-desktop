@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Device } from '../../../../types/novacom';
 import { ElectronService } from '../../../core/services';
 
@@ -13,6 +14,7 @@ export class RenewScriptComponent implements OnInit {
 
   constructor(
     electron: ElectronService,
+    public modal: NgbActiveModal,
     @Inject('device') public device: Device
   ) {
     const result: any = electron.ssh2.utils.parseKey(device.privateKey, device.passphrase);

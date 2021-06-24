@@ -6,7 +6,7 @@
     <ngb-panel (shown)="report.load()" *ngFor="let report of reports">
       <ng-template ngbPanelHeader let-opened="opened">
         <div class="d-flex align-items-center justify-content-between">
-          <h5 class="m-0 text-truncate">{{report.name}}</h5>
+          <h5 class="m-0">{{report.name}}</h5>
           <button ngbPanelToggle class="btn btn-link p-0">Toggle</button>
         </div>
       </ng-template>
