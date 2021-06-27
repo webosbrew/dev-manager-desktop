@@ -1,5 +1,13 @@
+## <small>1.3.7 (2021-06-27)</small>
+
+* Fixed missing field ([7646508](https://github.com/webosbrew/dev-manager-desktop/commit/7646508))
+* Renew script feature ([0a921b0](https://github.com/webosbrew/dev-manager-desktop/commit/0a921b0))
+
+
+
 ## <small>1.3.6 (2021-06-08)</small>
 
+* 1.3.6 ([57f9f34](https://github.com/webosbrew/dev-manager-desktop/commit/57f9f34))
 * Fixed external link check ([664192b](https://github.com/webosbrew/dev-manager-desktop/commit/664192b))
 
 
