@@ -1,5 +1,13 @@
+## 1.4.0 (2021-07-19)
+
+* Fixed build error ([e440840](https://github.com/webosbrew/dev-manager-desktop/commit/e440840))
+* Update notice ([ed264e6](https://github.com/webosbrew/dev-manager-desktop/commit/ed264e6))
+
+
+
 ## <small>1.3.8 (2021-07-19)</small>
 
+* 1.3.8 ([bdfab73](https://github.com/webosbrew/dev-manager-desktop/commit/bdfab73))
 * Added ifttt renewal ([c3c85de](https://github.com/webosbrew/dev-manager-desktop/commit/c3c85de))
 * Fixed build ([13cc889](https://github.com/webosbrew/dev-manager-desktop/commit/13cc889))
 * Renew script improvements ([63cb3e5](https://github.com/webosbrew/dev-manager-desktop/commit/63cb3e5))
