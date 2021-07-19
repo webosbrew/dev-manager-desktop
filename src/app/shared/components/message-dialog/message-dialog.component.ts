@@ -10,6 +10,7 @@ export class MessageDialogComponent implements OnInit, AfterViewInit, MessageDia
   message: string | Type<any>;
   positive: string;
   negative?: string;
+  alternative?: string;
   positiveStyle?: ButtonStyle = 'primary';
   messageExtras?: Record<string, any>;
 
