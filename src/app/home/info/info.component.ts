@@ -60,7 +60,7 @@ export class InfoComponent implements OnInit, OnDestroy {
   renewScript(): void {
     this.modalService.open(RenewScriptComponent, {
       size: 'lg',
-      scrollable: true,
+      // scrollable: true,
       injector: Injector.create({
         providers: [{ provide: 'device', useValue: this.device }]
       })

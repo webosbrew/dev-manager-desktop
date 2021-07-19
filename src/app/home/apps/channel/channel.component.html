@@ -21,19 +21,19 @@
           <div class="d-flex justify-content-end">
             <ng-container [ngSwitch]="item.manifest?.hasUpdate(instPackages?.get(item.id)?.version)"
               *ngIf="parent.instPackages as instPackages">
-              <button class="btn btn-primary ml-2" (click)="parent.launchApp(item.id)" *ngSwitchCase="false">
+              <button class="btn btn-primary ml-2 text-nowrap" (click)="parent.launchApp(item.id)" *ngSwitchCase="false">
                 <i class="bi bi-play-fill mr-2"></i>Launch
               </button>
-              <button class="btn btn-primary ml-2" (click)="parent.installPackage(item)" *ngSwitchCase="true">
+              <button class="btn btn-primary ml-2 text-nowrap" (click)="parent.installPackage(item)" *ngSwitchCase="true">
                 <i class="bi bi-download mr-2"></i>Update
               </button>
-              <button class="btn btn-primary ml-2" (click)="parent.installPackage(item)" *ngSwitchDefault>
+              <button class="btn btn-primary ml-2 text-nowrap" (click)="parent.installPackage(item)" *ngSwitchDefault>
                 <i class="bi bi-download mr-2"></i>Install
               </button>
             </ng-container>
             <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
               aria-label="Button group with nested dropdown">
-              <button class="btn ml-2" ngbDropdownToggle>
+              <button class="btn ml-2 text-nowrap" ngbDropdownToggle>
                 Options <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" ngbDropdownMenu>

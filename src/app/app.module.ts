@@ -25,6 +25,7 @@ import { CrashesComponent } from './home/info/crashes/crashes.component';
 import { InstalledComponent } from './home/apps/installed/installed.component';
 import { ChannelComponent } from './home/apps/channel/channel.component';
 import { RenewScriptComponent } from './home/info/renew-script/renew-script.component';
+import { NgLetModule } from 'ng-let';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -58,6 +59,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppRoutingModule,
     ReactiveFormsModule,
     NgbModule,
+    NgLetModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

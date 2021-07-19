@@ -3,22 +3,25 @@
  */
 
 module.exports = (config, options) => {
-    config.target = 'electron-renderer';
+  config.target = 'electron-renderer';
+  config.resolve.fallback = {
+    'fs': false,
+    'path': require.resolve('path-browserify'),
+  };
 
+  if (options.fileReplacements) {
+    for (let fileReplacement of options.fileReplacements) {
+      if (fileReplacement.replace !== 'src/environments/environment.ts') {
+        continue;
+      }
 
-    if (options.fileReplacements) {
-        for(let fileReplacement of options.fileReplacements) {
-            if (fileReplacement.replace !== 'src/environments/environment.ts') {
-                continue;
-            }
-
-            const fileReplacementParts = fileReplacement['with'].split('.');
-            if (fileReplacementParts.length > 1 && ['web'].indexOf(fileReplacementParts[1]) >= 0) {
-                config.target = 'web';
-            }
-            break;
-        }
+      const fileReplacementParts = fileReplacement['with'].split('.');
+      if (fileReplacementParts.length > 1 && ['web'].indexOf(fileReplacementParts[1]) >= 0) {
+        config.target = 'web';
+      }
+      break;
     }
+  }
 
-    return config;
+  return config;
 }

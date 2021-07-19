@@ -1,9 +1,12 @@
 <div class="modal-header">
-  <h5 class="modal-title">Renew Script</h5>
+  <h5 class="modal-title">Renew Developer Mode Session</h5>
+  <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Close click')">
+    <span aria-hidden="true">&times;</span>
+  </button>
 </div>
 <div class="modal-body">
   <p>Copy following code and save as a shell script. It can be executed anywhere in your local area network.</p>
-  <pre><![CDATA[#!/bin/sh]]>
+  <pre class="pre-scrollable bg-light p-3" #renewScript><![CDATA[#!/bin/sh]]>
 <ng-container><![CDATA[
 cat > /tmp/webos_privkey_{{device.name}} << END_OF_PRIVKEY
 {{decryptedPrivKey}}
@@ -31,5 +34,8 @@ checkSession=$(curl --max-time 3 -s "https://developer.lge.com/secure/ResetDevMo
 echo $checkSession]]></pre>
 </div>
 <div class="modal-footer">
+  <button type="button" class="btn btn-primary" (click)="copyScript(renewScript.textContent)">Copy</button>
+  <button type="button" class="btn btn-primary" (click)="saveScript(renewScript.textContent)">Save</button>
   <button type="button" class="btn btn-primary" (click)="modal.close('Close click')">Close</button>
 </div>
+
