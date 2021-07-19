@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, Inject, Injector, OnInit, ReflectiveInjector, Type, ViewChild, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ComponentFactoryResolver, Inject, Injector, OnInit, ReflectiveInjector, StaticProvider, Type, ViewChild, ViewContainerRef } from '@angular/core';
 import { NgbModal, NgbModalRef, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 @Component({
   selector: 'app-message-dialog',
@@ -11,7 +11,7 @@ export class MessageDialogComponent implements OnInit, AfterViewInit, MessageDia
   positive: string;
   negative?: string;
   positiveStyle?: ButtonStyle = 'primary';
-  messageExtras?: { [keys: string]: any };
+  messageExtras?: Record<string, any>;
 
   @ViewChild('messageComponent', { read: ViewContainerRef })
   messageComponent: ViewContainerRef;
@@ -32,10 +32,11 @@ export class MessageDialogComponent implements OnInit, AfterViewInit, MessageDia
     if (this.message instanceof Type) {
       const componentFactory = this.componentFactoryResolver.resolveComponentFactory(this.message);
       this.messageComponent.clear();
-      const component = this.messageComponent.createComponent(componentFactory);
+      let providers: StaticProvider[] = [];
       if (this.messageExtras) {
-        Object.assign(component.instance, this.messageExtras);
+        providers = Object.getOwnPropertyNames(this.messageExtras).map(name => ({ provide: name, useValue: this.messageExtras[name] }));
       }
+      this.messageComponent.createComponent(componentFactory, null, Injector.create({ providers }));
       this.changeDetector.detectChanges();
     }
   }
@@ -68,6 +69,7 @@ export interface MessageDialogConfig {
   message: string | Type<any>;
   positive: string | null;
   negative?: string | null;
+  alternative?: string | null;
   positiveStyle?: ButtonStyle;
   messageExtras?: { [keys: string]: any };
 }

@@ -60,7 +60,7 @@ export class PackageManifest {
       v2 = segs2.slice(0, 3).join('.');
       suffix2 = segs2[3];
     }
-    if ((suffix1 || suffix2) && semver.eq(v1, v2)) {
+    if ((suffix1 || suffix2) && semver.eq(v1, v2, true)) {
       const snum1 = Number(suffix1), snum2 = Number(suffix2);
       if (!isNaN(snum1) && !isNaN(snum2)) {
         return snum1 > snum2;

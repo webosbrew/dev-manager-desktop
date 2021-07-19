@@ -6,7 +6,8 @@
   <ng-template *ngSwitchCase="'component'" #messageComponent></ng-template>
 </div>
 <div class="modal-footer">
-  <button type="button" class="btn" (click)="modal.close(false)" *ngIf="negative">{{negative}}</button>
-  <button type="button" class="btn" (click)="modal.close(true)" *ngIf="positive"
+  <button type="button" class="btn btn-secondary mr-auto" (click)="modal.close(null)" *ngIf="alternative">{{alternative}}</button>
+  <button type="button" class="btn btn-secondary" (click)="modal.close(false)" *ngIf="negative">{{negative}}</button>
+  <button type="button" class="btn" (click)="modal.close(true)" ngbAutofocus *ngIf="positive"
     [ngClass]="['btn-' + positiveStyle]">{{positive}}</button>
 </div>
