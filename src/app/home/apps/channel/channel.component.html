@@ -16,7 +16,6 @@
             </div>
           </td>
           <td>
-            {{instPackages}}
             <span class="text-secondary" *ngIf="item.manifest?.hasUpdate(pkg?.version)">{{pkg.version}}&rsaquo;</span>
             <span>{{item.manifest.version}}</span>
           </td>
