@@ -1,12 +1,43 @@
 <div class="modal-header">
-  <h5 class="modal-title">Renew Developer Mode Session</h5>
+  <h5 class="modal-title">Automatic Developer Mode Renewal</h5>
   <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('Close click')">
     <span aria-hidden="true">&times;</span>
   </button>
 </div>
 <div class="modal-body">
-  <p>Copy following code and save as a shell script. It can be executed anywhere in your local area network.</p>
-  <pre class="pre-scrollable bg-light p-3" #renewScript><![CDATA[#!/bin/sh]]>
+  <div class="d-flex">
+    <ul ngbNav #nav="ngbNav" [(activeId)]="active" class="nav-pills mr-4" orientation="vertical">
+      <li ngbNavItem="ifttt">
+        <a class="text-nowrap" ngbNavLink>IFTTT Applet</a>
+        <ng-template ngbNavContent>
+          <ul>
+            <li>Create an applet in <a href="https://ifttt.com/create">ifttt.com/create</a>.</li>
+            <li>Select <strong>Date & Time</strong> as trigger.</li>
+            <li>Choose <strong>Every day at</strong> or <strong>Every hour at</strong>, and pick any option you
+              like.
+            </li>
+            <li>Select <strong>Webhooks</strong> as action.</li>
+            <li>Use <strong>URL below</strong>:
+              <div class="overflow-auto bg-light p-2">
+                <code
+                  class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{devModeToken$ | async}}</code>
+              </div>
+            </li>
+            <li>Select <strong>Creation action</strong>.</li>
+            <li>Select <strong>Continue</strong>.</li>
+            <li>
+              Review and name your Applet. Please note <strong>if this method stopped working</strong>, you should open
+              this page and use the new URL.
+            </li>
+          </ul>
+        </ng-template>
+      </li>
+      <li ngbNavItem="script">
+        <a class="text-nowrap" ngbNavLink>Shell Script</a>
+        <ng-template ngbNavContent>
+          <p>Following is a shell script. It can be executed anywhere in your local area network.</p>
+          <div class="position-relative">
+            <pre class="pre-scrollable bg-light p-3" #renewScript><![CDATA[#!/bin/sh]]>
 <ng-container><![CDATA[
 cat > /tmp/webos_privkey_{{device.name}} << END_OF_PRIVKEY
 {{decryptedPrivKey}}
@@ -32,10 +63,20 @@ fi
 checkSession=$(curl --max-time 3 -s "https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken=${sessionToken}")
 
 echo $checkSession]]></pre>
-</div>
-<div class="modal-footer">
-  <button type="button" class="btn btn-primary" (click)="copyScript(renewScript.textContent)">Copy</button>
-  <button type="button" class="btn btn-primary" (click)="saveScript(renewScript.textContent)">Save</button>
-  <button type="button" class="btn btn-primary" (click)="modal.close('Close click')">Close</button>
-</div>
+            <div class="position-absolute top-0 right-0 my-2 mx-4">
+              <button type="button" class="btn btn-primary mr-2" (click)="copyScript(renewScript.textContent)">
+                <i class="bi bi-clipboard"></i>
+              </button>
+              <button type="button" class="btn btn-primary" (click)="saveScript(renewScript.textContent)">
+                <i class="bi bi-save"></i>
+              </button>
+            </div>
+          </div>
+        </ng-template>
+      </li>
+    </ul>
 
+    <div [ngbNavOutlet]="nav" class="flex-fill overflow-hidden"></div>
+  </div>
+
+</div>

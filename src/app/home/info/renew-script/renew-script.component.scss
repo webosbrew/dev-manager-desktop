@@ -1,5 +1,14 @@
-pre {
+pre, code {
   white-space: pre-wrap;
   user-select: all;
   cursor: text;
+}
+
+// TODO: Remove after BS 5
+.top-0 {
+  top: 0 !important;
+}
+
+.right-0 {
+  right: 0 !important;
 }
