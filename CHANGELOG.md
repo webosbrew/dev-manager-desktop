@@ -1,5 +1,14 @@
+## <small>1.3.8 (2021-07-19)</small>
+
+* Added ifttt renewal ([c3c85de](https://github.com/webosbrew/dev-manager-desktop/commit/c3c85de))
+* Fixed build ([13cc889](https://github.com/webosbrew/dev-manager-desktop/commit/13cc889))
+* Renew script improvements ([63cb3e5](https://github.com/webosbrew/dev-manager-desktop/commit/63cb3e5))
+
+
+
 ## <small>1.3.7 (2021-06-27)</small>
 
+* 1.3.7 ([f4e3e0b](https://github.com/webosbrew/dev-manager-desktop/commit/f4e3e0b))
 * Fixed missing field ([7646508](https://github.com/webosbrew/dev-manager-desktop/commit/7646508))
 * Renew script feature ([0a921b0](https://github.com/webosbrew/dev-manager-desktop/commit/0a921b0))
 
