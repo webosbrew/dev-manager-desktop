@@ -2,7 +2,6 @@ import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, OnInit, 
 import { fromEvent, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { ClientChannel } from 'ssh2';
-import { Readable } from 'stream';
 import { Terminal } from 'xterm';
 import { FitAddon, ITerminalDimensions } from 'xterm-addon-fit';
 import { Session } from '../../../types/novacom';
@@ -98,10 +97,25 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
   async openFakeShell(): Promise<void> {
     const device = (await this.deviceManager.list()).find(dev => dev.default);
     const session = await this.deviceManager.newSession(device.name);
-    this.shell = new SimulateShell(this.electron, this.term, session);
-    this.term.writeln(`>>> Connected to ${device.name} (simulated terminal).`);
-    this.term.write('$ ');
-    return Promise.resolve();
+    const exec: (command: string) => Promise<ClientChannel> = this.electron.util.promisify(session.ssh.exec.bind(session.ssh));
+    const stream = await exec('sh');
+    this.shell = new SimulateShell(this.term, stream);
+
+    this.term.writeln(`>>> Connected to ${device.name} (dumb shell).`);
+    this.term.writeln('>>> Due to restriction of webOS, functionality of this shell is limited.');
+    this.term.writeln('>>> Features like Ctrl+C and Tab will be unavailable.');
+    this.term.writeln('');
+    stream.on('close', () => {
+      this.term.writeln('>>> Connection closed. Press any key to reconnect.');
+      session.end();
+      this.shell = null;
+      cleanupSession();
+    }).on('data', (data: Buffer) => {
+      this.term.write(data.toString('utf-8').replace(/\n/g, '\n\r'));
+    });
+    stream.stderr.on('data', (data: Buffer) => {
+      this.term.write(data.toString('utf-8').replace(/\n/g, '\n\r'));
+    });
   }
 }
 
@@ -130,31 +144,32 @@ class RealShell implements Shell {
 class SimulateShell implements Shell {
   private linebuf = '';
   private running = false;
-  private stdin: Readable;
-  constructor(private electron: ElectronService, private term: Terminal, private session: Session) {
-
-  }
+  constructor(private term: Terminal, private stream: ClientChannel) { }
 
   get closed(): boolean {
-    return false;
+    return this.stream.destroyed;
   }
 
   write(data: string): void {
     if (this.running) {
-      this.linebuf += data;
-      this.stdin.push(data, 'utf-8');
+      if (data == '\r') {
+        this.stream.write('\n', 'utf-8');
+      } else {
+        this.stream.write(data, 'utf-8');
+      }
       return;
     }
     switch (data) {
       case '\r': {
         this.term.writeln(data);
-        this.command(this.linebuf.trim());
+        this.stream.write(this.linebuf.trim());
+        this.stream.write('\n');
         this.linebuf = '';
         break;
       }
       case '\u0003': { // Ctrl+C
         this.term.writeln('\r');
-        this.command('');
+        this.stream.write('\n');
         this.linebuf = '';
         break;
       }
@@ -173,6 +188,9 @@ class SimulateShell implements Shell {
         // Arrows
         break;
       }
+      case '\t': {
+        break;
+      }
       default: {
         this.linebuf += data;
         this.term.write(data);
@@ -182,35 +200,7 @@ class SimulateShell implements Shell {
   }
 
   close(): void {
+    this.stream.end();
   }
 
-  private command(line: string) {
-    if (!line) {
-      this.term.write('$ ');
-      return;
-    }
-    this.running = true;
-    this.stdin = new this.electron.stream.Readable({
-      read: (size) => {
-        if (size < this.linebuf.length) {
-          const ret = this.linebuf.slice(0, size);
-          this.linebuf = this.linebuf.slice(size);
-          return ret;
-        } else {
-          const ret = this.linebuf;
-          this.linebuf = '';
-          return ret;
-        }
-      }
-    });
-    this.session.run(line, this.stdin, (out: Buffer) => {
-      this.term.write(out.toString('utf-8').replace(/\n/g, '\n\r'));
-    }, (err: Buffer) => {
-      this.term.write(err.toString('utf-8').replace(/\n/g, '\n\r'));
-    }, (err, ret) => {
-      this.stdin = null;
-      this.running = false;
-      this.term.write('$ ');
-    });
-  }
 }
