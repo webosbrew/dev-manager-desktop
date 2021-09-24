@@ -47,6 +47,9 @@
                     Options <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu" ngbDropdownMenu>
+                    <li ngbDropdownItem *ngIf="rpkg?.manifestBeta" (click)="parent.installBetaPackage(rpkg)">
+                      <i class="bi bi-download mr-3"></i>Install Beta
+                    </li>
                     <li ngbDropdownItem *ngIf="rpkg?.manifest as manifest">
                       <a [href]="manifest.sourceUrl">
                         <i class="bi bi-globe2 mr-3"></i>Website

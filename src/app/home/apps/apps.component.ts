@@ -141,4 +141,14 @@ export class AppsComponent implements OnInit {
     }
     progress.close(true);
   }
+
+  async installBetaPackage(item: RepositoryItem): Promise<void> {
+    const progress = ProgressDialogComponent.open(this.modalService);
+    try {
+      await this.appManager.installUrl(this.device.name, item.manifestBeta.ipkUrl);
+    } catch (e) {
+      // Ignore
+    }
+    progress.close(true);
+  }
 }

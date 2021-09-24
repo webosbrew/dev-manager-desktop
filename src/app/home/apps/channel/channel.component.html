@@ -40,6 +40,9 @@
                   Options <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" ngbDropdownMenu>
+                  <li ngbDropdownItem *ngIf="item.manifestBeta" (click)="parent.installBetaPackage(item)">
+                    <i class="bi bi-download mr-3"></i>Install Beta
+                  </li>
                   <li ngbDropdownItem *ngIf="item.manifest">
                     <a [href]="item.manifest.sourceUrl">
                       <i class="bi bi-globe2 mr-3"></i>Website
