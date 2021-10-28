@@ -1,16 +1,19 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from "@angular/core";
+import {HttpClient} from '@angular/common/http';
+import {Injectable} from "@angular/core";
 import * as appdata from '@webosose/ares-cli/lib/base/cli-appdata';
 import novacom from '@webosose/ares-cli/lib/base/novacom';
+import luna from '@webosose/ares-cli/lib/base/luna';
 import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
-import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
+import {BehaviorSubject, Observable, ReplaySubject, Subject} from "rxjs";
 import * as util from 'util';
-import { Device, DeviceEditSpec, Resolver, Session } from '../../../types/novacom';
-import { cleanupSession } from '../../shared/util/ares-utils';
-import { AllowCORSHandler } from '../../shared/util/cors-skip';
-import { ElectronService } from './electron.service';
+import {Device, DeviceEditSpec, Resolver, Session} from '../../../types/novacom';
+import {cleanupSession} from '../../shared/util/ares-utils';
+import {AllowCORSHandler} from '../../shared/util/cors-skip';
+import {ElectronService} from './electron.service';
+import {SFTPWrapper} from "ssh2";
+import {FileEntry, Stats} from "ssh2-streams";
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +21,7 @@ import { ElectronService } from './electron.service';
 export class DeviceManagerService {
 
   private novacom: typeof novacom;
+  private luna: typeof luna;
   private appdata: typeof appdata;
   private devicesSubject: Subject<Device[]>;
   private selectedSubject: Subject<Device>;
@@ -28,6 +32,7 @@ export class DeviceManagerService {
 
   constructor(private electron: ElectronService, private http: HttpClient) {
     this.novacom = electron.novacom;
+    this.luna = electron.luna;
     this.appdata = electron.appdata;
     this.util = electron.util;
     this.net = electron.net;
@@ -72,7 +77,7 @@ export class DeviceManagerService {
   }
 
   async modifyDevice(name: string, spec: Partial<DeviceEditSpec>): Promise<Device> {
-    const target = { name, ...spec };
+    const target = {name, ...spec};
     return this.modifyDeviceFile('modify', target).then(devices => {
       this.onDevicesUpdated(devices);
       return devices.find((device) => spec.name == device.name);
@@ -80,7 +85,7 @@ export class DeviceManagerService {
   }
 
   async setDefault(name: string): Promise<Device> {
-    const target = { name, default: true };
+    const target = {name, default: true};
     return this.modifyDeviceFile('default', target).then(devices => {
       this.onDevicesUpdated(devices);
       return devices.find((device) => name == device.name);
@@ -88,7 +93,7 @@ export class DeviceManagerService {
   }
 
   async removeDevice(name: string): Promise<void> {
-    return this.modifyDeviceFile('remove', { name }).then(devices => {
+    return this.modifyDeviceFile('remove', {name}).then(devices => {
       this.onDevicesUpdated(devices);
     });
   }
@@ -195,6 +200,28 @@ export class DeviceManagerService {
     });
   }
 
+  async sftpSession(name: string): Promise<AsyncSFTPWrapper> {
+    return this.newSession(name).then(session => new Promise((resolve, reject) => {
+      session.ssh.sftp((err, sftp) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(new AsyncSFTPWrapper(sftp));
+        }
+      });
+    }));
+  }
+
+  async extendDevMode(device: Device): Promise<any> {
+    return this.newSession(device.name).then(session => new Promise((resolve, reject) => {
+      const options = {session, nReplies: 1};
+      const params = {id: 'com.palmdts.devmode', subscribe: false, params: {extend: true}};
+      this.luna.send(options, device.lunaAddr.launch, params, (resp) => {
+        resolve(resp);
+      }, (e) => reject(e));
+    }));
+  }
+
   private async modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>): Promise<Device[]> {
     const resolver = this.newResolver();
     const impl = this.util.promisify(resolver.modifyDeviceFile.bind(resolver));
@@ -227,6 +254,7 @@ export class DeviceManagerService {
     return resolver as Resolver;
   }
 }
+
 export interface SystemInfo {
   core_os_kernel_version?: string
   core_os_name?: string
@@ -260,5 +288,50 @@ export class CrashReport {
     this.dm.zcat(this.device, this.path)
       .then(content => this.subject.next(content.trim()))
       .catch(error => this.subject.error(error));
+  }
+}
+
+export class AsyncSFTPWrapper {
+  constructor(private sftp: SFTPWrapper) {
+  }
+
+  public readdir(location: string): Promise<FileEntry[]> {
+    return new Promise<FileEntry[]>(((resolve, reject) => {
+      this.sftp.readdir(location, (err, list) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(list);
+        }
+      });
+    }));
+  }
+
+  public readlink(path: string): Promise<string> {
+    return new Promise<string>(((resolve, reject) => {
+      this.sftp.readlink(path, (err, target) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(target);
+        }
+      });
+    }));
+  }
+
+  public stat(path: string): Promise<Stats> {
+    return new Promise<Stats>(((resolve, reject) => {
+      this.sftp.stat(path, (err, stats) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(stats);
+        }
+      });
+    }));
+  }
+
+  public end(): void {
+    this.sftp.end();
   }
 }

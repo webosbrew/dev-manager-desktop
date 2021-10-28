@@ -1,14 +1,24 @@
-import { Component, Injector, OnDestroy, OnInit } from '@angular/core';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import 'moment-duration-format';
-import { Observable, timer } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { Device } from '../../../types/novacom';
-import { AppManagerService, AppsRepoService, DeviceManagerService, DevModeResponse, DevModeService, PackageInfo, RepositoryItem, SystemInfo } from '../../core/services';
-import { ProgressDialogComponent } from '../../shared/components/progress-dialog/progress-dialog.component';
-import { CrashesComponent } from './crashes/crashes.component';
-import { RenewScriptComponent } from './renew-script/renew-script.component';
+import {Observable, timer} from 'rxjs';
+import {map} from 'rxjs/operators';
+import {Device} from '../../../types/novacom';
+import {
+  AppManagerService,
+  AppsRepoService,
+  DeviceManagerService,
+  DevModeResponse,
+  DevModeService,
+  PackageInfo,
+  RepositoryItem,
+  SystemInfo
+} from '../../core/services';
+import {ProgressDialogComponent} from '../../shared/components/progress-dialog/progress-dialog.component';
+import {CrashesComponent} from './crashes/crashes.component';
+import {RenewScriptComponent} from './renew-script/renew-script.component';
+
 @Component({
   selector: 'app-info',
   templateUrl: './info.component.html',
@@ -48,12 +58,12 @@ export class InfoComponent implements OnInit, OnDestroy {
     if (!this.device) return;
     this.loadDeviceInfo()
       .then(() => Promise.all([this.loadDevModeInfo(), this.loadHomebrewInfo()]))
-      .catch(() => { });
+      .catch(() => {
+      });
   }
 
   async renewDevMode(): Promise<void> {
-    const token = await this.deviceManager.devModeToken(this.device.name);
-    await this.devMode.resetDevMode(token);
+    await this.deviceManager.extendDevMode(this.device);
     await this.loadDevModeInfo();
   }
 
@@ -62,7 +72,7 @@ export class InfoComponent implements OnInit, OnDestroy {
       size: 'lg',
       // scrollable: true,
       injector: Injector.create({
-        providers: [{ provide: 'device', useValue: this.device }]
+        providers: [{provide: 'device', useValue: this.device}]
       })
     });
   }
@@ -116,7 +126,7 @@ export class InfoComponent implements OnInit, OnDestroy {
       size: 'lg',
       scrollable: true,
       injector: Injector.create({
-        providers: [{ provide: 'device', useValue: this.device }]
+        providers: [{provide: 'device', useValue: this.device}]
       })
     });
   }

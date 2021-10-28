@@ -1,13 +1,14 @@
 // If you import a module but never use any of the imported values other than as TypeScript types,
 // the resulting javascript file will look as if you never imported the module at all.
 
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import * as appdata from '@webosose/ares-cli/lib/base/cli-appdata';
 import * as novacom from '@webosose/ares-cli/lib/base/novacom';
+import * as luna from '@webosose/ares-cli/lib/base/luna';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
 import * as childProcess from 'child_process';
-import { ipcRenderer, webFrame } from 'electron';
+import {ipcRenderer, webFrame} from 'electron';
 import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
@@ -29,6 +30,7 @@ export class ElectronService {
   net: typeof net;
   stream: typeof stream;
   novacom: typeof novacom;
+  luna: typeof luna;
   appdata: typeof appdata;
   installLib: typeof install;
   launchLib: typeof launch;
@@ -58,6 +60,7 @@ export class ElectronService {
       this.ssh2 = window.require('ssh2');
 
       this.novacom = window.require('@webosose/ares-cli/lib/base/novacom');
+      this.luna = window.require('@webosose/ares-cli/lib/base/luna');
       this.appdata = window.require('@webosose/ares-cli/lib/base/cli-appdata');
       this.installLib = window.require('@webosose/ares-cli/lib/install');
       this.launchLib = window.require('@webosose/ares-cli/lib/launch');

@@ -1,1 +1,56 @@
-<p>files works!</p>
+<div class="w-100 h-100 d-flex flex-column overflow-hidden">
+  <nav class="manager-toolbar navbar navbar-light bg-light overflow-hidden">
+    <div class="mr-auto overflow-auto">
+
+    </div>
+    <form class="form-inline">
+      <button class="btn btn-primary">
+        <i class="bi bi-upload mr-2"></i>Upload
+      </button>
+    </form>
+  </nav>
+  <div class="flex-fill overflow-auto">
+    <table class="table table-striped">
+      <colgroup>
+        <col class="w-100">
+        <col>
+        <col>
+      </colgroup>
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Size</th>
+        <th>Permission</th>
+        <th>Owner</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let file of (files$ | async)" (click)="onselect(file)">
+        <td>
+          <span>{{file.filename}}</span><span *ngIf="file.isDirectory">/</span>
+          <i *ngIf="file.link" class="bi-link"></i>
+        </td>
+        <td class="text-nowrap">
+          <span *ngIf="!file.isDirectory">{{file.attrs?.size | filesize:sizeOptions}}</span>
+        </td>
+        <td>
+          <pre>{{file.attrs?.mode | attrsPermissions}}</pre>
+        </td>
+        <td>{{file.attrs?.uid}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="stat-bar">
+    <nav class="h-100 overflow-hidden float-right" aria-label="breadcrumb">
+      <ol class="breadcrumb" *ngIf="(pwd && pwd.split('/')) as dirs">
+        <li class="breadcrumb-item" *ngFor="let dir of dirs; index as idx">
+          <button class="btn btn-sm btn-link" (click)="breadcrumbNav(dirs.slice(0, idx + 1))" *ngIf="idx < 1 || dir">
+            <span *ngIf="idx > 0; else rootLabel">{{dir}}</span>
+            <ng-template #rootLabel><i class="bi-hdd-fill"></i></ng-template>
+          </button>
+        </li>
+      </ol>
+    </nav>
+  </div>
+</div>

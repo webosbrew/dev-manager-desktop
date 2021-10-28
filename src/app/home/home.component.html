@@ -4,7 +4,7 @@
       <div class="sidebar-sticky">
         <select class="form-control" (change)="markDefault($event.target.value)">
           <option *ngFor="let device of (deviceManager.devices$ | async)" [selected]="device.default"
-            [value]="device.name">
+                  [value]="device.name">
             {{device.name}}
           </option>
         </select>
@@ -16,12 +16,12 @@
               Apps
             </a>
           </li>
-          <!-- <li class="nav-item">
+          <li class="nav-item">
             <a class="nav-link" routerLink="files" routerLinkActive="active">
               <i class="bi bi-folder-fill mr-1"></i>
               Files
             </a>
-          </li> -->
+          </li>
           <li class="nav-item">
             <a class="nav-link" routerLink="terminal" routerLinkActive="active">
               <i class="bi bi-terminal-fill mr-1"></i>

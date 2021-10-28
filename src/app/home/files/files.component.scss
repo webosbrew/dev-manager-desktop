@@ -1,0 +1,26 @@
+.stat-bar {
+  height: 40px;
+
+  nav {
+    min-width: 100%;
+  }
+
+  .breadcrumb {
+    width: max-content;
+    min-width: 100%;
+    padding: 4px 8px;
+    flex-wrap: nowrap;
+  }
+
+  .breadcrumb-item {
+    position: relative;
+  }
+
+  .breadcrumb-item + .breadcrumb-item::before {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+}
