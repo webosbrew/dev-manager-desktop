@@ -13,7 +13,7 @@ import {cleanupSession} from '../../shared/util/ares-utils';
 import {AllowCORSHandler} from '../../shared/util/cors-skip';
 import {ElectronService} from './electron.service';
 import {SFTPWrapper} from "ssh2";
-import {FileEntry, Stats} from "ssh2-streams";
+import {FileEntry, Stats, TransferOptions} from "ssh2-streams";
 
 @Injectable({
   providedIn: 'root'
@@ -200,13 +200,13 @@ export class DeviceManagerService {
     });
   }
 
-  async sftpSession(name: string): Promise<AsyncSFTPWrapper> {
+  async sftpSession(name: string): Promise<SFTPSession> {
     return this.newSession(name).then(session => new Promise((resolve, reject) => {
       session.ssh.sftp((err, sftp) => {
         if (err) {
           reject(err);
         } else {
-          resolve(new AsyncSFTPWrapper(sftp));
+          resolve(new SFTPSession(sftp));
         }
       });
     }));
@@ -291,7 +291,7 @@ export class CrashReport {
   }
 }
 
-export class AsyncSFTPWrapper {
+export class SFTPSession {
   constructor(private sftp: SFTPWrapper) {
   }
 
@@ -331,7 +331,20 @@ export class AsyncSFTPWrapper {
     }));
   }
 
+  public fastGet(remotePath: string, localPath: string, options?: TransferOptions): Promise<void> {
+    return new Promise<void>(((resolve, reject) => {
+      this.sftp.fastGet(remotePath, localPath, options, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    }));
+  }
+
   public end(): void {
     this.sftp.end();
+    cleanupSession();
   }
 }

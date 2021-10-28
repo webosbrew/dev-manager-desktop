@@ -4,18 +4,10 @@
 
     </div>
     <form class="form-inline">
-      <button class="btn btn-primary">
-        <i class="bi bi-upload mr-2"></i>Upload
-      </button>
     </form>
   </nav>
-  <div class="flex-fill overflow-auto">
-    <table class="table table-striped">
-      <colgroup>
-        <col class="w-100">
-        <col>
-        <col>
-      </colgroup>
+  <div class="w-100 h-100 flex-fill overflow-auto">
+    <table class="files-table table table-striped">
       <thead>
       <tr>
         <th>Name</th>
@@ -26,17 +18,27 @@
       </thead>
       <tbody>
       <tr *ngFor="let file of (files$ | async)" (click)="onselect(file)">
-        <td>
-          <span>{{file.filename}}</span><span *ngIf="file.isDirectory">/</span>
-          <i *ngIf="file.link" class="bi-link"></i>
+        <td class="name-col text-truncate">
+          <span class="pr-2" [ngSwitch]="file.type">
+            <i class="bi-folder-fill" *ngSwitchCase="'dir'"></i>
+            <i class="bi-file-earmark-fill" *ngSwitchCase="'file'"></i>
+            <i class="bi-gear-fill" *ngSwitchCase="'device'"></i>
+            <i class="bi-file-earmark-x-fill" *ngSwitchCase="'invalid'"></i>
+            <i class="bi-file-earmark-fill" *ngSwitchDefault></i>
+          </span>
+          <span>{{file.filename}}</span>
+          <span *ngIf="file.link" class="text-secondary">
+            <i class="bi-arrow-right-short px-1"></i>
+            {{file.link.target}}
+          </span>
         </td>
-        <td class="text-nowrap">
-          <span *ngIf="!file.isDirectory">{{file.attrs?.size | filesize:sizeOptions}}</span>
+        <td class="property-col text-nowrap">
+          <span *ngIf="file.type === 'file'">{{file.attrs?.size | filesize:sizeOptions}}</span>
         </td>
-        <td>
-          <pre>{{file.attrs?.mode | attrsPermissions}}</pre>
+        <td class="property-col text-nowrap">
+          {{file.attrs?.mode | attrsPermissions}}
         </td>
-        <td>{{file.attrs?.uid}}</td>
+        <td class="property-col text-nowrap">{{file.attrs?.uid}}</td>
       </tr>
       </tbody>
     </table>

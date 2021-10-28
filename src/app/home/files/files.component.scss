@@ -24,3 +24,24 @@
     justify-content: center;
   }
 }
+
+.files-table {
+  overflow-y: auto;
+  table-layout: fixed;
+
+  .name-col {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: auto;
+  }
+
+  .property-col {
+    width: 50px;
+  }
+
+  td {
+    vertical-align: middle;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+}
