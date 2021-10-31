@@ -6,42 +6,45 @@
     <form class="form-inline">
     </form>
   </nav>
-  <div class="w-100 h-100 flex-fill overflow-auto">
-    <table class="files-table table table-striped">
-      <thead>
-      <tr>
-        <th>Name</th>
-        <th>Size</th>
-        <th>Permission</th>
-        <th>Owner</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let file of (files$ | async)" (click)="onselect(file)">
-        <td class="name-col text-truncate">
-          <span class="pr-2" [ngSwitch]="file.type">
-            <i class="bi-folder-fill" *ngSwitchCase="'dir'"></i>
-            <i class="bi-file-earmark-fill" *ngSwitchCase="'file'"></i>
-            <i class="bi-gear-fill" *ngSwitchCase="'device'"></i>
-            <i class="bi-file-earmark-x-fill" *ngSwitchCase="'invalid'"></i>
-            <i class="bi-file-earmark-fill" *ngSwitchDefault></i>
-          </span>
-          <span>{{file.filename}}</span>
-          <span *ngIf="file.link" class="text-secondary">
-            <i class="bi-arrow-right-short px-1"></i>
-            {{file.link.target}}
-          </span>
-        </td>
-        <td class="property-col text-nowrap">
+  <div class="w-100 h-100 flex-fill position-relative">
+    <ngx-datatable class="files-table bootstrap position-absolute" [rows]="(files$ | async) || []" [columns]="columns"
+                   [rowHeight]="40" scrollbarH="true" scrollbarV="true" [sortType]="SortType.single"
+                   [selectionType]="SelectionType.single"
+                   (activate)="itemActivated($event.row, $event.type)">
+      <ngx-datatable-column name="Name" width="400" [sortable]="true" [canAutoResize]="true" [comparator]="compareName">
+        <ng-template let-file="row" ngx-datatable-cell-template>
+          <div class="text-nowrap">
+            <span class="pr-2" [ngSwitch]="file.type">
+              <i class="bi-folder-fill" *ngSwitchCase="'dir'"></i>
+              <i class="bi-file-earmark-fill" *ngSwitchCase="'file'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'device'"></i>
+              <i class="bi-file-earmark-x-fill" *ngSwitchCase="'invalid'"></i>
+              <i class="bi-file-earmark-fill" *ngSwitchDefault></i>
+            </span>
+            <span>{{file.filename}}</span>
+            <span *ngIf="file.link" class="text-secondary">
+              <i class="bi-arrow-right-short px-1"></i>
+              {{file.link.target}}
+            </span>
+          </div>
+        </ng-template>
+      </ngx-datatable-column>
+      <ngx-datatable-column name="Size" [sortable]="false" [canAutoResize]="true" [comparator]="compareSize">
+        <ng-template let-file="row" ngx-datatable-cell-template>
           <span *ngIf="file.type === 'file'">{{file.attrs?.size | filesize:sizeOptions}}</span>
-        </td>
-        <td class="property-col text-nowrap">
+        </ng-template>
+      </ngx-datatable-column>
+      <ngx-datatable-column name="Permission" [sortable]="false" [canAutoResize]="true">
+        <ng-template let-file="row" ngx-datatable-cell-template>
           {{file.attrs?.mode | attrsPermissions}}
-        </td>
-        <td class="property-col text-nowrap">{{file.attrs?.uid}}</td>
-      </tr>
-      </tbody>
-    </table>
+        </ng-template>
+      </ngx-datatable-column>
+      <ngx-datatable-column name="Owner" [sortable]="false" [canAutoResize]="true">
+        <ng-template let-file="row" ngx-datatable-cell-template>
+          {{file.attrs?.uid}}
+        </ng-template>
+      </ngx-datatable-column>
+    </ngx-datatable>
   </div>
   <div class="stat-bar">
     <nav class="h-100 overflow-hidden float-right" aria-label="breadcrumb">

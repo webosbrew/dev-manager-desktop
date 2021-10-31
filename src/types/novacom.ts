@@ -54,5 +54,9 @@ export interface Session {
 
   run(cmd: string, stdin: Readable | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
 
+  get(inPath: string, outPath: string, next: (error: any, result: any) => void): void;
+
+  put(inPath: string, outPath: string, next: (error: any, result: any) => void): void;
+
   end(): void;
 }

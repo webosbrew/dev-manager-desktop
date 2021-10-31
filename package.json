@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@electron/remote": "1.1.0",
+    "@swimlane/ngx-datatable": "20.0.0",
     "@webosose/ares-cli": "2.1.0",
     "async-lock": "1.3.0",
     "electron-dl": "3.2.1",

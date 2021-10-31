@@ -26,22 +26,14 @@
 }
 
 .files-table {
-  overflow-y: auto;
-  table-layout: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
 
-  .name-col {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: auto;
-  }
-
-  .property-col {
-    width: 50px;
-  }
-
-  td {
-    vertical-align: middle;
-    padding-top: 5px;
-    padding-bottom: 5px;
+  datatable-body-cell {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    vertical-align: center;
   }
 }

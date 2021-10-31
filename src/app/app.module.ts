@@ -29,6 +29,7 @@ import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {AttrsPermissionsPipe} from './shared/pipes/attrs-permissions.pipe';
 import {NgxFilesizeModule} from 'ngx-filesize';
+import {NgxDatatableModule} from '@swimlane/ngx-datatable';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -65,6 +66,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     ReactiveFormsModule,
     NgbModule,
     NgLetModule,
+    NgxDatatableModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

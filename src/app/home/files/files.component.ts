@@ -4,8 +4,10 @@ import {Device} from "../../../types/novacom";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Attributes, FileEntry} from 'ssh2-streams';
 import * as path from 'path';
+import * as fs from 'fs';
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
 
 @Component({
   selector: 'app-files',
@@ -17,15 +19,20 @@ export class FilesComponent implements OnInit {
   pwd: string;
   files$: Observable<FileItem[]>;
   sizeOptions = {base: 2, standard: "jedec"};
-  private dialog: Electron.Dialog;
+  columns: TableColumn[] = [{prop: 'filename', name: 'Name'}];
+  SortType = SortType;
+  SelectionType = SelectionType;
+  private remote: Electron.Remote;
   private filesSubject: Subject<FileItem[]>;
+  private fs: typeof fs;
 
   constructor(
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
     private electron: ElectronService,
   ) {
-    this.dialog = electron.remote.dialog;
+    this.remote = electron.remote;
+    this.fs = electron.fs;
     deviceManager.selected$.subscribe((selected) => {
       this.device = selected;
       this.cd('/media/developer');
@@ -38,6 +45,7 @@ export class FilesComponent implements OnInit {
   }
 
   async cd(dir: string): Promise<void> {
+    if (!this.device) return;
     dir = path.normalize(dir);
     const sftp = await this.deviceManager.sftpSession(this.device.name);
     let list: FileItem[];
@@ -59,26 +67,56 @@ export class FilesComponent implements OnInit {
       return;
     }
     this.pwd = dir;
-    this.filesSubject.next(list.sort((a, b) => {
-      const dirDiff = (b.type == 'dir' ? 1000 : 0) - (a.type == 'dir' ? 1000 : 0);
-      return dirDiff + (a.filename > b.filename ? 1 : -1);
-    }));
+    this.filesSubject.next(list.sort(this.compareName.bind(this)));
   }
 
-  async onselect(file: FileItem): Promise<void> {
-    if (file.type == 'dir') {
-      await this.cd(path.resolve(this.pwd, file.filename));
-    } else if (file.type == 'file') {
-      const returnValue = await this.dialog.showSaveDialog({defaultPath: file.filename});
-      if (returnValue.canceled) return;
-      const sftp = await this.deviceManager.sftpSession(this.device.name);
-      await sftp.fastGet(file.abspath, returnValue.filePath).finally(() => sftp.end())
-        .catch((e) => MessageDialogComponent.open(this.modalService, {
-          title: 'Failed to download file',
-          message: e.message ?? String(e),
-          positive: 'OK',
-        }));
+  compareName(a: FileItem, b: FileItem): number {
+    const dirDiff = (b.type == 'dir' ? 1000 : 0) - (a.type == 'dir' ? 1000 : 0);
+    return dirDiff + (a.filename > b.filename ? 1 : -1);
+  }
+
+  compareSize(a: FileItem, b: FileItem): number {
+    return (a.type == 'file' ? (a.attrs?.size ?? 0) : 0) - (b.type == 'file' ? (b.attrs.size ?? 0) : 0);
+  }
+
+  async selectItem(file: FileItem): Promise<void> {
+
+  }
+
+  async openItem(file: FileItem): Promise<void> {
+    switch (file.type) {
+      case 'dir': {
+        await this.cd(path.resolve(this.pwd, file.filename));
+        break;
+      }
+      case 'file': {
+        return await this.openFile(file);
+      }
     }
+  }
+
+  private async openFile(file: FileItem) {
+    const tempDir = path.join(this.remote.app.getPath('temp'), `devmgr`);
+    if (!this.fs.existsSync(tempDir)) {
+      this.fs.mkdirSync(tempDir);
+    }
+    const tempPath = path.join(tempDir, `${Date.now()}_${file.filename}`);
+    const session = await this.deviceManager.newSession2(this.device.name);
+    await session.get(file.abspath, tempPath).finally(() => session.end());
+    await this.remote.shell.openPath(tempPath);
+  }
+
+  private async downloadFile(file: FileItem) {
+    const returnValue = await this.remote.dialog.showSaveDialog({defaultPath: file.filename});
+    if (returnValue.canceled) return;
+    const session = await this.deviceManager.newSession2(this.device.name);
+    await session.get(file.abspath, returnValue.filePath).finally(() => session.end())
+      .catch((e) => MessageDialogComponent.open(this.modalService, {
+        title: 'Failed to download file',
+        message: e.message ?? String(e),
+        positive: 'OK',
+      }));
+    return;
   }
 
   async breadcrumbNav(segs: string[]): Promise<void> {
@@ -133,13 +171,20 @@ export class FilesComponent implements OnInit {
       abspath: path.resolve(dir, file.filename),
     };
   }
+
+  async itemActivated(file: FileItem, type: string): Promise<void> {
+    switch (type) {
+      case 'dblclick':
+        return this.openItem(file);
+    }
+  }
 }
 
 type FileType = 'file' | 'dir' | 'device' | 'special' | 'invalid';
 
 declare interface FileItem {
   filename: string;
-  attrs: Attributes;
+  attrs: Attributes | null;
   link?: LinkInfo;
   type: FileType;
   abspath: string;

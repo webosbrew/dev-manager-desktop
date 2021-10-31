@@ -200,6 +200,18 @@ export class DeviceManagerService {
     });
   }
 
+  async newSession2(name: string): Promise<NovacomSession> {
+    return new Promise<NovacomSession>((resolve, reject) => {
+      const session: any = new this.novacom.Session(name, (error: any) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(new NovacomSession(session as Session));
+        }
+      });
+    });
+  }
+
   async sftpSession(name: string): Promise<SFTPSession> {
     return this.newSession(name).then(session => new Promise((resolve, reject) => {
       session.ssh.sftp((err, sftp) => {
@@ -288,6 +300,26 @@ export class CrashReport {
     this.dm.zcat(this.device, this.path)
       .then(content => this.subject.next(content.trim()))
       .catch(error => this.subject.error(error));
+  }
+}
+
+export class NovacomSession {
+  constructor(private session: Session) {
+  }
+
+  public async get(inPath: string, outPath: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => this.session.get(inPath, outPath, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    }));
+  }
+
+  public end() {
+    this.session.end();
+    cleanupSession();
   }
 }
 
