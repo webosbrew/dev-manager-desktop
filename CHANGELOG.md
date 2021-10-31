@@ -1,5 +1,18 @@
+## 1.5.0 (2021-10-31)
+
+* download file feature ([e9e605b](https://github.com/webosbrew/dev-manager-desktop/commit/e9e605b))
+* Improved dumb shell ([88e980e](https://github.com/webosbrew/dev-manager-desktop/commit/88e980e))
+* improved file table ([636e8b0](https://github.com/webosbrew/dev-manager-desktop/commit/636e8b0))
+* pre-release installation ([95d4b0b](https://github.com/webosbrew/dev-manager-desktop/commit/95d4b0b))
+* Simulated shell ([ee1615b](https://github.com/webosbrew/dev-manager-desktop/commit/ee1615b))
+* Updated dev mode hint ([b9679f4](https://github.com/webosbrew/dev-manager-desktop/commit/b9679f4))
+* updated devmode extend method ([6b3ffee](https://github.com/webosbrew/dev-manager-desktop/commit/6b3ffee))
+
+
+
 ## 1.4.0 (2021-07-19)
 
+* 1.4.0 ([f3e1f65](https://github.com/webosbrew/dev-manager-desktop/commit/f3e1f65))
 * Fixed build error ([e440840](https://github.com/webosbrew/dev-manager-desktop/commit/e440840))
 * Update notice ([ed264e6](https://github.com/webosbrew/dev-manager-desktop/commit/ed264e6))
 
