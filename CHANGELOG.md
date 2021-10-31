@@ -1,5 +1,12 @@
+## <small>1.5.1 (2021-10-31)</small>
+
+* fixed path on Windows ([f4f0d17](https://github.com/webosbrew/dev-manager-desktop/commit/f4f0d17))
+
+
+
 ## 1.5.0 (2021-10-31)
 
+* 1.5.0 ([6f223ec](https://github.com/webosbrew/dev-manager-desktop/commit/6f223ec))
 * download file feature ([e9e605b](https://github.com/webosbrew/dev-manager-desktop/commit/e9e605b))
 * Improved dumb shell ([88e980e](https://github.com/webosbrew/dev-manager-desktop/commit/88e980e))
 * improved file table ([636e8b0](https://github.com/webosbrew/dev-manager-desktop/commit/636e8b0))
