@@ -46,7 +46,8 @@ export class FilesComponent implements OnInit {
 
   async cd(dir: string): Promise<void> {
     if (!this.device) return;
-    dir = path.normalize(dir);
+    dir = FilesComponent.targetPath(dir);
+    console.log('cd', dir);
     const sftp = await this.deviceManager.sftpSession(this.device.name);
     let list: FileItem[];
     try {
@@ -86,7 +87,7 @@ export class FilesComponent implements OnInit {
   async openItem(file: FileItem): Promise<void> {
     switch (file.type) {
       case 'dir': {
-        await this.cd(path.resolve(this.pwd, file.filename));
+        await this.cd(FilesComponent.targetPath(this.pwd, file.filename));
         break;
       }
       case 'file': {
@@ -100,7 +101,7 @@ export class FilesComponent implements OnInit {
     if (!this.fs.existsSync(tempDir)) {
       this.fs.mkdirSync(tempDir);
     }
-    const tempPath = path.join(tempDir, `${Date.now()}_${file.filename}`);
+    const tempPath = path.normalize(path.join(tempDir, `${Date.now()}_${file.filename}`));
     const session = await this.deviceManager.newSession2(this.device.name);
     await session.get(file.abspath, tempPath).finally(() => session.end());
     await this.remote.shell.openPath(tempPath);
@@ -120,7 +121,7 @@ export class FilesComponent implements OnInit {
   }
 
   async breadcrumbNav(segs: string[]): Promise<void> {
-    await this.cd(segs.length > 1 ? path.join('/', ...segs) : '/');
+    await this.cd(segs.length > 1 ? FilesComponent.targetPath(...segs) : '/');
   }
 
   private static isSymlink(file: FileEntry): boolean {
@@ -140,8 +141,8 @@ export class FilesComponent implements OnInit {
   }
 
   private static async fromLink(sftp: SFTPSession, pwd: string, filename: string): Promise<FileItem> {
-    const target = await sftp.readlink(path.isAbsolute(filename) ? filename : path.resolve(pwd, filename));
-    const fullpath = path.isAbsolute(target) ? target : path.resolve(pwd, target);
+    const target = await sftp.readlink(path.isAbsolute(filename) ? filename : this.targetPath(pwd, filename));
+    const fullpath = path.isAbsolute(target) ? target : this.targetPath(pwd, target);
     try {
       const stat = await sftp.stat(fullpath);
       return {
@@ -163,12 +164,19 @@ export class FilesComponent implements OnInit {
     }
   }
 
+  private static targetPath(...segments: string[]) {
+    if (path.win32) {
+      return path.normalize(path.join('/', ...segments)).replace(/\\/g, '/');
+    }
+    return path.resolve('/', ...segments);
+  }
+
   private static fromFile(dir: string, file: FileEntry): FileItem {
     return {
       filename: file.filename,
       attrs: file.attrs,
       type: FilesComponent.getFileType(file.attrs),
-      abspath: path.resolve(dir, file.filename),
+      abspath: this.targetPath(dir, file.filename),
     };
   }
 
