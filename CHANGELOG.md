@@ -1,5 +1,12 @@
+## <small>1.5.2 (2021-11-07)</small>
+
+* improved directory traversal performance ([c82bf78](https://github.com/webosbrew/dev-manager-desktop/commit/c82bf78))
+
+
+
 ## <small>1.5.1 (2021-10-31)</small>
 
+* 1.5.1 ([2d1cbe5](https://github.com/webosbrew/dev-manager-desktop/commit/2d1cbe5))
 * fixed path on Windows ([f4f0d17](https://github.com/webosbrew/dev-manager-desktop/commit/f4f0d17))
 
 
