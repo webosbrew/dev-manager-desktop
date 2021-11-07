@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {DeviceManagerService, ElectronService, SFTPSession} from "../../core/services";
+import {DeviceManagerService, ElectronService, FileSession} from "../../core/services";
 import {Device} from "../../../types/novacom";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Attributes, FileEntry} from 'ssh2-streams';
@@ -7,7 +7,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
-import {SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
+import {ContextmenuType, SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
+import {FileItem, FileType, targetPath} from "../../core/services/file-session";
 
 @Component({
   selector: 'app-files',
@@ -46,19 +47,22 @@ export class FilesComponent implements OnInit {
 
   async cd(dir: string): Promise<void> {
     if (!this.device) return;
-    dir = FilesComponent.targetPath(dir);
+    dir = targetPath(dir);
     console.log('cd', dir);
-    const sftp = await this.deviceManager.sftpSession(this.device.name);
+    let session: FileSession;
+    try {
+      session = await this.deviceManager.fileSession(this.device.name);
+    } catch (e) {
+      MessageDialogComponent.open(this.modalService, {
+        title: 'Failed to start session',
+        message: e.message ?? String(e),
+        positive: 'OK',
+      });
+      return;
+    }
     let list: FileItem[];
     try {
-      list = await Promise.all(await sftp.readdir(dir)
-        .then(files => files.map(async (file): Promise<FileItem> => {
-          if (FilesComponent.isSymlink(file)) {
-            return FilesComponent.fromLink(sftp, dir, file.filename);
-          } else {
-            return FilesComponent.fromFile(dir, file);
-          }
-        }))).finally(() => sftp.end());
+      list = await session.readdir_ext(dir);
     } catch (e) {
       MessageDialogComponent.open(this.modalService, {
         title: 'Failed to open directory',
@@ -66,6 +70,8 @@ export class FilesComponent implements OnInit {
         positive: 'OK',
       });
       return;
+    } finally {
+      session.end();
     }
     this.pwd = dir;
     this.filesSubject.next(list.sort(this.compareName.bind(this)));
@@ -80,6 +86,10 @@ export class FilesComponent implements OnInit {
     return (a.type == 'file' ? (a.attrs?.size ?? 0) : 0) - (b.type == 'file' ? (b.attrs.size ?? 0) : 0);
   }
 
+  compareMtime(a: FileItem, b: FileItem): number {
+    return (a.attrs?.mtime ?? 0) - (b.attrs?.mtime ?? 0);
+  }
+
   async selectItem(file: FileItem): Promise<void> {
 
   }
@@ -87,7 +97,7 @@ export class FilesComponent implements OnInit {
   async openItem(file: FileItem): Promise<void> {
     switch (file.type) {
       case 'dir': {
-        await this.cd(FilesComponent.targetPath(this.pwd, file.filename));
+        await this.cd(targetPath(this.pwd, file.filename));
         break;
       }
       case 'file': {
@@ -121,7 +131,7 @@ export class FilesComponent implements OnInit {
   }
 
   async breadcrumbNav(segs: string[]): Promise<void> {
-    await this.cd(segs.length > 1 ? FilesComponent.targetPath(...segs) : '/');
+    await this.cd(segs.length > 1 ? targetPath(...segs) : '/');
   }
 
   private static isSymlink(file: FileEntry): boolean {
@@ -140,11 +150,11 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  private static async fromLink(sftp: SFTPSession, pwd: string, filename: string): Promise<FileItem> {
-    const target = await sftp.readlink(path.isAbsolute(filename) ? filename : this.targetPath(pwd, filename));
-    const fullpath = path.isAbsolute(target) ? target : this.targetPath(pwd, target);
+  private static async fromLink(session: FileSession, pwd: string, filename: string): Promise<FileItem> {
+    const target = await session.readlink(path.isAbsolute(filename) ? filename : targetPath(pwd, filename));
+    const fullpath = path.isAbsolute(target) ? target : targetPath(pwd, target);
     try {
-      const stat = await sftp.stat(fullpath);
+      const stat = await session.stat(fullpath);
       return {
         filename: filename,
         attrs: stat,
@@ -164,19 +174,12 @@ export class FilesComponent implements OnInit {
     }
   }
 
-  private static targetPath(...segments: string[]) {
-    if (path.win32) {
-      return path.normalize(path.join('/', ...segments)).replace(/\\/g, '/');
-    }
-    return path.resolve('/', ...segments);
-  }
-
   private static fromFile(dir: string, file: FileEntry): FileItem {
     return {
       filename: file.filename,
       attrs: file.attrs,
       type: FilesComponent.getFileType(file.attrs),
-      abspath: this.targetPath(dir, file.filename),
+      abspath: targetPath(dir, file.filename),
     };
   }
 
@@ -186,19 +189,8 @@ export class FilesComponent implements OnInit {
         return this.openItem(file);
     }
   }
-}
 
-type FileType = 'file' | 'dir' | 'device' | 'special' | 'invalid';
-
-declare interface FileItem {
-  filename: string;
-  attrs: Attributes | null;
-  link?: LinkInfo;
-  type: FileType;
-  abspath: string;
-}
-
-declare interface LinkInfo {
-  target: string;
-  broken?: boolean;
+  itemContextMenu(event: MouseEvent, type: ContextmenuType, content: any): void {
+    if (type != ContextmenuType.body) return;
+  }
 }

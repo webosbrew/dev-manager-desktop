@@ -12,8 +12,9 @@ import {Device, DeviceEditSpec, Resolver, Session} from '../../../types/novacom'
 import {cleanupSession} from '../../shared/util/ares-utils';
 import {AllowCORSHandler} from '../../shared/util/cors-skip';
 import {ElectronService} from './electron.service';
+import {Readable} from "stream";
+import {FileSession, NovacomFileSession, SFTPSession} from "./file-session";
 import {SFTPWrapper} from "ssh2";
-import {FileEntry, Stats, TransferOptions} from "ssh2-streams";
 
 @Injectable({
   providedIn: 'root'
@@ -117,75 +118,38 @@ export class DeviceManagerService {
   }
 
   async osInfo(name: string): Promise<SystemInfo> {
-    return await this.newSession(name).then(session => new Promise<SystemInfo>((resolve, reject) => {
-      let outStr = '';
-      session.run('cat /var/run/nyx/os_info.json', null, (stdout: Buffer) => {
-        outStr += stdout.toString();
-      }, (stderr: Buffer) => {
-        console.error(stderr.toString());
-      }, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(JSON.parse(outStr) as SystemInfo);
-        }
+    const session = await this.newSession2(name);
+    return session.runAndGetOutput(`cat /var/run/nyx/os_info.json`, null)
+      .then((output) => JSON.parse(output) as SystemInfo)
+      .finally(() => {
         session.end();
+        cleanupSession();
       });
-    })).finally(() => cleanupSession());
   }
 
   async devModeToken(name: string): Promise<string> {
-    return await this.newSession(name).then(session => new Promise<string>((resolve, reject) => {
-      let outStr = '';
-      session.run('cat /var/luna/preferences/devmode_enabled', null, (stdout: Buffer) => {
-        outStr += stdout.toString();
-      }, (stderr) => {
-        console.error(stderr.toString());
-      }, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(outStr);
-        }
-        session.end();
-      });
-    })).finally(() => cleanupSession());
+    const session = await this.newSession2(name);
+    return session.runAndGetOutput(`cat /var/luna/preferences/devmode_enabled`, null).finally(() => {
+      session.end();
+      cleanupSession();
+    });
   }
 
   async listCrashReports(name: string): Promise<CrashReport[]> {
-    return await this.newSession(name).then(session => new Promise<CrashReport[]>((resolve, reject) => {
-      let outStr = '';
-      session.run('find /tmp/faultmanager/crash/ -name \'*.gz\' -print0', null, (stdout: Buffer) => {
-        outStr += stdout.toString();
-      }, (stderr) => {
-        console.error(stderr.toString());
-      }, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(outStr.split('\0').filter(l => l.length).map(l => new CrashReport(name, l, this)));
-        }
+    const session = await this.newSession2(name);
+    return session.runAndGetOutput('find /tmp/faultmanager/crash/ -name \'*.gz\' -print0', null)
+      .then(output => output.split('\0').filter(l => l.length).map(l => new CrashReport(name, l, this))).finally(() => {
         session.end();
+        cleanupSession();
       });
-    })).finally(() => cleanupSession());
   }
 
   async zcat(name: string, path: string): Promise<string> {
-    return await this.newSession(name).then(session => new Promise<string>((resolve, reject) => {
-      let outStr = '';
-      session.run(`xargs -0 zcat`, this.electron.stream.Readable.from(path), (stdout: Buffer) => {
-        outStr += stdout.toString();
-      }, (stderr) => {
-        console.error(stderr.toString());
-      }, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(outStr);
-        }
-        session.end();
-      });
-    })).finally(() => cleanupSession());
+    const session = await this.newSession2(name);
+    return session.runAndGetOutput(`xargs -0 zcat`, this.electron.stream.Readable.from(path)).finally(() => {
+      session.end();
+      cleanupSession();
+    });
   }
 
   async newSession(name: string): Promise<Session> {
@@ -212,8 +176,12 @@ export class DeviceManagerService {
     });
   }
 
-  async sftpSession(name: string): Promise<SFTPSession> {
-    return this.newSession(name).then(session => new Promise((resolve, reject) => {
+  async fileSession(name: string): Promise<FileSession> {
+    return this.sftpSession(name).catch(() => this.novacomFileSession(name));
+  }
+
+  private sftpSession(name: string): Promise<SFTPSession> {
+    return this.newSession(name).then(session => new Promise<SFTPSession>((resolve, reject) => {
       session.ssh.sftp((err, sftp) => {
         if (err) {
           reject(err);
@@ -221,7 +189,19 @@ export class DeviceManagerService {
           resolve(new SFTPSession(sftp));
         }
       });
+    }).then(async (sftp) => {
+      try {
+        await sftp.stat("/dev/null");
+        return sftp;
+      } catch (e) {
+        sftp.end();
+        throw e;
+      }
     }));
+  }
+
+  private novacomFileSession(name: string): Promise<FileSession> {
+    return this.newSession2(name).then(session => new NovacomFileSession(session, this.electron));
   }
 
   async extendDevMode(device: Device): Promise<any> {
@@ -296,7 +276,7 @@ export class CrashReport {
     this.content = this.subject.asObservable();
   }
 
-  load() {
+  load(): void {
     this.dm.zcat(this.device, this.path)
       .then(content => this.subject.next(content.trim()))
       .catch(error => this.subject.error(error));
@@ -317,66 +297,26 @@ export class NovacomSession {
     }));
   }
 
+
+  public async runAndGetOutput(cmd: string, stdin: Readable | null): Promise<string> {
+    return new Promise((resolve, reject) => {
+      let outStr = '';
+      this.session.run(cmd, stdin, (stdout: Buffer) => {
+        outStr += stdout.toString();
+      }, (stderr) => {
+        console.error(stderr.toString());
+      }, (error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(outStr);
+        }
+      });
+    });
+  }
+
   public end() {
     this.session.end();
-    cleanupSession();
-  }
-}
-
-export class SFTPSession {
-  constructor(private sftp: SFTPWrapper) {
-  }
-
-  public readdir(location: string): Promise<FileEntry[]> {
-    return new Promise<FileEntry[]>(((resolve, reject) => {
-      this.sftp.readdir(location, (err, list) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(list);
-        }
-      });
-    }));
-  }
-
-  public readlink(path: string): Promise<string> {
-    return new Promise<string>(((resolve, reject) => {
-      this.sftp.readlink(path, (err, target) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(target);
-        }
-      });
-    }));
-  }
-
-  public stat(path: string): Promise<Stats> {
-    return new Promise<Stats>(((resolve, reject) => {
-      this.sftp.stat(path, (err, stats) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(stats);
-        }
-      });
-    }));
-  }
-
-  public fastGet(remotePath: string, localPath: string, options?: TransferOptions): Promise<void> {
-    return new Promise<void>(((resolve, reject) => {
-      this.sftp.fastGet(remotePath, localPath, options, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    }));
-  }
-
-  public end(): void {
-    this.sftp.end();
     cleanupSession();
   }
 }
