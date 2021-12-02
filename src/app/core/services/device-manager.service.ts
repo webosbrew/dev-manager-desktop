@@ -186,7 +186,7 @@ export class DeviceManagerService {
         if (err) {
           reject(err);
         } else {
-          resolve(new SFTPSession(sftp));
+          resolve(new SFTPSession(sftp, this.electron));
         }
       });
     }).then(async (sftp) => {
@@ -289,6 +289,16 @@ export class NovacomSession {
 
   public async get(inPath: string, outPath: string): Promise<void> {
     return new Promise<void>((resolve, reject) => this.session.get(inPath, outPath, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    }));
+  }
+
+  public async put(inPath: string, outPath: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => this.session.put(inPath, outPath, (err, result) => {
       if (err) {
         reject(err);
       } else {

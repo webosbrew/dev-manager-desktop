@@ -15,10 +15,13 @@ export interface FileSession {
 
   stat(path: string): Promise<Attributes>;
 
+  rm(path: string, recursive: boolean): Promise<void>;
+
   end(): void;
 }
 
 export class NovacomFileSession implements FileSession {
+
   constructor(private session: NovacomSession, private electron: ElectronService) {
   }
 
@@ -99,6 +102,10 @@ export class NovacomFileSession implements FileSession {
       .then(output => JSON.parse(output));
   }
 
+  public async rm(path: string, recursive: boolean): Promise<void> {
+    await this.session.runAndGetOutput(`xargs -0 rm ${recursive ? '-r' : ''}`, this.electron.stream.Readable.from(path));
+  }
+
   public end(): void {
     this.session.end();
     cleanupSession();
@@ -107,11 +114,11 @@ export class NovacomFileSession implements FileSession {
 }
 
 export class SFTPSession implements FileSession {
-  constructor(private sftp: SFTPWrapper) {
+  constructor(private sftp: SFTPWrapper, private electron: ElectronService) {
   }
 
   public readdir(location: string): Promise<FileEntry[]> {
-    return new Promise<FileEntry[]>(((resolve, reject) => {
+    return new Promise<FileEntry[]>((resolve, reject) => {
       this.sftp.readdir(location, (err, list) => {
         if (err) {
           reject(err);
@@ -119,7 +126,7 @@ export class SFTPSession implements FileSession {
           resolve(list);
         }
       });
-    }));
+    });
   }
 
   public async readdir_ext(location: string): Promise<FileItem[]> {
@@ -137,32 +144,50 @@ export class SFTPSession implements FileSession {
   }
 
   public readlink(path: string): Promise<string> {
-    return new Promise<string>(((resolve, reject) => {
-      this.sftp.readlink(path, (err, target) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(target);
-        }
-      });
+    return new Promise<string>((resolve, reject) => this.sftp.readlink(path, (err, target) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(target);
+      }
     }));
   }
 
   public stat(path: string): Promise<Stats> {
-    return new Promise<Stats>(((resolve, reject) => {
-      this.sftp.stat(path, (err, stats) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(stats);
-        }
-      });
+    return new Promise<Stats>((resolve, reject) => this.sftp.stat(path, (err, stats) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(stats);
+      }
     }));
+  }
+
+  public async rm(path: string, recursive: boolean): Promise<void> {
+    const stat = await this.stat(path);
+    if (stat.isDirectory()) {
+      if (!recursive) throw new Error(`${path} is a directory`);
+      for (const child of await this.readdir(path)) {
+        await this.rm(this.electron.path.posix.join(path, child.filename), recursive);
+      }
+    } else {
+      await this.unlink(path);
+    }
   }
 
   public end(): void {
     this.sftp.end();
     cleanupSession();
+  }
+
+  private unlink(path: string): Promise<void> {
+    return new Promise((resolve, reject) => this.sftp.unlink(path, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    }));
   }
 
   private static isSymlink(file: FileEntry): boolean {
@@ -216,10 +241,7 @@ function getFileType(attrs: Attributes): FileType {
 }
 
 export function targetPath(...segments: string[]): string {
-  if (path.win32) {
-    return path.normalize(path.join('/', ...segments)).replace(/\\/g, '/');
-  }
-  return path.resolve('/', ...segments);
+  return path.posix.resolve('/', ...segments);
 }
 
 export type FileType = 'file' | 'dir' | 'device' | 'special' | 'invalid';

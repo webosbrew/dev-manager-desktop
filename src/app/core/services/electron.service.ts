@@ -15,6 +15,7 @@ import * as path from 'path';
 import * as ssh2 from 'ssh2';
 import * as stream from 'stream';
 import * as util from 'util';
+import * as Walk from '@root/walk';
 
 @Injectable({
   providedIn: 'root'
@@ -35,6 +36,7 @@ export class ElectronService {
   installLib: typeof install;
   launchLib: typeof launch;
   ssh2: typeof ssh2;
+  walk: typeof Walk;
 
   get isElectron(): boolean {
     return !!(window && window.process && window.process.type);
@@ -58,6 +60,7 @@ export class ElectronService {
       this.net = window.require('net');
       this.stream = window.require('stream');
       this.ssh2 = window.require('ssh2');
+      this.walk = window.require('@root/walk');
 
       this.novacom = window.require('@webosose/ares-cli/lib/base/novacom');
       this.luna = window.require('@webosose/ares-cli/lib/base/luna');

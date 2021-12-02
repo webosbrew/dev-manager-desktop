@@ -4,10 +4,13 @@
 
     </div>
     <form class="form-inline">
-      <button class="btn btn-primary ml-2">
+      <button class="btn btn-danger ml-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)">
+        <i class="bi bi-trash"></i>
+      </button>
+      <button class="btn btn-primary ml-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)">
         <i class="bi bi-download"></i>
       </button>
-      <button class="btn btn-primary ml-2">
+      <button class="btn btn-primary ml-2" (click)="uploadFiles()">
         <i class="bi bi-upload"></i>
       </button>
     </form>
@@ -16,7 +19,7 @@
     <ngx-datatable class="files-table bootstrap position-absolute" [rows]="(files$ | async) || []" [columns]="columns"
                    [rowHeight]="40" scrollbarH="true" scrollbarV="true" [sortType]="SortType.single"
                    [selectionType]="SelectionType.multi" [loadingIndicator]="true"
-                   (activate)="itemActivated($event.row, $event.type)"
+                   (activate)="itemActivated($event.row, $event.type)" (select)="itemSelected($event.selected)"
                    (tableContextmenu)="itemContextMenu($event.event, $event.type, $event.content)">
       <ngx-datatable-column name="Name" width="400" [sortable]="true" [canAutoResize]="true" [comparator]="compareName">
         <ng-template let-file="row" ngx-datatable-cell-template>

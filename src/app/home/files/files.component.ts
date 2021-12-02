@@ -5,10 +5,12 @@ import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Attributes, FileEntry} from 'ssh2-streams';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as walk from '@root/walk';
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ContextmenuType, SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
 import {FileItem, FileType, targetPath} from "../../core/services/file-session";
+import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
 
 @Component({
   selector: 'app-files',
@@ -21,11 +23,14 @@ export class FilesComponent implements OnInit {
   files$: Observable<FileItem[]>;
   sizeOptions = {base: 2, standard: "jedec"};
   columns: TableColumn[] = [{prop: 'filename', name: 'Name'}];
+  selectedItems: FileItem[] | null = null;
   SortType = SortType;
   SelectionType = SelectionType;
   private remote: Electron.Remote;
   private filesSubject: Subject<FileItem[]>;
   private fs: typeof fs;
+  private path: typeof path;
+  private walk: typeof walk;
 
   constructor(
     private modalService: NgbModal,
@@ -34,6 +39,8 @@ export class FilesComponent implements OnInit {
   ) {
     this.remote = electron.remote;
     this.fs = electron.fs;
+    this.path = electron.path;
+    this.walk = electron.walk;
     deviceManager.selected$.subscribe((selected) => {
       this.device = selected;
       this.cd('/media/developer');
@@ -43,6 +50,10 @@ export class FilesComponent implements OnInit {
   }
 
   ngOnInit(): void {
+  }
+
+  get hasSelection(): boolean {
+    return this.selectedItems && this.selectedItems.length > 0;
   }
 
   async cd(dir: string): Promise<void> {
@@ -75,6 +86,7 @@ export class FilesComponent implements OnInit {
     }
     this.pwd = dir;
     this.filesSubject.next(list.sort(this.compareName.bind(this)));
+    this.selectedItems = null;
   }
 
   compareName(a: FileItem, b: FileItem): number {
@@ -90,10 +102,6 @@ export class FilesComponent implements OnInit {
     return (a.attrs?.mtime ?? 0) - (b.attrs?.mtime ?? 0);
   }
 
-  async selectItem(file: FileItem): Promise<void> {
-
-  }
-
   async openItem(file: FileItem): Promise<void> {
     switch (file.type) {
       case 'dir': {
@@ -107,80 +115,141 @@ export class FilesComponent implements OnInit {
   }
 
   private async openFile(file: FileItem) {
-    const tempDir = path.join(this.remote.app.getPath('temp'), `devmgr`);
+    const tempDir = this.path.join(this.remote.app.getPath('temp'), `devmgr`);
     if (!this.fs.existsSync(tempDir)) {
       this.fs.mkdirSync(tempDir);
     }
-    const tempPath = path.normalize(path.join(tempDir, `${Date.now()}_${file.filename}`));
+    const tempPath = this.path.normalize(this.path.join(tempDir, `${Date.now()}_${file.filename}`));
     const session = await this.deviceManager.newSession2(this.device.name);
     await session.get(file.abspath, tempPath).finally(() => session.end());
     await this.remote.shell.openPath(tempPath);
   }
 
-  private async downloadFile(file: FileItem) {
+  async downloadFiles(files: FileItem[] | null): Promise<void> {
+    if (!files || !files.length) return;
+    if (files.length == 1) {
+      return await this.downloadFile(files[0]);
+    }
+    const returnValue = await this.remote.dialog.showOpenDialog({properties: ['openDirectory']});
+    if (returnValue.canceled) return;
+    const progress = ProgressDialogComponent.open(this.modalService);
+    const session = await this.deviceManager.newSession2(this.device.name);
+    const target = returnValue.filePaths[0];
+    for (const file of files) {
+      let result = false;
+      do {
+        try {
+          await session.get(file.abspath, target);
+        } catch (e) {
+          result = await MessageDialogComponent.open(this.modalService, {
+            title: `Failed to download file ${file.filename}`,
+            message: e.message ?? String(e),
+            positive: 'Retry',
+            negative: 'Skip',
+            alternative: 'Abort',
+          }).result;
+        }
+      } while (result);
+      if (result === null) {
+        break;
+      }
+    }
+    session.end();
+    progress.dismiss();
+  }
+
+  async removeFiles(files: FileItem[] | null): Promise<void> {
+    if (!files || !files.length) return;
+    const answer = await MessageDialogComponent.open(this.modalService, {
+      title: 'Are you sure to delete selected files?',
+      message: 'Deleting files you don\'t know may break your TV',
+      positive: 'Delete',
+      negative: 'Cancel',
+      positiveStyle: 'danger',
+    }).result;
+    if (!answer) return;
+    const progress = ProgressDialogComponent.open(this.modalService);
+    const session = await this.deviceManager.fileSession(this.device.name);
+    for (const file of files) {
+      let result = false;
+      do {
+        try {
+          await session.rm(file.abspath, true);
+        } catch (e) {
+          result = await MessageDialogComponent.open(this.modalService, {
+            title: `Failed to delete ${file.filename}`,
+            message: e.message ?? String(e),
+            positive: 'Retry',
+            negative: 'Skip',
+            alternative: 'Abort',
+          }).result;
+        }
+      } while (result);
+      if (result === null) {
+        break;
+      }
+    }
+    session.end();
+    await this.cd(this.pwd);
+    progress.dismiss();
+  }
+
+  private async downloadFile(file: FileItem): Promise<void> {
     const returnValue = await this.remote.dialog.showSaveDialog({defaultPath: file.filename});
     if (returnValue.canceled) return;
+    const progress = ProgressDialogComponent.open(this.modalService);
     const session = await this.deviceManager.newSession2(this.device.name);
-    await session.get(file.abspath, returnValue.filePath).finally(() => session.end())
-      .catch((e) => MessageDialogComponent.open(this.modalService, {
-        title: 'Failed to download file',
-        message: e.message ?? String(e),
-        positive: 'OK',
-      }));
-    return;
+    let result = false;
+    do {
+      try {
+        await session.get(file.abspath, returnValue.filePath);
+      } catch (e) {
+        result = await MessageDialogComponent.open(this.modalService, {
+          title: `Failed to download file ${file.filename}`,
+          message: e.message ?? String(e),
+          positive: 'Retry',
+          negative: 'Cancel',
+        }).result;
+      }
+    } while (result);
+    session.end();
+    progress.dismiss();
+  }
+
+  async uploadFiles(): Promise<void> {
+    const returnValue = await this.remote.dialog.showOpenDialog({properties: ['multiSelections', 'openFile']});
+    if (returnValue.canceled) return;
+    const progress = ProgressDialogComponent.open(this.modalService);
+    const session = await this.deviceManager.newSession2(this.device.name);
+    for (const source of returnValue.filePaths) {
+      console.log(source, this.path.parse(source));
+      const filename = this.path.parse(source).base;
+      console.log(filename);
+      let result = false;
+      do {
+        try {
+          await session.put(source, this.path.posix.join(this.pwd, filename));
+        } catch (e) {
+          result = await MessageDialogComponent.open(this.modalService, {
+            title: `Failed to upload file ${filename}`,
+            message: e.message ?? String(e),
+            positive: 'Retry',
+            negative: 'Skip',
+            alternative: 'Abort',
+          }).result;
+        }
+      } while (result);
+      if (result === null) {
+        break;
+      }
+    }
+    session.end();
+    await this.cd(this.pwd);
+    progress.dismiss();
   }
 
   async breadcrumbNav(segs: string[]): Promise<void> {
     await this.cd(segs.length > 1 ? targetPath(...segs) : '/');
-  }
-
-  private static isSymlink(file: FileEntry): boolean {
-    return (file.attrs.mode & 0o0120000) == 0o0120000;
-  }
-
-  private static getFileType(attrs: Attributes): FileType {
-    if ((attrs.mode & 0o0100000) == 0o0100000) {
-      return 'file';
-    } else if ((attrs.mode & 0o0040000) == 0o0040000) {
-      return 'dir';
-    } else if ((attrs.mode & 0o0060000) == 0o0060000 || (attrs.mode & 0o0020000) == 0o0020000) {
-      return 'device';
-    } else {
-      return 'special';
-    }
-  }
-
-  private static async fromLink(session: FileSession, pwd: string, filename: string): Promise<FileItem> {
-    const target = await session.readlink(path.isAbsolute(filename) ? filename : targetPath(pwd, filename));
-    const fullpath = path.isAbsolute(target) ? target : targetPath(pwd, target);
-    try {
-      const stat = await session.stat(fullpath);
-      return {
-        filename: filename,
-        attrs: stat,
-        link: {target: target},
-        type: FilesComponent.getFileType(stat),
-        abspath: fullpath,
-      };
-    } catch (e) {
-      console.error('Failed to stat', fullpath);
-      return {
-        filename: filename,
-        attrs: null,
-        link: {target: target, broken: true},
-        type: 'invalid',
-        abspath: fullpath,
-      };
-    }
-  }
-
-  private static fromFile(dir: string, file: FileEntry): FileItem {
-    return {
-      filename: file.filename,
-      attrs: file.attrs,
-      type: FilesComponent.getFileType(file.attrs),
-      abspath: targetPath(dir, file.filename),
-    };
   }
 
   async itemActivated(file: FileItem, type: string): Promise<void> {
@@ -190,7 +259,12 @@ export class FilesComponent implements OnInit {
     }
   }
 
+  itemSelected(selected: FileItem[]): void {
+    this.selectedItems = selected;
+  }
+
   itemContextMenu(event: MouseEvent, type: ContextmenuType, content: any): void {
     if (type != ContextmenuType.body) return;
   }
+
 }
