@@ -1,5 +1,12 @@
+## <small>1.5.3 (2021-12-02)</small>
+
+* upload/download/delete file ([b3cb7ae](https://github.com/webosbrew/dev-manager-desktop/commit/b3cb7ae))
+
+
+
 ## <small>1.5.2 (2021-11-07)</small>
 
+* 1.5.2 ([4f5228b](https://github.com/webosbrew/dev-manager-desktop/commit/4f5228b))
 * improved directory traversal performance ([c82bf78](https://github.com/webosbrew/dev-manager-desktop/commit/c82bf78))
 
 
