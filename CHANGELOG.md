@@ -1,5 +1,12 @@
+## <small>1.5.4 (2021-12-02)</small>
+
+* removed unused package ([6fb8edf](https://github.com/webosbrew/dev-manager-desktop/commit/6fb8edf))
+
+
+
 ## <small>1.5.3 (2021-12-02)</small>
 
+* 1.5.3 ([099bea4](https://github.com/webosbrew/dev-manager-desktop/commit/099bea4))
 * upload/download/delete file ([b3cb7ae](https://github.com/webosbrew/dev-manager-desktop/commit/b3cb7ae))
 
 
