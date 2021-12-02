@@ -1,11 +1,13 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import * as install from '@webosose/ares-cli/lib/install';
 import * as launch from '@webosose/ares-cli/lib/launch';
-import { Observable, ReplaySubject, Subject } from 'rxjs';
+import {Observable, ReplaySubject, Subject} from 'rxjs';
 import * as util from 'util';
-import { Session } from '../../../types/novacom';
-import { cleanupSession } from '../../shared/util/ares-utils';
-import { ElectronService } from './electron.service';
+import {Session} from '../../../types/novacom';
+import {cleanupSession} from '../../shared/util/ares-utils';
+import {ElectronService} from './electron.service';
+import {app} from "@electron/remote";
+
 @Injectable({
   providedIn: 'root'
 })
@@ -61,7 +63,7 @@ export class AppManagerService {
   }
 
   async installUrl(device: string, url: string): Promise<void> {
-    const path = this.electron.path, app = this.electron.remote.app;
+    const path = this.electron.path;
     const tempPath = app.getPath('temp');
     const ipkPath = path.join(tempPath, `devmgr_temp_${Date.now()}.ipk`);
     await this.electron.downloadFile(url, ipkPath);

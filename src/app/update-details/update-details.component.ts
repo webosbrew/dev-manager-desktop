@@ -1,7 +1,8 @@
-import { Component, Inject, OnInit, SecurityContext } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-import marked from 'marked';
-import { Release } from '../core/services';
+import {Component, Inject, OnInit, SecurityContext} from '@angular/core';
+import {DomSanitizer} from '@angular/platform-browser';
+import * as marked from 'marked';
+import {Release} from '../core/services';
+
 @Component({
   selector: 'app-update-details',
   templateUrl: './update-details.component.html',

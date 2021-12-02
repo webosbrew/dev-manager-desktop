@@ -23,7 +23,6 @@ import * as Walk from '@root/walk';
 export class ElectronService {
   ipcRenderer: typeof ipcRenderer;
   webFrame: typeof webFrame;
-  remote: Electron.Remote;
   childProcess: typeof childProcess;
   fs: typeof fs;
   path: typeof path;
@@ -48,7 +47,6 @@ export class ElectronService {
       const electron = window.require('electron');
       this.ipcRenderer = electron.ipcRenderer;
       this.webFrame = electron.webFrame;
-      this.remote = window.require('@electron/remote');
 
       // If you want to use remote object in renderer process, please set enableRemoteModule to true in main.ts
       // console.log('remote - globalShortcut', this.remote.globalShortcut);

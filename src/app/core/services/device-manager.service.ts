@@ -10,11 +10,9 @@ import {BehaviorSubject, Observable, ReplaySubject, Subject} from "rxjs";
 import * as util from 'util';
 import {Device, DeviceEditSpec, Resolver, Session} from '../../../types/novacom';
 import {cleanupSession} from '../../shared/util/ares-utils';
-import {AllowCORSHandler} from '../../shared/util/cors-skip';
 import {ElectronService} from './electron.service';
 import {Readable} from "stream";
 import {FileSession, NovacomFileSession, SFTPSession} from "./file-session";
-import {SFTPWrapper} from "ssh2";
 
 @Injectable({
   providedIn: 'root'
@@ -42,12 +40,6 @@ export class DeviceManagerService {
     this.devicesSubject = new BehaviorSubject([]);
     this.selectedSubject = new BehaviorSubject(null);
     this.load();
-
-    const session = electron.remote.session;
-    const filter = {
-      urls: ['http://*/*']
-    };
-    session.defaultSession.webRequest.onHeadersReceived(filter, AllowCORSHandler);
   }
 
   get devices$(): Observable<Device[]> {
@@ -287,8 +279,8 @@ export class NovacomSession {
   constructor(private session: Session) {
   }
 
-  public async get(inPath: string, outPath: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => this.session.get(inPath, outPath, (err, result) => {
+  public async get(inPath: string, outPath: string): Promise<any> {
+    return new Promise<any>((resolve, reject) => this.session.get(inPath, outPath, (err, result) => {
       if (err) {
         reject(err);
       } else {
@@ -297,8 +289,8 @@ export class NovacomSession {
     }));
   }
 
-  public async put(inPath: string, outPath: string): Promise<void> {
-    return new Promise<void>((resolve, reject) => this.session.put(inPath, outPath, (err, result) => {
+  public async put(inPath: string, outPath: string): Promise<any> {
+    return new Promise<any>((resolve, reject) => this.session.put(inPath, outPath, (err, result) => {
       if (err) {
         reject(err);
       } else {

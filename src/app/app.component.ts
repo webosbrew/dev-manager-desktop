@@ -1,12 +1,12 @@
-import { Component } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { ElectronService, Release, UpdateService } from './core/services';
+import {Component} from '@angular/core';
+import {TranslateService} from '@ngx-translate/core';
+import {ElectronService, Release, UpdateService} from './core/services';
 import packageInfo from '../../package.json';
-import { SemVer } from 'semver';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { MessageDialogComponent } from './shared/components/message-dialog/message-dialog.component';
-import { UpdateDetailsComponent } from './update-details/update-details.component';
-import { noop } from 'rxjs';
+import {SemVer} from 'semver';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {MessageDialogComponent} from './shared/components/message-dialog/message-dialog.component';
+import {UpdateDetailsComponent} from './update-details/update-details.component';
+import {shell} from "@electron/remote";
 
 @Component({
   selector: 'app-root',
@@ -42,11 +42,11 @@ export class AppComponent {
       negative: 'Next time',
       positive: 'More info',
       alternative: 'Ignore this version',
-      messageExtras: { release: info }
+      messageExtras: {release: info}
     }).result.then((result: boolean | null) => {
       switch (result) {
         case true: {
-          this.electron.remote.shell.openExternal(info.html_url);
+          shell.openExternal(info.html_url);
           break;
         }
         case false: {

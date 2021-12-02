@@ -1,8 +1,9 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { Device } from '../../../../types/novacom';
-import { DeviceManagerService, ElectronService } from '../../../core/services';
-import { BehaviorSubject, noop, Observable, ReplaySubject, Subject } from 'rxjs';
+import {Component, Inject, OnInit} from '@angular/core';
+import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
+import {Device} from '../../../../types/novacom';
+import {DeviceManagerService, ElectronService} from '../../../core/services';
+import {BehaviorSubject, noop, Observable} from 'rxjs';
+import {dialog, getCurrentWindow} from "@electron/remote";
 
 @Component({
   selector: 'app-renew-script',
@@ -38,8 +39,7 @@ export class RenewScriptComponent implements OnInit {
   }
 
   saveScript(content: string): void {
-    const wnd = this.electron.remote.BrowserWindow.getFocusedWindow();
-    this.electron.remote.dialog.showSaveDialog(wnd, {
+    dialog.showSaveDialog(getCurrentWindow(), {
       defaultPath: `renew-devmode-${this.device.name}.sh`
     }).then(value => {
       this.electron.fs.writeFileSync(value.filePath, content, { encoding: 'utf8', mode: 0o755 });

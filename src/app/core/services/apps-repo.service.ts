@@ -1,12 +1,12 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import {HttpClient} from '@angular/common/http';
+import {Injectable} from '@angular/core';
+import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import * as semver from 'semver';
-import { AllowCORSHandler } from '../../shared/util/cors-skip';
-import { ElectronService } from './electron.service';
+import {ElectronService} from './electron.service';
 
 const baseUrl = 'https://repo.webosbrew.org/api';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -16,11 +16,6 @@ export class AppsRepoService {
     electron: ElectronService,
     private http: HttpClient
   ) {
-    const session = electron.remote.session;
-    const filter = {
-      urls: ['https://repo.webosbrew.org/*']
-    };
-    session.defaultSession.webRequest.onHeadersReceived(filter, AllowCORSHandler);
   }
 
   async showApp(id: string): Promise<RepositoryItem> {

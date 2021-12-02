@@ -6,10 +6,10 @@ import url from 'url';
 import { AresPullProtoHandler } from './src/backend/ares-pull-proto';
 import { DownloadFileHandler } from './src/backend/ipc-handlers';
 
+electronDl();
+
 // Initialize remote module
 require('@electron/remote/main').initialize();
-
-electronDl();
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -33,7 +33,6 @@ function createWindow(): BrowserWindow {
       nodeIntegration: true,
       allowRunningInsecureContent: serve,
       contextIsolation: false,  // false if you want to run 2e2 test with Spectron
-      enableRemoteModule: true, // true if you want to run 2e2 test  with Spectron or use remote module in renderer context (ie. Angular)
     },
   });
 

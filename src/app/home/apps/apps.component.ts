@@ -1,11 +1,19 @@
-import { Component, OnInit } from '@angular/core';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { TranslateService } from '@ngx-translate/core';
-import { Observable, Subscription } from 'rxjs';
-import { Device } from '../../../types/novacom';
-import { AppManagerService, AppsRepoService, DeviceManagerService, ElectronService, PackageInfo, RepositoryItem } from '../../core/services';
-import { MessageDialogComponent } from '../../shared/components/message-dialog/message-dialog.component';
-import { ProgressDialogComponent } from '../../shared/components/progress-dialog/progress-dialog.component';
+import {Component, OnInit} from '@angular/core';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {TranslateService} from '@ngx-translate/core';
+import {Observable, Subscription} from 'rxjs';
+import {Device} from '../../../types/novacom';
+import {
+  AppManagerService,
+  AppsRepoService,
+  DeviceManagerService,
+  ElectronService,
+  PackageInfo,
+  RepositoryItem
+} from '../../core/services';
+import {MessageDialogComponent} from '../../shared/components/message-dialog/message-dialog.component';
+import {ProgressDialogComponent} from '../../shared/components/progress-dialog/progress-dialog.component';
+import {dialog, getCurrentWindow} from "@electron/remote";
 
 @Component({
   selector: 'app-apps',
@@ -14,7 +22,6 @@ import { ProgressDialogComponent } from '../../shared/components/progress-dialog
 })
 export class AppsComponent implements OnInit {
 
-  dialog: Electron.Dialog;
   packages$: Observable<PackageInfo[]>;
   instPackages: Map<string, PackageInfo>;
   repoPackages: Map<string, RepositoryItem>;
@@ -31,7 +38,6 @@ export class AppsComponent implements OnInit {
     private appManager: AppManagerService,
     private appsRepo: AppsRepoService,
   ) {
-    this.dialog = electron.remote.dialog;
     deviceManager.selected$.subscribe((device) => {
       this.device = device;
       if (device) {
@@ -98,8 +104,8 @@ export class AppsComponent implements OnInit {
   }
 
   async openInstallChooser(): Promise<void> {
-    const open = await this.dialog.showOpenDialog(this.electron.remote.getCurrentWindow(), {
-      filters: [{ name: 'IPK package', extensions: ['ipk'] }]
+    const open = await dialog.showOpenDialog(getCurrentWindow(), {
+      filters: [{name: 'IPK package', extensions: ['ipk']}]
     });
     if (open.canceled) {
       return;
@@ -117,7 +123,7 @@ export class AppsComponent implements OnInit {
   async removePackage(pkg: PackageInfo): Promise<void> {
     const confirm = MessageDialogComponent.open(this.modalService, {
       title: this.translate.instant('MESSAGES.TITLE_REMOVE_APP'),
-      message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_APP', { name: pkg.title }),
+      message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_APP', {name: pkg.title}),
       positive: this.translate.instant('ACTIONS.REMOVE'),
       positiveStyle: 'danger',
       negative: this.translate.instant('ACTIONS.CANCEL')
