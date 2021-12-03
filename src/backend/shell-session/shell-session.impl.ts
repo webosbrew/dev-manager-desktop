@@ -2,9 +2,10 @@ import {ClientChannel} from "ssh2";
 import {Shell} from "../../types";
 import {Buffer} from "buffer";
 import {cleanupSession} from "../../app/shared/util/ares-utils";
+import {Session} from "../device-manager/device-manager.backend";
 
 abstract class AbsShell {
-  protected constructor(protected stream: ClientChannel) {
+  protected constructor(protected session: Session, protected stream: ClientChannel) {
     console.log('shell session created');
   }
 
@@ -12,11 +13,14 @@ abstract class AbsShell {
     return Promise.resolve(this.stream.destroyed);
   }
 
-  close(): Promise<void> {
+  async close(): Promise<void> {
     console.log('shell session closed');
-    return new Promise<void>((resolve) => {
+    return await new Promise<void>((resolve) => {
       this.stream.end(() => resolve());
-    }).finally(() => cleanupSession());
+    }).finally(() => {
+      this.session.end();
+      cleanupSession();
+    });
   }
 
   listen(event: 'close' | 'data', callback: (...args: any[]) => void): this {
@@ -27,8 +31,8 @@ abstract class AbsShell {
 }
 
 export class RealShell extends AbsShell implements Shell {
-  constructor(stream: ClientChannel) {
-    super(stream);
+  constructor(session: Session, stream: ClientChannel) {
+    super(session, stream);
   }
 
   dumb(): Promise<boolean> {
@@ -53,8 +57,13 @@ export class SimulateShell extends AbsShell implements Shell {
   private linebuf = '';
   private running = false;
 
-  constructor(stream: ClientChannel) {
-    super(stream);
+  constructor(session: Session, stream: ClientChannel) {
+    super(session, stream);
+  }
+
+  async close(): Promise<void> {
+    await this.streamWrite('\x03');
+    return await super.close();
   }
 
   dumb(): Promise<boolean> {
@@ -63,16 +72,14 @@ export class SimulateShell extends AbsShell implements Shell {
 
   async write(data: string): Promise<void> {
     if (this.running) {
-      if (data == '\r') {
-        await this.streamWrite('\n');
-      } else {
-        await this.streamWrite(data);
-      }
+      this.stream.emit('data', data);
+      await this.streamWrite(data);
       return;
     }
     switch (data) {
       case '\r': {
         this.stream.emit('data', data);
+        this.stream.emit('data', '\n');
         await this.streamWrite(this.linebuf.trim());
         await this.streamWrite('\n');
         this.linebuf = '';
@@ -112,9 +119,11 @@ export class SimulateShell extends AbsShell implements Shell {
 
   listen(event: 'close' | 'data', callback: (...args: any[]) => void): this {
     if (event === 'data') {
-      this.stream.on('data', (data: Buffer) => {
+      const dataCb = (data: Buffer) => {
         callback(data.toString('utf-8').replace(/\n/g, '\n\r'));
-      });
+      };
+      this.stream.on('data', dataCb);
+      this.stream.stderr.on('data', dataCb);
       return this;
     }
     return super.listen(event, callback);

@@ -18,8 +18,8 @@ export class ShellSessionBackend extends IpcBackend {
   async open(device: Device): Promise<SessionToken> {
     const key = UUIDv4();
     const session = await this.newShell(device);
-    session.listen('close', () => this.emit(`close.${key}`));
-    session.listen('data', (data: Buffer) => this.emit(`data.${key}`, data.toString('binary')));
+    session.listen('close', () => this.send(`close.${key}`));
+    session.listen('data', (data: Buffer) => this.send(`data.${key}`, data.toString('binary')));
     this.sessions.set(key, session);
     return key;
   }
@@ -63,13 +63,13 @@ export class ShellSessionBackend extends IpcBackend {
     const session = await this.devices.newSession(device.name);
     const shell: () => Promise<ClientChannel> = util.promisify(session.ssh.shell.bind(session.ssh));
     const stream = await shell();
-    return new RealShell(stream);
+    return new RealShell(session, stream);
   }
 
   async openFakeShell(device: Device): Promise<Shell> {
     const session = await this.devices.newSession(device.name);
     const exec: (command: string) => Promise<ClientChannel> = util.promisify(session.ssh.exec.bind(session.ssh));
     const stream = await exec('sh');
-    return new SimulateShell(stream);
+    return new SimulateShell(session, stream);
   }
 }

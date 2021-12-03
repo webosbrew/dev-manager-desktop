@@ -1,5 +1,18 @@
-<div>
-  <div class="h-100 w-100 terminal-container" #termwin>
-  </div>
-  <div class="terminal-resize" *ngIf="pendingResize">{{pendingResize.rows}} &times; {{pendingResize.cols}}</div>
+<div class="w-100 h-100 d-flex flex-column">
+  <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0" [animation]="false">
+    <li *ngFor="let session of sessions" [ngbNavItem]="session" [destroyOnHide]="false">
+      <a ngbNavLink href>
+        {{session.title}}
+        <span class="close position-relative pl-2 font-weight-light" (click)="closeSession($event, session)">×</span>
+      </a>
+      <ng-template ngbNavContent>
+        <app-terminal-tab [device]="session.device" class="terminal-tab"></app-terminal-tab>
+      </ng-template>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href (click)="newTab()">+</a>
+    </li>
+  </ul>
+
+  <div [ngbNavOutlet]="nav" class="overflow-hidden flex-fill position-relative tabs-container"></div>
 </div>

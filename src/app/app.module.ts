@@ -30,6 +30,7 @@ import {UpdateDetailsComponent} from './update-details/update-details.component'
 import {AttrsPermissionsPipe} from './shared/pipes/attrs-permissions.pipe';
 import {NgxFilesizeModule} from 'ngx-filesize';
 import {NgxDatatableModule} from '@swimlane/ngx-datatable';
+import { TabComponent } from './home/terminal/tab/tab.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -54,6 +55,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     RenewScriptComponent,
     UpdateDetailsComponent,
     AttrsPermissionsPipe,
+    TabComponent,
   ],
   imports: [
     BrowserModule,

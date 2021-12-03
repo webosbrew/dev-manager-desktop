@@ -180,7 +180,7 @@ export class DeviceManagerBackend extends IpcBackend {
   }
 
   private onDevicesUpdated(devices: Device[]) {
-    this.emit('deviceUpdated', devices);
+    this.send('devicesUpdated', devices);
   }
 
   private newResolver(): Resolver {

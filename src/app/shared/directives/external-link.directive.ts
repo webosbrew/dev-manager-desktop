@@ -13,6 +13,7 @@ export class ExternalLinkDirective {
 
   @HostListener('click')
   onClick(): boolean {
+    if (!this.href) return false;
     if (shell && this.isLinkExternal()) {
       shell.openExternal(this.href);
       return false;

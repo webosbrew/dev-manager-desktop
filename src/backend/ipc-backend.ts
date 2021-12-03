@@ -22,7 +22,7 @@ export abstract class IpcBackend {
     ipcMain.handle(`${this.category}/${method}`, (event, ...args) => impl.call(this, ...args));
   }
 
-  protected emit(name: string, ...args: any[]) {
+  protected send(name: string, ...args: any[]) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     this.win.webContents.send(`${this.category}/${name}`, ...args);
   }

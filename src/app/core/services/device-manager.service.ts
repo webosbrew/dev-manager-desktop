@@ -14,7 +14,7 @@ export class DeviceManagerService extends IpcClient {
   private devicesSubject: Subject<Device[]>;
   private selectedSubject: Subject<Device>;
 
-  constructor(private http: HttpClient) {
+  constructor() {
     super('device-manager');
     this.devicesSubject = new BehaviorSubject([]);
     this.selectedSubject = new BehaviorSubject(null);
