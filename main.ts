@@ -6,10 +6,14 @@ import {AresPullProtoHandler} from './src/backend/ares-pull-proto';
 import {DeviceManagerBackend} from "./src/backend/device-manager/device-manager.backend";
 import {AppManagerBackend} from "./src/backend/app-manager.backend";
 import {skipCORS} from "./src/backend/cors-skip";
-
+import {FileSessionBackend} from "./src/backend/file-session/file-session.backend";
+import {ShellSessionBackend} from "./src/backend/shell-session/shell-session.backend";
+import electronDl from "electron-dl";
 
 // Initialize remote module
 require('@electron/remote/main').initialize();
+
+electronDl();
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -71,7 +75,10 @@ function createWindow(): BrowserWindow {
   win.webContents.on('did-fail-load', () => loadApp());
   skipCORS(win.webContents.session);
   require('@electron/remote/main').enable(win.webContents);
-
+  const devMgr = new DeviceManagerBackend(win);
+  new AppManagerBackend(win);
+  new FileSessionBackend(win, devMgr);
+  new ShellSessionBackend(win, devMgr);
   return win;
 }
 
@@ -84,8 +91,7 @@ try {
 
   app.whenReady().then(() => {
     protocol.registerBufferProtocol('ares-pull', AresPullProtoHandler);
-    new DeviceManagerBackend();
-    new AppManagerBackend();
+
   });
 
   // Quit when all windows are closed.

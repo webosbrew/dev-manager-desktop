@@ -3,7 +3,7 @@ import {DeviceManagerService} from "../../core/services";
 import {Device, FileItem, FileSession} from "../../../types";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
-import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {NgbModal, NgbModalRef} from "@ng-bootstrap/ng-bootstrap";
 import {ContextmenuType, SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
 import {dialog, shell} from '@electron/remote';
@@ -31,7 +31,7 @@ export class FilesComponent implements OnInit {
   ) {
     deviceManager.selected$.subscribe((selected) => {
       this.device = selected;
-      this.cd('/media/developer');
+      this.cd('/media/developer', true);
     });
     this.filesSubject = new BehaviorSubject([]);
     this.files$ = this.filesSubject.asObservable();
@@ -44,9 +44,10 @@ export class FilesComponent implements OnInit {
     return this.selectedItems && this.selectedItems.length > 0;
   }
 
-  async cd(dir: string): Promise<void> {
+  async cd(dir: string, showProgress = false): Promise<void> {
     if (!this.device) return;
     console.log('cd', dir);
+    const progress = showProgress && ProgressDialogComponent.open(this.modalService);
     let session: FileSession;
     try {
       session = await this.deviceManager.openFileSession(this.device.name);
@@ -56,6 +57,7 @@ export class FilesComponent implements OnInit {
         message: e.message ?? String(e),
         positive: 'OK',
       });
+      progress?.dismiss();
       return;
     }
     let list: FileItem[];
@@ -69,7 +71,8 @@ export class FilesComponent implements OnInit {
       });
       return;
     } finally {
-      session.end();
+      await session.end();
+      progress?.dismiss();
     }
     this.pwd = dir;
     this.filesSubject.next(list.sort(this.compareName));
@@ -77,12 +80,13 @@ export class FilesComponent implements OnInit {
   }
 
   compareName(this: void, a: FileItem, b: FileItem): number {
-    const dirDiff = (b.type == 'dir' ? 1000 : 0) - (a.type == 'dir' ? 1000 : 0);
-    return dirDiff + (a.filename > b.filename ? 1 : -1);
+    const dirDiff = (b.type == 'd' ? 1000 : 0) - (a.type == 'd' ? 1000 : 0);
+    if (dirDiff) return dirDiff;
+    return a.filename.localeCompare(b.filename);
   }
 
   compareSize(this: void, a: FileItem, b: FileItem): number {
-    return (a.type == 'file' ? (a.attrs?.size ?? 0) : 0) - (b.type == 'file' ? (b.attrs.size ?? 0) : 0);
+    return (a.type == '-' ? (a.attrs?.size ?? 0) : 0) - (b.type == '-' ? (b.attrs.size ?? 0) : 0);
   }
 
   compareMtime(this: void, a: FileItem, b: FileItem): number {
@@ -91,11 +95,11 @@ export class FilesComponent implements OnInit {
 
   async openItem(file: FileItem): Promise<void> {
     switch (file.type) {
-      case 'dir': {
-        await this.cd(path.join(this.pwd, file.filename));
+      case 'd': {
+        await this.cd(path.join(this.pwd, file.filename), true);
         break;
       }
-      case 'file': {
+      case '-': {
         return await this.openFile(file);
       }
     }
@@ -103,7 +107,24 @@ export class FilesComponent implements OnInit {
 
   private async openFile(file: FileItem) {
     const session = await this.deviceManager.openFileSession(this.device.name);
-    const tempPath: string = await session.downloadTemp(file.abspath).finally(() => session.end());
+    const progress = ProgressDialogComponent.open(this.modalService);
+    let result = false;
+    let tempPath: string = null;
+    do {
+      try {
+        tempPath = await session.downloadTemp(file.abspath);
+      } catch (e) {
+        result = await MessageDialogComponent.open(this.modalService, {
+          title: `Failed to download file ${file.filename}`,
+          message: e.message ?? String(e),
+          positive: 'Retry',
+          negative: 'Cancel',
+        }).result;
+      }
+    } while (result);
+    progress.dismiss();
+    await session.end();
+    if (!result || !tempPath) return;
     await shell.openPath(tempPath);
   }
 
@@ -136,7 +157,7 @@ export class FilesComponent implements OnInit {
         break;
       }
     }
-    session.end();
+    await session.end();
     progress.dismiss();
   }
 
@@ -171,8 +192,8 @@ export class FilesComponent implements OnInit {
         break;
       }
     }
-    session.end();
-    await this.cd(this.pwd);
+    await session.end();
+    await this.cd(this.pwd, false);
     progress.dismiss();
   }
 
@@ -194,7 +215,7 @@ export class FilesComponent implements OnInit {
         }).result;
       }
     } while (result);
-    session.end();
+    await session.end();
     progress.dismiss();
   }
 
@@ -214,13 +235,14 @@ export class FilesComponent implements OnInit {
       if (result == null) throw e;
       return result;
     });
-    session.end();
-    await this.cd(this.pwd);
+    await session.end();
+    await this.cd(this.pwd, false);
     progress.dismiss();
   }
 
   async breadcrumbNav(segs: string[]): Promise<void> {
-    await this.cd(segs.length > 1 ? path.join(...segs) : '/');
+    segs[0] = '/';
+    await this.cd(path.join(...segs), true);
   }
 
   async itemActivated(file: FileItem, type: string): Promise<void> {

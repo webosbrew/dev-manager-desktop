@@ -1,7 +1,7 @@
-import {ipcMain} from 'electron';
+import {BrowserWindow, ipcMain, webContents} from 'electron';
 import 'reflect-metadata';
 
-type IpcHandleFunction = (...args: any[]) => Promise<any>;
+type IpcHandleFunction = (...args: any[]) => Promise<any> | any;
 
 export function Handle(target: IpcBackend, key: string | symbol, descriptor: PropertyDescriptor) {
   Reflect.defineMetadata('ipc:handler', descriptor.value, target, key);
@@ -9,7 +9,7 @@ export function Handle(target: IpcBackend, key: string | symbol, descriptor: Pro
 
 export abstract class IpcBackend {
 
-  protected constructor(public category: string) {
+  protected constructor(private win: BrowserWindow, public category: string) {
     for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
       const metadata = Reflect.getMetadata('ipc:handler', this, key);
       if (!metadata) continue;
@@ -18,10 +18,12 @@ export abstract class IpcBackend {
   }
 
   protected handle(method: string, impl: IpcHandleFunction) {
-    ipcMain.handle(`${this.category}/${method}`, (event, args) => impl.call(this, args));
+    // eslint-disable-next-line
+    ipcMain.handle(`${this.category}/${method}`, (event, ...args) => impl.call(this, ...args));
   }
 
   protected emit(name: string, ...args: any[]) {
-    ipcMain.emit(`${this.category}/${name}`, args);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.win.webContents.send(`${this.category}/${name}`, ...args);
   }
 }

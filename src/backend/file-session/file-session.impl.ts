@@ -1,12 +1,14 @@
 import {Attributes, FileEntry, Stats} from "ssh2-streams";
 import {cleanupSession} from "../../app/shared/util/ares-utils";
 import {SFTPWrapper} from "ssh2";
-import {NovacomSession} from "./device-manager.backend";
+import {NovacomSession} from "../device-manager/device-manager.backend";
 import * as path from "path";
 import * as stream from "stream";
 import * as fs from "fs";
+import {constants} from "fs";
 import {FileItem, FileSession, FileType} from "../../types";
 import {app} from "electron";
+import {minify} from 'terser';
 
 abstract class AbsFileSession implements FileSession {
   async downloadTemp(remotePath: string): Promise<string> {
@@ -20,7 +22,7 @@ abstract class AbsFileSession implements FileSession {
     return tempPath;
   }
 
-  abstract end(): void;
+  abstract end(): Promise<void>;
 
   abstract get(remotePath: string, localPath: string): Promise<void>;
 
@@ -46,6 +48,8 @@ export class NovacomFileSession extends AbsFileSession {
   public readdir(location: string): Promise<FileEntry[]> {
     // language=JavaScript
     const script = `
+      var fs = require('fs');
+      var path = require('path');
       var loc = process.argv[1];
       var dir = fs.readdirSync(loc);
       console.log(JSON.stringify(dir.map(function (filename) {
@@ -64,13 +68,14 @@ export class NovacomFileSession extends AbsFileSession {
         }
       })));
     `;
-    return this.session.runAndGetOutput(`node -e '${script}' '${location.replace(/'/g, `'\\''`)}'`, null)
-      .then(output => JSON.parse(output));
+    return this.runNodeCode(script, location).then(output => JSON.parse(output));
   }
 
-  public readdir_ext(location: string): Promise<FileItem[]> {
+  public async readdir_ext(location: string): Promise<FileItem[]> {
     // language=JavaScript
     const script = `
+      var fs = require('fs');
+      var path = require('path');
       var loc = process.argv[1];
       var dir = fs.readdirSync(loc);
       console.log(JSON.stringify(dir.map(function (filename) {
@@ -90,11 +95,10 @@ export class NovacomFileSession extends AbsFileSession {
         };
       })));
     `;
-    return this.session.runAndGetOutput(`node -e '${script}' '${location.replace(/'/g, `'\\''`)}'`, null)
-      .then(output => JSON.parse(output).map((partial: Partial<FileItem>) => ({
-        ...partial,
-        type: getFileType(partial.attrs)
-      })));
+    return this.runNodeCode(script, location).then(output => JSON.parse(output).map((partial: Partial<FileItem>) => ({
+      ...partial,
+      type: getFileType(partial.attrs)
+    })));
   }
 
   public readlink(path: string): Promise<string> {
@@ -104,6 +108,7 @@ export class NovacomFileSession extends AbsFileSession {
   public stat(path: string): Promise<Attributes> {
     // language=JavaScript
     const script = `
+      var fs = require('fs');
       var stat = fs.statSync(process.argv[1]);
       console.log(JSON.stringify({
         mode: stat.mode,
@@ -114,8 +119,7 @@ export class NovacomFileSession extends AbsFileSession {
         mtime: stat.mtime.getTime() / 1000
       }));
     `;
-    return this.session.runAndGetOutput(`node -e '${script}' '${path.replace(/'/g, `'\\''`)}'`, null)
-      .then(output => JSON.parse(output));
+    return this.runNodeCode(script, path).then(output => JSON.parse(output));
   }
 
   public async rm(path: string, recursive: boolean): Promise<void> {
@@ -130,9 +134,16 @@ export class NovacomFileSession extends AbsFileSession {
     return await this.session.put(localPath, remotePath);
   }
 
-  public end(): void {
+  public end(): Promise<void> {
     this.session.end();
     cleanupSession();
+    return Promise.resolve();
+  }
+
+  private async runNodeCode(script: string, ...args: string[]): Promise<string> {
+    const minified = (await minify(script)).code;
+    const argstxt = args.map(arg => `'${arg.replace(/'/g, `'\\''`)}'`).join(' ');
+    return this.session.runAndGetOutput(`xargs -I {} node -e {} ${argstxt}`, stream.Readable.from(minified));
   }
 
 }
@@ -220,9 +231,10 @@ export class SFTPSession extends AbsFileSession {
     }));
   }
 
-  public end(): void {
+  public end(): Promise<void> {
     this.sftp.end();
     cleanupSession();
+    return Promise.resolve();
   }
 
   private unlink(path: string): Promise<void> {
@@ -257,7 +269,7 @@ export class SFTPSession extends AbsFileSession {
         filename: filename,
         attrs: null,
         link: {target: target, broken: true},
-        type: 'invalid',
+        type: '',
         abspath: fullpath,
       };
     }
@@ -273,15 +285,27 @@ export class SFTPSession extends AbsFileSession {
   }
 }
 
+function S_ISTYPE(attrs: Attributes, type: number): boolean {
+  return (attrs.mode & constants.S_IFMT) == type;
+}
+
 function getFileType(attrs: Attributes): FileType {
-  if ((attrs.mode & 0o0100000) == 0o0100000) {
-    return 'file';
-  } else if ((attrs.mode & 0o0040000) == 0o0040000) {
-    return 'dir';
-  } else if ((attrs.mode & 0o0060000) == 0o0060000 || (attrs.mode & 0o0020000) == 0o0020000) {
-    return 'device';
+  if (S_ISTYPE(attrs, constants.S_IFREG)) {
+    return '-';
+  } else if (S_ISTYPE(attrs, constants.S_IFDIR)) {
+    return 'd';
+  } else if (S_ISTYPE(attrs, constants.S_IFLNK)) {
+    return 'l';
+  } else if (S_ISTYPE(attrs, constants.S_IFIFO)) {
+    return 'p';
+  } else if (S_ISTYPE(attrs, constants.S_IFSOCK)) {
+    return 's';
+  } else if (S_ISTYPE(attrs, constants.S_IFBLK)) {
+    return 'b';
+  } else if (S_ISTYPE(attrs, constants.S_IFCHR)) {
+    return 'c';
   } else {
-    return 'special';
+    return '';
   }
 }
 

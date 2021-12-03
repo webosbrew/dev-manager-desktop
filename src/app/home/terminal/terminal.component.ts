@@ -5,6 +5,7 @@ import {Terminal} from 'xterm';
 import {FitAddon, ITerminalDimensions} from 'xterm-addon-fit';
 import {DeviceManagerService} from '../../core/services';
 import {cleanupSession} from '../../shared/util/ares-utils';
+import {Shell} from "../../../types";
 
 
 @Component({
@@ -29,14 +30,7 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
     this.term = new Terminal({});
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
-    this.term.onKey((arg1) => {
-      if (!this.shell || this.shell.closed) {
-        this.openDefaultShell().catch((err: Error) => this.connError(err));
-      } else if (this.shell) {
-        console.log(arg1);
-        this.shell.write(arg1.key);
-      }
-    });
+    this.term.onKey(({domEvent, key}) => this.shellKey(domEvent, key));
 
     this.resizeSubscription = fromEvent(window, 'resize').pipe(debounceTime(500)).subscribe(() => {
       this.pendingResize = null;
@@ -70,10 +64,10 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async openDefaultShell(): Promise<void> {
     const device = (await this.deviceManager.list()).find(dev => dev.default);
-    const shell = await this.deviceManager.openShell(device.name);
+    const shell = await this.deviceManager.openShell(device);
     this.shell = shell;
 
-    if (shell.dumb) {
+    if (await shell.dumb()) {
       this.term.writeln(`>>> Connected to ${device.name} (dumb shell).`);
       this.term.writeln('>>> Due to restriction of webOS, functionality of this shell is limited.');
       this.term.writeln('>>> Features like Ctrl+C and Tab will be unavailable.');
@@ -81,20 +75,20 @@ export class TerminalComponent implements OnInit, AfterViewInit, OnDestroy {
       this.term.writeln(`>>> Connected to ${device.name}.`);
     }
     this.term.writeln('');
-    shell.on('close', () => {
+    shell.listen('close', () => {
       this.term.writeln('>>> Connection closed. Press any key to reconnect.');
       this.shell = null;
       cleanupSession();
-    }).on('data', (data: Uint8Array) => {
+    }).listen('data', (data: string) => {
       this.term.write(data);
     });
   }
-}
 
-interface Shell {
-  readonly closed: boolean
-
-  write(data: string): void;
-
-  close(): void;
+  async shellKey(event: KeyboardEvent, key: string): Promise<void> {
+    if (!this.shell || await this.shell.closed()) {
+      this.openDefaultShell().catch((err: Error) => this.connError(err));
+    } else if (this.shell) {
+      await this.shell.write(key);
+    }
+  }
 }

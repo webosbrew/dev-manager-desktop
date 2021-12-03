@@ -35,21 +35,21 @@ export class AppManagerService extends IpcClient {
   }
 
   async install(device: string, path: string): Promise<void> {
-    return this.call('install', device, path).then(value => {
+    return this.call<void>('install', device, path).then(value => {
       this.load(device);
       return value;
     });
   }
 
   async installUrl(device: string, url: string): Promise<void> {
-    return this.call('installUrl', device, url).then(value => {
+    return this.call<void>('installUrl', device, url).then(value => {
       this.load(device);
       return value;
     });
   }
 
   async remove(device: string, pkgName: string): Promise<void> {
-    return this.call('remove', device, pkgName).then(value => {
+    return this.call<void>('remove', device, pkgName).then(value => {
       this.load(device);
       return value;
     });

@@ -25,11 +25,14 @@
         <ng-template let-file="row" ngx-datatable-cell-template>
           <div class="text-nowrap">
             <span class="pr-2" [ngSwitch]="file.type">
-              <i class="bi-folder-fill" *ngSwitchCase="'dir'"></i>
-              <i class="bi-file-earmark-fill" *ngSwitchCase="'file'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'device'"></i>
-              <i class="bi-file-earmark-x-fill" *ngSwitchCase="'invalid'"></i>
-              <i class="bi-file-earmark-fill" *ngSwitchDefault></i>
+              <i class="bi-folder-fill" *ngSwitchCase="'d'"></i>
+              <i class="bi-file-earmark-fill" *ngSwitchCase="'-'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'c'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'b'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'f'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'s'"></i>
+              <i class="bi-link" *ngSwitchCase="'l'"></i>
+              <i class="bi-file-earmark-x-fill" *ngSwitchDefault></i>
             </span>
             <span>{{file.filename}}</span>
             <span *ngIf="file.link" class="text-secondary">
@@ -47,12 +50,12 @@
       </ngx-datatable-column>
       <ngx-datatable-column name="Size" [sortable]="false" [canAutoResize]="true" [comparator]="compareSize">
         <ng-template let-file="row" ngx-datatable-cell-template>
-          <span *ngIf="file.type === 'file'">{{file.attrs?.size | filesize:sizeOptions}}</span>
+          <span *ngIf="file.type === '-'">{{file.attrs?.size | filesize:sizeOptions}}</span>
         </ng-template>
       </ngx-datatable-column>
       <ngx-datatable-column name="Permission" [sortable]="false" [canAutoResize]="true">
         <ng-template let-file="row" ngx-datatable-cell-template>
-          {{file.attrs?.mode | attrsPermissions}}
+          {{file.type}}{{file.attrs?.mode | attrsPermissions}}
         </ng-template>
       </ngx-datatable-column>
       <ngx-datatable-column name="Owner" [sortable]="false" [canAutoResize]="true">

@@ -1,17 +1,17 @@
 import * as installLib from '@webosose/ares-cli/lib/install';
 import * as launchLib from '@webosose/ares-cli/lib/launch';
 import * as util from 'util';
-import {app} from 'electron';
+import {app, BrowserWindow} from 'electron';
 import {cleanupSession} from '../app/shared/util/ares-utils';
 import {PackageInfo} from '../types';
 import {Handle, IpcBackend} from './ipc-backend';
-import * as path from "path";
 import {Session} from "./device-manager/device-manager.backend";
+import {download} from 'electron-dl';
 
 export class AppManagerBackend extends IpcBackend {
 
-  constructor() {
-    super('app-manager');
+  constructor(win: BrowserWindow) {
+    super(win, 'app-manager');
   }
 
   @Handle
@@ -44,9 +44,13 @@ export class AppManagerBackend extends IpcBackend {
 
   @Handle
   async installUrl(device: string, url: string): Promise<void> {
-    const tempPath = app.getPath('temp'), downloadPath = path.join(tempPath, `devmgr_temp_${Date.now()}.ipk`);
-    await this.downloadFile(url, downloadPath);
-    return await this.install(device, downloadPath);
+    const tempPath = app.getPath('temp');
+    const win = BrowserWindow.getFocusedWindow();
+    const result = await download(win, url, {
+      directory: tempPath,
+      filename: `devmgr_temp_${Date.now()}.ipk`
+    });
+    return await this.install(device, result.savePath);
   }
 
   @Handle
@@ -81,11 +85,6 @@ export class AppManagerBackend extends IpcBackend {
         cleanupSession();
       });
   }
-
-  private async downloadFile(url: string, path: string): Promise<void> {
-    return Promise.reject(new Error('not implemented'));
-  }
-
 }
 
 interface InstallOptions {

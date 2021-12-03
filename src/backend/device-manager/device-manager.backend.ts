@@ -1,13 +1,4 @@
-import {
-  CrashReportEntry,
-  Device,
-  DeviceEditSpec,
-  DevicePrivateKey,
-  FileSession,
-  Resolver,
-  SystemInfo
-} from "../../types";
-import {NovacomFileSession, SFTPSession} from "./file-session";
+import {CrashReportEntry, Device, DeviceEditSpec, DevicePrivateKey, Resolver, SystemInfo} from "../../types";
 import {cleanupSession} from "../../app/shared/util/ares-utils";
 import {Handle, IpcBackend} from "../ipc-backend";
 import * as cli from '@webosose/ares-cli/lib/base/cli-appdata';
@@ -19,12 +10,13 @@ import {Readable, Writable} from 'stream';
 import * as util from 'util';
 import * as net from "net";
 import {Client, utils as ssh2utils} from "ssh2";
+import {BrowserWindow} from "electron";
 
 
 export class DeviceManagerBackend extends IpcBackend {
 
-  constructor() {
-    super('device-manager');
+  constructor(win: BrowserWindow) {
+    super(win, 'device-manager');
   }
 
   @Handle
@@ -179,34 +171,6 @@ export class DeviceManagerBackend extends IpcBackend {
         resolve(resp);
       }, (e) => reject(e));
     }));
-  }
-
-  async fileSession(name: string): Promise<FileSession> {
-    return this.sftpSession(name).catch(() => this.novacomFileSession(name));
-  }
-
-  private sftpSession(name: string): Promise<SFTPSession> {
-    return this.newSession(name).then(session => new Promise<SFTPSession>((resolve, reject) => {
-      session.ssh.sftp((err, sftp) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(new SFTPSession(sftp));
-        }
-      });
-    }).then(async (sftp) => {
-      try {
-        await sftp.stat("/dev/null");
-        return sftp;
-      } catch (e) {
-        sftp.end();
-        throw e;
-      }
-    }));
-  }
-
-  private novacomFileSession(name: string): Promise<FileSession> {
-    return this.newSession2(name).then(session => new NovacomFileSession(session));
   }
 
   private async modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>): Promise<Device[]> {

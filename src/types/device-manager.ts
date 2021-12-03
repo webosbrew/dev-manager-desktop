@@ -23,15 +23,18 @@ export interface SystemInfo {
 }
 
 export interface Shell {
-  readonly closed: boolean
-  readonly dumb: boolean;
+  closed(): Promise<boolean>;
 
-  write(data: string): void;
+  dumb(): Promise<boolean>;
 
-  on(event: 'close' | 'data', callback: (...args: any[]) => void): this;
+  write(data: string): Promise<void>;
 
-  close(): void;
+  listen(event: 'close' | 'data', callback: (...args: any[]) => void): this;
+
+  close(): Promise<void>;
 }
+
+export type SessionToken = string;
 
 export interface FileSession {
 
@@ -51,7 +54,7 @@ export interface FileSession {
 
   downloadTemp(remotePath: string): Promise<string>;
 
-  end(): void;
+  end(): Promise<void>;
 }
 
 export interface DevicePrivateKey {

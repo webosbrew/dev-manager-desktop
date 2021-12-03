@@ -1,4 +1,4 @@
-export type FileType = 'file' | 'dir' | 'device' | 'special' | 'invalid';
+export type FileType = '-' | 'd' | 'c' | 'b' | 's' | 'p' | 'l' | '';
 
 export declare interface Attributes {
   mode: number;
@@ -19,7 +19,7 @@ export declare interface FileItem {
   filename: string;
   attrs: Attributes | null;
   link?: LinkInfo;
-  type: FileType;
+  type: FileType ;
   abspath: string;
 }
 

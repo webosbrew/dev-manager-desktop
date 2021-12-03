@@ -1,10 +1,10 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from "@angular/core";
 import {BehaviorSubject, Observable, ReplaySubject, Subject} from "rxjs";
-import {Device, DeviceEditSpec, DevicePrivateKey, FileItem, FileSession, Shell, SystemInfo} from '../../../types';
+import {Device, DeviceEditSpec, DevicePrivateKey, Shell, SystemInfo} from '../../../types';
 import {IpcClient} from "./ipc-client";
-import {Attributes, FileEntry} from "ssh2-streams";
-import * as path from "path";
+import {IpcFileSession} from "./file.session";
+import {IpcShellSession} from "./shell.session";
 
 @Injectable({
   providedIn: 'root'
@@ -94,12 +94,12 @@ export class DeviceManagerService extends IpcClient {
     return await this.call('extendDevMode', device);
   }
 
-  async openShell(name: string): Promise<Shell> {
-    return Promise.reject(new Error('Not implemented'));
+  async openShell(device: Device): Promise<Shell> {
+    return new IpcShellSession(await this.callDirectly('shell-session', 'open', device));
   }
 
   async openFileSession(name: string): Promise<IpcFileSession> {
-    return Promise.reject(new Error('Not implemented'));
+    return new IpcFileSession(await this.callDirectly('file-session', 'open', name));
   }
 
   private onDevicesUpdated(devices: Device[]) {
@@ -125,60 +125,4 @@ export class CrashReport {
       .then(content => this.subject.next(content.trim()))
       .catch(error => this.subject.error(error));
   }
-}
-
-export class IpcFileSession implements FileSession {
-  downloadTemp(remotePath: string): Promise<string> {
-    return Promise.resolve("");
-  }
-
-  end(): void {
-  }
-
-  get(remotePath: string, localPath: string): Promise<void> {
-    return Promise.resolve(undefined);
-  }
-
-  put(localPath: string, remotePath: string): Promise<void> {
-    return Promise.resolve(undefined);
-  }
-
-  readdir(location: string): Promise<FileEntry[]> {
-    return Promise.resolve([]);
-  }
-
-  readdir_ext(location: string): Promise<FileItem[]> {
-    return Promise.resolve([]);
-  }
-
-  readlink(path: string): Promise<string> {
-    return Promise.resolve("");
-  }
-
-  rm(path: string, recursive: boolean): Promise<void> {
-    return Promise.resolve(undefined);
-  }
-
-  stat(path: string): Promise<Attributes> {
-    return Promise.resolve(undefined);
-  }
-
-  async uploadBatch(sources: string[], destination: string, error?: (name: string, error: Error) => Promise<boolean>): Promise<void> {
-    for (const source of sources) {
-      const filename: string = path.parse(source).base;
-      let result = false;
-      do {
-        try {
-          await this.put(source, path.posix.join(destination, filename));
-        } catch (e) {
-          if (!error) throw e;
-          result = await error.call(filename, e);
-        }
-      } while (result);
-      if (result === null) {
-        break;
-      }
-    }
-  }
-
 }
