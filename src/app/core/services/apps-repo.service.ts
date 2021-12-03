@@ -2,8 +2,7 @@ import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
-import * as semver from 'semver';
-import {ElectronService} from './electron.service';
+import {eq as semverEq, gt as semverGt} from 'semver';
 
 const baseUrl = 'https://repo.webosbrew.org/api';
 
@@ -12,10 +11,7 @@ const baseUrl = 'https://repo.webosbrew.org/api';
 })
 export class AppsRepoService {
 
-  constructor(
-    electron: ElectronService,
-    private http: HttpClient
-  ) {
+  constructor(private http: HttpClient) {
   }
 
   async showApp(id: string): Promise<RepositoryItem> {
@@ -56,14 +52,14 @@ export class PackageManifest {
       v2 = segs2.slice(0, 3).join('.');
       suffix2 = segs2[3];
     }
-    if ((suffix1 || suffix2) && semver.eq(v1, v2, true)) {
+    if ((suffix1 || suffix2) && semverEq(v1, v2, true)) {
       const snum1 = Number(suffix1), snum2 = Number(suffix2);
       if (!isNaN(snum1) && !isNaN(snum2)) {
         return snum1 > snum2;
       }
       return suffix1.localeCompare(suffix2) > 0;
     }
-    return semver.gt(v1, v2);
+    return semverGt(v1, v2);
   }
 }
 

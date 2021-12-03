@@ -1,6 +1,6 @@
-import { Component, Host, OnInit } from '@angular/core';
-import { AppsRepoService, RepositoryItem } from '../../../core/services';
-import { AppsComponent } from '../apps.component';
+import {Component, Host, OnInit} from '@angular/core';
+import {AppsRepoService, RepositoryItem} from '../../../core/services';
+import {AppsComponent} from '../apps.component';
 
 @Component({
   selector: 'app-installed',

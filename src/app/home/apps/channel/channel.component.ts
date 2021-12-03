@@ -1,7 +1,8 @@
-import { Component, Host, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
-import { AppsRepoService, RepositoryPage } from '../../../core/services';
-import { AppsComponent } from '../apps.component';
+import {Component, Host, OnInit} from '@angular/core';
+import {Observable} from 'rxjs';
+import {AppsRepoService, RepositoryPage} from '../../../core/services';
+import {AppsComponent} from '../apps.component';
+
 @Component({
   selector: 'app-channel',
   templateUrl: './channel.component.html',

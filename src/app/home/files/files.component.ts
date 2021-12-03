@@ -1,16 +1,13 @@
 import {Component, OnInit} from '@angular/core';
-import {DeviceManagerService, ElectronService, FileSession} from "../../core/services";
-import {Device} from "../../../types/novacom";
+import {DeviceManagerService} from "../../core/services";
+import {Device, FileSession} from "../../../types";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ContextmenuType, SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
-import {FileItem, targetPath} from "../../core/services/file-session";
+import {FileItem, targetPath} from "../../../backend/device-manager/file-session";
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
-import {app, dialog, require, shell} from '@electron/remote';
-
-const fs = require('fs');
-const path = require('path');
+import {dialog, shell} from '@electron/remote';
 
 @Component({
   selector: 'app-files',
@@ -31,7 +28,6 @@ export class FilesComponent implements OnInit {
   constructor(
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
-    private electron: ElectronService,
   ) {
     deviceManager.selected$.subscribe((selected) => {
       this.device = selected;
@@ -54,7 +50,7 @@ export class FilesComponent implements OnInit {
     console.log('cd', dir);
     let session: FileSession;
     try {
-      session = await this.deviceManager.fileSession(this.device.name);
+      session = await this.deviceManager.openFileSession(this.device.name);
     } catch (e) {
       MessageDialogComponent.open(this.modalService, {
         title: 'Failed to start session',
@@ -107,13 +103,8 @@ export class FilesComponent implements OnInit {
   }
 
   private async openFile(file: FileItem) {
-    const tempDir = path.join(app.getPath('temp'), `devmgr`);
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir);
-    }
-    const tempPath: string = path.normalize(path.join(tempDir, `${Date.now()}_${file.filename}`));
-    const session = await this.deviceManager.newSession2(this.device.name);
-    await session.get(file.abspath, tempPath).finally(() => session.end());
+    const session = await this.deviceManager.openFileSession(this.device.name);
+    const tempPath: string = await session.downloadTemp(file.abspath).finally(() => session.end());
     await shell.openPath(tempPath);
   }
 
@@ -125,7 +116,7 @@ export class FilesComponent implements OnInit {
     const returnValue = await dialog.showOpenDialog({properties: ['openDirectory']});
     if (returnValue.canceled) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const session = await this.deviceManager.newSession2(this.device.name);
+    const session = await this.deviceManager.openFileSession(this.device.name);
     const target = returnValue.filePaths[0];
     for (const file of files) {
       let result = false;
@@ -161,7 +152,7 @@ export class FilesComponent implements OnInit {
     }).result;
     if (!answer) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const session = await this.deviceManager.fileSession(this.device.name);
+    const session = await this.deviceManager.openFileSession(this.device.name);
     for (const file of files) {
       let result = false;
       do {
@@ -190,7 +181,7 @@ export class FilesComponent implements OnInit {
     const returnValue = await dialog.showSaveDialog({defaultPath: file.filename});
     if (returnValue.canceled) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const session = await this.deviceManager.newSession2(this.device.name);
+    const session = await this.deviceManager.openFileSession(this.device.name);
     let result = false;
     do {
       try {
@@ -212,27 +203,18 @@ export class FilesComponent implements OnInit {
     const returnValue = await dialog.showOpenDialog({properties: ['multiSelections', 'openFile']});
     if (returnValue.canceled) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const session = await this.deviceManager.newSession2(this.device.name);
-    for (const source of returnValue.filePaths) {
-      const filename: string = path.parse(source).base;
-      let result = false;
-      do {
-        try {
-          await session.put(source, path.posix.join(this.pwd, filename) as string);
-        } catch (e) {
-          result = await MessageDialogComponent.open(this.modalService, {
-            title: `Failed to upload file ${filename}`,
-            message: e.message ?? String(e),
-            positive: 'Retry',
-            negative: 'Skip',
-            alternative: 'Abort',
-          }).result;
-        }
-      } while (result);
-      if (result === null) {
-        break;
-      }
-    }
+    const session = await this.deviceManager.openFileSession(this.device.name);
+    await session.uploadBatch(returnValue.filePaths, this.pwd, async (name, e) => {
+      const result = await MessageDialogComponent.open(this.modalService, {
+        title: `Failed to upload file ${name}`,
+        message: e.message ?? String(e),
+        positive: 'Retry',
+        negative: 'Skip',
+        alternative: 'Abort',
+      }).result;
+      if (result == null) throw e;
+      return result;
+    });
     session.end();
     await this.cd(this.pwd);
     progress.dismiss();

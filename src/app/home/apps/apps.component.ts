@@ -2,15 +2,8 @@ import {Component, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {TranslateService} from '@ngx-translate/core';
 import {Observable, Subscription} from 'rxjs';
-import {Device} from '../../../types/novacom';
-import {
-  AppManagerService,
-  AppsRepoService,
-  DeviceManagerService,
-  ElectronService,
-  PackageInfo,
-  RepositoryItem
-} from '../../core/services';
+import {Device, PackageInfo} from '../../../types';
+import {AppManagerService, AppsRepoService, DeviceManagerService, RepositoryItem} from '../../core/services';
 import {MessageDialogComponent} from '../../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../../shared/components/progress-dialog/progress-dialog.component';
 import {dialog, getCurrentWindow} from "@electron/remote";
@@ -31,7 +24,6 @@ export class AppsComponent implements OnInit {
   private subscription: Subscription;
 
   constructor(
-    private electron: ElectronService,
     private modalService: NgbModal,
     private translate: TranslateService,
     private deviceManager: DeviceManagerService,
@@ -83,7 +75,8 @@ export class AppsComponent implements OnInit {
         this.packagesError = null;
         if (pkgs.length) {
           this.instPackages = new Map(pkgs.map((pkg) => [pkg.id, pkg]));
-          this.repoPackages = await this.appsRepo.showApps(...pkgs.map((pkg) => pkg.id));
+          const strings: string[] = pkgs.map((pkg) => pkg.id);
+          this.repoPackages = await this.appsRepo.showApps(...strings);
         }
       }, error: (error) => this.packagesError = error
     });

@@ -1,12 +1,12 @@
-import { app, BrowserWindow, ipcMain, protocol } from 'electron';
-import electronDl from 'electron-dl';
+import {app, BrowserWindow, protocol} from 'electron';
 import windowStateKeeper from 'electron-window-state';
 import path from 'path';
 import url from 'url';
-import { AresPullProtoHandler } from './src/backend/ares-pull-proto';
-import { DownloadFileHandler } from './src/backend/ipc-handlers';
+import {AresPullProtoHandler} from './src/backend/ares-pull-proto';
+import {DeviceManagerBackend} from "./src/backend/device-manager/device-manager.backend";
+import {AppManagerBackend} from "./src/backend/app-manager.backend";
+import {skipCORS} from "./src/backend/cors-skip";
 
-electronDl();
 
 // Initialize remote module
 require('@electron/remote/main').initialize();
@@ -67,6 +67,7 @@ function createWindow(): BrowserWindow {
     win = null;
   });
   win.webContents.on('did-fail-load', () => loadApp());
+  skipCORS(win.webContents.session);
 
   return win;
 }
@@ -80,7 +81,8 @@ try {
 
   app.whenReady().then(() => {
     protocol.registerBufferProtocol('ares-pull', AresPullProtoHandler);
-    ipcMain.on('downloadFile', DownloadFileHandler);
+    new DeviceManagerBackend();
+    new AppManagerBackend();
   });
 
   // Quit when all windows are closed.

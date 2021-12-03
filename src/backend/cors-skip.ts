@@ -1,5 +1,4 @@
-import {HeadersReceivedResponse, OnHeadersReceivedListenerDetails} from "electron";
-import {session} from "@electron/remote";
+import {HeadersReceivedResponse, OnHeadersReceivedListenerDetails} from 'electron';
 
 function AllowCORSHandler(details: OnHeadersReceivedListenerDetails, callback: (resp: HeadersReceivedResponse) => void): void {
   details.responseHeaders['access-control-allow-origin'] = ['*'];
@@ -14,10 +13,9 @@ const filter = {
   urls: [
     'https://developer.lge.com/*',
     'https://repo.webosbrew.org/*',
-    'http://*:9991/webos_rsa',
   ]
 };
 
-export function skipCORS() {
-  session.defaultSession.webRequest.onHeadersReceived(filter, AllowCORSHandler);
+export function skipCORS(session: Electron.Session) {
+  session.webRequest.onHeadersReceived(filter, AllowCORSHandler);
 }

@@ -1,8 +1,8 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
-import {Device} from '../../../../types/novacom';
-import {DeviceManagerService, ElectronService} from '../../../core/services';
-import {BehaviorSubject, noop, Observable} from 'rxjs';
+import {Device} from '../../../../types';
+import {DeviceManagerService} from '../../../core/services';
+import {BehaviorSubject, noop, Observable, Subject} from 'rxjs';
 import {dialog, getCurrentWindow} from "@electron/remote";
 
 @Component({
@@ -14,24 +14,22 @@ export class RenewScriptComponent implements OnInit {
 
   public decryptedPrivKey: string;
   public devModeToken$: Observable<string>;
+  private devModeTokenSubject: Subject<string>;
 
   constructor(
-    private electron: ElectronService,
     public modal: NgbActiveModal,
     private deviceManager: DeviceManagerService,
     @Inject('device') public device: Device
   ) {
-    const result: any = electron.ssh2.utils.parseKey(device.privateKey, device.passphrase);
-    console.log(result);
-    if (result.getPrivatePEM) {
-      this.decryptedPrivKey = result.getPrivatePEM();
-    }
-    const subject = new BehaviorSubject<string>("");
-    deviceManager.devModeToken(device.name).then(token => subject.next(token));
-    this.devModeToken$ = subject.asObservable();
+    this.devModeTokenSubject = new BehaviorSubject<string>("");
+    this.devModeToken$ = this.devModeTokenSubject.asObservable();
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
+    const result = await this.deviceManager.loadPrivKey(this.device);
+    const token = await this.deviceManager.devModeToken(this.device.name);
+    this.devModeTokenSubject.next(token);
+    this.decryptedPrivKey = result.privatePEM;
   }
 
   copyScript(content: string): void {
@@ -42,7 +40,7 @@ export class RenewScriptComponent implements OnInit {
     dialog.showSaveDialog(getCurrentWindow(), {
       defaultPath: `renew-devmode-${this.device.name}.sh`
     }).then(value => {
-      this.electron.fs.writeFileSync(value.filePath, content, { encoding: 'utf8', mode: 0o755 });
+      // this.electron.fs.writeFileSync(value.filePath, content, { encoding: 'utf8', mode: 0o755 });
     }).catch(noop);
   }
 }

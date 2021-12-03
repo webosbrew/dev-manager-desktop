@@ -1,13 +1,17 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { TranslateService } from '@ngx-translate/core';
-import { Device, DeviceEditSpec } from '../../types/novacom';
-import { DeviceManagerService, ElectronService } from '../core/services';
-import { MessageDialogComponent, MessageDialogConfig } from '../shared/components/message-dialog/message-dialog.component';
-import { ProgressDialogComponent } from '../shared/components/progress-dialog/progress-dialog.component';
-import { KeyserverHintComponent } from './keyserver-hint/keyserver-hint.component';
-import { ConnHintComponent } from './conn-hint/conn-hint.component';
+import {Component, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {TranslateService} from '@ngx-translate/core';
+import {Device, DeviceEditSpec, DevicePrivateKey} from '../../types';
+import {DeviceManagerService} from '../core/services';
+import {
+  MessageDialogComponent,
+  MessageDialogConfig
+} from '../shared/components/message-dialog/message-dialog.component';
+import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
+import {KeyserverHintComponent} from './keyserver-hint/keyserver-hint.component';
+import {ConnHintComponent} from './conn-hint/conn-hint.component';
+
 @Component({
   selector: 'app-info',
   templateUrl: './add-device.component.html',
@@ -21,7 +25,6 @@ export class AddDeviceComponent implements OnInit {
     public modal: NgbActiveModal,
     private modalService: NgbModal,
     private translate: TranslateService,
-    private electron: ElectronService,
     private deviceManager: DeviceManagerService,
     fb: FormBuilder,
   ) {
@@ -56,7 +59,7 @@ export class AddDeviceComponent implements OnInit {
       if (error instanceof Error) {
         MessageDialogComponent.open(this.modalService, {
           title: this.translate.instant('MESSAGES.TITLE_ADD_DEVICE_FAILED'),
-          message: this.translate.instant('MESSAGES.ERROR_ADD_DEVICE_FAILED', { error: error.message }),
+          message: this.translate.instant('MESSAGES.ERROR_ADD_DEVICE_FAILED', {error: error.message}),
           positive: this.translate.instant('ACTIONS.OK'),
         });
       } else if (error.positive) {
@@ -68,28 +71,19 @@ export class AddDeviceComponent implements OnInit {
   }
 
   private async doAddDevice(): Promise<Device> {
-    const path = this.electron.path;
-    const fs = this.electron.fs;
-    const ssh2 = this.electron.ssh2;
     const value = this.setupInfo;
     const spec = toDeviceSpec(value);
     await this.testConnectivity(value);
     if (value.sshAuth == 'devKey') {
-      const keyPath = path.join(path.resolve(process.env.HOME || process.env.USERPROFILE, '.ssh'), spec.privateKey.openSsh);
       let writePrivKey = true;
-      if (fs.existsSync(keyPath)) {
+      if (await this.deviceManager.hasPrivKey(spec.privateKey.openSsh)) {
         // Show alert to prompt for overwrite
         writePrivKey = await this.confirmOverwritePrivKey(spec.privateKey.openSsh);
       }
       if (writePrivKey) {
         // Fetch SSH privKey
         const privKey = await this.fetchPrivKey(value);
-        // Throw error if key parse failed
-        const parsedKey = ssh2.utils.parseKey(privKey, spec.passphrase);
-        if (parsedKey instanceof Error) {
-          throw parsedKey;
-        }
-        fs.writeFileSync(keyPath, privKey);
+        await this.deviceManager.savePrivKey(spec.name, privKey);
       }
     }
     const added = await this.deviceManager.addDevice(spec);
@@ -112,7 +106,7 @@ export class AddDeviceComponent implements OnInit {
   private async confirmOverwritePrivKey(name: string): Promise<boolean> {
     const ref = MessageDialogComponent.open(this.modalService, {
       title: this.translate.instant('MESSAGES.TITLE_OVERWRITE_PRIVKEY'),
-      message: this.translate.instant('MESSAGES.CONFIRM_OVERWRITE_PRIVKEY', { name }),
+      message: this.translate.instant('MESSAGES.CONFIRM_OVERWRITE_PRIVKEY', {name}),
       positive: this.translate.instant('ACTIONS.OK'),
       negative: this.translate.instant('ACTIONS.CANCEL'),
     });
@@ -132,11 +126,11 @@ export class AddDeviceComponent implements OnInit {
     }
   }
 
-  private async fetchPrivKey(info: SetupInfo) {
+  private async fetchPrivKey(info: SetupInfo): Promise<DevicePrivateKey> {
     let retryCount = 0;
     while (retryCount < 3) {
       try {
-        return await this.deviceManager.getPrivKey(info.address);
+        return await this.deviceManager.fetchPrivKey(info.address, info.sshPrivkeyPassphrase);
       } catch (e) {
         const confirm = MessageDialogComponent.open(this.modalService, {
           title: this.translate.instant('MESSAGES.TITLE_KEYSERV_FETCH_RETRY'),
@@ -192,12 +186,12 @@ function toDeviceSpec(value: SetupInfo): DeviceEditSpec {
       break;
     }
     case 'devKey': {
-      spec.privateKey = { openSsh: `${value.name}_webos` };
+      spec.privateKey = {openSsh: `${value.name}_webos`};
       spec.passphrase = value.sshPrivkeyPassphrase;
       break;
     }
     case 'localKey': {
-      spec.privateKey = { openSsh: value.sshPrivkey };
+      spec.privateKey = {openSsh: value.sshPrivkey};
       spec.passphrase = value.sshPrivkeyPassphrase;
       break;
     }

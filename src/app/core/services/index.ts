@@ -4,4 +4,3 @@ export * from "./electron.service";
 export * from "./apps-repo.service";
 export * from "./dev-mode.service";
 export * from './update.service';
-export {FileSession} from './file-session';

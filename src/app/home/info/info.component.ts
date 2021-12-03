@@ -4,16 +4,14 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import {Observable, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Device} from '../../../types/novacom';
+import {Device, PackageInfo, SystemInfo} from '../../../types';
 import {
   AppManagerService,
   AppsRepoService,
   DeviceManagerService,
   DevModeResponse,
   DevModeService,
-  PackageInfo,
   RepositoryItem,
-  SystemInfo
 } from '../../core/services';
 import {ProgressDialogComponent} from '../../shared/components/progress-dialog/progress-dialog.component';
 import {CrashesComponent} from './crashes/crashes.component';

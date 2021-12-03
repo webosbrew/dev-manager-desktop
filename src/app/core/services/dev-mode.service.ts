@@ -1,6 +1,5 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from '@angular/core';
-import {ElectronService} from './electron.service';
 import {firstValueFrom} from "rxjs";
 
 @Injectable({
@@ -8,10 +7,7 @@ import {firstValueFrom} from "rxjs";
 })
 export class DevModeService {
 
-  constructor(
-    electron: ElectronService,
-    private http: HttpClient
-  ) {
+  constructor(private http: HttpClient) {
   }
 
   async checkDevMode(sessionToken: string): Promise<DevModeResponse> {

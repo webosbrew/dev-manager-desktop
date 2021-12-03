@@ -1,35 +1,51 @@
 import {Attributes, FileEntry, Stats} from "ssh2-streams";
-import {ElectronService} from "./electron.service";
-import {cleanupSession} from "../../shared/util/ares-utils";
+import {cleanupSession} from "../../app/shared/util/ares-utils";
 import {SFTPWrapper} from "ssh2";
-import {NovacomSession} from "./device-manager.service";
-import path from "path";
+import {NovacomSession} from "./device-manager.backend";
+import * as path from "path";
+import * as stream from "stream";
+import * as fs from "fs";
+import {FileSession} from "../../types";
+import {app} from "electron";
 
-export interface FileSession {
+abstract class AbsFileSession implements FileSession {
+  async downloadTemp(remotePath: string): Promise<string> {
+    const tempDir = path.join(app.getPath('temp'), `devmgr`);
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir);
+    }
+    const filename = path.posix.basename(remotePath);
+    const tempPath: string = path.normalize(path.join(tempDir, `${Date.now()}_${filename}`));
+    await this.get(remotePath, tempPath);
+    return tempPath;
+  }
 
-  readdir(location: string): Promise<FileEntry[]>;
+  abstract end(): void;
 
-  readdir_ext(location: string): Promise<FileItem[]>;
+  abstract get(remotePath: string, localPath: string): Promise<void>;
 
-  readlink(path: string): Promise<string>;
+  abstract put(localPath: string, remotePath: string): Promise<void>;
 
-  stat(path: string): Promise<Attributes>;
+  abstract readdir(location: string): Promise<FileEntry[]>;
 
-  rm(path: string, recursive: boolean): Promise<void>;
+  abstract readdir_ext(location: string): Promise<FileItem[]>;
 
-  end(): void;
+  abstract readlink(path: string): Promise<string>;
+
+  abstract rm(path: string, recursive: boolean): Promise<void>;
+
+  abstract stat(path: string): Promise<Attributes>;
 }
 
-export class NovacomFileSession implements FileSession {
+export class NovacomFileSession extends AbsFileSession {
 
-  constructor(private session: NovacomSession, private electron: ElectronService) {
+  constructor(private session: NovacomSession) {
+    super();
   }
 
   public readdir(location: string): Promise<FileEntry[]> {
     // language=JavaScript
     const script = `
-      var fs = require("fs");
-      var path = require("path");
       var loc = process.argv[1];
       var dir = fs.readdirSync(loc);
       console.log(JSON.stringify(dir.map(function (filename) {
@@ -77,11 +93,14 @@ export class NovacomFileSession implements FileSession {
       })));
     `;
     return this.session.runAndGetOutput(`node -e '${script}' '${location.replace(/'/g, `'\\''`)}'`, null)
-      .then(output => JSON.parse(output).map(partial => ({...partial, type: getFileType(partial.attrs)})));
+      .then(output => JSON.parse(output).map((partial: Partial<FileItem>) => ({
+        ...partial,
+        type: getFileType(partial.attrs)
+      })));
   }
 
   public readlink(path: string): Promise<string> {
-    return this.session.runAndGetOutput(`xargs -0 readlink -n`, this.electron.stream.Readable.from(path));
+    return this.session.runAndGetOutput(`xargs -0 readlink -n`, stream.Readable.from(path));
   }
 
   public stat(path: string): Promise<Attributes> {
@@ -103,7 +122,15 @@ export class NovacomFileSession implements FileSession {
   }
 
   public async rm(path: string, recursive: boolean): Promise<void> {
-    await this.session.runAndGetOutput(`xargs -0 rm ${recursive ? '-r' : ''}`, this.electron.stream.Readable.from(path));
+    await this.session.runAndGetOutput(`xargs -0 rm ${recursive ? '-r' : ''}`, stream.Readable.from(path));
+  }
+
+  public async get(remotePath: string, localPath: string): Promise<any> {
+    return await this.session.get(remotePath, localPath);
+  }
+
+  public async put(localPath: string, remotePath: string): Promise<any> {
+    return await this.session.put(localPath, remotePath);
   }
 
   public end(): void {
@@ -113,8 +140,9 @@ export class NovacomFileSession implements FileSession {
 
 }
 
-export class SFTPSession implements FileSession {
-  constructor(private sftp: SFTPWrapper, private electron: ElectronService) {
+export class SFTPSession extends AbsFileSession {
+  constructor(private sftp: SFTPWrapper) {
+    super();
   }
 
   public readdir(location: string): Promise<FileEntry[]> {
@@ -163,16 +191,36 @@ export class SFTPSession implements FileSession {
     }));
   }
 
-  public async rm(path: string, recursive: boolean): Promise<void> {
-    const stat = await this.stat(path);
+  public async rm(filepath: string, recursive: boolean): Promise<void> {
+    const stat = await this.stat(filepath);
     if (stat.isDirectory()) {
-      if (!recursive) throw new Error(`${path} is a directory`);
-      for (const child of await this.readdir(path)) {
-        await this.rm(this.electron.path.posix.join(path, child.filename), recursive);
+      if (!recursive) throw new Error(`${filepath} is a directory`);
+      for (const child of await this.readdir(filepath)) {
+        await this.rm(path.posix.join(filepath, child.filename), recursive);
       }
     } else {
-      await this.unlink(path);
+      await this.unlink(filepath);
     }
+  }
+
+  public async get(remotePath: string, localPath: string): Promise<void> {
+    return new Promise((resolve, reject) => this.sftp.fastGet(remotePath, localPath, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    }));
+  }
+
+  public async put(localPath: string, remotePath: string): Promise<void> {
+    return new Promise((resolve, reject) => this.sftp.fastPut(localPath, remotePath, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    }));
   }
 
   public end(): void {

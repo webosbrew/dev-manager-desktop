@@ -1,7 +1,7 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { Device } from '../../../../types/novacom';
-import { CrashReport, DeviceManagerService } from '../../../core/services';
+import {Component, Inject, OnInit} from '@angular/core';
+import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
+import {Device} from '../../../../types';
+import {CrashReport, DeviceManagerService} from '../../../core/services';
 
 @Component({
   selector: 'app-crashes',

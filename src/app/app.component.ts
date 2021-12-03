@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {ElectronService, Release, UpdateService} from './core/services';
+import {Release, UpdateService} from './core/services';
 import packageInfo from '../../package.json';
 import {SemVer} from 'semver';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
@@ -19,7 +19,6 @@ export class AppComponent {
     translate: TranslateService,
     private update: UpdateService,
     private modalService: NgbModal,
-    private electron: ElectronService,
   ) {
     translate.setDefaultLang('en');
     update.getRecentRelease().then(info => {
