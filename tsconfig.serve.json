@@ -19,6 +19,7 @@
   },
   "include": [
     "main.ts",
+    "preload.ts",
     "src/backend/**/*.ts",
   ],
   "exclude": [

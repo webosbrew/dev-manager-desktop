@@ -1,13 +1,13 @@
 import {Component, OnInit} from '@angular/core';
 import {DeviceManagerService} from "../../core/services";
-import {Device, FileSession} from "../../../types";
+import {Device, FileItem, FileSession} from "../../../types";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ContextmenuType, SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
-import {FileItem, targetPath} from "../../../backend/device-manager/file-session";
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
 import {dialog, shell} from '@electron/remote';
+import path from "path";
 
 @Component({
   selector: 'app-files',
@@ -46,7 +46,6 @@ export class FilesComponent implements OnInit {
 
   async cd(dir: string): Promise<void> {
     if (!this.device) return;
-    dir = targetPath(dir);
     console.log('cd', dir);
     let session: FileSession;
     try {
@@ -93,7 +92,7 @@ export class FilesComponent implements OnInit {
   async openItem(file: FileItem): Promise<void> {
     switch (file.type) {
       case 'dir': {
-        await this.cd(targetPath(this.pwd, file.filename));
+        await this.cd(path.join(this.pwd, file.filename));
         break;
       }
       case 'file': {
@@ -221,7 +220,7 @@ export class FilesComponent implements OnInit {
   }
 
   async breadcrumbNav(segs: string[]): Promise<void> {
-    await this.cd(segs.length > 1 ? targetPath(...segs) : '/');
+    await this.cd(segs.length > 1 ? path.join(...segs) : '/');
   }
 
   async itemActivated(file: FileItem, type: string): Promise<void> {

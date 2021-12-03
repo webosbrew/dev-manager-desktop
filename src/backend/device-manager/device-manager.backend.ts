@@ -5,7 +5,6 @@ import {
   DevicePrivateKey,
   FileSession,
   Resolver,
-  Session,
   SystemInfo
 } from "../../types";
 import {NovacomFileSession, SFTPSession} from "./file-session";
@@ -16,10 +15,10 @@ import * as novacom from '@webosose/ares-cli/lib/base/novacom';
 import * as luna from '@webosose/ares-cli/lib/base/luna';
 import * as fs from 'fs';
 import * as path from 'path';
-import {Readable} from 'stream';
+import {Readable, Writable} from 'stream';
 import * as util from 'util';
 import * as net from "net";
-import {utils as ssh2utils} from "ssh2";
+import {Client, utils as ssh2utils} from "ssh2";
 
 
 export class DeviceManagerBackend extends IpcBackend {
@@ -290,4 +289,18 @@ export class NovacomSession {
     this.session.end();
     cleanupSession();
   }
+}
+
+export type RunOutput = Writable | ((buf: Buffer) => void) | null;
+
+export interface Session {
+  readonly ssh: Client;
+
+  run(cmd: string, stdin: Readable | null, stdout: RunOutput, stderr: RunOutput, next: (error: any, result: any) => void): void;
+
+  get(inPath: string, outPath: string, next: (error: any, result: any) => void): void;
+
+  put(inPath: string, outPath: string, next: (error: any, result: any) => void): void;
+
+  end(): void;
 }

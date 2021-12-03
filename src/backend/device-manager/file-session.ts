@@ -5,7 +5,7 @@ import {NovacomSession} from "./device-manager.backend";
 import * as path from "path";
 import * as stream from "stream";
 import * as fs from "fs";
-import {FileSession} from "../../types";
+import {FileItem, FileSession, FileType} from "../../types";
 import {app} from "electron";
 
 abstract class AbsFileSession implements FileSession {
@@ -71,8 +71,6 @@ export class NovacomFileSession extends AbsFileSession {
   public readdir_ext(location: string): Promise<FileItem[]> {
     // language=JavaScript
     const script = `
-      var fs = require("fs");
-      var path = require("path");
       var loc = process.argv[1];
       var dir = fs.readdirSync(loc);
       console.log(JSON.stringify(dir.map(function (filename) {
@@ -106,7 +104,6 @@ export class NovacomFileSession extends AbsFileSession {
   public stat(path: string): Promise<Attributes> {
     // language=JavaScript
     const script = `
-      var fs = require("fs");
       var stat = fs.statSync(process.argv[1]);
       console.log(JSON.stringify({
         mode: stat.mode,
@@ -292,17 +289,3 @@ export function targetPath(...segments: string[]): string {
   return path.posix.resolve('/', ...segments);
 }
 
-export type FileType = 'file' | 'dir' | 'device' | 'special' | 'invalid';
-
-export declare interface FileItem {
-  filename: string;
-  attrs: Attributes | null;
-  link?: LinkInfo;
-  type: FileType;
-  abspath: string;
-}
-
-export declare interface LinkInfo {
-  target: string;
-  broken?: boolean;
-}

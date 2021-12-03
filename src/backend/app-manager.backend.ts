@@ -3,9 +3,10 @@ import * as launchLib from '@webosose/ares-cli/lib/launch';
 import * as util from 'util';
 import {app} from 'electron';
 import {cleanupSession} from '../app/shared/util/ares-utils';
-import {PackageInfo, Session} from '../types';
+import {PackageInfo} from '../types';
 import {IpcBackend} from './ipc-backend';
 import * as path from "path";
+import {Session} from "./device-manager/device-manager.backend";
 
 export class AppManagerBackend extends IpcBackend {
 

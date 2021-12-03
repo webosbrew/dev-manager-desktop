@@ -1,9 +1,9 @@
 import novacom from '@webosose/ares-cli/lib/base/novacom';
 import AsyncLock from 'async-lock';
-import { ProtocolRequest, ProtocolResponse } from "electron";
-import { Client, ClientChannel, ConnectConfig } from 'ssh2';
+import {ProtocolRequest, ProtocolResponse} from "electron";
+import {Client, ClientChannel, ConnectConfig} from 'ssh2';
 import util from 'util';
-import { Device, Resolver } from '../types/novacom';
+import {Device, Resolver} from '../types';
 
 const lock: AsyncLock = new AsyncLock();
 

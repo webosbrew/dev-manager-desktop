@@ -31,8 +31,10 @@ function createWindow(): BrowserWindow {
     resizable: true,
     webPreferences: {
       nodeIntegration: true,
+      nodeIntegrationInSubFrames: true,
+      nativeWindowOpen: true,
       allowRunningInsecureContent: serve,
-      contextIsolation: false,  // false if you want to run 2e2 test with Spectron
+      contextIsolation: false,
     },
   });
 
@@ -68,6 +70,7 @@ function createWindow(): BrowserWindow {
   });
   win.webContents.on('did-fail-load', () => loadApp());
   skipCORS(win.webContents.session);
+  require('@electron/remote/main').enable(win.webContents);
 
   return win;
 }

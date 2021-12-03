@@ -1,5 +1,4 @@
-import {Attributes, FileEntry} from "ssh2-streams";
-import {FileItem} from "../backend/device-manager/file-session";
+import {Attributes, FileEntry, FileItem} from "./file-session";
 
 export interface CrashReportEntry {
   device: string;

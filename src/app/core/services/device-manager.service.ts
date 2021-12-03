@@ -1,11 +1,9 @@
 import {HttpClient} from '@angular/common/http';
 import {Injectable} from "@angular/core";
 import {BehaviorSubject, Observable, ReplaySubject, Subject} from "rxjs";
-import {Device, DeviceEditSpec, DevicePrivateKey, FileSession, Shell, SystemInfo} from '../../../types';
+import {Device, DeviceEditSpec, DevicePrivateKey, FileItem, FileSession, Shell, SystemInfo} from '../../../types';
 import {IpcClient} from "./ipc-client";
 import {Attributes, FileEntry} from "ssh2-streams";
-import {FileItem} from "../../../backend/device-manager/file-session";
-import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
 import * as path from "path";
 
 @Injectable({

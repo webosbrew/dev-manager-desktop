@@ -1,7 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, ReplaySubject, Subject} from 'rxjs';
-import {PackageInfo, Session} from '../../../types';
-import {ElectronService} from './electron.service';
+import {PackageInfo} from '../../../types';
 import {IpcClient} from "./ipc-client";
 
 @Injectable({
@@ -11,7 +10,7 @@ export class AppManagerService extends IpcClient {
 
   private packagesSubjects: Map<string, Subject<PackageInfo[]>>;
 
-  constructor(private electron: ElectronService) {
+  constructor() {
     super('app-manager');
     this.packagesSubjects = new Map();
   }
