@@ -90,9 +90,9 @@ export class AppsComponent implements OnInit {
       // Show error
       return;
     }
-    const file = files[0];
+    const file: File = files[0];
     const progress = ProgressDialogComponent.open(this.modalService);
-    await this.appManager.install(this.device.name, file.path);
+    await this.appManager.install(this.device.name, file.webkitRelativePath);
     progress.close(true);
   }
 

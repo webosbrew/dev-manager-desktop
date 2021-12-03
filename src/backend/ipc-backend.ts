@@ -18,7 +18,7 @@ export abstract class IpcBackend {
   }
 
   protected handle(method: string, impl: IpcHandleFunction) {
-    ipcMain.handle(`${this.category}/${method}`, (event, args) => impl(args));
+    ipcMain.handle(`${this.category}/${method}`, (event, args) => impl.call(this, args));
   }
 
   protected emit(name: string, ...args: any[]) {

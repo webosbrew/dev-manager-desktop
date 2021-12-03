@@ -20,7 +20,16 @@
       "es2016",
       "es2015",
       "dom"
-    ]
+    ],
+    "baseUrl": "./",
+    "paths": {
+      "electron": [
+        "src/aliases/electron"
+      ],
+      "@electron/remote": [
+        "src/aliases/electron-remote"
+      ]
+    }
   },
   "include": [
     "src/**/*.d.ts"

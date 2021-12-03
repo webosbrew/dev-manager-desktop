@@ -1,17 +1,19 @@
 //Polyfill Node.js core modules in Webpack. This module is only needed for webpack 5+.
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
+const path = require('path');
 
 /**
  * Custom angular webpack configuration
  */
 module.exports = (config, options) => {
   config.target = 'electron-renderer';
-  config.resolve.fallback = {
-    'fs': false,
+  config.resolve.alias = {
+    'electron': path.resolve(__dirname, 'src/aliases/electron'),
+    '@electron/remote': path.resolve(__dirname, 'src/aliases/electron-remote'),
   };
 
   if (options.fileReplacements) {
-    for(let fileReplacement of options.fileReplacements) {
+    for (let fileReplacement of options.fileReplacements) {
       if (fileReplacement.replace !== 'src/environments/environment.ts') {
         continue;
       }

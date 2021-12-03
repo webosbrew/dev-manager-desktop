@@ -10,7 +10,7 @@ import {
 import {NovacomFileSession, SFTPSession} from "./file-session";
 import {cleanupSession} from "../../app/shared/util/ares-utils";
 import {Handle, IpcBackend} from "../ipc-backend";
-import * as Cli from '@webosose/ares-cli/lib/base/cli-appdata';
+import * as cli from '@webosose/ares-cli/lib/base/cli-appdata';
 import * as novacom from '@webosose/ares-cli/lib/base/novacom';
 import * as luna from '@webosose/ares-cli/lib/base/luna';
 import * as fs from 'fs';
@@ -222,7 +222,7 @@ export class DeviceManagerBackend extends IpcBackend {
   private newResolver(): Resolver {
     const resolver = new novacom.Resolver() as any;
     const superSave = resolver.save;
-    const appdata = new Cli();
+    const appdata = cli.default();
     const getPath = util.promisify(appdata.getPath.bind(appdata));
     resolver.save = (devicesData: any, next: any) => {
       superSave(devicesData, async (err: any, result: any) => {
