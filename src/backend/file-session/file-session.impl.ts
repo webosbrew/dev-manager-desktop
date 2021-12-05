@@ -1,7 +1,6 @@
 import {Attributes, FileEntry, Stats} from "ssh2-streams";
 import {cleanupSession} from "../../app/shared/util/ares-utils";
 import {SFTPWrapper} from "ssh2";
-import {NovacomSession} from "../device-manager/device-manager.backend";
 import * as path from "path";
 import * as stream from "stream";
 import * as fs from "fs";
@@ -9,6 +8,9 @@ import {constants} from "fs";
 import {FileItem, FileSession, FileType} from "../../types";
 import {app} from "electron";
 import {minify} from 'terser';
+import {promises} from "@webosbrew/ares-lib";
+import Session = promises.Session;
+import {DeviceManagerBackend} from "../device-manager/device-manager.backend";
 
 abstract class AbsFileSession implements FileSession {
   async downloadTemp(remotePath: string): Promise<string> {
@@ -41,7 +43,7 @@ abstract class AbsFileSession implements FileSession {
 
 export class NovacomFileSession extends AbsFileSession {
 
-  constructor(private session: NovacomSession) {
+  constructor(private session: Session) {
     super();
   }
 
@@ -102,7 +104,7 @@ export class NovacomFileSession extends AbsFileSession {
   }
 
   public readlink(path: string): Promise<string> {
-    return this.session.runAndGetOutput(`xargs -0 readlink -n`, stream.Readable.from(path));
+    return DeviceManagerBackend.runAndGetOutput(this.session, `xargs -0 readlink -n`, stream.Readable.from(path));
   }
 
   public stat(path: string): Promise<Attributes> {
@@ -123,7 +125,7 @@ export class NovacomFileSession extends AbsFileSession {
   }
 
   public async rm(path: string, recursive: boolean): Promise<void> {
-    await this.session.runAndGetOutput(`xargs -0 rm ${recursive ? '-r' : ''}`, stream.Readable.from(path));
+    await DeviceManagerBackend.runAndGetOutput(this.session, `xargs -0 rm ${recursive ? '-r' : ''}`, stream.Readable.from(path));
   }
 
   public async get(remotePath: string, localPath: string): Promise<any> {
@@ -143,7 +145,7 @@ export class NovacomFileSession extends AbsFileSession {
   private async runNodeCode(script: string, ...args: string[]): Promise<string> {
     const minified = (await minify(script)).code;
     const argstxt = args.map(arg => `'${arg.replace(/'/g, `'\\''`)}'`).join(' ');
-    return this.session.runAndGetOutput(`xargs -I {} node -e {} ${argstxt}`, stream.Readable.from(minified));
+    return DeviceManagerBackend.runAndGetOutput(this.session, `xargs -I {} node -e {} ${argstxt}`, stream.Readable.from(minified));
   }
 
 }

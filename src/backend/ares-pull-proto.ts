@@ -1,9 +1,10 @@
-import novacom from '@webosose/ares-cli/lib/base/novacom';
+import {Device, promises} from '@webosbrew/ares-lib';
 import AsyncLock from 'async-lock';
 import {ProtocolRequest, ProtocolResponse} from "electron";
 import {Client, ClientChannel, ConnectConfig} from 'ssh2';
 import util from 'util';
-import {Device, Resolver} from '../types';
+import Resolver = promises.Resolver;
+
 
 const lock: AsyncLock = new AsyncLock();
 
@@ -12,8 +13,8 @@ export function AresPullProtoHandler(request: ProtocolRequest, callback: ((respo
   lock.acquire(url.hostname, async (done) => {
     try {
       const ssh = await obtainSession(url.hostname);
-      const exec = util.promisify(ssh.exec.bind(ssh));
-      const channel: ClientChannel = await exec(`cat ${url.pathname}`, { pty: false });
+      const exec = util.promisify(Client.prototype.exec).bind(ssh);
+      const channel: ClientChannel = await exec(`cat ${url.pathname}`, {pty: false});
       const buffers: Buffer[] = [];
       channel.on('data', (data: Buffer) => {
         buffers.push(data);
@@ -36,8 +37,8 @@ async function obtainSession(target: string): Promise<Client> {
   if (sessions.has(target)) {
     return Promise.resolve(sessions.get(target));
   }
-  const resolver = new novacom.Resolver() as any as Resolver;
-  await util.promisify(resolver.load.bind(resolver))();
+  const resolver = new Resolver();
+  await resolver.load();
   const device = resolver.devices.find((device: Device) => device.name == target);
   if (!device) {
     throw new Error(`Device ${target} not found`);

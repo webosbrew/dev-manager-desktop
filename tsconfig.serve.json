@@ -7,9 +7,6 @@
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "target": "es5",
-    "types": [
-      "node"
-    ],
     "lib": [
       "es2017",
       "es2016",

@@ -1,7 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
-import {Device} from '../../../../types';
 import {CrashReport, DeviceManagerService} from '../../../core/services';
+import {Device} from "../../../../types";
 
 @Component({
   selector: 'app-crashes',
@@ -16,7 +16,8 @@ export class CrashesComponent implements OnInit {
     public modal: NgbActiveModal,
     private deviceManager: DeviceManagerService,
     @Inject('device') private device: Device
-  ) { }
+  ) {
+  }
 
   ngOnInit(): void {
     this.deviceManager.listCrashReports(this.device.name).then(reports => {

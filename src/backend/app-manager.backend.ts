@@ -1,12 +1,11 @@
-import * as installLib from '@webosose/ares-cli/lib/install';
-import * as launchLib from '@webosose/ares-cli/lib/launch';
-import * as util from 'util';
 import {app, BrowserWindow} from 'electron';
 import {cleanupSession} from '../app/shared/util/ares-utils';
 import {PackageInfo} from '../types';
 import {Handle, IpcBackend} from './ipc-backend';
-import {Session} from "./device-manager/device-manager.backend";
 import {download} from 'electron-dl';
+import {InstallOptions, promises} from '@webosbrew/ares-lib';
+import Installer = promises.Installer;
+import Launcher = promises.Launcher;
 
 export class AppManagerBackend extends IpcBackend {
 
@@ -16,10 +15,10 @@ export class AppManagerBackend extends IpcBackend {
 
   @Handle
   async list(device: string): Promise<PackageInfo[]> {
-    const list: (opts: InstallOptions) => Promise<PackageInfo[]> = util.promisify(installLib.list);
     const options: InstallOptions = {device};
-    return await list(options)
-      .then((result) => result.map(item => ({iconPath: `${item.folderPath}/${item.icon}`, ...item})))
+    return await Installer.list(options)
+      .then((result) => result
+        .map((item: PackageInfo) => ({iconPath: `${item.folderPath}/${item.icon}`, ...item})))
       .finally(() => {
         options.session?.end();
         cleanupSession();
@@ -33,13 +32,13 @@ export class AppManagerBackend extends IpcBackend {
 
   @Handle
   async install(device: string, path: string): Promise<void> {
-    const install: (opts: InstallOptions, path: string) => Promise<void> = util.promisify(installLib.install);
     const options: InstallOptions = {device, appId: 'com.ares.defaultDame', opkg: false};
-    return await install(options, path)
-      .finally(() => {
-        options.session?.end();
-        cleanupSession();
-      });
+    try {
+      await Installer.install(options, path);
+    } finally {
+      options.session?.end();
+      cleanupSession();
+    }
   }
 
   @Handle
@@ -55,9 +54,8 @@ export class AppManagerBackend extends IpcBackend {
 
   @Handle
   async remove(device: string, pkgName: string): Promise<void> {
-    const remove: (...args: any[]) => Promise<void> = util.promisify(installLib.remove);
     const options: InstallOptions = {device, opkg: false};
-    return await remove(options, pkgName)
+    return await Installer.remove(options, pkgName)
       .finally(() => {
         options.session?.end();
         cleanupSession();
@@ -66,9 +64,8 @@ export class AppManagerBackend extends IpcBackend {
 
   @Handle
   async launch(device: string, appId: string): Promise<void> {
-    const launch: (...args: any[]) => Promise<void> = util.promisify(launchLib.launch);
     const options: InstallOptions = {device, inspect: false};
-    return await launch(options, appId, {})
+    return await Launcher.launch(options, appId, {})
       .finally(() => {
         options.session?.end();
         cleanupSession();
@@ -77,18 +74,11 @@ export class AppManagerBackend extends IpcBackend {
 
   @Handle
   async close(device: string, appId: string): Promise<void> {
-    const close: (...args: any[]) => Promise<void> = util.promisify(launchLib.close);
     const options: InstallOptions = {device, inspect: false};
-    return await close(options, appId, {})
+    return await Launcher.close(options, appId, {})
       .finally(() => {
         options.session?.end();
         cleanupSession();
       });
   }
-}
-
-interface InstallOptions {
-  session?: Session
-
-  [key: string]: any;
 }

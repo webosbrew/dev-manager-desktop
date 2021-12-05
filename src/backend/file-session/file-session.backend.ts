@@ -1,10 +1,13 @@
 import {Handle, IpcBackend} from "../ipc-backend";
-import {Device, FileItem, FileSession, SessionToken} from "../../types";
+import {FileItem, FileSession, SessionToken} from "../../types";
 import {NovacomFileSession, SFTPSession} from "./file-session.impl";
 import {DeviceManagerBackend} from "../device-manager/device-manager.backend";
 import {v4 as UUIDv4} from 'uuid';
 import {Attributes, FileEntry} from "ssh2-streams";
 import {BrowserWindow} from "electron";
+import {Device, promises} from "@webosbrew/ares-lib";
+import {SFTPWrapper} from "ssh2";
+import Session = promises.Session;
 
 export class FileSessionBackend extends IpcBackend {
   private sessions: Map<string, FileSession> = new Map<string, FileSession>();
@@ -77,13 +80,13 @@ export class FileSessionBackend extends IpcBackend {
     return Promise.resolve(session);
   }
 
-  private newSession(name: string): Promise<FileSession> {
+  private async newSession(name: string): Promise<FileSession> {
     return this.sftpSession(name).catch(() => this.novacomFileSession(name));
   }
 
   private sftpSession(name: string): Promise<SFTPSession> {
-    return this.devices.newSession(name).then(session => new Promise<SFTPSession>((resolve, reject) => {
-      session.ssh.sftp((err, sftp) => {
+    return Session.create(name).then(session => new Promise<SFTPSession>((resolve, reject) => {
+      session.ssh.sftp((err, sftp: SFTPWrapper) => {
         if (err) {
           reject(err);
         } else {
@@ -102,6 +105,6 @@ export class FileSessionBackend extends IpcBackend {
   }
 
   private novacomFileSession(name: string): Promise<FileSession> {
-    return this.devices.newSession2(name).then(session => new NovacomFileSession(session));
+    return Session.create(name).then(session => new NovacomFileSession(session));
   }
 }

@@ -1,11 +1,13 @@
 import {Handle, IpcBackend} from "../ipc-backend";
 import {DeviceManagerBackend} from "../device-manager/device-manager.backend";
-import {Device, SessionToken, Shell} from "../../types";
+import {SessionToken, Shell} from "../../types";
 import {v4 as UUIDv4} from "uuid";
 import {RealShell, SimulateShell} from "./shell-session.impl";
 import {ClientChannel} from "ssh2";
 import * as util from "util";
 import {BrowserWindow} from "electron";
+import {Device, promises} from '@webosbrew/ares-lib';
+import Session = promises.Session;
 
 export class ShellSessionBackend extends IpcBackend {
   private sessions: Map<string, ShellSessionHolder> = new Map<string, ShellSessionHolder>();
@@ -80,14 +82,14 @@ export class ShellSessionBackend extends IpcBackend {
   }
 
   async openDefaultShell(device: Device): Promise<Shell> {
-    const session = await this.devices.newSession(device.name);
+    const session = await Session.create(device.name);
     const shell: () => Promise<ClientChannel> = util.promisify(session.ssh.shell.bind(session.ssh));
     const stream = await shell();
     return new RealShell(session, stream);
   }
 
   async openFakeShell(device: Device): Promise<Shell> {
-    const session = await this.devices.newSession(device.name);
+    const session = await Session.create(device.name);
     const exec: (command: string) => Promise<ClientChannel> = util.promisify(session.ssh.exec.bind(session.ssh));
     const stream = await exec('sh');
     return new SimulateShell(session, stream);

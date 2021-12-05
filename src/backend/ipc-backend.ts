@@ -1,4 +1,4 @@
-import {BrowserWindow, ipcMain, webContents} from 'electron';
+import {BrowserWindow, ipcMain} from 'electron';
 import 'reflect-metadata';
 
 type IpcHandleFunction = (...args: any[]) => Promise<any> | any;

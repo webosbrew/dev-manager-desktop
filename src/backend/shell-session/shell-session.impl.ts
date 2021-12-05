@@ -2,8 +2,9 @@ import {ClientChannel} from "ssh2";
 import {Shell} from "../../types";
 import {Buffer} from "buffer";
 import {cleanupSession} from "../../app/shared/util/ares-utils";
-import {Session} from "../device-manager/device-manager.backend";
-import {Terminal} from "xterm-headless";
+import {Terminal} from 'xterm-headless';
+import {promises} from '@webosbrew/ares-lib';
+import Session = promises.Session;
 
 abstract class AbsShell implements Shell {
 

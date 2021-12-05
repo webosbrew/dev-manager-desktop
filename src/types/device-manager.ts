@@ -1,5 +1,5 @@
 import {Attributes, FileEntry, FileItem} from "./file-session";
-import {Device} from "./novacom";
+import {Device} from "./novacom-data";
 
 export interface CrashReportEntry {
   device: string;

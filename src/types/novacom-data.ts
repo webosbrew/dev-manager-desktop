@@ -36,10 +36,3 @@ export interface DeviceEditSpec {
   default?: boolean;
 }
 
-export interface Resolver {
-  readonly devices: Device[];
-
-  load(next: (error: any, result: any) => void): void;
-
-  modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>, next: (error: any, result: any) => void): void;
-}
