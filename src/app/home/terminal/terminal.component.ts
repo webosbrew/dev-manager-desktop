@@ -1,7 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {DeviceManagerService} from '../../core/services';
-import {firstValueFrom, lastValueFrom} from "rxjs";
-import {Device} from "../../../types";
+import {Component, OnInit, ViewChild} from '@angular/core';
+import {DeviceManagerService, ShellInfo} from '../../core/services';
+import {firstValueFrom, Observable} from "rxjs";
+import {Device, SessionToken} from "../../../types";
+import {NgbNav} from "@ng-bootstrap/ng-bootstrap";
 
 
 @Component({
@@ -11,40 +12,30 @@ import {Device} from "../../../types";
 })
 export class TerminalComponent implements OnInit {
 
-  public sessions: TabSession[] = [];
+  @ViewChild('ngbNav')
+  nav: NgbNav;
+
+  public shells$: Observable<SessionToken[]>;
 
   constructor(private deviceManager: DeviceManagerService) {
-    const subscription = deviceManager.selected$.subscribe((device) => {
-      this.addSession(device);
-      subscription.unsubscribe();
-    });
+    this.shells$ = deviceManager.shells$;
   }
 
   ngOnInit() {
   }
 
-  addSession(device: Device | null) {
+  async addSession(device: Device | null) {
     if (!device) return;
-    this.sessions.push(new TabSession(device));
+    await this.deviceManager.openShellSession(device);
   }
 
-  closeSession(event: Event, session: TabSession) {
-    const index = this.sessions.indexOf(session);
-    if (index < 0) return;
-    this.sessions.splice(index, 1);
+  closeSession(event: Event, session: ShellInfo) {
+    this.deviceManager.closeShellSession(session);
     event.preventDefault();
     event.stopImmediatePropagation();
   }
 
   newTab() {
     firstValueFrom(this.deviceManager.selected$).then(device => this.addSession(device));
-  }
-}
-
-export class TabSession {
-  title: string;
-
-  constructor(public device: Device) {
-    this.title = device.name;
   }
 }

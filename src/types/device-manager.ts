@@ -1,4 +1,5 @@
 import {Attributes, FileEntry, FileItem} from "./file-session";
+import {Device} from "./novacom";
 
 export interface CrashReportEntry {
   device: string;
@@ -27,14 +28,21 @@ export interface Shell {
 
   dumb(): Promise<boolean>;
 
+  listen(event: 'close' | 'data', callback: (...args: any[]) => void): this;
+
   write(data: string): Promise<void>;
 
-  listen(event: 'close' | 'data', callback: (...args: any[]) => void): this;
+  resize(rols: number, cols: number, height: number, width: number): Promise<void>;
+
+  buffer(): Promise<string>;
 
   close(): Promise<void>;
 }
 
-export type SessionToken = string;
+export interface SessionToken {
+  key: string;
+  device: Device;
+}
 
 export interface FileSession {
 

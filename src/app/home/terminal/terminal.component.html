@@ -1,12 +1,12 @@
 <div class="w-100 h-100 d-flex flex-column">
   <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0" [animation]="false">
-    <li *ngFor="let session of sessions" [ngbNavItem]="session" [destroyOnHide]="false">
+    <li *ngFor="let shell of shells$ | async" [ngbNavItem]="shell" [destroyOnHide]="false" [id]="shell.value">
       <a ngbNavLink href>
-        {{session.title}}
-        <span class="close position-relative pl-2 font-weight-light" (click)="closeSession($event, session)">×</span>
+        {{shell.device.name}}
+        <span class="close position-relative pl-2 font-weight-light" (click)="closeSession($event, shell)">×</span>
       </a>
       <ng-template ngbNavContent>
-        <app-terminal-tab [device]="session.device" class="terminal-tab"></app-terminal-tab>
+        <app-terminal-tab [token]="shell" class="terminal-tab"></app-terminal-tab>
       </ng-template>
     </li>
     <li class="nav-item">

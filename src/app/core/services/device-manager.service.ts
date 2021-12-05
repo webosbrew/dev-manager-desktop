@@ -1,7 +1,6 @@
-import {HttpClient} from '@angular/common/http';
 import {Injectable} from "@angular/core";
 import {BehaviorSubject, Observable, ReplaySubject, Subject} from "rxjs";
-import {Device, DeviceEditSpec, DevicePrivateKey, Shell, SystemInfo} from '../../../types';
+import {Device, DeviceEditSpec, DevicePrivateKey, SessionToken, Shell, SystemInfo} from '../../../types';
 import {IpcClient} from "./ipc-client";
 import {IpcFileSession} from "./file.session";
 import {IpcShellSession} from "./shell.session";
@@ -13,13 +12,18 @@ export class DeviceManagerService extends IpcClient {
 
   private devicesSubject: Subject<Device[]>;
   private selectedSubject: Subject<Device>;
+  private shellsSubject: Subject<SessionToken[]>;
 
   constructor() {
     super('device-manager');
     this.devicesSubject = new BehaviorSubject([]);
     this.selectedSubject = new BehaviorSubject(null);
+    this.shellsSubject = new BehaviorSubject([]);
     this.on('devicesUpdated', (devices: Device[]) => this.onDevicesUpdated(devices));
+    this.on('shellsUpdated', (shells: SessionToken[]) => this.shellsSubject.next(shells));
     this.load();
+    this.callDirectly('shell-session', 'list')
+      .then((shells: SessionToken[]) => this.shellsSubject.next(shells));
   }
 
   get devices$(): Observable<Device[]> {
@@ -28,6 +32,10 @@ export class DeviceManagerService extends IpcClient {
 
   get selected$(): Observable<Device> {
     return this.selectedSubject.asObservable();
+  }
+
+  get shells$(): Observable<SessionToken[]> {
+    return this.shellsSubject.asObservable();
   }
 
   load(): void {
@@ -94,8 +102,16 @@ export class DeviceManagerService extends IpcClient {
     return await this.call('extendDevMode', device);
   }
 
-  async openShell(device: Device): Promise<Shell> {
-    return new IpcShellSession(await this.callDirectly('shell-session', 'open', device));
+  async openShellSession(device: Device): Promise<ShellInfo> {
+    return await this.callDirectly('shell-session', 'open', device);
+  }
+
+  async closeShellSession(token: ShellInfo): Promise<void> {
+    return await this.callDirectly('shell-session', 'close', token);
+  }
+
+  obtainShellSession(token: SessionToken): Shell {
+    return new IpcShellSession(token);
   }
 
   async openFileSession(name: string): Promise<IpcFileSession> {
@@ -105,6 +121,14 @@ export class DeviceManagerService extends IpcClient {
   private onDevicesUpdated(devices: Device[]) {
     this.devicesSubject.next(devices);
     this.selectedSubject.next(devices.find((device) => device.default) ?? devices[0]);
+  }
+}
+
+export class ShellInfo {
+  title: string;
+
+  constructor(public device: Device, public token: SessionToken) {
+    this.title = device.name;
   }
 }
 

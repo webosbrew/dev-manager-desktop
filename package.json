@@ -46,7 +46,8 @@
     "path-browserify": "1.0.1",
     "ssh2": "1.5.0",
     "terser": "5.10.0",
-    "uuid": "8.3.2"
+    "uuid": "8.3.2",
+    "xterm-headless": "4.15.0"
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "13.0.0",

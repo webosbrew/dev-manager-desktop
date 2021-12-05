@@ -3,14 +3,52 @@ import {Shell} from "../../types";
 import {Buffer} from "buffer";
 import {cleanupSession} from "../../app/shared/util/ares-utils";
 import {Session} from "../device-manager/device-manager.backend";
+import {Terminal} from "xterm-headless";
 
-abstract class AbsShell {
+abstract class AbsShell implements Shell {
+
+  private terminal: Terminal;
+
   protected constructor(protected session: Session, protected stream: ClientChannel) {
     console.log('shell session created');
+    this.terminal = new Terminal();
+    this.listen('data', (chunk: string) => {
+      this.terminal.write(chunk);
+    });
   }
+
+  abstract dumb(): Promise<boolean>;
+
+  abstract write(data: string): Promise<void>;
 
   closed(): Promise<boolean> {
     return Promise.resolve(this.stream.destroyed);
+  }
+
+  listen(event: 'close' | 'data', callback: (...args: any[]) => void): this {
+    this.stream.on(event, callback);
+    return this;
+  }
+
+  async buffer(): Promise<string> {
+    const active = this.terminal.buffer.active;
+    const lines: string[] = [];
+    for (let i = 0; i < active.length; i++) {
+      lines.push(active.getLine(i).translateToString(true));
+    }
+    for (let i = active.length - 1; i >= 0; i--) {
+      if (lines[i]) {
+        lines.splice(i + 1, active.length - (i + 1));
+        break;
+      }
+    }
+    return Promise.resolve(lines.join('\r\n'));
+  }
+
+  resize(rows: number, cols: number, height: number, width: number): Promise<void> {
+    this.stream.setWindow(rows, cols, height, width);
+    this.terminal.resize(rows, cols);
+    return Promise.resolve();
   }
 
   async close(): Promise<void> {
@@ -23,14 +61,13 @@ abstract class AbsShell {
     });
   }
 
-  listen(event: 'close' | 'data', callback: (...args: any[]) => void): this {
-    this.stream.on(event, callback);
-    return this;
+  protected termWrite(data: string) {
+    this.stream.emit('data', data);
   }
 
 }
 
-export class RealShell extends AbsShell implements Shell {
+export class RealShell extends AbsShell {
   constructor(session: Session, stream: ClientChannel) {
     super(session, stream);
   }
@@ -53,7 +90,7 @@ export class RealShell extends AbsShell implements Shell {
 
 }
 
-export class SimulateShell extends AbsShell implements Shell {
+export class SimulateShell extends AbsShell {
   private linebuf = '';
   private running = false;
 
@@ -72,21 +109,21 @@ export class SimulateShell extends AbsShell implements Shell {
 
   async write(data: string): Promise<void> {
     if (this.running) {
-      this.stream.emit('data', data);
+      this.termWrite(data);
       await this.streamWrite(data);
       return;
     }
     switch (data) {
       case '\r': {
-        this.stream.emit('data', data);
-        this.stream.emit('data', '\n');
+        this.termWrite(data);
+        this.termWrite('\n');
         await this.streamWrite(this.linebuf.trim());
         await this.streamWrite('\n');
         this.linebuf = '';
         break;
       }
       case '\u0003': { // Ctrl+C
-        this.stream.emit('data', '\r');
+        this.termWrite('\r');
         await this.streamWrite('\n');
         this.linebuf = '';
         break;
@@ -96,7 +133,7 @@ export class SimulateShell extends AbsShell implements Shell {
         // Backspace (DEL)
         // Do not delete the prompt
         this.linebuf = this.linebuf.slice(0, -1);
-        this.stream.emit('data', '\b \b');
+        this.termWrite('\b \b');
         break;
       }
       case '\u001b[A':
@@ -111,7 +148,7 @@ export class SimulateShell extends AbsShell implements Shell {
       }
       default: {
         this.linebuf += data;
-        this.stream.emit('data', data);
+        this.termWrite(data);
         break;
       }
     }

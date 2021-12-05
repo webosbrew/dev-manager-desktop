@@ -24,6 +24,11 @@ export abstract class IpcBackend {
 
   protected send(name: string, ...args: any[]) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    this.win.webContents.send(`${this.category}/${name}`, ...args);
+    this.sendDirectly(this.category, `${name}`, ...args);
+  }
+
+  protected sendDirectly(category: string, name: string, ...args: any[]) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    this.win.webContents.send(`${category}/${name}`, ...args);
   }
 }

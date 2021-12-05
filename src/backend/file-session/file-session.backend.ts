@@ -15,18 +15,18 @@ export class FileSessionBackend extends IpcBackend {
 
   @Handle
   async open(device: Device): Promise<SessionToken> {
-    const token = UUIDv4();
+    const key = UUIDv4();
     const session = await this.newSession(device.name);
-    console.log('file session created', token);
-    this.sessions.set(token, session);
-    return token;
+    console.log('file session created', key);
+    this.sessions.set(key, session);
+    return {key, device};
   }
 
   @Handle
   async close(token: SessionToken): Promise<void> {
-    const session = this.sessions.get(token);
-    if (!session) throw new Error(`No such session ${token}`);
-    this.sessions.delete(token);
+    const session = this.sessions.get(token.key);
+    if (!session) throw new Error(`No such session ${token.key}`);
+    this.sessions.delete(token.key);
     await session.end();
     console.log('file session closed', token);
   }
@@ -72,8 +72,8 @@ export class FileSessionBackend extends IpcBackend {
   }
 
   private session(token: SessionToken): Promise<FileSession> {
-    const session = this.sessions.get(token);
-    if (!session) return Promise.reject(new Error(`No such session ${token}`));
+    const session = this.sessions.get(token.key);
+    if (!session) return Promise.reject(new Error(`No such session ${token.key}`));
     return Promise.resolve(session);
   }
 

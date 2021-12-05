@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {Terminal} from "xterm";
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
-import {Device, Shell} from "../../../../types";
+import {SessionToken, Shell} from "../../../../types";
 import {fromEvent, Subscription} from "rxjs";
 import {debounceTime} from "rxjs/operators";
 import {DeviceManagerService} from "../../../core/services";
@@ -12,8 +12,8 @@ import {DeviceManagerService} from "../../../core/services";
   styleUrls: ['./tab.component.scss']
 })
 export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input('device')
-  public device: Device;
+  @Input('token')
+  public token: SessionToken;
   @ViewChild('termwin')
   public termwin: ElementRef<HTMLElement>;
   term: Terminal;
@@ -33,7 +33,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.resizeSubscription = fromEvent(window, 'resize').pipe(debounceTime(500)).subscribe(() => {
       this.pendingResize = null;
-      this.fitAddon.fit();
+      this.autoResize();
     });
   }
 
@@ -41,13 +41,14 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     this.term.open(this.termwin.nativeElement);
     // eslint-disable-next-line
     this.openDefaultShell().catch(e => this.connError(e));
-    setTimeout(() => this.fitAddon.fit());
+    setTimeout(() => {
+      this.autoResize();
+    });
   }
 
   ngOnDestroy(): void {
     this.resizeSubscription.unsubscribe();
     if (this.shell) {
-      this.shell.close();
       this.shell = null;
     }
   }
@@ -63,29 +64,36 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async openDefaultShell(): Promise<void> {
-    const device = this.device;
-    const shell = await this.deviceManager.openShell(device);
+    const token = this.token;
+    const shell = this.deviceManager.obtainShellSession(token);
     this.shell = shell;
 
     if (await shell.dumb()) {
-      this.term.writeln(`>>> Connected to ${device.name} (dumb shell).`);
+      this.term.writeln(`>>> Connected to ${token.device.name} (dumb shell).`);
       this.term.writeln('>>> Due to restriction of webOS, functionality of this shell is limited.');
       this.term.writeln('>>> Features like Ctrl+C and Tab will be unavailable.');
     } else {
-      this.term.writeln(`>>> Connected to ${device.name}.`);
+      this.term.writeln(`>>> Connected to ${token.device.name}.`);
     }
-    this.term.writeln('');
     shell.listen('close', () => {
       this.term.writeln('>>> Connection closed.');
       this.shell = null;
     }).listen('data', (data: string) => {
       this.term.write(data);
     });
+    this.term.write(await shell.buffer());
   }
 
   async shellKey(event: KeyboardEvent, key: string): Promise<void> {
     if (!this.shell || await this.shell.closed()) return;
     await this.shell.write(key);
+  }
+
+  private async autoResize() {
+    this.fitAddon.fit();
+    if (this.shell) {
+      await this.shell.resize(this.term.rows, this.term.cols, 0, 0);
+    }
   }
 
 }

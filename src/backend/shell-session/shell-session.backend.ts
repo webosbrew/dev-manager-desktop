@@ -8,7 +8,7 @@ import * as util from "util";
 import {BrowserWindow} from "electron";
 
 export class ShellSessionBackend extends IpcBackend {
-  private sessions: Map<string, Shell> = new Map<string, Shell>();
+  private sessions: Map<string, ShellSessionHolder> = new Map<string, ShellSessionHolder>();
 
   constructor(win: BrowserWindow, private devices: DeviceManagerBackend) {
     super(win, 'shell-session');
@@ -18,19 +18,30 @@ export class ShellSessionBackend extends IpcBackend {
   async open(device: Device): Promise<SessionToken> {
     const key = UUIDv4();
     const session = await this.newShell(device);
-    session.listen('close', () => this.send(`close.${key}`));
+    session.listen('close', () => {
+      this.send(`close.${key}`);
+      this.sessions.delete(key);
+      this.updateShells();
+    });
     session.listen('data', (data: Buffer) => this.send(`data.${key}`, data.toString('binary')));
-    this.sessions.set(key, session);
-    return key;
+    const info: SessionToken = {key, device};
+    this.sessions.set(key, new ShellSessionHolder(info, session));
+    this.updateShells();
+    return info;
   }
 
   @Handle
   async close(token: SessionToken): Promise<void> {
-    const session = this.sessions.get(token);
-    if (!session) throw new Error(`No such session ${token}`);
-    this.sessions.delete(token);
+    const session = await this.session(token);
     await session.close();
+    this.sessions.delete(token.key);
+    this.updateShells();
     return Promise.resolve();
+  }
+
+  @Handle
+  list(): SessionToken[] {
+    return this.getShells();
   }
 
   @Handle
@@ -48,11 +59,20 @@ export class ShellSessionBackend extends IpcBackend {
     return (await this.session(token)).write(data);
   }
 
+  @Handle
+  async resize(token: SessionToken, rows: number, cols: number, height: number, width: number): Promise<void> {
+    return (await this.session(token)).resize(rows, cols, height, width);
+  }
+
+  @Handle
+  async buffer(token: SessionToken): Promise<string> {
+    return (await this.session(token)).buffer();
+  }
 
   private session(token: SessionToken): Promise<Shell> {
-    const session = this.sessions.get(token);
-    if (!session) return Promise.reject(new Error(`No such session ${token}`));
-    return Promise.resolve(session);
+    const session = this.sessions.get(token.key);
+    if (!session) return Promise.reject(new Error(`No such session ${token.key}`));
+    return Promise.resolve(session.shell);
   }
 
   private async newShell(device: Device): Promise<Shell> {
@@ -71,5 +91,18 @@ export class ShellSessionBackend extends IpcBackend {
     const exec: (command: string) => Promise<ClientChannel> = util.promisify(session.ssh.exec.bind(session.ssh));
     const stream = await exec('sh');
     return new SimulateShell(session, stream);
+  }
+
+  private updateShells() {
+    this.sendDirectly('device-manager', 'shellsUpdated', this.getShells());
+  }
+
+  private getShells(): SessionToken[] {
+    return Array.from(this.sessions.values()).map(v => v.token);
+  }
+}
+
+class ShellSessionHolder {
+  constructor(public token: SessionToken, public shell: Shell) {
   }
 }
