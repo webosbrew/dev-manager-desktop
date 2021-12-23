@@ -1,5 +1,27 @@
+## 1.6.0 (2021-12-23)
+
+* big refactor wip ([1c1035d](https://github.com/webosbrew/dev-manager-desktop/commit/1c1035d))
+* big refactor wip ([0e01aac](https://github.com/webosbrew/dev-manager-desktop/commit/0e01aac))
+* migrating to new version ([1175b99](https://github.com/webosbrew/dev-manager-desktop/commit/1175b99))
+* rewrite ares calls ([97b137e](https://github.com/webosbrew/dev-manager-desktop/commit/97b137e))
+* separated node part and render process ([59c488c](https://github.com/webosbrew/dev-manager-desktop/commit/59c488c))
+* shell and file session ([e924378](https://github.com/webosbrew/dev-manager-desktop/commit/e924378))
+* tabbed terminal WIP ([b082c67](https://github.com/webosbrew/dev-manager-desktop/commit/b082c67))
+* tabbed terminal WIP ([7e12638](https://github.com/webosbrew/dev-manager-desktop/commit/7e12638))
+* updating package.json ([343a2bd](https://github.com/webosbrew/dev-manager-desktop/commit/343a2bd))
+* updating package.json ([b33e692](https://github.com/webosbrew/dev-manager-desktop/commit/b33e692))
+
+
+
+## <small>1.5.4-2 (2021-12-02)</small>
+
+* updated release config ([96fbded](https://github.com/webosbrew/dev-manager-desktop/commit/96fbded))
+
+
+
 ## <small>1.5.4 (2021-12-02)</small>
 
+* 1.5.4 ([6ef2567](https://github.com/webosbrew/dev-manager-desktop/commit/6ef2567))
 * removed unused package ([6fb8edf](https://github.com/webosbrew/dev-manager-desktop/commit/6fb8edf))
 
 
