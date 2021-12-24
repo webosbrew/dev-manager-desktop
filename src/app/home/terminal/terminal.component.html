@@ -1,6 +1,6 @@
 <div class="w-100 h-100 d-flex flex-column">
   <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0" [animation]="false">
-    <li *ngFor="let shell of shells$ | async" [ngbNavItem]="shell" [destroyOnHide]="false" [id]="shell.value">
+    <li *ngFor="let shell of shells$ | async" [ngbNavItem]="shell" [destroyOnHide]="false" [id]="shell.key">
       <a ngbNavLink href>
         {{shell.device.name}}
         <span class="close position-relative pl-2 font-weight-light" (click)="closeSession($event, shell)">×</span>

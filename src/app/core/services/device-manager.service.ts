@@ -102,11 +102,11 @@ export class DeviceManagerService extends IpcClient {
     return await this.call('extendDevMode', device);
   }
 
-  async openShellSession(device: Device): Promise<ShellInfo> {
+  async openShellSession(device: Device): Promise<SessionToken> {
     return await this.callDirectly('shell-session', 'open', device);
   }
 
-  async closeShellSession(token: ShellInfo): Promise<void> {
+  async closeShellSession(token: SessionToken): Promise<void> {
     return await this.callDirectly('shell-session', 'close', token);
   }
 

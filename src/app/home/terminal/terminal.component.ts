@@ -1,5 +1,5 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {DeviceManagerService, ShellInfo} from '../../core/services';
+import {DeviceManagerService} from '../../core/services';
 import {firstValueFrom, Observable} from "rxjs";
 import {Device, SessionToken} from "../../../types";
 import {NgbNav} from "@ng-bootstrap/ng-bootstrap";
@@ -12,8 +12,7 @@ import {NgbNav} from "@ng-bootstrap/ng-bootstrap";
 })
 export class TerminalComponent implements OnInit {
 
-  @ViewChild('ngbNav')
-  nav: NgbNav;
+  @ViewChild('ngbNav') nav: NgbNav;
 
   public shells$: Observable<SessionToken[]>;
 
@@ -29,7 +28,7 @@ export class TerminalComponent implements OnInit {
     await this.deviceManager.openShellSession(device);
   }
 
-  closeSession(event: Event, session: ShellInfo) {
+  closeSession(event: Event, session: SessionToken) {
     this.deviceManager.closeShellSession(session);
     event.preventDefault();
     event.stopImmediatePropagation();
