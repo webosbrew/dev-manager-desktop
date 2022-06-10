@@ -10,7 +10,7 @@
         <ng-container *ngLet="parent.instPackages?.get(item.id) as pkg">
           <td class="app-desc">
             <img class="app-icon" [src]="item.iconUri">
-            <div class="app-headline ml-3">
+            <div class="app-headline ms-3">
               <div class="app-title">{{item.title}}</div>
               <div class="app-description">{{item.manifest.appDescription}}</div>
             </div>
@@ -22,36 +22,36 @@
           <td>
             <div class="d-flex justify-content-end">
               <ng-container [ngSwitch]="item.manifest?.hasUpdate(pkg?.version)" *ngIf="item.manifest">
-                <button class="btn btn-primary ml-2 text-nowrap" (click)="parent.launchApp(item.id)"
+                <button class="btn btn-primary ms-2 text-nowrap" (click)="parent.launchApp(item.id)"
                   *ngSwitchCase="false">
-                  <i class="bi bi-play-fill mr-2"></i>Launch
+                  <i class="bi bi-play-fill me-2"></i>Launch
                 </button>
-                <button class="btn btn-primary ml-2 text-nowrap" (click)="parent.installPackage(item)"
+                <button class="btn btn-primary ms-2 text-nowrap" (click)="parent.installPackage(item)"
                   *ngSwitchCase="true">
-                  <i class="bi bi-download mr-2"></i>Update
+                  <i class="bi bi-download me-2"></i>Update
                 </button>
-                <button class="btn btn-primary ml-2 text-nowrap" (click)="parent.installPackage(item)" *ngSwitchDefault>
-                  <i class="bi bi-download mr-2"></i>Install
+                <button class="btn btn-primary ms-2 text-nowrap" (click)="parent.installPackage(item)" *ngSwitchDefault>
+                  <i class="bi bi-download me-2"></i>Install
                 </button>
               </ng-container>
               <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
                 aria-label="Button group with nested dropdown">
-                <button class="btn ml-2 text-nowrap" ngbDropdownToggle>
+                <button class="btn ms-2 text-nowrap" ngbDropdownToggle>
                   Options <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" ngbDropdownMenu>
                   <li ngbDropdownItem *ngIf="item.manifestBeta" (click)="parent.installBetaPackage(item)">
-                    <i class="bi bi-download mr-3"></i>Install Beta
+                    <i class="bi bi-download me-3"></i>Install Beta
                   </li>
                   <li ngbDropdownItem *ngIf="item.manifest">
                     <a [href]="item.manifest.sourceUrl">
-                      <i class="bi bi-globe2 mr-3"></i>Website
+                      <i class="bi bi-globe2 me-3"></i>Website
                     </a>
                   </li>
                   <ng-container *ngIf="pkg">
                     <li class="divider dropdown-divider"></li>
                     <li ngbDropdownItem class="text-danger" (click)="parent.removePackage(pkg)">
-                      <i class="bi bi-trash mr-3"></i>Uninstall
+                      <i class="bi bi-trash me-3"></i>Uninstall
                     </li>
                   </ng-container>
                 </ul>

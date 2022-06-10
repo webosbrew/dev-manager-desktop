@@ -2,7 +2,7 @@
   <div class="row">
     <nav class="col-md-3 d-none d-md-block bg-light sidebar">
       <div class="sidebar-sticky">
-        <select class="form-control" (change)="markDefault($event.target.value)">
+        <select class="form-control" (change)="markDefault($any($event.target).value)">
           <option *ngFor="let device of (deviceManager.devices$ | async)" [selected]="device.default"
                   [value]="device.name">
             {{device.name}}
@@ -12,25 +12,25 @@
         <ul class="nav flex-column mt-2">
           <li class="nav-item">
             <a class="nav-link" routerLink="apps" routerLinkActive="active">
-              <i class="bi bi-window-dock mr-1"></i>
+              <i class="bi bi-window-dock me-1"></i>
               Apps
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" routerLink="files" routerLinkActive="active">
-              <i class="bi bi-folder-fill mr-1"></i>
+              <i class="bi bi-folder-fill me-1"></i>
               Files
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" routerLink="terminal" routerLinkActive="active">
-              <i class="bi bi-terminal-fill mr-1"></i>
+              <i class="bi bi-terminal-fill me-1"></i>
               Terminal
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" routerLink="info" routerLinkActive="active">
-              <i class="bi bi-info-circle-fill mr-1"></i>
+              <i class="bi bi-info-circle-fill me-1"></i>
               Info
             </a>
           </li>
@@ -42,19 +42,19 @@
         <ul class="nav flex-column mb-2">
           <li class="nav-item">
             <a class="nav-link" (click)="openSetupDevice()">
-              <i class="bi bi-plus-lg mr-1"></i>
+              <i class="bi bi-plus-lg me-1"></i>
               Add Device
             </a>
           </li>
           <li class="nav-item" *ngIf="selectedDevice && !selectedDevice.indelible">
             <a class="nav-link text-danger" (click)="removeDevice(selectedDevice.name)">
-              <i class="bi bi-trash mr-1"></i>
+              <i class="bi bi-trash me-1"></i>
               Remove Device
             </a>
           </li>
           <!-- <li class="nav-item">
             <a class="nav-link" href="#">
-              <i class="bi bi-gear-fill mr-1"></i>
+              <i class="bi bi-gear-fill me-1"></i>
               Settings
             </a>
           </li> -->
@@ -62,7 +62,7 @@
       </div>
     </nav>
 
-    <main role="main" class="col-md-9 ml-sm-auto p-0">
+    <main role="main" class="col-md-9 ms-sm-auto p-0">
       <div class="setup-detail">
         <router-outlet></router-outlet>
       </div>

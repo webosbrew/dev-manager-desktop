@@ -34,6 +34,7 @@ export class PackageManifest {
   version: string;
   ipkUrl: string;
   sourceUrl?: string;
+  appDescription: string;
 
   constructor(data: Partial<PackageManifest>) {
     Object.assign(this, data);
@@ -66,6 +67,7 @@ export class PackageManifest {
 export class RepositoryItem {
   id: string;
   title: string;
+  iconUri: string;
   manifest?: PackageManifest;
   manifestUrl?: string;
   manifestBeta?: PackageManifest;

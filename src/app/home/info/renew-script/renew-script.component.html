@@ -6,7 +6,7 @@
 </div>
 <div class="modal-body">
   <div class="d-flex">
-    <ul ngbNav #nav="ngbNav" class="nav-pills mr-4" orientation="vertical">
+    <ul ngbNav #nav="ngbNav" class="nav-pills me-4" orientation="vertical">
       <li ngbNavItem="ifttt">
         <a class="text-nowrap" ngbNavLink>IFTTT Applet</a>
         <ng-template ngbNavContent>
@@ -64,7 +64,7 @@ checkSession=$(curl --max-time 3 -s "https://developer.lge.com/secure/ResetDevMo
 
 echo $checkSession]]></pre>
             <div class="position-absolute top-0 right-0 my-2 mx-4">
-              <button type="button" class="btn btn-primary mr-2" (click)="copyScript(renewScript.textContent)">
+              <button type="button" class="btn btn-primary me-2" (click)="copyScript(renewScript.textContent)">
                 <i class="bi bi-clipboard"></i>
               </button>
               <button type="button" class="btn btn-primary" (click)="saveScript(renewScript.textContent)">

@@ -1,12 +1,12 @@
 @import '~bootstrap/scss/bootstrap';
-@import "~bootstrap-icons/font/bootstrap-icons.css";
-@import '~@swimlane/ngx-datatable/index.css';
-@import '~@swimlane/ngx-datatable/assets/icons.css';
-@import '~@swimlane/ngx-datatable/themes/bootstrap.css';
-@import "./styles/no-select.scss";
-@import "./styles/app-item.scss";
-@import "./styles/overflow.scss";
-@import "./styles/shared.scss";
+@import "~bootstrap-icons/font/bootstrap-icons";
+@import '~@swimlane/ngx-datatable/index';
+@import '~@swimlane/ngx-datatable/assets/icons';
+@import '~@swimlane/ngx-datatable/themes/bootstrap';
+@import "./styles/no-select";
+@import "./styles/app-item";
+@import "./styles/overflow";
+@import "./styles/shared";
 
 /* You can add global styles to this file, and also import other style files */
 html, body {

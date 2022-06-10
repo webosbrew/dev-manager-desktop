@@ -6,7 +6,7 @@
 </div>
 <div class="modal-body">
   <ngb-accordion #acc="ngbAccordion">
-    <ngb-panel (shown)="report.load()" *ngFor="let report of reports">
+    <ngb-panel (shown)="report.load(deviceManager)" *ngFor="let report of reports">
       <ng-template ngbPanelHeader let-opened="opened">
         <div class="d-flex align-items-center justify-content-between">
           <h5 class="m-0">{{report.name}}</h5>

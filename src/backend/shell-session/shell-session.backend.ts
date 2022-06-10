@@ -83,6 +83,7 @@ export class ShellSessionBackend extends IpcBackend {
 
   async openDefaultShell(device: Device): Promise<Shell> {
     const session = await Session.create(device.name);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const shell: () => Promise<ClientChannel> = util.promisify(session.ssh.shell.bind(session.ssh));
     const stream = await shell();
     return new RealShell(session, stream);
@@ -90,6 +91,7 @@ export class ShellSessionBackend extends IpcBackend {
 
   async openFakeShell(device: Device): Promise<Shell> {
     const session = await Session.create(device.name);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const exec: (command: string) => Promise<ClientChannel> = util.promisify(session.ssh.exec.bind(session.ssh));
     const stream = await exec('sh');
     return new SimulateShell(session, stream);

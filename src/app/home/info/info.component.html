@@ -27,7 +27,7 @@
         <small>Remaining time displaying on your TV will only update on boot.</small>
       </p>
       <div>
-        <button class="btn btn-primary mr-2" (click)="renewDevMode()">Renew session</button>
+        <button class="btn btn-primary me-2" (click)="renewDevMode()">Renew session</button>
         <button class="btn btn-primary" (click)="renewScript()">Renew automatically...</button>
       </div>
     </div>
@@ -41,12 +41,12 @@
         </ng-container>
       </p>
       <div>
-        <button class="btn btn-primary mr-2" (click)="installHbChannel()"
+        <button class="btn btn-primary me-2" (click)="installHbChannel()"
           *ngIf="!homebrewAppInfo && homebrewRepoManifest">Install</button>
-        <button class="btn btn-primary mr-2" (click)="installHbChannel()"
+        <button class="btn btn-primary me-2" (click)="installHbChannel()"
           *ngIf="homebrewAppInfo && homebrewRepoManifest && homebrewRepoHasUpdate">Update</button>
-        <a class="btn btn-primary mr-2" href="https://github.com/webosbrew/webos-homebrew-channel"><i
-            class="bi bi-github mr-2"></i>Github Repo</a>
+        <a class="btn btn-primary me-2" href="https://github.com/webosbrew/webos-homebrew-channel"><i
+            class="bi bi-github me-2"></i>Github Repo</a>
       </div>
     </div>
   </div>

@@ -14,7 +14,7 @@ export class CrashesComponent implements OnInit {
 
   constructor(
     public modal: NgbActiveModal,
-    private deviceManager: DeviceManagerService,
+    public deviceManager: DeviceManagerService,
     @Inject('device') private device: Device
   ) {
   }

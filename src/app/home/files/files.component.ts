@@ -3,7 +3,7 @@ import {DeviceManagerService} from "../../core/services";
 import {Device, FileItem, FileSession} from "../../../types";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
-import {NgbModal, NgbModalRef} from "@ng-bootstrap/ng-bootstrap";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ContextmenuType, SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
 import {dialog, shell} from '@electron/remote';

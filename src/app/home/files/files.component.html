@@ -1,27 +1,28 @@
 <div class="w-100 h-100 d-flex flex-column overflow-hidden">
   <nav class="manager-toolbar navbar navbar-light bg-light overflow-hidden">
-    <div class="mr-auto overflow-auto">
+    <div class="me-auto overflow-auto">
 
     </div>
-    <form class="form-inline">
-      <button class="btn btn-danger ml-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)">
+    <form class="form-inline me-2">
+      <button class="btn btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)">
         <i class="bi bi-trash"></i>
       </button>
-      <button class="btn btn-primary ml-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)">
+      <button class="btn btn-primary ms-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)">
         <i class="bi bi-download"></i>
       </button>
-      <button class="btn btn-primary ml-2" (click)="uploadFiles()">
+      <button class="btn btn-primary ms-2" (click)="uploadFiles()">
         <i class="bi bi-upload"></i>
       </button>
     </form>
   </nav>
   <div class="w-100 h-100 flex-fill position-relative">
     <ngx-datatable class="files-table bootstrap position-absolute" [rows]="(files$ | async) || []" [columns]="columns"
-                   [rowHeight]="40" scrollbarH="true" scrollbarV="true" [sortType]="SortType.single"
+                   [rowHeight]="40" [scrollbarH]="true" [scrollbarV]="true" [sortType]="SortType.single"
                    [selectionType]="SelectionType.multi" [loadingIndicator]="true"
                    (activate)="itemActivated($event.row, $event.type)" (select)="itemSelected($event.selected)"
                    (tableContextmenu)="itemContextMenu($event.event, $event.type, $event.content)">
-      <ngx-datatable-column name="Name" width="400" [sortable]="true" [canAutoResize]="true" [comparator]="compareName">
+      <ngx-datatable-column name="Name" [width]="400" [sortable]="true" [canAutoResize]="true"
+                            [comparator]="compareName">
         <ng-template let-file="row" ngx-datatable-cell-template>
           <div class="text-nowrap">
             <span class="pr-2" [ngSwitch]="file.type">
