@@ -1,7 +1,8 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from '../../core/services';
-import {filter, firstValueFrom, Observable, Subscription} from "rxjs";
+import {Subscription} from "rxjs";
 import {SessionToken} from "../../../types";
+import {filter} from "rxjs/operators";
 
 
 @Component({
@@ -28,7 +29,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
         this.currentShell = shells[0].key;
       }
     });
-    firstValueFrom(shells$).then(async (shells) => {
+    shells$.toPromise().then(async (shells) => {
       if (shells.length) {
         return;
       }
@@ -47,7 +48,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
   }
 
   async newTab(): Promise<void> {
-    const device = await firstValueFrom(this.deviceManager.selected$.pipe(filter(v => v !== null)));
+    const device = await this.deviceManager.selected$.pipe(filter(v => v !== null)).toPromise();
     const session = await this.deviceManager.openShellSession(device);
     this.currentShell = session.key;
   }
