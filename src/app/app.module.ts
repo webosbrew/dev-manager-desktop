@@ -7,7 +7,6 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 // NG Translate
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {AngularResizedEventModule} from 'angular-resize-event';
 import {NgLetModule} from 'ng-let';
 import {AddDeviceComponent} from './add-device/add-device.component';
 import {ConnHintComponent} from './add-device/conn-hint/conn-hint.component';
@@ -30,7 +29,7 @@ import {UpdateDetailsComponent} from './update-details/update-details.component'
 import {AttrsPermissionsPipe} from './shared/pipes/attrs-permissions.pipe';
 import {NgxFilesizeModule} from 'ngx-filesize';
 import {NgxDatatableModule} from '@swimlane/ngx-datatable';
-import { TabComponent } from './home/terminal/tab/tab.component';
+import {TabComponent} from './home/terminal/tab/tab.component';
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -76,7 +75,6 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
         deps: [HttpClient]
       }
     }),
-    AngularResizedEventModule,
     NgxFilesizeModule
   ],
   providers: [],
