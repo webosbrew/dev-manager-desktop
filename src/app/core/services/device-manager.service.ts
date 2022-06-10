@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, Observable, ReplaySubject, Subject} from "rxjs";
 import {Device, DeviceEditSpec, DevicePrivateKey, SessionToken, Shell, SystemInfo} from '../../../types';
 import {IpcClient} from "./ipc-client";
@@ -14,8 +14,8 @@ export class DeviceManagerService extends IpcClient {
   private selectedSubject: Subject<Device>;
   private shellsSubject: Subject<SessionToken[]>;
 
-  constructor() {
-    super('device-manager');
+  constructor(zone: NgZone) {
+    super(zone, 'device-manager');
     this.devicesSubject = new BehaviorSubject([]);
     this.selectedSubject = new BehaviorSubject(null);
     this.shellsSubject = new BehaviorSubject([]);
@@ -111,11 +111,11 @@ export class DeviceManagerService extends IpcClient {
   }
 
   obtainShellSession(token: SessionToken): Shell {
-    return new IpcShellSession(token);
+    return new IpcShellSession(this.zone, token);
   }
 
   async openFileSession(name: string): Promise<IpcFileSession> {
-    return new IpcFileSession(await this.callDirectly('file-session', 'open', name));
+    return new IpcFileSession(this.zone, await this.callDirectly('file-session', 'open', name));
   }
 
   private onDevicesUpdated(devices: Device[]) {

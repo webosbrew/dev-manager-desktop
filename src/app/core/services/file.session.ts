@@ -2,10 +2,11 @@ import {IpcClient} from "./ipc-client";
 import {FileItem, FileSession} from "../../../types";
 import {Attributes, FileEntry} from "ssh2-streams";
 import path from "path";
+import {NgZone} from "@angular/core";
 
 export class IpcFileSession extends IpcClient implements FileSession {
-  constructor(private token: string) {
-    super('file-session');
+  constructor(zone: NgZone, private token: string) {
+    super(zone, 'file-session');
   }
 
   downloadTemp(remotePath: string): Promise<string> {

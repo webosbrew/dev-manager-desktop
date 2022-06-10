@@ -87,6 +87,9 @@ export class InfoComponent implements OnInit, OnDestroy {
   private async loadDevModeInfo(): Promise<void> {
     try {
       const token = await this.deviceManager.devModeToken(this.device.name);
+      if (!token) {
+        throw new Error('Ignore for this case');
+      }
       const devModeInfo = await this.devMode.checkDevMode(token);
       this.devModeInfo = devModeInfo;
       if (devModeInfo.errorCode == '200') {

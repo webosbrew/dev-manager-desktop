@@ -25,7 +25,7 @@
                             [comparator]="compareName">
         <ng-template let-file="row" ngx-datatable-cell-template>
           <div class="text-nowrap">
-            <span class="pr-2" [ngSwitch]="file.type">
+            <span class="pe-2" [ngSwitch]="file.type">
               <i class="bi-folder-fill" *ngSwitchCase="'d'"></i>
               <i class="bi-file-earmark-fill" *ngSwitchCase="'-'"></i>
               <i class="bi-gear-fill" *ngSwitchCase="'c'"></i>
@@ -66,7 +66,7 @@
       </ngx-datatable-column>
     </ngx-datatable>
   </div>
-  <div class="stat-bar">
+  <div class="stat-bar border-top">
     <nav class="h-100 overflow-hidden float-right" aria-label="breadcrumb">
       <ol class="breadcrumb" *ngIf="(pwd && pwd.split('/')) as dirs">
         <li class="breadcrumb-item" *ngFor="let dir of dirs; index as idx">

@@ -110,10 +110,12 @@ export class DeviceManagerBackend extends IpcBackend {
   @Handle
   async devModeToken(name: string): Promise<string> {
     const session = await Session.create(name);
-    return DeviceManagerBackend.runAndGetOutput(session, `cat /var/luna/preferences/devmode_enabled`, null).finally(() => {
+
+    const cmd = 'test -f /var/luna/preferences/devmode_enabled && cat /var/luna/preferences/devmode_enabled || echo';
+    return DeviceManagerBackend.runAndGetOutput(session, cmd, null).finally(() => {
       session.end();
       cleanupSession();
-    });
+    }).then(v => v.trim());
   }
 
   @Handle

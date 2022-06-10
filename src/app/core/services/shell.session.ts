@@ -1,10 +1,11 @@
 import {SessionToken, Shell} from "../../../types";
 import {IpcClient} from "./ipc-client";
 import {Handle} from "../../../backend/ipc-backend";
+import {NgZone} from "@angular/core";
 
 export class IpcShellSession extends IpcClient implements Shell {
-  constructor(private token: SessionToken) {
-    super('shell-session');
+  constructor(zone: NgZone, private token: SessionToken) {
+    super(zone, 'shell-session');
   }
 
   closed(): Promise<boolean> {

@@ -1,4 +1,14 @@
-import {AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
 import {Terminal} from "xterm";
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
 import {SessionToken, Shell} from "../../../../types";
@@ -9,7 +19,8 @@ import {DeviceManagerService} from "../../../core/services";
 @Component({
   selector: 'app-terminal-tab',
   templateUrl: './tab.component.html',
-  styleUrls: ['./tab.component.scss']
+  styleUrls: ['./tab.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input('token')
@@ -41,9 +52,8 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     this.term.open(this.termwin.nativeElement);
     // eslint-disable-next-line
     this.openDefaultShell().catch(e => this.connError(e));
-    setTimeout(() => {
-      this.autoResize();
-    });
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setTimeout(() => this.autoResize(), 30);
   }
 
   ngOnDestroy(): void {
@@ -90,6 +100,10 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private async autoResize() {
+    const dimensions = this.fitAddon.proposeDimensions();
+    if (!dimensions || !dimensions.cols || !dimensions.rows) {
+      return;
+    }
     this.fitAddon.fit();
     if (this.shell) {
       await this.shell.resize(this.term.rows, this.term.cols, 0, 0);

@@ -1,8 +1,7 @@
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from '../../core/services';
-import {firstValueFrom, Observable} from "rxjs";
-import {Device, SessionToken} from "../../../types";
-import {NgbNav} from "@ng-bootstrap/ng-bootstrap";
+import {filter, firstValueFrom, Observable, Subscription} from "rxjs";
+import {SessionToken} from "../../../types";
 
 
 @Component({
@@ -10,22 +9,35 @@ import {NgbNav} from "@ng-bootstrap/ng-bootstrap";
   templateUrl: './terminal.component.html',
   styleUrls: ['./terminal.component.scss']
 })
-export class TerminalComponent implements OnInit {
+export class TerminalComponent implements OnInit, OnDestroy {
 
-  @ViewChild('ngbNav') nav: NgbNav;
+  public shells: SessionToken[];
 
-  public shells$: Observable<SessionToken[]>;
+  public currentShell: string;
+
+  private subscription: Subscription;
 
   constructor(private deviceManager: DeviceManagerService) {
-    this.shells$ = deviceManager.shells$;
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
+    const shells$ = this.deviceManager.shells$;
+    this.subscription = shells$.subscribe(shells => {
+      this.shells = shells;
+      if (shells.length) {
+        this.currentShell = shells[0].key;
+      }
+    });
+    firstValueFrom(shells$).then(async (shells) => {
+      if (shells.length) {
+        return;
+      }
+      await this.newTab();
+    });
   }
 
-  async addSession(device: Device | null) {
-    if (!device) return;
-    await this.deviceManager.openShellSession(device);
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   closeSession(event: Event, session: SessionToken) {
@@ -34,7 +46,13 @@ export class TerminalComponent implements OnInit {
     event.stopImmediatePropagation();
   }
 
-  newTab() {
-    firstValueFrom(this.deviceManager.selected$).then(device => this.addSession(device));
+  async newTab(): Promise<void> {
+    const device = await firstValueFrom(this.deviceManager.selected$.pipe(filter(v => v !== null)));
+    const session = await this.deviceManager.openShellSession(device);
+    this.currentShell = session.key;
+  }
+
+  shellTracker(index: number, value: SessionToken): string {
+    return value.key;
   }
 }

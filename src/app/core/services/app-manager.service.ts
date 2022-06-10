@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import {Observable, ReplaySubject, Subject} from 'rxjs';
 import {PackageInfo} from '../../../types';
 import {IpcClient} from "./ipc-client";
@@ -10,8 +10,8 @@ export class AppManagerService extends IpcClient {
 
   private packagesSubjects: Map<string, Subject<PackageInfo[]>>;
 
-  constructor() {
-    super('app-manager');
+  constructor(zone: NgZone) {
+    super(zone, 'app-manager');
     this.packagesSubjects = new Map();
   }
 

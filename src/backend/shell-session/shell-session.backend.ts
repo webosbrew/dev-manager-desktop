@@ -18,6 +18,9 @@ export class ShellSessionBackend extends IpcBackend {
 
   @Handle
   async open(device: Device): Promise<SessionToken> {
+    if (!device) {
+      throw new Error('device is null!');
+    }
     const key = UUIDv4();
     const session = await this.newShell(device);
     session.listen('close', () => {
