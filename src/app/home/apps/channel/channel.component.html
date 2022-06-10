@@ -7,7 +7,7 @@
     </colgroup>
     <tbody>
       <tr class="app-item" *ngFor="let item of repoPage.packages">
-        <ng-container *ngLet="parent.instPackages?.get(item.id) as pkg">
+        <ng-container *ngIf="parent.instPackages?.get(item.id) as pkg">
           <td class="app-desc">
             <img class="app-icon" [src]="item.iconUri">
             <div class="app-headline ms-3">

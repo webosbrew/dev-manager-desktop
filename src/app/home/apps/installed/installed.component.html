@@ -18,7 +18,7 @@
       </colgroup>
       <tbody>
         <tr class="app-item" *ngFor="let pkg of (parent.packages$ | async)">
-          <ng-container *ngLet="parent.repoPackages?.get(pkg.id) as rpkg">
+          <ng-container *ngIf="parent.repoPackages?.get(pkg.id) as rpkg">
             <td class="app-desc">
               <img class="app-icon" [src]="pkg.iconPath | aresPullUri:parent.device.name">
               <div class="app-headline ms-3">

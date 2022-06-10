@@ -7,7 +7,6 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 // NG Translate
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
-import {NgLetModule} from 'ng-let';
 import {AddDeviceComponent} from './add-device/add-device.component';
 import {ConnHintComponent} from './add-device/conn-hint/conn-hint.component';
 import {KeyserverHintComponent} from './add-device/keyserver-hint/keyserver-hint.component';
@@ -66,7 +65,6 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppRoutingModule,
     ReactiveFormsModule,
     NgbModule,
-    NgLetModule,
     NgxDatatableModule,
     TranslateModule.forRoot({
       loader: {
