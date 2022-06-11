@@ -1,6 +1,6 @@
 import {Component, Host, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
-import {AppsRepoService, RepositoryPage} from '../../../core/services';
+import {AppsRepoService, RepositoryPage} from '../../core/services';
 import {AppsComponent} from '../apps.component';
 
 @Component({

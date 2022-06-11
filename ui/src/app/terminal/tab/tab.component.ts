@@ -11,10 +11,10 @@ import {
 } from '@angular/core';
 import {Terminal} from "xterm";
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
-import {SessionToken, Shell} from "../../../../../../common/types";
+import {SessionToken, Shell} from "../../../../../common/types";
 import {fromEvent, Subscription} from "rxjs";
 import {debounceTime} from "rxjs/operators";
-import {DeviceManagerService} from "../../../core/services";
+import {DeviceManagerService} from "../../core/services";
 
 @Component({
   selector: 'app-terminal-tab',

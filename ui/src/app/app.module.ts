@@ -13,22 +13,14 @@ import {KeyserverHintComponent} from './add-device/keyserver-hint/keyserver-hint
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {CoreModule} from './core/core.module';
-import {AppsComponent} from './home/apps/apps.component';
-import {ChannelComponent} from './home/apps/channel/channel.component';
-import {InstalledComponent} from './home/apps/installed/installed.component';
-import {FilesComponent} from './home/files/files.component';
 import {HomeComponent} from './home/home.component';
 import {CrashesComponent} from './home/info/crashes/crashes.component';
 import {InfoComponent} from './home/info/info.component';
 import {RenewScriptComponent} from './home/info/renew-script/renew-script.component';
-import {TerminalComponent} from './home/terminal/terminal.component';
 import {ExternalLinkDirective} from './shared/directives';
 import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
-import {AttrsPermissionsPipe} from './shared/pipes/attrs-permissions.pipe';
-import {NgxFilesizeModule} from 'ngx-filesize';
-import {NgxDatatableModule} from '@swimlane/ngx-datatable';
-import {TabComponent} from './home/terminal/tab/tab.component';
+
 import {NgLetModule} from "ng-let";
 
 // AoT requires an exported function for factories
@@ -41,20 +33,13 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppComponent,
     HomeComponent,
     AddDeviceComponent,
-    AppsComponent,
-    FilesComponent,
-    TerminalComponent,
     InfoComponent,
     KeyserverHintComponent,
     ExternalLinkDirective,
     ConnHintComponent,
     CrashesComponent,
-    InstalledComponent,
-    ChannelComponent,
     RenewScriptComponent,
     UpdateDetailsComponent,
-    AttrsPermissionsPipe,
-    TabComponent,
   ],
   imports: [
     BrowserModule,
@@ -66,7 +51,6 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppRoutingModule,
     ReactiveFormsModule,
     NgbModule,
-    NgxDatatableModule,
     NgLetModule,
     TranslateModule.forRoot({
       loader: {
@@ -74,8 +58,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
         useFactory: HttpLoaderFactory,
         deps: [HttpClient]
       }
-    }),
-    NgxFilesizeModule
+    })
   ],
   providers: [],
   bootstrap: [AppComponent]

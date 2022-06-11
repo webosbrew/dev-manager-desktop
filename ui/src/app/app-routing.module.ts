@@ -1,10 +1,7 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
-import {AppsComponent} from './home/apps/apps.component';
-import {FilesComponent} from './home/files/files.component';
 import {HomeComponent} from './home/home.component';
 import {InfoComponent} from './home/info/info.component';
-import {TerminalComponent} from './home/terminal/terminal.component';
 
 
 const routes: Routes = [
@@ -16,9 +13,9 @@ const routes: Routes = [
   {
     path: 'home', component: HomeComponent,
     children: [
-      {path: 'apps', component: AppsComponent},
-      {path: 'files', component: FilesComponent},
-      {path: 'terminal', component: TerminalComponent},
+      {path: 'apps', loadChildren: () => import('./apps').then(m => m.AppsModule)},
+      {path: 'files', loadChildren: () => import('./files').then(m => m.FilesModule)},
+      {path: 'terminal', loadChildren: () => import('./terminal').then(m => m.TerminalModule)},
       {path: 'info', component: InfoComponent},
       {path: '', redirectTo: 'apps', pathMatch: 'full'},
     ]

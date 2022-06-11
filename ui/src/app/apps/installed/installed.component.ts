@@ -1,5 +1,5 @@
 import {Component, Host, OnInit} from '@angular/core';
-import {AppsRepoService, RepositoryItem} from '../../../core/services';
+import {AppsRepoService, RepositoryItem} from '../../core/services';
 import {AppsComponent} from '../apps.component';
 
 @Component({

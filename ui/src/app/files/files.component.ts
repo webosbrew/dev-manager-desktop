@@ -1,11 +1,11 @@
 import {Component, OnInit} from '@angular/core';
-import {DeviceManagerService} from "../../core/services";
-import {Device, FileItem, FileSession} from "../../../../../common/types";
+import {DeviceManagerService} from "../core/services";
+import {Device, FileItem, FileSession} from "../../../../common/types";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
+import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ContextmenuType, SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
-import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
+import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
 import {dialog, shell} from '@electron/remote';
 import path from "path";
 
