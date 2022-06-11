@@ -1,6 +1,6 @@
 import {Component, Inject, SecurityContext} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
-import marked from 'marked';
+import * as marked from 'marked';
 import {Release} from '../core/services';
 
 @Component({

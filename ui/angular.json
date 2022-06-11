@@ -36,7 +36,11 @@
             "customWebpackConfig": {
               "path": "./webpack.config.js",
               "replaceDuplicatePlugins": true
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "rxjs",
+              "semver"
+            ]
           },
           "configurations": {
             "production": {

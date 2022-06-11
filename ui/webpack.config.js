@@ -9,8 +9,8 @@ const path = require('path');
 module.exports = (config, options) => {
   config.target = 'electron-renderer';
   config.resolve.alias = {
-    'electron': path.resolve(__dirname, 'src/aliases/electron'),
-    '@electron/remote': path.resolve(__dirname, 'src/aliases/electron-remote'),
+    // 'electron': path.resolve(__dirname, 'src/aliases/electron'),
+    // '@electron/remote': path.resolve(__dirname, 'src/aliases/electron-remote'),
   };
 
   if (options.fileReplacements) {
@@ -30,7 +30,7 @@ module.exports = (config, options) => {
   config.plugins = [
     ...config.plugins,
     new NodePolyfillPlugin({
-      excludeAliases: ["console"]
+      excludeAliases: ['console', 'process']
     }),
     new IgnorePlugin({
       resourceRegExp: /^\.\/locale$/,
