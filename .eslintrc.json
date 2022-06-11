@@ -24,10 +24,9 @@
       "parserOptions": {
         "ecmaVersion": 10,
         "project": [
-          "./tsconfig.serve.json",
-          "./src/tsconfig.app.json",
-          "./src/tsconfig.spec.json",
-          "./e2e/tsconfig.e2e.json"
+          "./main/tsconfig.json",
+          "./ui/tsconfig.app.json",
+          "./ui/tsconfig.spec.json"
         ],
         "sourceType": "module",
         "ecmaFeatures": {
@@ -63,6 +62,7 @@
         "@typescript-eslint/no-unsafe-assignment": 0,
         "@typescript-eslint/no-unsafe-return": 0,
         "@typescript-eslint/no-floating-promises": 0,
+        "@typescript-eslint/no-inferrable-types": 0,
         "@typescript-eslint/semi": "error",
         "@angular-eslint/use-injectable-provided-in": "error",
         "@angular-eslint/no-attribute-decorator": "error"

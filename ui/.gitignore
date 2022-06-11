@@ -1,23 +1,18 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
-# compiled output
+# Compiled output
 /dist
 /tmp
 /out-tsc
-/app-builds
-/release
-index.js
-preload.js
-src/**/*.js
-!src/karma.conf.js
-*.js.map
-.angular/
+/bazel-out
 
-# dependencies
+# Node
 /node_modules
+npm-debug.log
+yarn-error.log
 
 # IDEs and editors
-/.idea
+.idea/
 .project
 .classpath
 .c9/
@@ -25,27 +20,23 @@ src/**/*.js
 .settings/
 *.sublime-workspace
 
-# IDE - VSCode
+# Visual Studio Code
 .vscode/*
-.vscode/settings.json
+!.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.history/*
 
-# misc
-/.sass-cache
+# Miscellaneous
+/.angular/cache
+.sass-cache/
 /connect.lock
 /coverage
 /libpeerconnection.log
-npm-debug.log
 testem.log
 /typings
 
-# e2e
-/e2e/*.js
-!/e2e/protractor.conf.js
-/e2e/*.map
-
-# System Files
+# System files
 .DS_Store
 Thumbs.db
