@@ -44,7 +44,7 @@ jobs:
 
     - run: npm ci
     - name: Build the app
-      run: npm run electron:build
+      run: npm run dist
 
     - name: Create Release (Windows)
       id: create_release_windows

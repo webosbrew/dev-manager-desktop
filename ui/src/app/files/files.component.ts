@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {DeviceManagerService} from "../core/services";
-import {Device, FileItem, FileSession} from "../../../../common/types";
+import {Device, FileItem, FileSession} from "../../../../main/types";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";

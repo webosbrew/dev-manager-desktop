@@ -1,5 +1,5 @@
 import {IpcClient} from "./ipc-client";
-import {Attributes, FileEntry, FileItem, FileSession} from "../../../../../common/types";
+import {Attributes, FileEntry, FileItem, FileSession} from "../../../../../main/types";
 import path from "path";
 import {NgZone} from "@angular/core";
 

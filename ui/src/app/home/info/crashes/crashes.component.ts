@@ -1,7 +1,7 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {CrashReport, DeviceManagerService} from '../../../core/services';
-import {Device} from "../../../../../../common/types";
+import {Device} from "../../../../../../main/types";
 
 @Component({
   selector: 'app-crashes',

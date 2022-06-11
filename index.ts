@@ -2,12 +2,12 @@ import {app, BrowserWindow, protocol} from 'electron';
 import windowStateKeeper from 'electron-window-state';
 import path from 'path';
 import url from 'url';
-import {AresPullProtoHandler} from './ares-pull-proto';
-import {DeviceManagerBackend} from "./device-manager/device-manager.backend";
-import {AppManagerBackend} from "./app-manager.backend";
-import {skipCORS} from "./cors-skip";
-import {FileSessionBackend} from "./file-session/file-session.backend";
-import {ShellSessionBackend} from "./shell-session/shell-session.backend";
+import {AresPullProtoHandler} from './main/ares-pull-proto';
+import {DeviceManagerBackend} from "./main/device-manager/device-manager.backend";
+import {AppManagerBackend} from "./main/app-manager.backend";
+import {skipCORS} from "./main/cors-skip";
+import {FileSessionBackend} from "./main/file-session/file-session.backend";
+import {ShellSessionBackend} from "./main/shell-session/shell-session.backend";
 import electronDl from "electron-dl";
 
 // Initialize remote module
@@ -56,7 +56,7 @@ function createWindow(): BrowserWindow {
 
     } else {
       win.loadURL(url.format({
-        pathname: path.join(__dirname, 'dist/index.html'),
+        pathname: path.join(__dirname, 'ui/index.html'),
         protocol: 'file:',
         slashes: true
       }));

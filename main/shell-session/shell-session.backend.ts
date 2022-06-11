@@ -1,6 +1,6 @@
 import {Handle, IpcBackend} from "../ipc-backend";
 import {DeviceManagerBackend} from "../device-manager/device-manager.backend";
-import {SessionToken, Shell} from "../../common/types";
+import {SessionToken, Shell} from "../types";
 import {v4 as UUIDv4} from "uuid";
 import {RealShell, SimulateShell} from "./shell-session.impl";
 import {ClientChannel} from "ssh2";

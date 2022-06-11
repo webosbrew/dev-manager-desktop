@@ -1,6 +1,6 @@
 import {app, BrowserWindow} from 'electron';
 import {cleanupSession} from './util/ares-utils';
-import {PackageInfo} from '../common/types';
+import {PackageInfo} from './types';
 import {Handle, IpcBackend} from './ipc-backend';
 import {download} from 'electron-dl';
 import {InstallOptions, promises} from '@webosbrew/ares-lib';

@@ -1,4 +1,4 @@
-import {SessionToken, Shell} from "../../../../../common/types";
+import {SessionToken, Shell} from "../../../../../main/types";
 import {IpcClient} from "./ipc-client";
 import {NgZone} from "@angular/core";
 

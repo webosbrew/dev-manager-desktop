@@ -1,5 +1,5 @@
 import {ClientChannel} from "ssh2";
-import {Shell} from "../../common/types";
+import {Shell} from "../types";
 import {Buffer} from "buffer";
 import {cleanupSession} from "../util/ares-utils";
 import {Terminal} from 'xterm-headless';

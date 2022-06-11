@@ -1,50 +1,27 @@
 {
-  "compileOnSave": false,
   "compilerOptions": {
-    "outDir": "./dist/out-tsc",
-    "module": "es2020",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "allowJs": true,
+    "esModuleInterop": true,
     "target": "es5",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
     "lib": [
       "es2017",
       "es2016",
       "es2015",
       "dom"
     ],
-    "baseUrl": "./",
-    "paths": {
-      "electron": [
-        "src/aliases/electron"
-      ],
-      "@electron/remote": [
-        "src/aliases/electron-remote"
-      ]
-    }
+    "typeRoots": [
+      "node_modules/@types"
+    ]
   },
   "include": [
-    "src/**/*.d.ts"
+    "index.ts",
+    "main/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
-  ],
-  "angularCompilerOptions": {
-    "strictTemplates": true,
-    "fullTemplateTypeCheck": true,
-    "annotateForClosureCompiler": true,
-    "strictInjectionParameters": true,
-    "skipTemplateCodegen": false,
-    "preserveWhitespaces": true,
-    "skipMetadataEmit": false,
-    "disableTypeScriptVersionCheck": true
-  }
+    "**/*.spec.ts"
+  ]
 }

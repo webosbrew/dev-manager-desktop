@@ -1,4 +1,4 @@
-import {CrashReportEntry, DevicePrivateKey, SystemInfo} from '../../common/types';
+import {CrashReportEntry, DevicePrivateKey, SystemInfo} from '../types';
 import {cleanupSession} from '../util/ares-utils';
 import {Handle, IpcBackend} from "../ipc-backend";
 import * as fs from 'fs';

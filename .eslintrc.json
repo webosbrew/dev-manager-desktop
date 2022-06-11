@@ -24,7 +24,7 @@
       "parserOptions": {
         "ecmaVersion": 10,
         "project": [
-          "./main/tsconfig.json",
+          "./tsconfig.json",
           "./ui/tsconfig.app.json",
           "./ui/tsconfig.spec.json"
         ],

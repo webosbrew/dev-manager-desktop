@@ -1,4 +1,4 @@
-export interface Device {
+export declare interface Device {
   name: string;
   description: string;
   host: string;
@@ -15,14 +15,14 @@ export interface Device {
   };
 }
 
-export interface LunaAddress {
+export declare interface LunaAddress {
   service: string;
   folder: string;
   method: string;
   returnValue: string;
 }
 
-export interface DeviceEditSpec {
+export declare interface DeviceEditSpec {
   name: string;
   host: string;
   port: number;

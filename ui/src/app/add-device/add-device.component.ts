@@ -2,7 +2,7 @@ import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {TranslateService} from '@ngx-translate/core';
-import {Device, DeviceEditSpec, DevicePrivateKey} from '../../../../common/types';
+import {Device, DeviceEditSpec, DevicePrivateKey} from '../../../../main/types';
 import {DeviceManagerService} from '../core/services';
 import {
   MessageDialogComponent,

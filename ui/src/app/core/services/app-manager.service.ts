@@ -1,6 +1,6 @@
 import {Injectable, NgZone} from '@angular/core';
 import {Observable, ReplaySubject, Subject} from 'rxjs';
-import {PackageInfo} from '../../../../../common/types';
+import {PackageInfo} from '../../../../../main/types';
 import {IpcClient} from "./ipc-client";
 
 @Injectable({

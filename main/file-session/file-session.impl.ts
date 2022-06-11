@@ -5,7 +5,7 @@ import * as path from "path";
 import * as stream from "stream";
 import * as fs from "fs";
 import {constants} from "fs";
-import {FileItem, FileSession, FileType} from "../../common/types";
+import {FileItem, FileSession, FileType} from "../types";
 import {app} from "electron";
 import {minify} from 'terser';
 import {promises} from "@webosbrew/ares-lib";

@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
-import {Device} from '../../../../../../common/types';
+import {Device} from '../../../../../../main/types';
 import {DeviceManagerService} from '../../../core/services';
 import {BehaviorSubject, noop, Observable, Subject} from 'rxjs';
 import {dialog, getCurrentWindow} from "@electron/remote";

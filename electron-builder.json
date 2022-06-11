@@ -4,41 +4,30 @@
     "output": "release/"
   },
   "files": [
-    "**/*",
-    "!**/*.ts",
-    "!.github",
-    "!.vscode",
-    "!.code-workspace",
-    "!.npmrc",
-    "!*.md",
-    "!package.json",
-    "!package-lock.json",
-    "!src/",
-    "src/backend/**/*.js",
-    "!e2e/",
-    "!hooks/",
-    "!_config.yml",
-    "!angular.json",
-    "!tsconfig*.json",
-    "!tslint.json",
-    "!.eslintrc.json",
-    "!karma.conf.js",
-    "!angular.webpack.js",
-    "!*.map"
+    "package.json",
+    "index.js",
+    "main/**/*.js",
+    {
+      "from": "ui/dist",
+      "to": "ui"
+    }
   ],
   "win": {
-    "icon": "dist/assets/icons",
-    "target": ["portable"]
-  },
-  "portable": {
-    "splashImage": "dist/assets/icons/electron.bmp"
+    "icon": "ui/dist/assets/icons",
+    "target": [
+      "portable"
+    ]
   },
   "mac": {
-    "icon": "dist/assets/icons",
-    "target": ["dmg"]
+    "icon": "ui/dist/assets/icons",
+    "target": [
+      "dmg"
+    ]
   },
   "linux": {
-    "icon": "dist/assets/icons",
-    "target": ["AppImage"]
+    "icon": "ui/dist/assets/icons",
+    "target": [
+      "AppImage"
+    ]
   }
 }

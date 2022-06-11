@@ -1,12 +1,12 @@
 import {Attributes, FileEntry, FileItem} from "./file-session";
 import {Device} from "./novacom-data";
 
-export interface CrashReportEntry {
+export declare interface CrashReportEntry {
   device: string;
   path: string;
 }
 
-export interface SystemInfo {
+export declare interface SystemInfo {
   core_os_kernel_version?: string
   core_os_name?: string
   core_os_release?: string
@@ -23,7 +23,7 @@ export interface SystemInfo {
   webos_release_codename?: string
 }
 
-export interface Shell {
+export declare interface Shell {
   closed(): Promise<boolean>;
 
   dumb(): Promise<boolean>;
@@ -39,12 +39,12 @@ export interface Shell {
   close(): Promise<void>;
 }
 
-export interface SessionToken {
+export declare interface SessionToken {
   key: string;
   device: Device;
 }
 
-export interface FileSession {
+export declare interface FileSession {
 
   readdir(location: string): Promise<FileEntry[]>;
 
@@ -65,12 +65,12 @@ export interface FileSession {
   end(): Promise<void>;
 }
 
-export interface DevicePrivateKey {
+export declare interface DevicePrivateKey {
   data: string;
   privatePEM?: string;
 }
 
-export interface PackageInfo {
+export declare interface PackageInfo {
   id: string;
   type: string;
   title: string;

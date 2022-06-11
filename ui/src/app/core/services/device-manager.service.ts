@@ -1,6 +1,6 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, Observable, ReplaySubject, Subject} from "rxjs";
-import {Device, DeviceEditSpec, DevicePrivateKey, SessionToken, Shell, SystemInfo} from '../../../../../common/types';
+import {Device, DeviceEditSpec, DevicePrivateKey, SessionToken, Shell, SystemInfo} from '../../../../../main/types';
 import {IpcClient} from "./ipc-client";
 import {IpcFileSession} from "./file.session";
 import {IpcShellSession} from "./shell.session";

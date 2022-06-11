@@ -1,5 +1,5 @@
 import {Handle, IpcBackend} from "../ipc-backend";
-import {FileItem, FileSession, SessionToken, Attributes, FileEntry} from "../../common/types";
+import {FileItem, FileSession, SessionToken, Attributes, FileEntry} from "../types";
 import {NovacomFileSession, SFTPSession} from "./file-session.impl";
 import {DeviceManagerBackend} from "../device-manager/device-manager.backend";
 import {v4 as UUIDv4} from 'uuid';

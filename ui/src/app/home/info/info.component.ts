@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import {Observable, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Device, PackageInfo, SystemInfo} from '../../../../../common/types';
+import {Device, PackageInfo, SystemInfo} from '../../../../../main/types';
 import {
   AppManagerService,
   AppsRepoService,
