@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
-import {Release, UpdateService} from './core/services';
+import {DeviceManagerService, Release, UpdateService} from './core/services';
 import PackageInfo from '../../../package.json';
 import {SemVer} from 'semver';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
@@ -19,6 +19,7 @@ export class AppComponent {
     translate: TranslateService,
     private update: UpdateService,
     private modalService: NgbModal,
+    private deviceManager: DeviceManagerService,
   ) {
     translate.setDefaultLang('en');
     update.getRecentRelease().then(async info => {
@@ -32,6 +33,7 @@ export class AppComponent {
         await this.notifyUpdate(info, remoteVer);
       }
     });
+    deviceManager.load();
   }
 
   private async notifyUpdate(info: Release, version: SemVer): Promise<void> {

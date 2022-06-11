@@ -1,5 +1,5 @@
 import {Injectable, NgZone} from '@angular/core';
-import {Observable, ReplaySubject, Subject} from 'rxjs';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {PackageInfo} from '../../../../../main/types';
 import {IpcClient} from "./ipc-client";
 
@@ -66,7 +66,7 @@ export class AppManagerService extends IpcClient {
   private obtainSubject(device: string): Subject<PackageInfo[]> {
     let subject = this.packagesSubjects.get(device);
     if (!subject) {
-      subject = new ReplaySubject(1);
+      subject = new BehaviorSubject<PackageInfo[]>([]);
       this.packagesSubjects.set(device, subject);
     }
     return subject;

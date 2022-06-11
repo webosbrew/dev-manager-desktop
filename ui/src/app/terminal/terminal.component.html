@@ -10,7 +10,7 @@
       </ng-template>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href (click)="newTab()">+</a>
+      <a class="nav-link" href (click)="newTab(); $event.preventDefault()">+</a>
     </li>
   </ul>
 

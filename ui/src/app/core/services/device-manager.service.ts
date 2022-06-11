@@ -1,5 +1,5 @@
 import {Injectable, NgZone} from "@angular/core";
-import {BehaviorSubject, Observable, ReplaySubject, Subject} from "rxjs";
+import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Device, DeviceEditSpec, DevicePrivateKey, SessionToken, Shell, SystemInfo} from '../../../../../main/types';
 import {IpcClient} from "./ipc-client";
 import {IpcFileSession} from "./file.session";
@@ -21,9 +21,6 @@ export class DeviceManagerService extends IpcClient {
     this.shellsSubject = new BehaviorSubject<SessionToken[]>([]);
     this.on('devicesUpdated', (devices: Device[]) => this.onDevicesUpdated(devices));
     this.on('shellsUpdated', (shells: SessionToken[]) => this.shellsSubject.next(shells));
-    this.load();
-    this.callDirectly<SessionToken[]>('shell-session', 'list')
-      .then(shells => this.shellsSubject.next(shells));
   }
 
   get devices$(): Observable<Device[]> {
@@ -40,6 +37,8 @@ export class DeviceManagerService extends IpcClient {
 
   load(): void {
     this.list().then(devices => this.onDevicesUpdated(devices));
+    this.callDirectly<SessionToken[]>('shell-session', 'list')
+      .then(shells => this.shellsSubject.next(shells));
   }
 
   async list(): Promise<Device[]> {
@@ -140,7 +139,7 @@ export class CrashReport {
   constructor(public device: string, public path: string) {
     this.path = path;
     this.name = path.substring(path.lastIndexOf('/') + 1);
-    this.subject = new ReplaySubject(1);
+    this.subject = new BehaviorSubject<string>('');
     this.content = this.subject.asObservable();
   }
 

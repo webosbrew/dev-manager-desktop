@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from '../core/services';
-import {firstValueFrom, Subscription} from "rxjs";
+import {firstValueFrom, lastValueFrom, Subscription} from "rxjs";
 import {Device, SessionToken} from "../../../../main/types";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
