@@ -1,8 +1,7 @@
 import {Device, promises} from '@webosbrew/ares-lib';
 import AsyncLock from 'async-lock';
 import {ProtocolRequest, ProtocolResponse} from "electron";
-import {Client, ClientChannel, ConnectConfig} from 'ssh2';
-import util from 'util';
+import {Client, ClientChannel, ConnectConfig, ExecOptions} from 'ssh2';
 import Resolver = promises.Resolver;
 
 
@@ -13,8 +12,13 @@ export function AresPullProtoHandler(request: ProtocolRequest, callback: ((respo
   lock.acquire(url.hostname, async (done) => {
     try {
       const ssh = await obtainSession(url.hostname);
-      const exec = util.promisify(Client.prototype.exec).bind(ssh);
-      const channel: ClientChannel = await exec(`cat ${url.pathname}`, {pty: false});
+
+      const exec = (command: string, options: ExecOptions): Promise<ClientChannel> => new Promise<ClientChannel>(
+        (resolve, reject) => ssh.exec(command, options, (err, channel) => {
+          err ? reject(err) : resolve(channel);
+        }));
+
+      const channel: ClientChannel = await exec(`cat ${url.pathname}`, {pty: undefined});
       const buffers: Buffer[] = [];
       channel.on('data', (data: Buffer) => {
         buffers.push(data);
@@ -25,7 +29,7 @@ export function AresPullProtoHandler(request: ProtocolRequest, callback: ((respo
     } catch (e) {
       done(e, null);
     }
-  }).then((buffer) => callback(buffer), (reason) => {
+  }).then((buffer: Buffer | Electron.ProtocolResponse) => callback(buffer), (reason) => {
     console.log(reason);
     callback(null);
   });
