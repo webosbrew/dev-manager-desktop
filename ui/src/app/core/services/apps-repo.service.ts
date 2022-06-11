@@ -102,7 +102,6 @@ export class RepositoryPage {
   packages: RepositoryItem[];
 
   constructor(data: Partial<RepositoryPage>) {
-    console.log(data);
     this.paging = data.paging!;
     this.packages = data.packages?.map((item) => new RepositoryItem(item)) ?? [];
   }

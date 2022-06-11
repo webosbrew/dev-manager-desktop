@@ -12,7 +12,7 @@
       <div class="col-md-4">
         <label for="devicePort">Port Number</label>
         <input type="number" class="form-control" id="devicePort" formControlName="port" step="1" min="0" max="65535"
-          required>
+               required>
       </div>
       <div class="col-md-6">
         <label for="sshUsername">SSH Username</label>
@@ -23,35 +23,38 @@
         <select class="form-control" id="authMethod" formControlName="sshAuth" required>
           <option value="" selected disabled>Choose Authentication Method</option>
           <option value="password">Password</option>
-          <option value="devKey">Private Key on TV</option>
+          <option value="devKey">Official Dev Mode</option>
           <option value="localKey">Local Private Key</option>
         </select>
       </div>
-      <div class="col-md-12" [hidden]="sshAuth != 'password'">
+      <div class="col-md-12" [hidden]="sshAuth !== 'password'">
         <label for="sshPassword">SSH Password</label>
         <input type="password" class="form-control" id="sshPassword" formControlName="sshPassword"
-          [required]="sshAuth == 'password'">
+               [required]="sshAuth === 'password'">
       </div>
-      <div class="col-md-6" [hidden]="sshAuth != 'localKey'">
+      <div class="col-md-6" [hidden]="sshAuth !== 'localKey'">
         <label for="sshPrivkey">Private Key Name</label>
         <input type="text" class="form-control" id="sshPrivkey" formControlName="sshPrivkey"
-          [required]="sshAuth == 'localKey'">
+               [required]="sshAuth === 'localKey'">
       </div>
-      <div class="col-md-6" [hidden]="sshAuth != 'devKey' && sshAuth != 'localKey'">
+      <div class="col-md-6" [hidden]="sshAuth !== 'devKey' && sshAuth !== 'localKey'">
         <label for="sshPrivkeyPassphrase">Passphrase</label>
         <input type="text" class="form-control" id="sshPrivkeyPassphrase" formControlName="sshPrivkeyPassphrase"
-          [required]="sshAuth == 'devKey'">
+               [required]="sshAuth === 'devKey'">
       </div>
       <div class="col-md-12">
         <label for="deviceDescription">Description</label>
-        <textarea class="form-control" id="deviceDescription" formControlName="description" maxlength="100"></textarea>
+        <textarea class="form-control" id="deviceDescription" formControlName="description" maxlength="100"
+                  placeholder="Optional description for the device">
+        </textarea>
       </div>
     </div>
   </form>
 </div>
 
 <div class="modal-footer">
-  <a class="btn btn-outline-primary me-auto" href="https://webostv.developer.lge.com/develop/app-test/using-devmode-app/">Help</a>
+  <a class="btn btn-outline-primary me-auto"
+     href="https://webostv.developer.lge.com/develop/app-test/using-devmode-app/">Help</a>
   <button class="btn btn-light" (click)="modal.dismiss('cancelled')">Close</button>
   <button class="btn btn-primary" [disabled]="!formGroup.valid" (click)="addDevice()">Add</button>
 </div>
