@@ -27,7 +27,7 @@ export class AppManagerService extends IpcClient {
   }
 
   async list(device: string): Promise<PackageInfo[]> {
-    return this.call<PackageInfo[]>('list', device).then(pkgs => pkgs.map(pkg => new PackageInfoImpl(pkg)));
+    return this.call<PackageInfo[]>('list', device);
   }
 
   async info(device: string, id: string): Promise<PackageInfo | null> {
@@ -72,23 +72,4 @@ export class AppManagerService extends IpcClient {
     return subject;
   }
 
-}
-
-export class PackageInfoImpl implements PackageInfo {
-  id: string = '';
-  type: string = '';
-  title: string = '';
-  appDescription?: string;
-  vendor: string = '';
-  version: string = '';
-  folderPath: string = '';
-  icon: string = '';
-
-  constructor(info: Partial<PackageInfo>) {
-    Object.assign(this, info);
-  }
-
-  get iconPath(): string {
-    return `${this.folderPath}/${this.icon}`;
-  }
 }

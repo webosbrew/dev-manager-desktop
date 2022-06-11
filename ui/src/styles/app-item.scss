@@ -1,6 +1,6 @@
-tr.app-item {
+li.app-item {
 
-  td.app-desc {
+  .app-desc {
     display: flex;
     flex-flow: row;
     min-height: 60px;
@@ -21,7 +21,8 @@ tr.app-item {
         font-weight: bold;
         font-size: larger;
       }
-      .app-descrption {
+
+      .app-description {
       }
     }
   }

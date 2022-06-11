@@ -28,6 +28,7 @@
     "marked": "^4.0.16",
     "moment": "^2.29.3",
     "moment-duration-format": "^2.3.2",
+    "ng-let": "^13.0.6",
     "ngx-filesize": "^2.0.16",
     "path-browserify": "^1.0.1",
     "rxjs": "~7.5.0",

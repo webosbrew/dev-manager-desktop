@@ -19,7 +19,7 @@ export class AppsComponent implements OnInit, OnDestroy {
   instPackages?: Map<string, PackageInfo>;
   repoPackages?: Map<string, RepositoryItem>;
   device: Device | null = null;
-  packagesError: any;
+  packagesError: Error | null = null;
 
   private deviceSubscription?: Subscription;
   private packagesSubscription?: Subscription;

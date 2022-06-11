@@ -29,6 +29,7 @@ import {AttrsPermissionsPipe} from './shared/pipes/attrs-permissions.pipe';
 import {NgxFilesizeModule} from 'ngx-filesize';
 import {NgxDatatableModule} from '@swimlane/ngx-datatable';
 import {TabComponent} from './home/terminal/tab/tab.component';
+import {NgLetModule} from "ng-let";
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -66,6 +67,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     ReactiveFormsModule,
     NgbModule,
     NgxDatatableModule,
+    NgLetModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
