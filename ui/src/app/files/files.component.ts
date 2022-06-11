@@ -4,7 +4,6 @@ import {Device, FileItem, FileSession} from "../../../../main/types";
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
-import {ContextmenuType, SelectionType, SortType, TableColumn} from "@swimlane/ngx-datatable";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
 import {dialog, shell} from '@electron/remote';
 import path from "path";
@@ -19,10 +18,7 @@ export class FilesComponent implements OnInit {
   pwd: string | null = null;
   files$: Observable<FileItem[]>;
   sizeOptions = {base: 2, standard: "jedec"};
-  columns: TableColumn[] = [{prop: 'filename', name: 'Name'}];
   selectedItems: FileItem[] | null = null;
-  SortType = SortType;
-  SelectionType = SelectionType;
   private filesSubject: Subject<FileItem[]>;
 
   constructor(
@@ -97,13 +93,17 @@ export class FilesComponent implements OnInit {
     if (!this.pwd) return;
     switch (file.type) {
       case 'd': {
-        await this.cd(path.join(this.pwd, file.filename), true);
+        await this.cd(path.posix.join(this.pwd, file.filename), true);
         break;
       }
       case '-': {
         return await this.openFile(file);
       }
     }
+  }
+
+  selectItem(file: FileItem): void {
+    this.selectedItems = [file];
   }
 
   private async openFile(file: FileItem) {
@@ -248,22 +248,7 @@ export class FilesComponent implements OnInit {
 
   async breadcrumbNav(segs: string[]): Promise<void> {
     segs[0] = '/';
-    await this.cd(path.join(...segs), true);
-  }
-
-  async itemActivated(file: FileItem, type: string): Promise<void> {
-    switch (type) {
-      case 'dblclick':
-        return this.openItem(file);
-    }
-  }
-
-  itemSelected(selected: FileItem[]): void {
-    this.selectedItems = selected;
-  }
-
-  itemContextMenu(event: MouseEvent, type: ContextmenuType, content: any): void {
-    if (type != ContextmenuType.body) return;
+    await this.cd(path.posix.join(...segs), true);
   }
 
 }
