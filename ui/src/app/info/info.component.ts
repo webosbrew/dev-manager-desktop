@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import {Observable, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Device, PackageInfo, SystemInfo} from '../../../../../main/types';
+import {Device, PackageInfo, SystemInfo} from '../../../../main/types';
 import {
   AppManagerService,
   AppsRepoService,
@@ -12,8 +12,8 @@ import {
   DevModeResponse,
   DevModeService,
   RepositoryItem,
-} from '../../core/services';
-import {ProgressDialogComponent} from '../../shared/components/progress-dialog/progress-dialog.component';
+} from '../core/services';
+import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {CrashesComponent} from './crashes/crashes.component';
 import {RenewScriptComponent} from './renew-script/renew-script.component';
 

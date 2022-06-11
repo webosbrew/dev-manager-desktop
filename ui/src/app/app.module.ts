@@ -3,7 +3,6 @@ import {NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 // NG Translate
 import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
 import {TranslateHttpLoader} from '@ngx-translate/http-loader';
@@ -14,14 +13,12 @@ import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {CoreModule} from './core/core.module';
 import {HomeComponent} from './home/home.component';
-import {CrashesComponent} from './home/info/crashes/crashes.component';
-import {InfoComponent} from './home/info/info.component';
-import {RenewScriptComponent} from './home/info/renew-script/renew-script.component';
+import {CrashesComponent} from './info/crashes/crashes.component';
+import {RenewScriptComponent} from './info/renew-script/renew-script.component';
 import {ExternalLinkDirective} from './shared/directives';
 import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
-
-import {NgLetModule} from "ng-let";
+import {NgbAccordionModule, NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -33,7 +30,6 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppComponent,
     HomeComponent,
     AddDeviceComponent,
-    InfoComponent,
     KeyserverHintComponent,
     ExternalLinkDirective,
     ConnHintComponent,
@@ -50,15 +46,15 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     SharedModule,
     AppRoutingModule,
     ReactiveFormsModule,
-    NgbModule,
-    NgLetModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
         useFactory: HttpLoaderFactory,
         deps: [HttpClient]
       }
-    })
+    }),
+    NgbNavModule,
+    NgbAccordionModule
   ],
   providers: [],
   bootstrap: [AppComponent]
