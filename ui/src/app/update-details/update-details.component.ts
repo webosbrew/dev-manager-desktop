@@ -1,6 +1,6 @@
 import {Component, Inject, SecurityContext} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
-import {marked} from 'marked';
+import marked from 'marked';
 import {Release} from '../core/services';
 
 @Component({
@@ -13,7 +13,7 @@ export class UpdateDetailsComponent {
   public bodyHtml: string;
 
   constructor(@Inject('release') public release: Release, sanitizer: DomSanitizer) {
-    this.bodyHtml = sanitizer.sanitize(SecurityContext.HTML, marked(release.body)) || 'No description.';
+    this.bodyHtml = sanitizer.sanitize(SecurityContext.HTML, marked.marked(release.body)) || 'No description.';
   }
 
 }
