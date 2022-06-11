@@ -23,7 +23,10 @@
     "build:main": "tsc",
     "build:ui": "cd ui && npm run build",
     "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "lint": "npm-run-all lint:*",
+    "lint:main": "eslint",
+    "lint:ui": "cd ui && npm run lint"
   },
   "dependencies": {
     "@electron/remote": "2.0.1",
@@ -42,9 +45,6 @@
     "xterm-headless": "4.15.0"
   },
   "devDependencies": {
-    "@angular-eslint/eslint-plugin": "13.3.0",
-    "@angular-eslint/eslint-plugin-template": "13.3.0",
-    "@angular-eslint/template-parser": "13.3.0",
     "@types/ssh2": "0.5.52",
     "@types/uuid": "8.3.4",
     "@typescript-eslint/eslint-plugin": "5.27.1",

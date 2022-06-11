@@ -1,4 +1,4 @@
-import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import 'moment-duration-format';
@@ -22,7 +22,7 @@ import {RenewScriptComponent} from './renew-script/renew-script.component';
   templateUrl: './info.component.html',
   styleUrls: ['./info.component.scss']
 })
-export class InfoComponent implements OnInit, OnDestroy {
+export class InfoComponent {
   device: Device | null = null;
   osInfo: SystemInfo | null = null;
   devModeInfo: DevModeResponse | null = null;
@@ -43,13 +43,6 @@ export class InfoComponent implements OnInit, OnDestroy {
       this.device = selected;
       this.loadInfo();
     });
-  }
-
-  ngOnInit(): void {
-  }
-
-  ngOnDestroy(): void {
-
   }
 
   loadInfo(): void {

@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {TranslateService} from '@ngx-translate/core';
@@ -12,7 +12,7 @@ import {MessageDialogComponent} from '../shared/components/message-dialog/messag
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent {
 
   selectedDevice?: Device;
 
@@ -27,14 +27,11 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-  }
-
   async removeDevice(name: string): Promise<void> {
     try {
       const ref = MessageDialogComponent.open(this.modalService, {
         title: this.translate.instant('MESSAGES.TITLE_REMOVE_DEVICE'),
-        message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_DEVICE', { name }),
+        message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_DEVICE', {name}),
         positive: this.translate.instant('ACTIONS.REMOVE'),
         positiveStyle: 'danger',
         negative: this.translate.instant('ACTIONS.CANCEL')
@@ -55,6 +52,6 @@ export class HomeComponent implements OnInit {
   }
 
   openSetupDevice(): void {
-    this.modalService.open(AddDeviceComponent, { size: 'lg', centered: true, scrollable: true });
+    this.modalService.open(AddDeviceComponent, {size: 'lg', centered: true, scrollable: true});
   }
 }

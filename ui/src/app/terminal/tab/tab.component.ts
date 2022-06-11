@@ -24,7 +24,7 @@ import {DeviceManagerService} from "../../core/services";
 })
 export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @Input('token')
+  @Input()
   public token: SessionToken | null = null;
 
   @ViewChild('termwin')

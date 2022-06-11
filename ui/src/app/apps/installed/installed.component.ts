@@ -1,5 +1,4 @@
-import {Component, Host, OnInit} from '@angular/core';
-import {AppsRepoService, RepositoryItem} from '../../core/services';
+import {Component, Host} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 
 @Component({
@@ -7,15 +6,9 @@ import {AppsComponent} from '../apps.component';
   templateUrl: './installed.component.html',
   styleUrls: ['./installed.component.scss']
 })
-export class InstalledComponent implements OnInit {
+export class InstalledComponent {
 
-  constructor(
-    @Host() public parent: AppsComponent,
-    private appsRepo: AppsRepoService
-  ) {
-  }
-
-  ngOnInit(): void {
+  constructor(@Host() public parent: AppsComponent) {
   }
 
 }

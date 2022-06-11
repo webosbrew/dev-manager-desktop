@@ -1,7 +1,7 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from "../core/services";
 import {Device, FileItem, FileSession} from "../../../../main/types";
-import {BehaviorSubject, Observable, Subject} from "rxjs";
+import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
@@ -13,7 +13,7 @@ import path from "path";
   templateUrl: './files.component.html',
   styleUrls: ['./files.component.scss']
 })
-export class FilesComponent implements OnInit {
+export class FilesComponent implements OnInit, OnDestroy {
   device: Device | null = null;
   pwd: string | null = null;
   files$: Observable<FileItem[]>;
@@ -21,19 +21,25 @@ export class FilesComponent implements OnInit {
   selectedItems: FileItem[] | null = null;
   private filesSubject: Subject<FileItem[]>;
 
+  private subscription?: Subscription;
+
   constructor(
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
   ) {
-    deviceManager.selected$.subscribe((selected) => {
-      this.device = selected;
-      this.cd('/media/developer', true);
-    });
     this.filesSubject = new BehaviorSubject<FileItem[]>([]);
     this.files$ = this.filesSubject.asObservable();
   }
 
   ngOnInit(): void {
+    this.subscription = this.deviceManager.selected$.subscribe((selected) => {
+      this.device = selected;
+      this.cd('/media/developer', true);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
   }
 
   get hasSelection(): boolean {

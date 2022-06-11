@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
@@ -6,12 +6,9 @@ import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './progress-dialog.component.html',
   styleUrls: ['./progress-dialog.component.scss']
 })
-export class ProgressDialogComponent implements OnInit {
+export class ProgressDialogComponent {
 
   constructor() {
-  }
-
-  ngOnInit(): void {
   }
 
   static open(service: NgbModal): NgbModalRef {

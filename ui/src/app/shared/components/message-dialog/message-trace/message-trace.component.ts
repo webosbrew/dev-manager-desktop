@@ -1,20 +1,17 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'app-message-trace',
   templateUrl: './message-trace.component.html',
   styleUrls: ['./message-trace.component.scss']
 })
-export class MessageTraceComponent implements OnInit {
+export class MessageTraceComponent {
 
   message: string = '';
   error: any;
   detailsExpanded: boolean = false;
 
   constructor() {
-  }
-
-  ngOnInit(): void {
   }
 
 }

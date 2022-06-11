@@ -3,7 +3,6 @@ import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {TranslateModule} from '@ngx-translate/core';
 import {PageNotFoundComponent} from './components/page-not-found/page-not-found.component';
-import {WebviewDirective} from './directives/';
 import {AresPullUriPipe} from './pipes/ares-pull-uri.pipe';
 import {MessageDialogComponent} from './components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from './components/progress-dialog/progress-dialog.component';
@@ -13,14 +12,13 @@ import {MessageTraceComponent} from './components/message-dialog/message-trace/m
 @NgModule({
   declarations: [
     PageNotFoundComponent,
-    WebviewDirective,
     AresPullUriPipe,
     MessageDialogComponent,
     ProgressDialogComponent,
     MessageTraceComponent,
   ],
   imports: [CommonModule, TranslateModule, FormsModule, NgbModule],
-  exports: [TranslateModule, WebviewDirective, FormsModule, AresPullUriPipe]
+  exports: [TranslateModule, FormsModule, AresPullUriPipe]
 })
 export class SharedModule {
 }

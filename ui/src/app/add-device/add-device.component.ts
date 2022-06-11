@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {TranslateService} from '@ngx-translate/core';
@@ -17,7 +17,7 @@ import {ConnHintComponent} from './conn-hint/conn-hint.component';
   templateUrl: './add-device.component.html',
   styleUrls: ['./add-device.component.scss']
 })
-export class AddDeviceComponent implements OnInit {
+export class AddDeviceComponent {
 
   formGroup: FormGroup;
 
@@ -40,9 +40,6 @@ export class AddDeviceComponent implements OnInit {
       sshPrivkey: [],
       sshPrivkeyPassphrase: [''],
     });
-  }
-
-  ngOnInit(): void {
   }
 
   get sshAuth(): string | null {

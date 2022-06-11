@@ -2,6 +2,7 @@ import {Directive, HostListener, Input} from '@angular/core';
 import {shell} from "@electron/remote";
 
 @Directive({
+  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: 'a[href]'
 })
 export class ExternalLinkDirective {

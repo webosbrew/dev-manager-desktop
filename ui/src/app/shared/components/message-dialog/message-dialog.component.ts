@@ -2,24 +2,21 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ComponentFactoryResolver,
   Inject,
   Injector,
-  OnInit,
-  ReflectiveInjector,
   StaticProvider,
   Type,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import {NgbModal, NgbModalRef, NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
+import {NgbActiveModal, NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-message-dialog',
   templateUrl: './message-dialog.component.html',
   styleUrls: ['./message-dialog.component.scss']
 })
-export class MessageDialogComponent implements OnInit, AfterViewInit, MessageDialogConfig {
+export class MessageDialogComponent implements AfterViewInit, MessageDialogConfig {
   title: string = '';
   message: string | Type<any> = '';
   positive: string = '';
@@ -33,14 +30,10 @@ export class MessageDialogComponent implements OnInit, AfterViewInit, MessageDia
 
   constructor(
     public modal: NgbActiveModal,
-    private componentFactoryResolver: ComponentFactoryResolver,
     private changeDetector: ChangeDetectorRef,
     @Inject('config') config: MessageDialogConfig
   ) {
     Object.assign(this, config);
-  }
-
-  ngOnInit(): void {
   }
 
   ngAfterViewInit(): void {
