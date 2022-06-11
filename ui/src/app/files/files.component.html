@@ -1,16 +1,18 @@
 <div class="w-100 h-100 d-flex flex-column overflow-hidden">
   <div class="manager-toolbar navbar navbar-light bg-light">
-    <form class="form-inline ms-auto me-2">
-      <button class="btn btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)">
+    <div class="ms-auto me-2">
+      <button class="btn btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)"
+              ngbTooltip="Delete">
         <i class="bi bi-trash"></i>
       </button>
-      <button class="btn btn-primary ms-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)">
+      <button class="btn btn-primary ms-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)"
+              ngbTooltip="Download">
         <i class="bi bi-download"></i>
       </button>
-      <button class="btn btn-primary ms-2" (click)="uploadFiles()">
+      <button class="btn btn-primary ms-2" (click)="uploadFiles()" ngbTooltip="Upload">
         <i class="bi bi-upload"></i>
       </button>
-    </form>
+    </div>
   </div>
   <div class="flex-fill overflow-auto">
     <table class="table table-responsive table-hover">

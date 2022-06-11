@@ -5,6 +5,7 @@ import {FilesRoutingModule} from './files-routing.module';
 import {NgxFilesizeModule} from "ngx-filesize";
 import {FilesComponent} from "./files.component";
 import {AttrsPermissionsPipe} from "./attrs-permissions.pipe";
+import {NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
 
 
 @NgModule({
@@ -16,6 +17,7 @@ import {AttrsPermissionsPipe} from "./attrs-permissions.pipe";
     CommonModule,
     FilesRoutingModule,
     NgxFilesizeModule,
+    NgbTooltipModule,
   ]
 })
 export class FilesModule {
