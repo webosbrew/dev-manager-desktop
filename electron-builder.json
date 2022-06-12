@@ -3,6 +3,7 @@
   "directories": {
     "output": "release/"
   },
+  "publish": null,
   "files": [
     "package.json",
     "index.js",
