@@ -1,5 +1,5 @@
 <div class="w-100 h-100 d-flex flex-column">
-  <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0" [animation]="false" [(activeId)]="currentShell">
+  <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0 mt-2 px-2" [animation]="false" [(activeId)]="currentShell">
     <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.key" [destroyOnHide]="false">
       <a ngbNavLink href>
         {{shell.device.name}}

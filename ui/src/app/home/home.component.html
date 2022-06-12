@@ -1,6 +1,6 @@
 <div class="container-fluid">
   <div class="row">
-    <nav class="col-md-3 d-none d-md-block bg-light sidebar">
+    <nav class="col-md-3 d-none d-md-block bg-panel sidebar border-right">
       <div class="sidebar-sticky">
         <select class="form-control" (change)="markDefault($any($event.target).value)">
           <option *ngFor="let device of (deviceManager.devices$ | async)" [selected]="device.default"
@@ -9,7 +9,7 @@
           </option>
         </select>
 
-        <ul class="nav flex-column mt-2">
+        <ul class="nav nav-pills flex-column mt-2">
           <li class="nav-item">
             <a class="nav-link" routerLink="apps" routerLinkActive="active">
               <i class="bi bi-tv-fill me-1"></i>

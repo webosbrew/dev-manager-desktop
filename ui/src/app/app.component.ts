@@ -7,6 +7,7 @@ import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {MessageDialogComponent} from './shared/components/message-dialog/message-dialog.component';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {shell} from "@electron/remote";
+import {ThemeService} from "ng-bootstrap-darkmode";
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,7 @@ export class AppComponent {
     private update: UpdateService,
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
+    private themeService: ThemeService
   ) {
     translate.setDefaultLang('en');
     update.getRecentRelease().then(async info => {
@@ -34,6 +36,7 @@ export class AppComponent {
       }
     });
     deviceManager.load();
+    themeService.theme = 'auto';
   }
 
   private async notifyUpdate(info: Release, version: SemVer): Promise<void> {

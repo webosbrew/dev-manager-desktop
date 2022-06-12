@@ -5,7 +5,7 @@ import {AppsRoutingModule} from './apps-routing.module';
 import {AppsComponent} from "./apps.component";
 import {ChannelComponent} from "./channel/channel.component";
 import {InstalledComponent} from "./installed/installed.component";
-import {NgbNavModule, NgbPaginationModule} from "@ng-bootstrap/ng-bootstrap";
+import {NgbDropdownModule, NgbNavModule, NgbPaginationModule} from "@ng-bootstrap/ng-bootstrap";
 import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 import {HttpClient} from "@angular/common/http";
 import {HttpLoaderFactory} from "../app.module";
@@ -33,6 +33,7 @@ import {NgLetModule} from "ng-let";
         deps: [HttpClient]
       }
     }),
+    NgbDropdownModule,
   ]
 })
 export class AppsModule {

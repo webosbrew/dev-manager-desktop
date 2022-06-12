@@ -15,6 +15,7 @@ import {MessageDialogComponent} from '../shared/components/message-dialog/messag
 export class HomeComponent {
 
   selectedDevice?: Device;
+  activeItem: string = 'apps';
 
   constructor(
     public deviceManager: DeviceManagerService,

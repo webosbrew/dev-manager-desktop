@@ -16,7 +16,7 @@
             </li>
             <li>Select <strong>Webhooks</strong> as action.</li>
             <li>Use <strong>URL below</strong>:
-              <div class="overflow-auto bg-light p-2">
+              <div class="overflow-auto bg-panel p-2">
                 <code
                   class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{devModeToken$ | async}}</code>
               </div>
@@ -35,7 +35,7 @@
         <ng-template ngbNavContent>
           <p>Following is a shell script. It can be executed anywhere in your local area network.</p>
           <div class="position-relative">
-            <pre class="pre-scrollable bg-light p-3" #renewScript><![CDATA[#!/bin/sh]]>
+            <pre class="pre-scrollable bg-panel p-3" #renewScript><![CDATA[#!/bin/sh]]>
 <ng-container><![CDATA[
 cat > /tmp/webos_privkey_{{device.name}} << END_OF_PRIVKEY
 {{decryptedPrivKey}}

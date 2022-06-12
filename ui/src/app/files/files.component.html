@@ -1,5 +1,5 @@
 <div class="w-100 h-100 d-flex flex-column overflow-hidden">
-  <div class="manager-toolbar navbar navbar-light bg-light">
+  <div class="manager-toolbar navbar navbar-light bg-panel border-bottom">
     <div class="ms-auto me-2">
       <button class="btn btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)"
               ngbTooltip="Delete">
@@ -14,8 +14,8 @@
       </button>
     </div>
   </div>
-  <div class="flex-fill overflow-auto">
-    <table class="table table-responsive table-hover">
+  <div class="flex-fill table-responsive">
+    <table class="table table-hover">
       <thead>
       <tr>
         <th>Name</th>
@@ -25,7 +25,7 @@
         <th>Owner</th>
       </tr>
       </thead>
-      <tbody>
+      <tbody class="border-top-0">
       <tr *ngFor="let file of (files$ | async)" (dblclick)="openItem(file)" (click)="selectItem(file)"
           [class.table-active]="selectedItems && selectedItems.includes(file)">
         <td class="text-nowrap">
@@ -45,21 +45,21 @@
             {{file.link.target}}
           </span>
         </td>
-        <td>
+        <td class="text-nowrap">
           <span *ngIf="file.attrs">{{file.attrs.mtime * 1000 | date:'short'}}</span>
         </td>
-        <td>
+        <td class="text-nowrap">
           <span *ngIf="file.attrs && file.type === '-'; else nonRegular">
             {{file.attrs.size | filesize:sizeOptions}}
           </span>
           <ng-template #nonRegular>-</ng-template>
         </td>
-        <td>
+        <td class="text-nowrap">
           <span *ngIf="file.attrs as attrs">
             {{file.type}}{{attrs.mode | attrsPermissions}}
           </span>
         </td>
-        <td>
+        <td class="text-nowrap">
           <span *ngIf="file.attrs as attrs">
             {{attrs.uid}}:{{attrs.gid}}
           </span>

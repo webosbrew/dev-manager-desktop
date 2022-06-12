@@ -19,6 +19,8 @@ import {ExternalLinkDirective} from './shared/directives';
 import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {NgbAccordionModule, NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
+import {NgBootstrapDarkmodeModule, THEME_LOADER} from "ng-bootstrap-darkmode";
+import {of} from "rxjs";
 
 // AoT requires an exported function for factories
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
@@ -44,8 +46,8 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     HttpClientModule,
     CoreModule,
     SharedModule,
-    AppRoutingModule,
     ReactiveFormsModule,
+    AppRoutingModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -53,10 +55,12 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
         deps: [HttpClient]
       }
     }),
+    NgBootstrapDarkmodeModule,
     NgbNavModule,
     NgbAccordionModule
   ],
-  providers: [],
+  providers: [
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {
