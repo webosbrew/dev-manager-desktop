@@ -49,6 +49,8 @@ jobs:
         name: Dev Manager ${{ steps.tagName.outputs.tag }}
         allowUpdates: true
         omitNameDuringUpdate: true
+        omitBodyDuringUpdate: true
+        omitPrereleaseDuringUpdate: true
         artifacts: release/*.exe
 
     - name: Create Release (Linux)
@@ -60,6 +62,8 @@ jobs:
         name: Dev Manager ${{ steps.tagName.outputs.tag }}
         allowUpdates: true
         omitNameDuringUpdate: true
+        omitBodyDuringUpdate: true
+        omitPrereleaseDuringUpdate: true
         artifacts: release/*.AppImage
 
     - name: Create Release (macOS)
@@ -71,4 +75,6 @@ jobs:
         name: Dev Manager ${{ steps.tagName.outputs.tag }}
         allowUpdates: true
         omitNameDuringUpdate: true
+        omitBodyDuringUpdate: true
+        omitPrereleaseDuringUpdate: true
         artifacts: release/*.dmg

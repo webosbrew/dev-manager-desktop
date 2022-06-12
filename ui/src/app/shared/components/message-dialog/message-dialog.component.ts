@@ -43,7 +43,7 @@ export class MessageDialogComponent implements AfterViewInit, MessageDialogConfi
       if (this.messageExtras) {
         providers = Object.getOwnPropertyNames(this.messageExtras).map(name => ({
           provide: name,
-          useValue: this.messageExtras ?? [name]
+          useValue: this.messageExtras && this.messageExtras[name]
         }));
       }
       this.messageComponent?.createComponent(this.message, {injector: Injector.create({providers})});
