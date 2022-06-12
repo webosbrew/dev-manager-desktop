@@ -1,21 +1,15 @@
-# This is a basic workflow to help you get started with Actions
 name: 'Release'
 
 on:
-  push:
-    branches:
-      - '!*'
-    tags:
-      - 'v*.*.*'
+  release:
+    types: [created]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
 
-    # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -53,8 +47,8 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: Dev Manager ${{ steps.tagName.outputs.tag }}
-        prerelease: true
         allowUpdates: true
+        omitNameDuringUpdate: true
         artifacts: release/*.exe
 
     - name: Create Release (Linux)
@@ -64,8 +58,8 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: Dev Manager ${{ steps.tagName.outputs.tag }}
-        prerelease: true
         allowUpdates: true
+        omitNameDuringUpdate: true
         artifacts: release/*.AppImage
 
     - name: Create Release (macOS)
@@ -75,6 +69,6 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: Dev Manager ${{ steps.tagName.outputs.tag }}
-        prerelease: true
         allowUpdates: true
+        omitNameDuringUpdate: true
         artifacts: release/*.dmg
