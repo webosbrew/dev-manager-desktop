@@ -97,7 +97,7 @@ export class NovacomFileSession extends AbsFileSession {
         };
       })));
     `;
-    return this.runNodeCode(script, location).then(output => JSON.parse(output).map((partial: Partial<FileItem>) => ({
+    return this.runNodeCode(script, location).then(output => JSON.parse(output).map((partial) => ({
       ...partial,
       type: getFileType(partial.attrs)
     })));
@@ -143,7 +143,7 @@ export class NovacomFileSession extends AbsFileSession {
   }
 
   private async runNodeCode(script: string, ...args: string[]): Promise<string> {
-    const minified = (await minify(script)).code;
+    const minified = (await minify(script)).code!;
     const argstxt = args.map(arg => `'${arg.replace(/'/g, `'\\''`)}'`).join(' ');
     return DeviceManagerBackend.runAndGetOutput(this.session, `xargs -I {} node -e {} ${argstxt}`, stream.Readable.from(minified));
   }
@@ -158,7 +158,7 @@ export class SFTPSession extends AbsFileSession {
   public readdir(location: string): Promise<FileEntry[]> {
     return new Promise<FileEntry[]>((resolve, reject) => {
       this.sftp.readdir(location, (err, list) => {
-        if (err) {
+        if (err != null) {
           reject(err);
         } else {
           resolve(list);
@@ -183,7 +183,7 @@ export class SFTPSession extends AbsFileSession {
 
   public readlink(path: string): Promise<string> {
     return new Promise<string>((resolve, reject) => this.sftp.readlink(path, (err, target) => {
-      if (err) {
+      if (err != null) {
         reject(err);
       } else {
         resolve(target);
@@ -193,7 +193,7 @@ export class SFTPSession extends AbsFileSession {
 
   public stat(path: string): Promise<Stats> {
     return new Promise<Stats>((resolve, reject) => this.sftp.stat(path, (err, stats) => {
-      if (err) {
+      if (err != null) {
         reject(err);
       } else {
         resolve(stats);
@@ -215,7 +215,7 @@ export class SFTPSession extends AbsFileSession {
 
   public async get(remotePath: string, localPath: string): Promise<void> {
     return new Promise((resolve, reject) => this.sftp.fastGet(remotePath, localPath, (err) => {
-      if (err) {
+      if (err != null) {
         reject(err);
       } else {
         resolve();
@@ -225,7 +225,7 @@ export class SFTPSession extends AbsFileSession {
 
   public async put(localPath: string, remotePath: string): Promise<void> {
     return new Promise((resolve, reject) => this.sftp.fastPut(localPath, remotePath, (err) => {
-      if (err) {
+      if (err != null) {
         reject(err);
       } else {
         resolve();
@@ -241,7 +241,7 @@ export class SFTPSession extends AbsFileSession {
 
   private unlink(path: string): Promise<void> {
     return new Promise((resolve, reject) => this.sftp.unlink(path, (err) => {
-      if (err) {
+      if (err != null) {
         reject(err);
       } else {
         resolve();

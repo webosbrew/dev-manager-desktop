@@ -30,16 +30,17 @@ export function AresPullProtoHandler(request: ProtocolRequest, callback: ((respo
       done(e, null);
     }
   }).then((buffer: Buffer | Electron.ProtocolResponse) => callback(buffer), (reason) => {
-    console.log(reason);
-    callback(null);
+    console.error(reason);
+    callback({error: -1});
   });
 }
 
 const sessions: Map<string, Client> = new Map();
 
 async function obtainSession(target: string): Promise<Client> {
-  if (sessions.has(target)) {
-    return Promise.resolve(sessions.get(target));
+  const existing = sessions.get(target);
+  if (existing) {
+    return Promise.resolve(existing);
   }
   const resolver = new Resolver();
   await resolver.load();

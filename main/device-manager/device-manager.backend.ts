@@ -12,6 +12,7 @@ import Resolver = promises.Resolver;
 import CliAppData = promises.CliAppData;
 import Session = promises.Session;
 import Luna = promises.Luna;
+import axios from "axios";
 
 
 export class DeviceManagerBackend extends IpcBackend {
@@ -30,7 +31,7 @@ export class DeviceManagerBackend extends IpcBackend {
   async addDevice(spec: DeviceEditSpec): Promise<Device> {
     return this.modifyDeviceFile('add', spec).then(devices => {
       this.onDevicesUpdated(devices);
-      return devices.find((device) => spec.name == device.name);
+      return devices.find((device) => spec.name == device.name)!;
     });
   }
 
@@ -39,7 +40,7 @@ export class DeviceManagerBackend extends IpcBackend {
     const target = {name, ...spec};
     return this.modifyDeviceFile('modify', target).then(devices => {
       this.onDevicesUpdated(devices);
-      return devices.find((device) => spec.name == device.name);
+      return devices.find((device) => spec.name == device.name)!;
     });
   }
 
@@ -48,7 +49,7 @@ export class DeviceManagerBackend extends IpcBackend {
     const target = {name, default: true};
     return this.modifyDeviceFile('default', target).then(devices => {
       this.onDevicesUpdated(devices);
-      return devices.find((device) => name == device.name);
+      return devices.find((device) => name == device.name)!;
     });
   }
 
@@ -61,7 +62,7 @@ export class DeviceManagerBackend extends IpcBackend {
 
   @Handle
   async hasPrivKey(privKey: string): Promise<boolean> {
-    const keyPath = path.join(path.resolve(process.env.HOME || process.env.USERPROFILE, '.ssh'), privKey);
+    const keyPath = path.join(path.resolve(process.env.HOME ?? process.env.USERPROFILE ?? '', '.ssh'), privKey);
     try {
       return (await fs.promises.lstat(keyPath)).isFile();
     } catch (e) {
@@ -71,8 +72,9 @@ export class DeviceManagerBackend extends IpcBackend {
 
   @Handle
   async fetchPrivKey(address: string, passphrase?: string): Promise<DevicePrivateKey> {
-    return await fetch(`http://${address}:9991/webos_rsa`)
-      .then(resp => resp.text())
+    // noinspection HttpUrlsUsage
+    return await axios.get<string>(`http://${address}:9991/webos_rsa`)
+      .then(resp => resp.data)
       .then(text => {
         // Throw error if key parse failed
         const parsedKey = ssh2utils.parseKey(text, passphrase);

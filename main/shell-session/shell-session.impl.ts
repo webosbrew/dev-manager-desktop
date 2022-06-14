@@ -35,10 +35,10 @@ abstract class AbsShell implements Shell {
     const active = this.terminal.buffer.active;
     const lines: string[] = [];
     for (let i = 0; i < active.length; i++) {
-      lines.push(active.getLine(i).translateToString(true));
+      lines.push(active.getLine(i)!.translateToString(true));
     }
     for (let i = active.length - 1; i >= 0; i--) {
-      if (lines[i]) {
+      if (lines[i] !== null) {
         lines.splice(i + 1, active.length - (i + 1));
         break;
       }
@@ -130,7 +130,7 @@ export class SimulateShell extends AbsShell {
         break;
       }
       case '\u007F': {
-        if (!this.linebuf) return;
+        if (this.linebuf.length <= 0) return;
         // Backspace (DEL)
         // Do not delete the prompt
         this.linebuf = this.linebuf.slice(0, -1);

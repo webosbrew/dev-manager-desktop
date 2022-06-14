@@ -17,8 +17,7 @@ export class AppManagerBackend extends IpcBackend {
   async list(device: string): Promise<PackageInfo[]> {
     const options: InstallOptions = {device};
     return await Installer.list(options)
-      .then((result) => result
-        .map((item: PackageInfo) => ({iconPath: `${item.folderPath}/${item.icon}`, ...item})))
+      .then((result) => result.map((item: Partial<PackageInfo>) => ({iconPath: `${item.folderPath}/${item.icon}`, ...item} as PackageInfo)))
       .finally(() => {
         options.session?.end();
         cleanupSession();
@@ -27,7 +26,7 @@ export class AppManagerBackend extends IpcBackend {
 
   @Handle
   async info(device: string, id: string): Promise<PackageInfo | null> {
-    return this.list(device).then(pkgs => pkgs.find(pkg => pkg.id == id));
+    return this.list(device).then(pkgs => pkgs.find(pkg => pkg.id == id) ?? null);
   }
 
   @Handle
@@ -43,8 +42,9 @@ export class AppManagerBackend extends IpcBackend {
 
   @Handle
   async installUrl(device: string, url: string): Promise<void> {
-    const tempPath = app.getPath('temp');
     const win = BrowserWindow.getFocusedWindow();
+    if (!win) return;
+    const tempPath = app.getPath('temp');
     const result = await download(win, url, {
       directory: tempPath,
       filename: `devmgr_temp_${Date.now()}.ipk`

@@ -11,11 +11,12 @@ import {ShellSessionBackend} from "./main/shell-session/shell-session.backend";
 import electronDl from "electron-dl";
 
 // Initialize remote module
-require('@electron/remote/main').initialize();
+import * as main from '@electron/remote/main';
+
+main.initialize();
 
 electronDl();
 
-let win: BrowserWindow = null;
 const args = process.argv.slice(1),
   serve = args.some(val => val === '--serve');
 
@@ -25,7 +26,7 @@ function createWindow(): BrowserWindow {
     defaultWidth: 1024,
     defaultHeight: 720
   });
-  win = new BrowserWindow({
+  const win = new BrowserWindow({
     x: mainWindowState.x,
     y: mainWindowState.y,
     width: mainWindowState.width,
@@ -49,9 +50,6 @@ function createWindow(): BrowserWindow {
 
       // win.webContents.openDevTools();
 
-      require('electron-reload')(__dirname, {
-        electron: require(`${__dirname}/node_modules/electron`)
-      });
       win.loadURL('http://localhost:4210');
 
     } else {
@@ -64,16 +62,9 @@ function createWindow(): BrowserWindow {
   };
   loadApp();
 
-  // Emitted when the window is closed.
-  win.on('closed', () => {
-    // Dereference the window object, usually you would store window
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    win = null;
-  });
   win.webContents.on('did-fail-load', () => loadApp());
   skipCORS(win.webContents.session);
-  require('@electron/remote/main').enable(win.webContents);
+  main.enable(win.webContents);
   const devMgr = new DeviceManagerBackend(win);
   new AppManagerBackend(win);
   new FileSessionBackend(win, devMgr);
@@ -90,24 +81,11 @@ try {
 
   app.whenReady().then(() => {
     protocol.registerBufferProtocol('ares-pull', AresPullProtoHandler);
-
   });
 
   // Quit when all windows are closed.
   app.on('window-all-closed', () => {
-    // On OS X it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') {
-      app.quit();
-    }
-  });
-
-  app.on('activate', () => {
-    // On OS X it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (win === null) {
-      createWindow();
-    }
+    app.quit();
   });
 } catch (e) {
   // Catch Error
