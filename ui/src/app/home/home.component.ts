@@ -1,7 +1,6 @@
 import {Component} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {TranslateService} from '@ngx-translate/core';
 import {Device} from '../../../../main/types';
 import {AddDeviceComponent} from '../add-device/add-device.component';
 import {DeviceManagerService} from '../core/services';
@@ -20,8 +19,7 @@ export class HomeComponent {
   constructor(
     public deviceManager: DeviceManagerService,
     private modalService: NgbModal,
-    private router: Router,
-    private translate: TranslateService,
+    private router: Router
   ) {
     deviceManager.devices$.subscribe((devices) => {
       this.selectedDevice = devices.find((device) => device.default);
@@ -31,11 +29,11 @@ export class HomeComponent {
   async removeDevice(name: string): Promise<void> {
     try {
       const ref = MessageDialogComponent.open(this.modalService, {
-        title: this.translate.instant('MESSAGES.TITLE_REMOVE_DEVICE'),
-        message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_DEVICE', {name}),
-        positive: this.translate.instant('ACTIONS.REMOVE'),
+        title: 'Remove device',
+        message: `Remove device \"${name}\"?`,
+        positive: 'Remove',
         positiveStyle: 'danger',
-        negative: this.translate.instant('ACTIONS.CANCEL')
+        negative: 'Cancel'
       });
       if (!await ref.result) {
         return;

@@ -1,7 +1,6 @@
 import {Component} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {TranslateService} from '@ngx-translate/core';
 import {Device, DeviceEditSpec, DevicePrivateKey} from '../../../../main/types';
 import {DeviceManagerService} from '../core/services';
 import {
@@ -24,7 +23,6 @@ export class AddDeviceComponent {
   constructor(
     public modal: NgbActiveModal,
     private modalService: NgbModal,
-    private translate: TranslateService,
     private deviceManager: DeviceManagerService,
     fb: FormBuilder,
   ) {
@@ -55,9 +53,9 @@ export class AddDeviceComponent {
     this.doAddDevice().catch(error => {
       if (error instanceof Error) {
         MessageDialogComponent.open(this.modalService, {
-          title: this.translate.instant('MESSAGES.TITLE_ADD_DEVICE_FAILED'),
-          message: this.translate.instant('MESSAGES.ERROR_ADD_DEVICE_FAILED', {error: error.message}),
-          positive: this.translate.instant('ACTIONS.OK'),
+          title: 'Failed to add device',
+          message: error.message,
+          positive: 'OK',
         });
       } else if (error.positive) {
         MessageDialogComponent.open(this.modalService, error);
@@ -103,10 +101,10 @@ export class AddDeviceComponent {
 
   private async confirmOverwritePrivKey(name: string): Promise<boolean> {
     const ref = MessageDialogComponent.open(this.modalService, {
-      title: this.translate.instant('MESSAGES.TITLE_OVERWRITE_PRIVKEY'),
-      message: this.translate.instant('MESSAGES.CONFIRM_OVERWRITE_PRIVKEY', {name}),
-      positive: this.translate.instant('ACTIONS.OK'),
-      negative: this.translate.instant('ACTIONS.CANCEL'),
+      title: 'Overwrite Private Key',
+      message: 'Private key with same name already exists. Do you want to overwrite it?',
+      positive: 'OK',
+      negative: 'Cancel',
     });
     return await ref.result;
   }
@@ -116,9 +114,9 @@ export class AddDeviceComponent {
       await this.deviceManager.checkConnectivity(info.address, info.port);
     } catch (e) {
       const config: MessageDialogConfig = {
-        title: this.translate.instant('MESSAGES.TITLE_DEVICE_CONN_FAILED'),
+        title: 'Unable to connect to device',
         message: ConnHintComponent,
-        positive: this.translate.instant('ACTIONS.OK'),
+        positive: 'OK',
       };
       throw config;
     }
@@ -131,10 +129,10 @@ export class AddDeviceComponent {
         return await this.deviceManager.fetchPrivKey(info.address, info.sshPrivkeyPassphrase);
       } catch (e) {
         const confirm = MessageDialogComponent.open(this.modalService, {
-          title: this.translate.instant('MESSAGES.TITLE_KEYSERV_FETCH_RETRY'),
+          title: 'Failed to fetch private key',
           message: KeyserverHintComponent,
-          positive: this.translate.instant('ACTIONS.RETRY'),
-          negative: this.translate.instant('ACTIONS.CANCEL'),
+          positive: 'Retry',
+          negative: 'Cancel',
         });
         if (await confirm.result) {
           retryCount++;
@@ -148,10 +146,10 @@ export class AddDeviceComponent {
 
   private async confirmVerificationFailure(added: Device, e: Error): Promise<boolean> {
     const ref = MessageDialogComponent.open(this.modalService, {
-      title: this.translate.instant('MESSAGES.TITLE_VERIFICATION_FAILED'),
-      message: this.translate.instant('MESSAGES.CONFIRM_VERIFICATION_FAILED'),
-      positive: this.translate.instant('ACTIONS.OK'),
-      negative: this.translate.instant('ACTIONS.CANCEL'),
+      title: 'Verification Failed',
+      message: 'Add this device anyway?',
+      positive: 'OK',
+      negative: 'Cancel',
     });
     return await ref.result;
   }

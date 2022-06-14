@@ -1,6 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {TranslateService} from '@ngx-translate/core';
 import {Observable, Subscription} from 'rxjs';
 import {Device, PackageInfo} from '../../../../main/types';
 import {AppManagerService, AppsRepoService, DeviceManagerService, RepositoryItem} from '../core/services';
@@ -26,7 +25,6 @@ export class AppsComponent implements OnInit, OnDestroy {
 
   constructor(
     private modalService: NgbModal,
-    private translate: TranslateService,
     private deviceManager: DeviceManagerService,
     private appManager: AppManagerService,
     private appsRepo: AppsRepoService,
@@ -127,11 +125,11 @@ export class AppsComponent implements OnInit, OnDestroy {
   async removePackage(pkg: PackageInfo): Promise<void> {
     if (!this.device) return;
     const confirm = MessageDialogComponent.open(this.modalService, {
-      title: this.translate.instant('MESSAGES.TITLE_REMOVE_APP'),
-      message: this.translate.instant('MESSAGES.CONFIRM_REMOVE_APP', {name: pkg.title}),
-      positive: this.translate.instant('ACTIONS.REMOVE'),
+      title: 'Remove App',
+      message: `Remove app \"${pkg.title}\"?`,
+      positive: 'Remove',
       positiveStyle: 'danger',
-      negative: this.translate.instant('ACTIONS.CANCEL')
+      negative: 'Cancel'
     });
     if (!await confirm.result) return;
     const progress = ProgressDialogComponent.open(this.modalService);

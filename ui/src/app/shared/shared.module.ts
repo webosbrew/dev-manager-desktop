@@ -1,7 +1,6 @@
 import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {TranslateModule} from '@ngx-translate/core';
 import {PageNotFoundComponent} from './components/page-not-found/page-not-found.component';
 import {AresPullUriPipe} from './pipes/ares-pull-uri.pipe';
 import {MessageDialogComponent} from './components/message-dialog/message-dialog.component';
@@ -17,8 +16,8 @@ import {MessageTraceComponent} from './components/message-dialog/message-trace/m
     ProgressDialogComponent,
     MessageTraceComponent,
   ],
-  imports: [CommonModule, TranslateModule, FormsModule, NgbModule],
-  exports: [TranslateModule, FormsModule, AresPullUriPipe]
+  imports: [CommonModule, FormsModule, NgbModule],
+  exports: [FormsModule, AresPullUriPipe]
 })
 export class SharedModule {
 }

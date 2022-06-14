@@ -1,5 +1,4 @@
 import {Component} from '@angular/core';
-import {TranslateService} from '@ngx-translate/core';
 import {DeviceManagerService, Release, UpdateService} from './core/services';
 import PackageInfo from '../../../package.json';
 import {SemVer} from 'semver';
@@ -17,13 +16,11 @@ import {ThemeService} from "ng-bootstrap-darkmode";
 export class AppComponent {
 
   constructor(
-    translate: TranslateService,
     private update: UpdateService,
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
     private themeService: ThemeService
   ) {
-    translate.setDefaultLang('en');
     update.getRecentRelease().then(async info => {
       let curVer = new SemVer(PackageInfo.version, true);
       const until = update.ignoreUntil;

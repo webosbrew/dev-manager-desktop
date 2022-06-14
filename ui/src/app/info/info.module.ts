@@ -3,7 +3,6 @@ import {CommonModule} from '@angular/common';
 
 import {InfoRoutingModule} from './info-routing.module';
 import {InfoComponent} from "./info.component";
-import {TranslateModule} from "@ngx-translate/core";
 
 
 @NgModule({
@@ -13,7 +12,6 @@ import {TranslateModule} from "@ngx-translate/core";
   imports: [
     CommonModule,
     InfoRoutingModule,
-    TranslateModule,
   ]
 })
 export class InfoModule {
