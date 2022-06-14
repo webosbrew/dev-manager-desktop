@@ -8,6 +8,10 @@ import Resolver = promises.Resolver;
 const lock: AsyncLock = new AsyncLock();
 
 export function AresPullProtoHandler(request: ProtocolRequest, callback: ((response: Buffer | ProtocolResponse) => void)): void {
+  if (request.url === '') {
+    callback({error: 404});
+    return;
+  }
   const url = new URL(request.url);
   lock.acquire(url.hostname, async (done) => {
     try {
@@ -31,7 +35,7 @@ export function AresPullProtoHandler(request: ProtocolRequest, callback: ((respo
     }
   }).then((buffer: Buffer | Electron.ProtocolResponse) => callback(buffer), (reason) => {
     console.error(reason);
-    callback({error: -1});
+    callback({error: 404});
   });
 }
 
