@@ -13,6 +13,7 @@ import CliAppData = promises.CliAppData;
 import Session = promises.Session;
 import Luna = promises.Luna;
 import axios from "axios";
+import {ParsedKey} from "ssh2-streams";
 
 
 export class DeviceManagerBackend extends IpcBackend {
@@ -62,7 +63,7 @@ export class DeviceManagerBackend extends IpcBackend {
 
   @Handle
   async hasPrivKey(privKey: string): Promise<boolean> {
-    const keyPath = path.join(path.resolve(process.env.HOME ?? process.env.USERPROFILE ?? '', '.ssh'), privKey);
+    const keyPath = this.getKeyPath(privKey);
     try {
       return (await fs.promises.lstat(keyPath)).isFile();
     } catch (e) {
@@ -83,6 +84,27 @@ export class DeviceManagerBackend extends IpcBackend {
         }
         return {data: text};
       });
+  }
+
+  @Handle
+  async loadPrivKey(device: Device): Promise<DevicePrivateKey> {
+    const keyPath = this.getKeyPath(device.name);
+    const text = await fs.promises.readFile(keyPath, {encoding: 'utf-8'});
+    // Throw error if key parse failed
+    const parsedKey = ssh2utils.parseKey(text, device.passphrase);
+    if (!parsedKey) {
+      throw new Error("Unknown error");
+    }
+    if (parsedKey instanceof Error) {
+      throw parsedKey;
+    }
+    return {data: text, privatePEM: (parsedKey as ParsedKey).getPrivatePEM()};
+  }
+
+  @Handle
+  async savePrivKey(name: string, key: DevicePrivateKey): Promise<void> {
+    const keyPath = this.getKeyPath(name);
+    await fs.promises.writeFile(keyPath, key.data);
   }
 
   @Handle
@@ -171,6 +193,10 @@ export class DeviceManagerBackend extends IpcBackend {
       }
     };
     return resolver;
+  }
+
+  private getKeyPath(name: string) {
+    return path.join(path.resolve(process.env.HOME ?? process.env.USERPROFILE ?? '', '.ssh'), name);
   }
 
   public static async runAndGetOutput(session: Session, cmd: string, stdin: Readable | null): Promise<string> {
