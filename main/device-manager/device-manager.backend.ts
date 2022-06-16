@@ -7,14 +7,13 @@ import {Readable} from 'stream';
 import * as net from 'net';
 import {utils as ssh2utils} from 'ssh2';
 import {BrowserWindow} from 'electron';
-import {Device, DeviceEditSpec, promises} from '@webosbrew/ares-lib';
-import Resolver = promises.Resolver;
-import CliAppData = promises.CliAppData;
-import Session = promises.Session;
-import Luna = promises.Luna;
+import {Device, DeviceEditSpec, promises, Resolver as AresResolver} from '@webosbrew/ares-lib';
 import axios from "axios";
 import {ParsedKey} from "ssh2-streams";
-
+import Resolver = promises.Resolver;
+import Session = promises.Session;
+import Luna = promises.Luna;
+import CliAppData = promises.CliAppData;
 
 export class DeviceManagerBackend extends IpcBackend {
 
@@ -63,7 +62,7 @@ export class DeviceManagerBackend extends IpcBackend {
 
   @Handle
   async hasPrivKey(privKey: string): Promise<boolean> {
-    const keyPath = this.getKeyPath(privKey);
+    const keyPath = DeviceManagerBackend.getKeyPath(privKey);
     try {
       return (await fs.promises.lstat(keyPath)).isFile();
     } catch (e) {
@@ -88,7 +87,7 @@ export class DeviceManagerBackend extends IpcBackend {
 
   @Handle
   async loadPrivKey(device: Device): Promise<DevicePrivateKey> {
-    const keyPath = this.getKeyPath(device.name);
+    const keyPath = DeviceManagerBackend.getKeyPath(device.name);
     const text = await fs.promises.readFile(keyPath, {encoding: 'utf-8'});
     // Throw error if key parse failed
     const parsedKey = ssh2utils.parseKey(text, device.passphrase);
@@ -103,7 +102,7 @@ export class DeviceManagerBackend extends IpcBackend {
 
   @Handle
   async savePrivKey(name: string, key: DevicePrivateKey): Promise<void> {
-    const keyPath = this.getKeyPath(name);
+    const keyPath = DeviceManagerBackend.getKeyPath(name);
     await fs.promises.writeFile(keyPath, key.data);
   }
 
@@ -179,23 +178,45 @@ export class DeviceManagerBackend extends IpcBackend {
 
   private newResolver(): Resolver {
     const resolver = new Resolver();
-    const superSave = resolver.save;
-    resolver.save = async (devicesData: Device[]): Promise<Device[]> => {
-      try {
-        return await superSave(devicesData);
-      } catch (e) {
-        const appdata = new CliAppData();
-        const datapath: string = await appdata.getPath();
-        for (const conffile of await fs.promises.readdir(datapath)) {
-          fs.chmodSync(path.join(datapath, conffile), 0o600);
+    const delegate: AresResolver = resolver.delegate as AresResolver;
+    const superSave = delegate.save;
+
+    function superSavePromisify(devicesData: Device[]): Promise<Device[]> {
+      return new Promise<Device[]>((resolve, reject) => superSave(devicesData, (error, result) => {
+        if (error != null) {
+          reject(error);
+        } else {
+          resolve(result!);
         }
-        return await superSave(devicesData);
+      }))
+    }
+
+    async function saveAsync(devicesData: Device[]): Promise<Device[]> {
+      try {
+        return await superSavePromisify(devicesData);
+      } catch (e) {
+        const appdata = CliAppData.getInstance();
+        const datapath: string = await appdata.getPath();
+        console.log(datapath);
+        for (const conffile of await fs.promises.readdir(datapath)) {
+          await fs.promises.chmod(path.join(datapath, conffile), 0o600);
+        }
+        return await superSavePromisify(devicesData);
       }
+    }
+
+    delegate.save = (devicesData: Device[], next?: (error?: Error, result?: Device[]) => void): Device[] => {
+      if (next == null) {
+        return [];
+      }
+      saveAsync(devicesData).then(result => next(undefined, result))
+        .catch(reason => next(reason, undefined));
+      return [];
     };
     return resolver;
   }
 
-  private getKeyPath(name: string) {
+  private static getKeyPath(name: string) {
     return path.join(path.resolve(process.env.HOME ?? process.env.USERPROFILE ?? '', '.ssh'), name);
   }
 

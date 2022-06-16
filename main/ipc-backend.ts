@@ -12,7 +12,7 @@ export abstract class IpcBackend {
   protected constructor(private win: BrowserWindow, public category: string) {
     for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(this))) {
       const metadata = Reflect.getMetadata('ipc:handler', this, key);
-      if (!metadata) continue;
+      if (metadata == null) continue;
       this.handle(key, metadata as IpcHandleFunction);
     }
   }
