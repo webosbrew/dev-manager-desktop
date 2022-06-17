@@ -1,38 +1,48 @@
-<div class="w-100 h-100 d-flex flex-column overflow-hidden" *ngLet="(files$ | async) as state">
-  <div class="manager-toolbar navbar navbar-light bg-panel border-bottom">
-    <div class="ms-auto me-2">
-      <button class="btn btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)"
-              ngbTooltip="Delete">
-        <i class="bi bi-trash"></i>
-      </button>
-      <button class="btn btn-primary ms-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)"
-              ngbTooltip="Download">
-        <i class="bi bi-download"></i>
-      </button>
-      <button class="btn btn-primary ms-2" (click)="uploadFiles()" ngbTooltip="Upload">
-        <i class="bi bi-upload"></i>
-      </button>
+<div class="w-100 h-100" *ngIf="device">
+  <div class="w-100 h-100 d-flex flex-column overflow-hidden" *ngLet="(files$ | async) as state">
+    <div class="manager-toolbar navbar navbar-light bg-panel border-bottom">
+      <div class="ms-auto me-2">
+        <button class="btn btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)"
+                ngbTooltip="Delete">
+          <i class="bi bi-trash"></i>
+        </button>
+        <button class="btn btn-primary ms-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)"
+                ngbTooltip="Download">
+          <i class="bi bi-download"></i>
+        </button>
+        <button class="btn btn-primary ms-2" (click)="uploadFiles()" ngbTooltip="Upload">
+          <i class="bi bi-upload"></i>
+        </button>
+      </div>
     </div>
-  </div>
-  <div class="flex-fill table-responsive" *ngIf="state.items as items else loadingAndError">
-    <app-files-table [items]="items" (opened)="openItem($event)" (selected)="selectionChanged($event)">
-    </app-files-table>
-  </div>
-  <ng-template #loadingAndError>
-    <div *ngIf="state.error">{{state.error}}</div>
-    <div *ngIf="!state.error">Loading</div>
-  </ng-template>
-  <div class="stat-bar border-top bottom-0 mt-auto">
-    <nav class="h-100 float-right" aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item" *ngFor="let dir of state.breadcrumb; index as idx">
-          <button class="btn btn-sm btn-link" (click)="breadcrumbNav(state.breadcrumb.slice(0, idx + 1))"
-                  *ngIf="idx < 1 || dir">
-            <span *ngIf="idx > 0; else rootLabel">{{dir}}</span>
-            <ng-template #rootLabel><i class="bi-hdd-fill"></i></ng-template>
-          </button>
-        </li>
-      </ol>
-    </nav>
+    <div class="flex-fill table-responsive" *ngIf="state.items as items else loadingAndError">
+      <app-files-table [items]="items" (opened)="openItem($event)" (selected)="selectionChanged($event)">
+      </app-files-table>
+    </div>
+    <ng-template #loadingAndError>
+      <div class="p-3">
+        <div class="card m-2" *ngIf="state.error">
+          <div class="card-body">
+            <h5 class="card-title">Unable to load apps</h5>
+            <p class="card-text">Failed to connect to {{device.name}}</p>
+            <button class="btn btn-primary" (click)="cd(state.dir)">Retry</button>
+          </div>
+        </div>
+        <div *ngIf="!state.error">Loading</div>
+      </div>
+    </ng-template>
+    <div class="stat-bar border-top bottom-0 mt-auto">
+      <nav class="h-100 float-right" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item" *ngFor="let dir of state.breadcrumb; index as idx">
+            <button class="btn btn-sm btn-link" (click)="breadcrumbNav(state.breadcrumb.slice(0, idx + 1))"
+                    *ngIf="idx < 1 || dir">
+              <span *ngIf="idx > 0; else rootLabel">{{dir}}</span>
+              <ng-template #rootLabel><i class="bi-hdd-fill"></i></ng-template>
+            </button>
+          </li>
+        </ol>
+      </nav>
+    </div>
   </div>
 </div>
