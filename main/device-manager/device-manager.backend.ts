@@ -87,17 +87,23 @@ export class DeviceManagerBackend extends IpcBackend {
 
   @Handle
   async loadPrivKey(device: Device): Promise<DevicePrivateKey> {
-    const keyPath = DeviceManagerBackend.getKeyPath(device.name);
-    const text = await fs.promises.readFile(keyPath, {encoding: 'utf-8'});
+    const existing = (await this.list()).find(item => item.name === device.name);
+    if (!existing) {
+      throw new Error('Device doesn\'t exist');
+    }
+    if (!existing.privateKey) {
+      throw new Error('This device doesn\'t have private key');
+    }
     // Throw error if key parse failed
-    const parsedKey = ssh2utils.parseKey(text, device.passphrase);
+
+    const parsedKey = ssh2utils.parseKey(existing.privateKey, device.passphrase);
     if (!parsedKey) {
       throw new Error("Unknown error");
     }
     if (parsedKey instanceof Error) {
       throw parsedKey;
     }
-    return {data: text, privatePEM: (parsedKey as ParsedKey).getPrivatePEM()};
+    return {data: existing.privateKey.toString(), privatePEM: (parsedKey as ParsedKey).getPrivatePEM()};
   }
 
   @Handle
@@ -131,7 +137,6 @@ export class DeviceManagerBackend extends IpcBackend {
   @Handle
   async devModeToken(name: string): Promise<string> {
     const session = await Session.create(name);
-
     const cmd = 'test -f /var/luna/preferences/devmode_enabled && cat /var/luna/preferences/devmode_enabled || echo';
     return DeviceManagerBackend.runAndGetOutput(session, cmd, null).finally(() => {
       session.end();
