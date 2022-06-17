@@ -8,6 +8,15 @@ import {ProgressDialogComponent} from "../shared/components/progress-dialog/prog
 import {dialog, shell} from '@electron/remote';
 import path from "path";
 
+class FilesState {
+
+  public breadcrumb: string[];
+
+  constructor(public dir: string, public items?: FileItem[], public error?: Error) {
+    this.breadcrumb = dir.split('/');
+  }
+}
+
 @Component({
   selector: 'app-files',
   templateUrl: './files.component.html',
@@ -16,18 +25,18 @@ import path from "path";
 export class FilesComponent implements OnInit, OnDestroy {
   device: Device | null = null;
   pwd: string | null = null;
-  files$: Observable<FileItem[]>;
-  sizeOptions = {base: 2, standard: "jedec"};
-  selectedItems: FileItem[] | null = null;
-  private filesSubject: Subject<FileItem[]>;
+  files$: Observable<FilesState>;
 
+  selectedItems: FileItem[] | null = null;
+
+  private filesSubject: Subject<FilesState>;
   private subscription?: Subscription;
 
   constructor(
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
   ) {
-    this.filesSubject = new BehaviorSubject<FileItem[]>([]);
+    this.filesSubject = new BehaviorSubject<FilesState>(new FilesState(''));
     this.files$ = this.filesSubject.asObservable();
   }
 
@@ -49,35 +58,30 @@ export class FilesComponent implements OnInit, OnDestroy {
   async cd(dir: string, showProgress = false): Promise<void> {
     if (!this.device) return;
     console.log('cd', dir);
-    const progress = showProgress && ProgressDialogComponent.open(this.modalService);
+    this.filesSubject.next(new FilesState(dir));
     let session: FileSession;
     try {
       session = await this.deviceManager.openFileSession(this.device.name);
     } catch (e) {
-      MessageDialogComponent.open(this.modalService, {
-        title: 'Failed to start session',
-        message: (e as Error).message || String(e),
-        positive: 'OK',
-      });
-      progress && progress.dismiss();
+      // MessageDialogComponent.open(this.modalService, {
+      //   title: 'Failed to start session',
+      //   message: (e as Error).message || String(e),
+      //   positive: 'OK',
+      // });
+      this.filesSubject.next(new FilesState(dir, undefined, e as Error));
       return;
     }
     let list: FileItem[];
     try {
       list = await session.readdir_ext(dir);
     } catch (e) {
-      MessageDialogComponent.open(this.modalService, {
-        title: 'Failed to open directory',
-        message: (e as Error).message ?? String(e),
-        positive: 'OK',
-      });
+      this.filesSubject.next(new FilesState(dir, undefined, e as Error));
       return;
     } finally {
       await session.end();
-      progress && progress.dismiss();
     }
     this.pwd = dir;
-    this.filesSubject.next(list.sort(this.compareName));
+    this.filesSubject.next(new FilesState(dir, list.sort(this.compareName), undefined));
     this.selectedItems = null;
   }
 
@@ -108,8 +112,8 @@ export class FilesComponent implements OnInit, OnDestroy {
     }
   }
 
-  selectItem(file: FileItem): void {
-    this.selectedItems = [file];
+  selectionChanged(files: FileItem[] | null): void {
+    this.selectedItems = files;
   }
 
   private async openFile(file: FileItem) {

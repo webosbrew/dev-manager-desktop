@@ -1,4 +1,4 @@
-<div class="w-100 h-100 d-flex flex-column overflow-hidden">
+<div class="w-100 h-100 d-flex flex-column overflow-hidden" *ngLet="(files$ | async) as state">
   <div class="manager-toolbar navbar navbar-light bg-panel border-bottom">
     <div class="ms-auto me-2">
       <button class="btn btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)"
@@ -14,65 +14,20 @@
       </button>
     </div>
   </div>
-  <div class="flex-fill table-responsive">
-    <table class="table table-hover">
-      <thead>
-      <tr>
-        <th>Name</th>
-        <th>Last Modified</th>
-        <th>Size</th>
-        <th>Permission</th>
-        <th>Owner</th>
-      </tr>
-      </thead>
-      <tbody class="border-top-0">
-      <tr *ngFor="let file of (files$ | async)" (dblclick)="openItem(file)" (click)="selectItem(file)"
-          [class.table-active]="selectedItems && selectedItems.includes(file)">
-        <td class="text-nowrap">
-          <span class="pe-2" [ngSwitch]="file.type">
-              <i class="bi-folder-fill" *ngSwitchCase="'d'"></i>
-              <i class="bi-file-earmark-fill" *ngSwitchCase="'-'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'c'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'b'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'f'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'s'"></i>
-              <i class="bi-link" *ngSwitchCase="'l'"></i>
-              <i class="bi-file-earmark-x-fill" *ngSwitchDefault></i>
-            </span>
-          <span>{{file.filename}}</span>
-          <span *ngIf="file.link" class="text-secondary">
-            <i class="bi-arrow-right-short px-1"></i>
-            {{file.link.target}}
-          </span>
-        </td>
-        <td class="text-nowrap">
-          <span *ngIf="file.attrs">{{file.attrs.mtime * 1000 | date:'short'}}</span>
-        </td>
-        <td class="text-nowrap">
-          <span *ngIf="file.attrs && file.type === '-'; else nonRegular">
-            {{file.attrs.size | filesize:sizeOptions}}
-          </span>
-          <ng-template #nonRegular>-</ng-template>
-        </td>
-        <td class="text-nowrap">
-          <span *ngIf="file.attrs as attrs">
-            {{file.type}}{{attrs.mode | attrsPermissions}}
-          </span>
-        </td>
-        <td class="text-nowrap">
-          <span *ngIf="file.attrs as attrs">
-            {{attrs.uid}}:{{attrs.gid}}
-          </span>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+  <div class="flex-fill table-responsive" *ngIf="state.items as items else loadingAndError">
+    <app-files-table [items]="items" (opened)="openItem($event)" (selected)="selectionChanged($event)">
+    </app-files-table>
   </div>
+  <ng-template #loadingAndError>
+    <div *ngIf="state.error">{{state.error}}</div>
+    <div *ngIf="!state.error">Loading</div>
+  </ng-template>
   <div class="stat-bar border-top bottom-0 mt-auto">
-    <nav class="h-100 overflow-hidden float-right" aria-label="breadcrumb">
-      <ol class="breadcrumb" *ngIf="(pwd && pwd.split('/')) as dirs">
-        <li class="breadcrumb-item" *ngFor="let dir of dirs; index as idx">
-          <button class="btn btn-sm btn-link" (click)="breadcrumbNav(dirs.slice(0, idx + 1))" *ngIf="idx < 1 || dir">
+    <nav class="h-100 float-right" aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item" *ngFor="let dir of state.breadcrumb; index as idx">
+          <button class="btn btn-sm btn-link" (click)="breadcrumbNav(state.breadcrumb.slice(0, idx + 1))"
+                  *ngIf="idx < 1 || dir">
             <span *ngIf="idx > 0; else rootLabel">{{dir}}</span>
             <ng-template #rootLabel><i class="bi-hdd-fill"></i></ng-template>
           </button>
