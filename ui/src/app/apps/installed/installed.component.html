@@ -1,18 +1,9 @@
-<div [ngSwitch]="parent.packages$ | async" *ngIf="parent.device as device">
-  <div class="p-4" *ngSwitchCase="null">
-    <div class="card" *ngIf="parent.packagesError">
-      <div class="card-body">
-        <h5 class="card-title">Unable to load apps</h5>
-        <p class="card-text">Failed to connect to {{device.name}}</p>
-        <button class="btn btn-primary" (click)="parent.loadPackages()">Retry</button>
-      </div>
-    </div>
-  </div>
+<div *ngIf="device">
   <div (drop)="parent.dropFiles($event)" (dragover)="parent.onDragOver($event)" (dragenter)="parent.onDragEnter($event)"
-       (dragleave)="parent.onDragLeave($event)" *ngSwitchDefault>
+       (dragleave)="parent.onDragLeave($event)" *ngIf="!installedError; else error">
     <ul class="list-group list-group-flush">
       <li class="list-group-item app-item d-flex flex-row align-items-center"
-          *ngFor="let pkg of (parent.packages$ | async)">
+          *ngFor="let pkg of (installed$ | async)">
         <div class="app-desc flex-fill">
           <img class="app-icon" [src]="pkg.iconPath | aresPullUri:device.name">
           <div class="app-headline ms-3">
@@ -20,7 +11,7 @@
             <div class="app-description">{{pkg.appDescription}}</div>
           </div>
         </div>
-        <ng-container *ngLet="parent.repoPackages?.get(pkg.id) as rpkg">
+        <ng-container *ngLet="repoPackages && repoPackages[pkg.id] as rpkg">
           <span>{{pkg.version}}</span>
           <span class="text-primary"
                 *ngIf="rpkg?.manifest?.hasUpdate(pkg.version)">&rsaquo;{{rpkg.manifest?.version}}</span>
@@ -59,4 +50,13 @@
       </li>
     </ul>
   </div>
+  <ng-template #error>
+    <div class="card m-2">
+      <div class="card-body">
+        <h5 class="card-title">Unable to load apps</h5>
+        <p class="card-text">Failed to connect to {{device.name}}</p>
+        <button class="btn btn-primary" (click)="parent.loadPackages()">Retry</button>
+      </div>
+    </div>
+  </ng-template>
 </div>

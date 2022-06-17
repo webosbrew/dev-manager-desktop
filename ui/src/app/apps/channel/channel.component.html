@@ -9,7 +9,7 @@
             <div class="app-description">{{manifest.appDescription}}</div>
           </div>
         </div>
-        <ng-container *ngLet="parent.instPackages?.get(item.id) as pkg">
+        <ng-container *ngLet="installed && installed[item.id] as pkg">
           <span class="text-secondary" *ngIf="pkg && manifest.hasUpdate(pkg.version)">{{pkg.version}}&rsaquo;</span>
           <span>{{manifest.version}}</span>
           <div class="d-flex justify-content-end">

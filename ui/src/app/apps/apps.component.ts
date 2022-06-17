@@ -1,11 +1,12 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {Observable, Subscription} from 'rxjs';
+import {noop, Observable, Subscription} from 'rxjs';
 import {Device, PackageInfo} from '../../../../main/types';
 import {AppManagerService, AppsRepoService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {dialog, getCurrentWindow} from "@electron/remote";
+import {keyBy, mapValues} from 'lodash';
 
 @Component({
   selector: 'app-apps',
@@ -15,10 +16,8 @@ import {dialog, getCurrentWindow} from "@electron/remote";
 export class AppsComponent implements OnInit, OnDestroy {
 
   packages$?: Observable<PackageInfo[]>;
-  instPackages?: Map<string, PackageInfo>;
-  repoPackages?: Map<string, RepositoryItem>;
+  instPackages?: Record<string, PackageInfo>;
   device: Device | null = null;
-  packagesError: Error | null = null;
 
   private deviceSubscription?: Subscription;
   private packagesSubscription?: Subscription;
@@ -27,7 +26,6 @@ export class AppsComponent implements OnInit, OnDestroy {
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
     private appManager: AppManagerService,
-    private appsRepo: AppsRepoService,
   ) {
   }
 
@@ -38,7 +36,6 @@ export class AppsComponent implements OnInit, OnDestroy {
         this.loadPackages();
       } else {
         this.packages$ = undefined;
-        this.packagesError = null;
         this.packagesSubscription?.unsubscribe();
         this.packagesSubscription = undefined;
       }
@@ -73,17 +70,14 @@ export class AppsComponent implements OnInit, OnDestroy {
   loadPackages(): void {
     const device = this.device;
     if (!device) return;
-    this.packages$ = this.appManager.packages$(device.name);
     this.packagesSubscription?.unsubscribe();
+    this.packages$ = this.appManager.packages$(device.name);
     this.packagesSubscription = this.packages$.subscribe({
       next: (pkgs) => {
-        this.packagesError = null;
         if (pkgs.length) {
-          this.instPackages = new Map(pkgs.map((pkg) => [pkg.id, pkg]));
-          const strings: string[] = pkgs.map((pkg) => pkg.id);
-          this.appsRepo.showApps(...strings).then(apps => this.repoPackages = apps);
+          this.instPackages = keyBy(pkgs, (pkg) => pkg.id);
         }
-      }, error: (error) => this.packagesError = error
+      }, error: noop
     });
     this.appManager.load(device.name);
   }

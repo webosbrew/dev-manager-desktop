@@ -5,13 +5,13 @@
         <li ngbNavItem>
           <a ngbNavLink>Installed</a>
           <ng-template ngbNavContent>
-            <app-installed></app-installed>
+            <app-installed [device]="device" [installed$]="packages$"></app-installed>
           </ng-template>
         </li>
         <li ngbNavItem>
           <a ngbNavLink>Available</a>
           <ng-template ngbNavContent>
-            <app-channel></app-channel>
+            <app-channel [installed]="instPackages"></app-channel>
           </ng-template>
         </li>
       </ul>

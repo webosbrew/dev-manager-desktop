@@ -3,6 +3,7 @@ import {Injectable} from '@angular/core';
 import {firstValueFrom, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {eq as semverEq, gt as semverGt} from 'semver';
+import {keyBy} from "lodash";
 
 const baseUrl = 'https://repo.webosbrew.org/api';
 
@@ -19,15 +20,14 @@ export class AppsRepoService {
       .pipe(map((body) => new RepositoryItem(body))));
   }
 
-  async showApps(...ids: string[]): Promise<Map<string, RepositoryItem>> {
+  async showApps(...ids: string[]): Promise<Record<string, RepositoryItem>> {
     function assertFulfilled(item: PromiseSettledResult<RepositoryItem>): item is PromiseFulfilledResult<RepositoryItem> {
       return item.status === 'fulfilled';
     }
 
     return await Promise.allSettled(ids.map(id => this.showApp(id)))
       .then(list => list.filter(assertFulfilled).map(result => result.value))
-      .then((list: RepositoryItem[]) => list.map((pkg): [string, RepositoryItem] => [pkg.id, pkg]))
-      .then(entries => new Map(entries));
+      .then((list: RepositoryItem[]) => keyBy(list, pkg => pkg.id));
   }
 
   allApps$(page = 0): Observable<RepositoryPage> {

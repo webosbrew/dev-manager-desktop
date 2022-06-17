@@ -60,16 +60,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  [data-theme=auto] {
-    .bg-panel {
-      background-color: bs.$dark !important;
-    }
-  }
-}
-
-[data-theme=dark] {
   .bg-panel {
     background-color: bs.$dark !important;
   }
-
 }
