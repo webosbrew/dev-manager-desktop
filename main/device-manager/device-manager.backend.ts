@@ -107,9 +107,9 @@ export class DeviceManagerBackend extends IpcBackend {
   }
 
   @Handle
-  async savePrivKey(name: string, key: DevicePrivateKey): Promise<void> {
-    const keyPath = DeviceManagerBackend.getKeyPath(name);
-    await fs.promises.writeFile(keyPath, key.data);
+  async savePrivKey(keyName: string, keyContent: DevicePrivateKey): Promise<void> {
+    const keyPath = DeviceManagerBackend.getKeyPath(keyName);
+    await fs.promises.writeFile(keyPath, keyContent.data);
   }
 
   @Handle

@@ -73,8 +73,8 @@ export class DeviceManagerService extends IpcClient {
     return await this.call('fetchPrivKey', address, passphrase);
   }
 
-  async savePrivKey(name: string, key: DevicePrivateKey): Promise<void> {
-    return await this.call('savePrivKey', name, key);
+  async savePrivKey(keyName: string, keyContent: DevicePrivateKey): Promise<void> {
+    return await this.call('savePrivKey', keyName, keyContent);
   }
 
   async checkConnectivity(address: string, port: number): Promise<boolean> {

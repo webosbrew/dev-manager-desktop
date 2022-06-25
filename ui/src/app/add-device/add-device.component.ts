@@ -79,7 +79,7 @@ export class AddDeviceComponent {
       if (writePrivKey) {
         // Fetch SSH privKey
         const privKey = await this.fetchPrivKey(value);
-        await this.deviceManager.savePrivKey(spec.name, privKey);
+        await this.deviceManager.savePrivKey(privateKey.openSsh, privKey);
       }
     }
     const added = await this.deviceManager.addDevice(spec);
