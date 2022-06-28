@@ -10,7 +10,7 @@ export class AresPullUriPipe implements PipeTransform {
   }
 
   transform(path: string, device: string) {
-    return this.sanitizer.bypassSecurityTrustUrl(`ares-pull://${device}/${path}`);
+    return this.sanitizer.bypassSecurityTrustUrl(`ares-pull://${encodeURIComponent(device)}/${path}`);
   }
 
 }

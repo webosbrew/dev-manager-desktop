@@ -15,7 +15,7 @@ export function AresPullProtoHandler(request: ProtocolRequest, callback: ((respo
   const url = new URL(request.url);
   lock.acquire(url.hostname, async (done) => {
     try {
-      const ssh = await obtainSession(url.hostname);
+      const ssh = await obtainSession(decodeURIComponent(url.hostname));
 
       const exec = (command: string, options: ExecOptions): Promise<ClientChannel> => new Promise<ClientChannel>(
         (resolve, reject) => ssh.exec(command, options, (err, channel) => {
