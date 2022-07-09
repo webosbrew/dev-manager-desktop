@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import {Observable, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Device, PackageInfo, SystemInfo} from '../../../../main/types';
+import {Device, PackageInfo} from '../../../../main/types';
 import {
   AppManagerService,
   AppsRepoService,
@@ -14,8 +14,8 @@ import {
   RepositoryItem,
 } from '../core/services';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
-import {CrashesComponent} from './crashes/crashes.component';
 import {RenewScriptComponent} from './renew-script/renew-script.component';
+import {HomebrewChannelConfiguration, SystemInfo} from "../../../../main/types/luna-apis";
 
 @Component({
   selector: 'app-info',
@@ -24,10 +24,11 @@ import {RenewScriptComponent} from './renew-script/renew-script.component';
 })
 export class InfoComponent {
   device: Device | null = null;
-  osInfo: SystemInfo | null = null;
+  sysInfo: Partial<SystemInfo> | null = null;
   devModeInfo: DevModeResponse | null = null;
   devModeRemaining: Observable<string> | null = null;
   homebrewAppInfo: PackageInfo | null = null;
+  homebrewAppConfig: Partial<HomebrewChannelConfiguration> | null = null;
   homebrewRepoManifest?: RepositoryItem;
   homebrewRepoHasUpdate: boolean = false;
   infoError: any;
@@ -73,7 +74,7 @@ export class InfoComponent {
     if (!this.device) return;
     this.infoError = null;
     try {
-      this.osInfo = await this.deviceManager.osInfo(this.device.name);
+      this.sysInfo = await this.deviceManager.getSystemInfo(this.device);
     } catch (e) {
       this.infoError = e;
     }
@@ -102,6 +103,7 @@ export class InfoComponent {
     if (!this.device) return;
     this.homebrewAppInfo = await this.appManager.info(this.device.name, 'org.webosbrew.hbchannel');
     this.homebrewRepoManifest = await this.appsRepo.showApp('org.webosbrew.hbchannel');
+    this.homebrewAppConfig = await this.deviceManager.getHbChannelConfig(this.device).catch(() => null);
     if (this.homebrewRepoManifest && this.homebrewAppInfo) {
       this.homebrewRepoHasUpdate = this.homebrewRepoManifest.manifest?.hasUpdate(this.homebrewAppInfo.version) === true;
     }
@@ -118,15 +120,5 @@ export class InfoComponent {
       // Ignore
     }
     progress.close(true);
-  }
-
-  openCrashLogs(): void {
-    this.modalService.open(CrashesComponent, {
-      size: 'lg',
-      scrollable: true,
-      injector: Injector.create({
-        providers: [{provide: 'device', useValue: this.device}]
-      })
-    });
   }
 }

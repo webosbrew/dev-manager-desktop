@@ -1,12 +1,12 @@
 import {Handle, IpcBackend} from "../ipc-backend";
 import {DeviceManagerBackend} from "../device-manager/device-manager.backend";
-import {SessionToken, Shell} from "../types";
+import {Device, SessionToken, Shell} from "../types";
 import {v4 as UUIDv4} from "uuid";
 import {RealShell, SimulateShell} from "./shell-session.impl";
 import {ClientChannel} from "ssh2";
 import * as util from "util";
 import {BrowserWindow} from "electron";
-import {Device, promises} from '@webosbrew/ares-lib';
+import {promises} from '@webosbrew/ares-lib';
 import Session = promises.Session;
 
 export class ShellSessionBackend extends IpcBackend {
@@ -18,9 +18,6 @@ export class ShellSessionBackend extends IpcBackend {
 
   @Handle
   async open(device: Device): Promise<SessionToken> {
-    if (!device) {
-      throw new Error('device is null!');
-    }
     const key = UUIDv4();
     const session = await this.newShell(device);
     session.listen('close', () => {

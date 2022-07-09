@@ -1,7 +1,6 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {HomeComponent} from './home/home.component';
-import {InfoComponent} from './info/info.component';
 
 
 const routes: Routes = [
@@ -16,6 +15,7 @@ const routes: Routes = [
       {path: 'apps', loadChildren: () => import('./apps').then(m => m.AppsModule)},
       {path: 'files', loadChildren: () => import('./files').then(m => m.FilesModule)},
       {path: 'terminal', loadChildren: () => import('./terminal').then(m => m.TerminalModule)},
+      {path: 'debug', loadChildren: () => import('./debug').then(m => m.DebugModule)},
       {path: 'info', loadChildren: () => import('./info').then(m => m.InfoModule)},
       {path: '', redirectTo: 'apps', pathMatch: 'full'},
     ]

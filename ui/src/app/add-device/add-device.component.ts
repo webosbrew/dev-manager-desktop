@@ -85,7 +85,7 @@ export class AddDeviceComponent {
     const added = await this.deviceManager.addDevice(spec);
     try {
       console.log(added);
-      const info = await this.deviceManager.osInfo(added.name);
+      const info = await this.deviceManager.getSystemInfo(added);
       console.log(info);
     } catch (e) {
       console.log('Failed to get device info', e);

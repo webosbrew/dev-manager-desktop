@@ -6,20 +6,17 @@
       <button class="btn btn-primary" (click)="loadInfo()">Retry</button>
     </div>
   </div>
-  <div class="card" *ngIf="osInfo">
+  <div class="card" *ngIf="sysInfo">
     <div class="card-body">
-      <h5 class="card-title">Device - {{osInfo.webos_name}}</h5>
+      <h5 class="card-title">Device - {{sysInfo.modelName}}</h5>
       <p class="card-text">
-        <strong>Firmware version: </strong><span>{{osInfo.webos_manufacturing_version}}</span>
+        <strong>Firmware version: </strong><span>{{sysInfo.firmwareVersion}}</span>
         <br>
-        <strong>webOS version: </strong><span>{{osInfo.webos_release}}</span>
+        <strong>webOS version: </strong><span>{{sysInfo.sdkVersion}}</span>
       </p>
-      <div>
-        <button class="btn btn-primary" (click)="openCrashLogs()">Crash Logs</button>
-      </div>
     </div>
   </div>
-  <div class="card mt-4" *ngIf="osInfo && devModeInfo">
+  <div class="card mt-4" *ngIf="sysInfo && devModeInfo">
     <div class="card-body">
       <h5 class="card-title">Dev Mode</h5>
       <p class="card-text">
@@ -32,12 +29,15 @@
       </div>
     </div>
   </div>
-  <div class="card mt-4" *ngIf="osInfo">
+  <div class="card mt-4" *ngIf="sysInfo">
     <div class="card-body">
       <h5 class="card-title">Homebrew Channel</h5>
-      <p class="card-text">
-        <ng-container *ngIf="homebrewAppInfo">
-          <strong>Version: </strong><span>{{homebrewAppInfo.version}}</span>
+      <p class="card-text" *ngIf="homebrewAppInfo">
+        <strong>Version: </strong><span>{{homebrewAppInfo.version}}</span>
+        <ng-container *ngIf="homebrewAppConfig as config">
+          <br>
+          <strong>Rooted: </strong><span *ngIf="config.root else unrooted">Yes</span>
+          <ng-template #unrooted>Unrooted</ng-template>
         </ng-container>
       </p>
       <div>

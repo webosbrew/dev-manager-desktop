@@ -1,0 +1,12 @@
+pre {
+  //user-select: all;
+  cursor: text;
+  overflow-x: visible;
+}
+
+.report-entry {
+  * {
+    max-lines: 1;
+    text-overflow: ellipsis;
+  }
+}

@@ -1,4 +1,4 @@
-import {CrashReportEntry, DevicePrivateKey, SystemInfo} from '../types';
+import {CrashReportEntry, Device, DevicePrivateKey} from '../types';
 import {cleanupSession} from '../util/ares-utils';
 import {Handle, IpcBackend} from "../ipc-backend";
 import * as fs from 'fs';
@@ -7,12 +7,11 @@ import {Readable} from 'stream';
 import * as net from 'net';
 import {utils as ssh2utils} from 'ssh2';
 import {BrowserWindow} from 'electron';
-import {Device, DeviceEditSpec, promises, Resolver as AresResolver} from '@webosbrew/ares-lib';
+import {DeviceEditSpec, Luna, LunaAddress, promises, Resolver as AresResolver} from '@webosbrew/ares-lib';
 import axios from "axios";
 import {ParsedKey} from "ssh2-streams";
 import Resolver = promises.Resolver;
 import Session = promises.Session;
-import Luna = promises.Luna;
 import CliAppData = promises.CliAppData;
 
 export class DeviceManagerBackend extends IpcBackend {
@@ -24,7 +23,9 @@ export class DeviceManagerBackend extends IpcBackend {
   @Handle
   async list(): Promise<Device[]> {
     const resolver = this.newResolver();
-    return await resolver.load().then(() => resolver.devices.sort((a, b) => a.name.localeCompare(b.name)));
+    return await resolver.load()
+      .then(() => resolver.devices.sort((a, b) => a.name.localeCompare(b.name)))
+      .then(devices => devices as Device[]);
   }
 
   @Handle
@@ -124,17 +125,6 @@ export class DeviceManagerBackend extends IpcBackend {
   }
 
   @Handle
-  async osInfo(name: string): Promise<SystemInfo> {
-    const session = await Session.create(name);
-    return DeviceManagerBackend.runAndGetOutput(session, `cat /var/run/nyx/os_info.json`, null)
-      .then((output) => JSON.parse(output) as SystemInfo)
-      .finally(() => {
-        session.end();
-        cleanupSession();
-      });
-  }
-
-  @Handle
   async devModeToken(name: string): Promise<string> {
     const session = await Session.create(name);
     const cmd = 'test -f /var/luna/preferences/devmode_enabled && cat /var/luna/preferences/devmode_enabled || echo';
@@ -145,10 +135,10 @@ export class DeviceManagerBackend extends IpcBackend {
   }
 
   @Handle
-  async listCrashReports(name: string): Promise<CrashReportEntry[]> {
-    const session = await Session.create(name);
+  async listCrashReports(device: Device): Promise<CrashReportEntry[]> {
+    const session = await Session.create(device.name);
     return DeviceManagerBackend.runAndGetOutput(session, 'find /tmp/faultmanager/crash/ -name \'*.gz\' -print0', null)
-      .then(output => output.split('\0').filter(l => l.length).map(l => ({device: name, path: l})))
+      .then(output => output.split('\0').filter(l => l.length).map(l => ({device, path: l})))
       .finally(() => {
         session.end();
         cleanupSession();
@@ -156,8 +146,8 @@ export class DeviceManagerBackend extends IpcBackend {
   }
 
   @Handle
-  async zcat(name: string, path: string): Promise<string> {
-    const session = await Session.create(name);
+  async zcat(device: Device, path: string): Promise<string> {
+    const session = await Session.create(device.name);
     return DeviceManagerBackend.runAndGetOutput(session, `xargs -0 zcat`, Readable.from(path)).finally(() => {
       session.end();
       cleanupSession();
@@ -169,12 +159,33 @@ export class DeviceManagerBackend extends IpcBackend {
     const session = await Session.create(device.name);
     const options = {session, nReplies: 1};
     const params = {id: 'com.palmdts.devmode', subscribe: false, params: {extend: true}};
-    await Luna.send(options, device.lunaAddr.launch, params);
+    return new Promise((resolve, reject) => {
+      Luna.send(options, device.lunaAddr.launch, params, response => resolve(response), error => reject(error));
+    });
+  }
+
+  @Handle
+  async lunaCall<Param extends Record<string, unknown>>(device: Device, uri: string, param: Param): Promise<Record<string, unknown>> {
+    if (!uri.startsWith('luna://')) {
+      throw new Error(`Bad luna address ${uri}.`);
+    }
+    const session = await Session.create(device.name);
+    const options = {session, nReplies: 1};
+    const segs = uri.substring(7).split('/');
+    const address: LunaAddress = {
+      service: segs[0],
+      folder: segs.length >= 3 ? segs.slice(1, segs.length - 1).join('/') : undefined,
+      method: segs[1]
+    };
+
+    return new Promise((resolve, reject) => {
+      Luna.send(options, address, param, response => resolve(response), error => reject(error));
+    });
   }
 
   private async modifyDeviceFile(op: 'add' | 'modify' | 'default' | 'remove', device: Partial<DeviceEditSpec>): Promise<Device[]> {
     const resolver = this.newResolver();
-    return await resolver.modifyDeviceFile(op, device);
+    return (await resolver.modifyDeviceFile(op, device)) as Device[];
   }
 
   private onDevicesUpdated(devices: Device[]) {
@@ -191,7 +202,7 @@ export class DeviceManagerBackend extends IpcBackend {
         if (error != null) {
           reject(error);
         } else {
-          resolve(result!);
+          resolve(result as Device[]);
         }
       }))
     }

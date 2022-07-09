@@ -1,9 +1,18 @@
 import {Injectable, NgZone} from "@angular/core";
-import {BehaviorSubject, Observable, Subject} from "rxjs";
-import {Device, DeviceEditSpec, DevicePrivateKey, SessionToken, Shell, SystemInfo} from '../../../../../main/types';
+import {BehaviorSubject, from, Observable, Subject} from "rxjs";
+import {
+  CrashReportEntry,
+  Device,
+  DeviceEditSpec,
+  DevicePrivateKey,
+  SessionToken,
+  Shell
+} from '../../../../../main/types';
 import {IpcClient} from "./ipc-client";
 import {IpcFileSession} from "./file.session";
 import {IpcShellSession} from "./shell.session";
+import {HomebrewChannelConfiguration, SystemInfo} from "../../../../../main/types/luna-apis";
+import {basename} from "path";
 
 @Injectable({
   providedIn: 'root'
@@ -81,24 +90,35 @@ export class DeviceManagerService extends IpcClient {
     return await this.call('checkConnectivity', address, port);
   }
 
-  async osInfo(name: string): Promise<SystemInfo> {
-    return await this.call('osInfo', name);
-  }
-
   async devModeToken(name: string): Promise<string> {
     return await this.call('devModeToken', name);
   }
 
-  async listCrashReports(name: string): Promise<CrashReport[]> {
-    return await this.call('listCrashReports', name);
+  async listCrashReports(device: Device): Promise<CrashReport[]> {
+    return await this.call<CrashReportEntry[]>('listCrashReports', device)
+      .then(entries => entries.map(entry => new CrashReport(entry.device, entry.path, this)));
   }
 
-  async zcat(name: string, path: string): Promise<string> {
-    return await this.call('zcat', name, path);
+  async zcat(device: Device, path: string): Promise<string> {
+    return await this.call('zcat', device, path);
   }
 
   async extendDevMode(device: Device): Promise<any> {
     return await this.call('extendDevMode', device);
+  }
+
+  async getSystemInfo(device: Device): Promise<Partial<SystemInfo>> {
+    return await this.lunaCall(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
+      keys: ['firmwareVersion', 'modelName', 'sdkVersion']
+    });
+  }
+
+  async getHbChannelConfig(device: Device): Promise<Partial<HomebrewChannelConfiguration>> {
+    return await this.lunaCall(device, 'luna://org.webosbrew.hbchannel.service/getConfiguration', {});
+  }
+
+  async lunaCall<Param extends Record<string, unknown>>(device: Device, uri: string, param: Param): Promise<Record<string, unknown>> {
+    return await this.call('lunaCall', device, uri, param);
   }
 
   async openShellSession(device: Device): Promise<SessionToken> {
@@ -132,20 +152,41 @@ export class ShellInfo {
 }
 
 export class CrashReport {
-  name: string;
+  title: string;
+  summary: string;
   content: Observable<string>;
-  private subject: Subject<string>;
 
-  constructor(public device: string, public path: string) {
+  constructor(public device: Device, public path: string, dm: DeviceManagerService) {
     this.path = path;
-    this.name = path.substring(path.lastIndexOf('/') + 1);
-    this.subject = new BehaviorSubject<string>('');
-    this.content = this.subject.asObservable();
+    const {title, summary} = CrashReport.parseTitle(path);
+    this.title = title;
+    this.summary = summary;
+    this.content = from(dm.zcat(this.device, this.path).then(content => content.trim()));
   }
 
-  load(dm: DeviceManagerService): void {
-    dm.zcat(this.device, this.path)
-      .then(content => this.subject.next(content.trim()))
-      .catch(error => this.subject.error(error));
+  private static parseTitle(path: string): { title: string, summary: string; } {
+    const fn = basename(path).replace(/[\x00-\x1f]/g, '/');
+    let match = fn.match(/.*____(.+)\.(\d+)\..+\.gz$/)
+    if (match) {
+      const startIdx = fn.indexOf('/'), endIdx = fn.lastIndexOf('____');
+      return {title: match[1], summary: `PID: ${match[2]}`};
+    }
+    const appDirPrefix = '/usr/palm/applications/';
+    const appDirIdx = fn.indexOf(appDirPrefix);
+    if (appDirIdx < 0) {
+      return {title: 'unknown', summary: fn};
+    }
+    const substr = fn.substring(appDirIdx + appDirPrefix.length);
+    const firstSlash = substr.indexOf('/'), lastSlash = substr.lastIndexOf('/');
+    const appId = substr.substring(0, firstSlash > 0 ? firstSlash : undefined);
+    let content = '';
+    if (lastSlash > 0) {
+      const lastUnderscoreIdx = substr.lastIndexOf('____');
+      if (lastUnderscoreIdx > 0) {
+        content = substr.substring(lastSlash + 1, lastUnderscoreIdx);
+      }
+    }
+    return {title: appId, summary: content};
   }
+
 }

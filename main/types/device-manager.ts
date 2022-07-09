@@ -1,26 +1,10 @@
 import {Attributes, FileEntry, FileItem} from "./file-session";
 import {Device} from "./novacom-data";
 
-export declare interface CrashReportEntry {
-  device: string;
-  path: string;
-}
 
-export declare interface SystemInfo {
-  core_os_kernel_version?: string
-  core_os_name?: string
-  core_os_release?: string
-  core_os_release_codename?: string
-  encryption_key_type?: string
-  webos_api_version?: string
-  webos_build_datetime?: string
-  webos_build_id?: string
-  webos_imagename?: string
-  webos_manufacturing_version?: string
-  webos_name: string
-  webos_prerelease?: string
-  webos_release: string
-  webos_release_codename?: string
+export declare interface CrashReportEntry {
+  device: Device;
+  path: string;
 }
 
 export declare interface Shell {

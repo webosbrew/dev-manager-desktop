@@ -1,0 +1,12 @@
+<div class="w-100 h-100 d-flex flex-column">
+  <ul ngbNav class="nav-tabs mt-2 px-2" #nav="ngbNav">
+    <li ngbNavItem="crashes">
+      <a ngbNavLink>Crash Reports</a>
+      <ng-template ngbNavContent>
+        <app-crashes [device]="device"></app-crashes>
+      </ng-template>
+    </li>
+  </ul>
+
+  <div class="flex-fill overflow-hidden debug-content" [ngbNavOutlet]="nav"></div>
+</div>

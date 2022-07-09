@@ -1,10 +1,10 @@
 import {Handle, IpcBackend} from "../ipc-backend";
-import {FileItem, FileSession, SessionToken, Attributes, FileEntry} from "../types";
+import {FileItem, FileSession, SessionToken, Attributes, FileEntry, Device} from "../types";
 import {NovacomFileSession, SFTPSession} from "./file-session.impl";
 import {DeviceManagerBackend} from "../device-manager/device-manager.backend";
 import {v4 as UUIDv4} from 'uuid';
 import {BrowserWindow} from "electron";
-import {Device, promises} from "@webosbrew/ares-lib";
+import {promises} from "@webosbrew/ares-lib";
 import {SFTPWrapper} from "ssh2";
 import Session = promises.Session;
 
