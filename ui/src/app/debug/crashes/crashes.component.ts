@@ -1,6 +1,10 @@
 import {Component, Input} from '@angular/core';
 import {CrashReport, DeviceManagerService} from '../../core/services';
 import {Device} from "../../../../../main/types";
+import {lastValueFrom, noop} from "rxjs";
+import {dialog, getCurrentWindow} from "@electron/remote";
+import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: 'app-crashes',
@@ -13,7 +17,7 @@ export class CrashesComponent {
 
   reports?: CrashReport[];
 
-  constructor(public deviceManager: DeviceManagerService) {
+  constructor(public deviceManager: DeviceManagerService, private modals: NgbModal) {
   }
 
   get device(): Device | null {
@@ -30,4 +34,27 @@ export class CrashesComponent {
     }
   }
 
+  async copyReport(report: CrashReport): Promise<void> {
+    await navigator.clipboard.writeText(await lastValueFrom(report.content));
+  }
+
+  async saveReport(report: CrashReport): Promise<void> {
+    let target: string | undefined;
+    try {
+      target = await dialog.showSaveDialog(getCurrentWindow(), {
+        defaultPath: `${report.saveName}.txt`
+      }).then(value => value.filePath);
+    } catch (e) {
+      return;
+    }
+    if (!target) {
+      return;
+    }
+    const progress = ProgressDialogComponent.open(this.modals);
+    try {
+      await this.deviceManager.saveCrashReport(report, target);
+    } finally {
+      progress.close();
+    }
+  }
 }

@@ -30,8 +30,8 @@ export class RenewScriptComponent implements OnInit {
     this.decryptedPrivKey = (await this.deviceManager.loadPrivKey(this.device)).privatePEM;
   }
 
-  copyScript(content: string): void {
-    navigator.clipboard.writeText(content);
+  async copyScript(content: string): Promise<void> {
+    await navigator.clipboard.writeText(content);
   }
 
   saveScript(content: string): void {

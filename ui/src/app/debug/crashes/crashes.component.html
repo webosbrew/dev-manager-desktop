@@ -12,10 +12,12 @@
             <pre class="overflow-visible p-2">{{report.content | async}}</pre>
           </div>
           <div class="position-absolute top-0 end-0 my-2 mx-4">
-            <button type="button" class="btn btn-primary me-2">
+            <button type="button" class="btn btn-primary me-2" (click)="copyReport(report)"
+                    ngbTooltip="Copy to clipboard" container="body">
               <i class="bi bi-clipboard"></i>
             </button>
-            <button type="button" class="btn btn-primary">
+            <button type="button" class="btn btn-primary" (click)="saveReport(report)" ngbTooltip="Save crash log"
+                    container="body">
               <i class="bi bi-save"></i>
             </button>
           </div>

@@ -3,14 +3,14 @@
     <div class="manager-toolbar navbar navbar-light bg-panel border-bottom">
       <div class="ms-auto me-2">
         <button class="btn btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)"
-                ngbTooltip="Delete">
+                ngbTooltip="Delete" container="body">
           <i class="bi bi-trash"></i>
         </button>
         <button class="btn btn-primary ms-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)"
-                ngbTooltip="Download">
+                ngbTooltip="Download" container="body">
           <i class="bi bi-download"></i>
         </button>
-        <button class="btn btn-primary ms-2" (click)="uploadFiles()" ngbTooltip="Upload">
+        <button class="btn btn-primary ms-2" (click)="uploadFiles()" ngbTooltip="Upload" container="body">
           <i class="bi bi-upload"></i>
         </button>
       </div>

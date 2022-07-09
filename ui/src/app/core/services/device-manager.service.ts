@@ -99,6 +99,13 @@ export class DeviceManagerService extends IpcClient {
       .then(entries => entries.map(entry => new CrashReport(entry.device, entry.path, this)));
   }
 
+  async saveCrashReport(entry: CrashReportEntry, target: string): Promise<void> {
+    return await this.call('saveCrashReport', {
+      device: entry.device,
+      path: entry.path
+    }, target);
+  }
+
   async zcat(device: Device, path: string): Promise<string> {
     return await this.call('zcat', device, path);
   }
@@ -151,30 +158,36 @@ export class ShellInfo {
   }
 }
 
-export class CrashReport {
+export class CrashReport implements CrashReportEntry {
   title: string;
   summary: string;
   content: Observable<string>;
+  saveName: string;
 
   constructor(public device: Device, public path: string, dm: DeviceManagerService) {
     this.path = path;
-    const {title, summary} = CrashReport.parseTitle(path);
+    const {title, summary, saveName} = CrashReport.parseTitle(path);
     this.title = title;
     this.summary = summary;
+    this.saveName = saveName;
     this.content = from(dm.zcat(this.device, this.path).then(content => content.trim()));
   }
 
-  private static parseTitle(path: string): { title: string, summary: string; } {
-    const fn = basename(path).replace(/[\x00-\x1f]/g, '/');
-    let match = fn.match(/.*____(.+)\.(\d+)\..+\.gz$/)
+  private static parseTitle(path: string): { title: string, summary: string; saveName: string; } {
+    const fn = basename(path).replace(/[\x00-\x1f]/g, '/').replace(/.gz$/, '');
+    let match = fn.match(/.*____(.+)\.(\d+)\..+$/)
     if (match) {
       const startIdx = fn.indexOf('/'), endIdx = fn.lastIndexOf('____');
-      return {title: match[1], summary: `PID: ${match[2]}`};
+      return {
+        title: match[1],
+        summary: `PID: ${match[2]}`,
+        saveName: fn.substring(startIdx, endIdx).replace('/', '_')
+      };
     }
     const appDirPrefix = '/usr/palm/applications/';
     const appDirIdx = fn.indexOf(appDirPrefix);
     if (appDirIdx < 0) {
-      return {title: 'unknown', summary: fn};
+      return {title: 'Application Crash', summary: fn, saveName: fn.replace('/', '_')};
     }
     const substr = fn.substring(appDirIdx + appDirPrefix.length);
     const firstSlash = substr.indexOf('/'), lastSlash = substr.lastIndexOf('/');
@@ -186,7 +199,7 @@ export class CrashReport {
         content = substr.substring(lastSlash + 1, lastUnderscoreIdx);
       }
     }
-    return {title: appId, summary: content};
+    return {title: appId, summary: content, saveName: fn.replace('/', '_')};
   }
 
 }

@@ -146,6 +146,12 @@ export class DeviceManagerBackend extends IpcBackend {
   }
 
   @Handle
+  async saveCrashReport(entry: CrashReportEntry, target: string): Promise<void> {
+    const content = await this.zcat(entry.device, entry.path);
+    await fs.promises.writeFile(target, content, {encoding: 'utf-8', mode: 0o644});
+  }
+
+  @Handle
   async zcat(device: Device, path: string): Promise<string> {
     const session = await Session.create(device.name);
     return DeviceManagerBackend.runAndGetOutput(session, `xargs -0 zcat`, Readable.from(path)).finally(() => {

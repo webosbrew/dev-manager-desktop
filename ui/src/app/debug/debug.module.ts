@@ -2,7 +2,7 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {DebugRoutingModule} from "./debug-routing.module";
 import {DebugComponent} from './debug.component';
-import {NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
+import {NgbNavModule, NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
 import {CrashesComponent} from "./crashes/crashes.component";
 
 
@@ -11,11 +11,12 @@ import {CrashesComponent} from "./crashes/crashes.component";
     DebugComponent,
     CrashesComponent
   ],
-  imports: [
-    CommonModule,
-    DebugRoutingModule,
-    NgbNavModule
-  ]
+    imports: [
+        CommonModule,
+        DebugRoutingModule,
+        NgbNavModule,
+        NgbTooltipModule
+    ]
 })
 export class DebugModule {
 }
