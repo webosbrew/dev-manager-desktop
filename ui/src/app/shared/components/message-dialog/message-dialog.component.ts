@@ -64,6 +64,8 @@ export class MessageDialogComponent implements AfterViewInit, MessageDialogConfi
   static open(service: NgbModal, config: MessageDialogConfig): NgbModalRef {
     return service.open(MessageDialogComponent, {
       centered: true,
+      size: 'lg',
+      scrollable: true,
       injector: Injector.create({
         providers: [{provide: 'config', useValue: config}]
       })

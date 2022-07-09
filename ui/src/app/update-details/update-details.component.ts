@@ -1,4 +1,4 @@
-import {Component, Inject, SecurityContext} from '@angular/core';
+import {Component, Inject, SecurityContext, ViewEncapsulation} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
 import * as marked from 'marked';
 import {Release} from '../core/services';
@@ -6,7 +6,8 @@ import {Release} from '../core/services';
 @Component({
   selector: 'app-update-details',
   templateUrl: './update-details.component.html',
-  styleUrls: ['./update-details.component.scss']
+  styleUrls: ['./update-details.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class UpdateDetailsComponent {
 
