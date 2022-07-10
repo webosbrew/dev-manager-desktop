@@ -46,6 +46,7 @@ chmod 600 /tmp/webos_privkey_{{device.name}}
 <![CDATA[sessionToken=$(ssh -i /tmp/webos_privkey_{{device.name}} \
  -o ConnectTimeout=3 -o StrictHostKeyChecking=no \
  -o HostKeyAlgorithms=+ssh-rsa \
+ -o PubkeyAcceptedKeyTypes=+ssh-rsa \
  -p {{device.port}} {{device.username}}@{{device.host}} \
  cat /var/luna/preferences/devmode_enabled)
 if [ -z "$sessionToken" ]; then
