@@ -1,5 +1,6 @@
-import {ipcRenderer} from "electron";
-import {NgZone} from "@angular/core";
+import {invoke} from '@tauri-apps/api/tauri';
+import {listen} from '@tauri-apps/api/event';
+import {NgZone} from '@angular/core';
 
 export abstract class IpcClient {
   protected constructor(protected zone: NgZone, public category: string) {
@@ -14,15 +15,16 @@ export abstract class IpcClient {
     // eslint-disable-next-line
     return new Promise<T>((resolve, reject) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      ipcRenderer.invoke(`${category}/${method}`, ...args)
-        .then((result: T) => this.zone.run(() => resolve(result)))
+      invoke(`${category}/${method}`, ...args)
+        .then((result) => this.zone.run(() => resolve(result as any)))
         .catch(reason => this.zone.run(() => reject(reason)));
     });
   }
 
   protected on(method: string, handler: (..._: any[]) => void): void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    ipcRenderer.on(`${this.category}/${method}`, (event, args) => this.zone.run(() => handler(args)));
+    listen(`${this.category}/${method}`, (event) =>
+      this.zone.run(() => handler(event.payload)));
   }
 
 }

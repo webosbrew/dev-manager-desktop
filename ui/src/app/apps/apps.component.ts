@@ -2,11 +2,11 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Observable, Subscription} from 'rxjs';
 import {Device, PackageInfo} from '../../../../main/types';
-import {AppManagerService, AppsRepoService, DeviceManagerService, RepositoryItem} from '../core/services';
+import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
-import {dialog, getCurrentWindow} from "@electron/remote";
-import {keyBy, mapValues} from 'lodash';
+import {keyBy} from 'lodash';
+import {open as showOpenDialog} from '@tauri-apps/api/dialog';
 
 @Component({
   selector: 'app-apps',
@@ -99,13 +99,13 @@ export class AppsComponent implements OnInit, OnDestroy {
 
   async openInstallChooser(): Promise<void> {
     if (!this.device) return;
-    const open = await dialog.showOpenDialog(getCurrentWindow(), {
+    const open = await showOpenDialog({
       filters: [{name: 'IPK package', extensions: ['ipk']}]
     });
-    if (open.canceled) {
+    if (!open) {
       return;
     }
-    const path = open.filePaths[0];
+    const path = Array.isArray(open) ? open[0] : open;
     const progress = ProgressDialogComponent.open(this.modalService);
     await this.appManager.install(this.device.name, path);
     progress.close(true);

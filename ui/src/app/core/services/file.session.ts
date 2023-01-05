@@ -1,6 +1,6 @@
 import {IpcClient} from "./ipc-client";
 import {Attributes, FileEntry, FileItem, FileSession} from "../../../../../main/types";
-import path from "path";
+import {basename} from "@tauri-apps/api/path";
 import {NgZone} from "@angular/core";
 
 export class IpcFileSession extends IpcClient implements FileSession {
@@ -46,11 +46,11 @@ export class IpcFileSession extends IpcClient implements FileSession {
 
   async uploadBatch(sources: string[], destination: string, error?: (name: string, error: Error) => Promise<boolean>): Promise<void> {
     for (const source of sources) {
-      const filename: string = path.parse(source).base;
+      const filename: string = await basename(source);
       let result = false;
       do {
         try {
-          await this.put(source, path.posix.join(destination, filename));
+          await this.put(source, [destination, filename].join('/'));
         } catch (e) {
           if (!error) throw e;
           result = await error(filename, e as Error);

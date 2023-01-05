@@ -5,7 +5,7 @@ import {SemVer} from 'semver';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {MessageDialogComponent} from './shared/components/message-dialog/message-dialog.component';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
-import {shell} from "@electron/remote";
+import {open} from "@tauri-apps/api/shell";
 import {ThemeService} from "ng-bootstrap-darkmode";
 
 @Component({
@@ -47,7 +47,7 @@ export class AppComponent {
     }).result.then((result: boolean | null) => {
       switch (result) {
         case true: {
-          shell.openExternal(info.html_url);
+          open(info.html_url);
           break;
         }
         case false: {

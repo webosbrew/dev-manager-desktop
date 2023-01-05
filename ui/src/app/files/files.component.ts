@@ -5,8 +5,8 @@ import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
-import {dialog, shell} from '@electron/remote';
-import path from "path";
+import {open as openPath} from '@tauri-apps/api/shell';
+import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/api/dialog';
 
 class FilesState {
 
@@ -103,7 +103,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     if (!this.pwd) return;
     switch (file.type) {
       case 'd': {
-        await this.cd(path.posix.join(this.pwd, file.filename), true);
+        await this.cd([this.pwd, file.filename].join('/'), true);
         break;
       }
       case '-': {
@@ -137,7 +137,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     progress.dismiss();
     await session.end();
     if (!result || !tempPath) return;
-    await shell.openPath(tempPath);
+    await openPath(tempPath);
   }
 
   async downloadFiles(files: FileItem[] | null): Promise<void> {
@@ -146,11 +146,11 @@ export class FilesComponent implements OnInit, OnDestroy {
     if (files.length == 1) {
       return await this.downloadFile(files[0]);
     }
-    const returnValue = await dialog.showOpenDialog({properties: ['openDirectory']});
-    if (returnValue.canceled) return;
+    const returnValue = await showOpenDialog({directory: true, multiple: false});
+    if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     const session = await this.deviceManager.openFileSession(this.device.name);
-    const target = returnValue.filePaths[0];
+    const target = returnValue as string;
     for (const file of files) {
       let result = false;
       do {
@@ -213,14 +213,14 @@ export class FilesComponent implements OnInit, OnDestroy {
 
   private async downloadFile(file: FileItem): Promise<void> {
     if (!this.pwd || !this.device) return;
-    const returnValue = await dialog.showSaveDialog({defaultPath: file.filename});
-    if (returnValue.canceled) return;
+    const returnValue = await showSaveDialog({defaultPath: file.filename});
+    if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     const session = await this.deviceManager.openFileSession(this.device.name);
     let result = false;
     do {
       try {
-        await session.get(file.abspath, returnValue.filePath!);
+        await session.get(file.abspath, returnValue);
       } catch (e) {
         result = await MessageDialogComponent.open(this.modalService, {
           title: `Failed to download file ${file.filename}`,
@@ -236,11 +236,11 @@ export class FilesComponent implements OnInit, OnDestroy {
 
   async uploadFiles(): Promise<void> {
     if (!this.pwd || !this.device) return;
-    const returnValue = await dialog.showOpenDialog({properties: ['multiSelections', 'openFile']});
-    if (returnValue.canceled) return;
+    const returnValue = await showOpenDialog({multiple: true});
+    if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     const session = await this.deviceManager.openFileSession(this.device.name);
-    await session.uploadBatch(returnValue.filePaths, this.pwd, async (name, e) => {
+    await session.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], this.pwd, async (name, e) => {
       const result = await MessageDialogComponent.open(this.modalService, {
         title: `Failed to upload file ${name}`,
         message: e.message ?? String(e),
@@ -258,7 +258,7 @@ export class FilesComponent implements OnInit, OnDestroy {
 
   async breadcrumbNav(segs: string[]): Promise<void> {
     segs[0] = '/';
-    await this.cd(path.posix.join(...segs), true);
+    await this.cd(segs.join('/'), true);
   }
 
 }

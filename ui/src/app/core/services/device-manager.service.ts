@@ -12,7 +12,7 @@ import {IpcClient} from "./ipc-client";
 import {IpcFileSession} from "./file.session";
 import {IpcShellSession} from "./shell.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../../../../main/types/luna-apis";
-import {basename} from "path";
+import {basename} from "@tauri-apps/api/path";
 
 @Injectable({
   providedIn: 'root'
@@ -96,7 +96,7 @@ export class DeviceManagerService extends IpcClient {
 
   async listCrashReports(device: Device): Promise<CrashReport[]> {
     return await this.call<CrashReportEntry[]>('listCrashReports', device)
-      .then(entries => entries.map(entry => new CrashReport(entry.device, entry.path, this)));
+      .then(entries => Promise.all(entries.map(entry => CrashReport.obtain(this, entry.device, entry.path))));
   }
 
   async saveCrashReport(entry: CrashReportEntry, target: string): Promise<void> {
@@ -159,22 +159,19 @@ export class ShellInfo {
 }
 
 export class CrashReport implements CrashReportEntry {
-  title: string;
-  summary: string;
-  content: Observable<string>;
-  saveName: string;
 
-  constructor(public device: Device, public path: string, dm: DeviceManagerService) {
-    this.path = path;
-    const {title, summary, saveName} = CrashReport.parseTitle(path);
-    this.title = title;
-    this.summary = summary;
-    this.saveName = saveName;
-    this.content = from(dm.zcat(this.device, this.path).then(content => content.trim()));
+  constructor(public device: Device, public path: string, public title: string, public summary: string,
+              public saveName: string, public content: Observable<string>) {
   }
 
-  private static parseTitle(path: string): { title: string, summary: string; saveName: string; } {
-    const fn = basename(path).replace(/[\x00-\x1f]/g, '/').replace(/.gz$/, '');
+  static async obtain(dm: DeviceManagerService, device: Device, path: string) {
+    const {title, summary, saveName} = await CrashReport.parseTitle(path);
+    const content = from(dm.zcat(device, path).then(content => content.trim()));
+    return new CrashReport(device, path, title, summary, saveName, content);
+  }
+
+  private static async parseTitle(path: string): Promise<{ title: string, summary: string; saveName: string; }> {
+    const fn = (await basename(path)).replace(/[\x00-\x1f]/g, '/').replace(/.gz$/, '');
     let match = fn.match(/.*____(.+)\.(\d+)\..+$/)
     if (match) {
       const startIdx = fn.indexOf('/'), endIdx = fn.lastIndexOf('____');

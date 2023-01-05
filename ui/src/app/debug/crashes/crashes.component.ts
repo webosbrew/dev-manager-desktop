@@ -1,8 +1,8 @@
 import {Component, Input} from '@angular/core';
 import {CrashReport, DeviceManagerService} from '../../core/services';
 import {Device} from "../../../../../main/types";
-import {lastValueFrom, noop} from "rxjs";
-import {dialog, getCurrentWindow} from "@electron/remote";
+import {lastValueFrom} from "rxjs";
+import {save} from '@tauri-apps/api/dialog';
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 
@@ -39,11 +39,11 @@ export class CrashesComponent {
   }
 
   async saveReport(report: CrashReport): Promise<void> {
-    let target: string | undefined;
+    let target: string | null;
     try {
-      target = await dialog.showSaveDialog(getCurrentWindow(), {
+      target = await save({
         defaultPath: `${report.saveName}.txt`
-      }).then(value => value.filePath);
+      });
     } catch (e) {
       return;
     }

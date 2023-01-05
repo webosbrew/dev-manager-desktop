@@ -3,7 +3,7 @@ import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../../../../../main/types';
 import {DeviceManagerService} from '../../core/services';
 import {BehaviorSubject, noop, Observable, Subject} from 'rxjs';
-import {dialog, getCurrentWindow} from "@electron/remote";
+import {save as showSaveDialog} from '@tauri-apps/api/dialog'
 
 @Component({
   selector: 'app-renew-script',
@@ -35,7 +35,7 @@ export class RenewScriptComponent implements OnInit {
   }
 
   saveScript(content: string): void {
-    dialog.showSaveDialog(getCurrentWindow(), {
+    showSaveDialog({
       defaultPath: `renew-devmode-${this.device.name}.sh`
     }).then(value => {
       // this.electron.fs.writeFileSync(value.filePath, content, { encoding: 'utf8', mode: 0o755 });

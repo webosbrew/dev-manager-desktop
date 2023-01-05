@@ -7,11 +7,7 @@ const path = require('path');
  * Custom angular webpack configuration
  */
 module.exports = (config, options) => {
-  config.target = 'electron-renderer';
-  config.resolve.alias = {
-    // 'electron': path.resolve(__dirname, 'src/aliases/electron'),
-    // '@electron/remote': path.resolve(__dirname, 'src/aliases/electron-remote'),
-  };
+  config.target = 'web';
 
   if (options.fileReplacements) {
     for (let fileReplacement of options.fileReplacements) {

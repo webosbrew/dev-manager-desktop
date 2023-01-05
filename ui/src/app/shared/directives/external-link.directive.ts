@@ -1,5 +1,6 @@
 import {Directive, HostListener, Input} from '@angular/core';
-import {shell} from "@electron/remote";
+import {open} from "@tauri-apps/api/shell";
+import {noop} from "rxjs";
 
 @Directive({
   // eslint-disable-next-line @angular-eslint/directive-selector
@@ -16,8 +17,8 @@ export class ExternalLinkDirective {
   @HostListener('click')
   onClick(): boolean {
     if (!this.href) return false;
-    if (shell && this.isLinkExternal()) {
-      shell.openExternal(this.href);
+    if (open && this.isLinkExternal()) {
+      open(this.href).then(noop);
       return false;
     } else {
       window.open(this.href, '_blank');

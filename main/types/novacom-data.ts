@@ -1,3 +1,5 @@
+import {Buffer} from "buffer";
+
 export declare interface Device {
   name: string;
   description: string;
