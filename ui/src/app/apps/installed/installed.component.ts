@@ -23,7 +23,7 @@ export class InstalledComponent implements OnDestroy, OnChanges {
 
   private subscription?: Subscription;
 
-  constructor(@Host() public parent: AppsComponent, private appsRepo:AppsRepoService) {
+  constructor(@Host() public parent: AppsComponent, private appsRepo: AppsRepoService) {
   }
 
   ngOnDestroy(): void {
@@ -43,5 +43,8 @@ export class InstalledComponent implements OnDestroy, OnChanges {
     }
   }
 
-
+  loadPackages(): void {
+    this.installedError = undefined;
+    this.parent.loadPackages();
+  }
 }

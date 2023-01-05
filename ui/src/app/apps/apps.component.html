@@ -2,13 +2,13 @@
   <nav class="manager-toolbar navbar navbar-light bg-panel border-bottom px-2">
     <div class="me-auto">
       <ul ngbNav #nav="ngbNav" class="nav-pills">
-        <li ngbNavItem>
+        <li ngbNavItem="installed">
           <a ngbNavLink>Installed</a>
           <ng-template ngbNavContent>
             <app-installed [device]="device" [installed$]="packages$"></app-installed>
           </ng-template>
         </li>
-        <li ngbNavItem>
+        <li ngbNavItem="channel">
           <a ngbNavLink>Available</a>
           <ng-template ngbNavContent>
             <app-channel [installed]="instPackages"></app-channel>
