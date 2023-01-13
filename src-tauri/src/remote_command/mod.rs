@@ -1,41 +1,38 @@
 use std::io::prelude::*;
 use std::path::Path;
 
+use ssh2::ErrorCode;
 use tauri::{plugin::{Builder, TauriPlugin}, Runtime, State};
 
 use crate::device_manager::manager::{Device, DeviceManager};
 
 #[tauri::command]
 pub async fn exec(state: State<'_, DeviceManager>, device: Device, command: String) -> Result<String, String> {
-  let sess = match state.session(&device).await {
-    Ok(m) => m,
-    Err(_) => return Err(String::from("Failed to open session"))
-  };
-
-  let mut channel = sess.channel_session().unwrap();
-  channel.exec(&command).unwrap();
-  let mut s = String::new();
-  channel.read_to_string(&mut s).unwrap();
-  channel.send_eof().unwrap();
-  channel.wait_eof().unwrap();
-  channel.wait_close().unwrap();
-  return Ok(s);
+  return state.run_with_session(&device, |sess| {
+    let mut channel = sess.channel_session()?;
+    channel.exec(&command)?;
+    let mut s = String::new();
+    channel.read_to_string(&mut s)
+      .map_err(|_e| ssh2::Error::new(ErrorCode::Session(-43), "failed to read"))?;
+    channel.send_eof()?;
+    channel.wait_eof()?;
+    channel.wait_close()?;
+    return Ok(s);
+  }).await.map_err(|e| format!("{:?}", e));
 }
 
 #[tauri::command]
 pub async fn read(state: State<'_, DeviceManager>, device: Device, path: &str) -> Result<Vec<u8>, String> {
-  let sess = match state.session(&device).await {
-    Ok(m) => m,
-    Err(_) => return Err(String::from("Failed to open session"))
-  };
-
-  let (mut channel, _stat) = sess.scp_recv(Path::new(path)).unwrap();
-  let mut data = Vec::<u8>::new();
-  channel.read_to_end(&mut data).unwrap();
-  channel.send_eof().unwrap();
-  channel.wait_eof().unwrap();
-  channel.wait_close().unwrap();
-  return Ok(data);
+  return state.run_with_session(&device, |sess| {
+    let (mut channel, _stat) = sess.scp_recv(Path::new(path))?;
+    let mut data = Vec::<u8>::new();
+    channel.read_to_end(&mut data)
+      .map_err(|_e| ssh2::Error::new(ErrorCode::Session(-43), "failed to read"))?;
+    channel.send_eof()?;
+    channel.wait_eof()?;
+    channel.wait_close()?;
+    return Ok(data);
+  }).await.map_err(|e| format!("{:?}", e));
 }
 
 /// Initializes the plugin.

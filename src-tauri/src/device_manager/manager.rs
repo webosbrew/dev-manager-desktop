@@ -1,12 +1,14 @@
 use std::collections::HashMap;
 use std::env;
+use std::error::Error as ErrorTrait;
 use std::fs::File;
 use std::io::{BufReader, Error};
+use std::io::ErrorKind::Other;
 use std::net::TcpStream;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, RwLock};
-use home::home_dir;
 
+use home::home_dir;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use ssh2::Session;
@@ -72,10 +74,6 @@ impl DeviceManager {
     return Ok(devices);
   }
 
-  pub fn get(&self, name: String) -> Option<Device> {
-    return self.devices.lock().unwrap().iter().find(|&d| d.name == name).cloned();
-  }
-
   pub async fn session(&self, device: &Device) -> Result<Arc<Session>, Error> {
     let mut sessions = self.sessions.write().unwrap();
     let option = sessions.get(&device.name);
@@ -87,6 +85,32 @@ impl DeviceManager {
     let arc = Arc::new(session);
     sessions.insert(device.name.clone(), arc.clone());
     return Ok(arc);
+  }
+
+  pub async fn run_with_session<R, F: Fn(&Session) -> Result<R, Box<dyn ErrorTrait>>>(&self, device: &Device, f: F) -> Result<R, Error> {
+    let mut retry = 0;
+    while retry < 3 {
+      let sess = self.session(device).await?;
+      match f(&sess) {
+        Ok(v) => return Ok(v),
+        Err(e) => {
+          if !e.is::<ssh2::Error>() {
+            println!("Other error! {:?}", e);
+            return Err(Error::new(Other, e.to_string()));
+          }
+          self.remove_session(device);
+        }
+      }
+      retry += 1;
+    }
+    return Err(Error::new(Other, "Too many attempts"));
+  }
+
+  fn remove_session(&self, device: &Device) {
+    let mut sessions = self.sessions.write().unwrap();
+    if sessions.remove(&device.name).is_some() {
+      println!("Dropped dead connection for {}", device.name);
+    }
   }
 
   fn create_session(device: &Device) -> Result<Session, Error> {

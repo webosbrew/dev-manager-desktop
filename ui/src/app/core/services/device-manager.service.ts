@@ -12,6 +12,7 @@ import {IpcClient} from "./ipc-client";
 import {IpcFileSession} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../../../../main/types/luna-apis";
 import {basename} from "@tauri-apps/api/path";
+import {LunaResponse, RemoteLunaService} from "./remote-luna.service";
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,7 @@ export class DeviceManagerService extends IpcClient {
   private selectedSubject: Subject<Device | null>;
   private shellsSubject: Subject<SessionToken[]>;
 
-  constructor(zone: NgZone) {
+  constructor(zone: NgZone, private luna: RemoteLunaService) {
     super(zone, 'device-manager');
     this.devicesSubject = new BehaviorSubject<Device[]>([]);
     this.selectedSubject = new BehaviorSubject<Device | null>(null);
@@ -114,17 +115,13 @@ export class DeviceManagerService extends IpcClient {
   }
 
   async getSystemInfo(device: Device): Promise<Partial<SystemInfo>> {
-    return await this.lunaCall(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
+    return await this.luna.call(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
       keys: ['firmwareVersion', 'modelName', 'sdkVersion']
     });
   }
 
   async getHbChannelConfig(device: Device): Promise<Partial<HomebrewChannelConfiguration>> {
-    return await this.lunaCall(device, 'luna://org.webosbrew.hbchannel.service/getConfiguration', {});
-  }
-
-  async lunaCall<Param extends Record<string, unknown>>(device: Device, uri: string, param: Param): Promise<Record<string, unknown>> {
-    return await this.invoke('lunaCall', device, uri, param);
+    return await this.luna.call(device, 'luna://org.webosbrew.hbchannel.service/getConfiguration', {});
   }
 
   async openShellSession(device: Device): Promise<SessionToken> {
