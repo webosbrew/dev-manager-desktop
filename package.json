@@ -16,7 +16,6 @@
   "private": true,
   "scripts": {
     "postinstall": "npm-run-all -p postinstall:*",
-    "postinstall:main": "electron-builder install-app-deps",
     "postinstall:ui": "cd ui && npm install",
     "start": "tauri dev",
     "build": "npm-run-all -p build:*",
@@ -39,7 +38,7 @@
     "node-ssh": "12.0.2",
     "reflect-metadata": "0.1.13",
     "ssh2": "1.5.0",
-    "terser": "5.10.0",
+    "terser": "5.16.1",
     "uuid": "8.3.2",
     "xterm-headless": "4.15.0"
   },

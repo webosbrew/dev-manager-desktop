@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Observable, Subscription} from 'rxjs';
-import {Device, PackageInfo} from '../../../../main/types';
+import {Device, PackageInfo, RawPackageInfo} from '../../../../main/types';
 import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
@@ -16,7 +16,7 @@ import {open as showOpenDialog} from '@tauri-apps/api/dialog';
 export class AppsComponent implements OnInit, OnDestroy {
 
   packages$?: Observable<PackageInfo[]>;
-  instPackages?: Record<string, PackageInfo>;
+  instPackages?: Record<string, RawPackageInfo>;
   device: Device | null = null;
 
   private deviceSubscription?: Subscription;
@@ -71,7 +71,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     const device = this.device;
     if (!device) return;
     this.packagesSubscription?.unsubscribe();
-    this.packages$ = this.appManager.packages$(device.name);
+    this.packages$ = this.appManager.packages$(device);
     this.packagesSubscription = this.packages$.subscribe({
       next: (pkgs) => {
         if (pkgs.length) {
@@ -79,7 +79,7 @@ export class AppsComponent implements OnInit, OnDestroy {
         }
       }, error: noop
     });
-    this.appManager.load(device.name);
+    this.appManager.load(device);
   }
 
   async dropFiles(event: DragEvent): Promise<void> {
@@ -116,7 +116,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     this.appManager.launch(this.device.name, id);
   }
 
-  async removePackage(pkg: PackageInfo): Promise<void> {
+  async removePackage(pkg: RawPackageInfo): Promise<void> {
     if (!this.device) return;
     const confirm = MessageDialogComponent.open(this.modalService, {
       title: 'Remove App',

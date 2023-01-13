@@ -5,7 +5,7 @@
       <li class="list-group-item app-item d-flex flex-row align-items-center"
           *ngFor="let pkg of (installed$ | async)">
         <div class="app-desc flex-fill">
-          <img class="app-icon" [src]="pkg.iconPath | aresPullUri:device.name">
+          <img class="app-icon" [src]="pkg.iconUri | trustUri">
           <div class="app-headline ms-3">
             <div class="app-title">{{pkg.title}}</div>
             <div class="app-description">{{pkg.appDescription}}</div>

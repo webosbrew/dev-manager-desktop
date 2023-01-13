@@ -10,7 +10,6 @@ import {
 } from '../../../../../main/types';
 import {IpcClient} from "./ipc-client";
 import {IpcFileSession} from "./file.session";
-import {IpcShellSession} from "./shell.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../../../../main/types/luna-apis";
 import {basename} from "@tauri-apps/api/path";
 
@@ -46,72 +45,72 @@ export class DeviceManagerService extends IpcClient {
 
   load(): void {
     this.list().then(devices => this.onDevicesUpdated(devices));
-    this.callDirectly<SessionToken[]>('shell-session', 'list')
-      .then(shells => this.shellsSubject.next(shells));
+    // this.invokeDirectly<SessionToken[]>('shell-session', 'list')
+    //   .then(shells => this.shellsSubject.next(shells));
   }
 
   async list(): Promise<Device[]> {
-    return await this.call('list');
+    return await this.invoke('list');
   }
 
   async addDevice(spec: DeviceEditSpec): Promise<Device> {
-    return await this.call('addDevice', spec);
+    return await this.invoke('addDevice', spec);
   }
 
   async modifyDevice(name: string, spec: Partial<DeviceEditSpec>): Promise<Device> {
-    return await this.call('modifyDevice', name, spec);
+    return await this.invoke('modifyDevice', name, spec);
   }
 
   async setDefault(name: string): Promise<Device> {
-    return await this.call('setDefault', name);
+    return await this.invoke('setDefault', name);
   }
 
   async removeDevice(name: string): Promise<void> {
-    return await this.call('removeDevice', name);
+    return await this.invoke('removeDevice', name);
   }
 
   async hasPrivKey(privKey: string): Promise<boolean> {
-    return await this.call('hasPrivKey', privKey);
+    return await this.invoke('hasPrivKey', privKey);
   }
 
   async loadPrivKey(device: Device): Promise<DevicePrivateKey> {
-    return await this.call('loadPrivKey', device);
+    return await this.invoke('loadPrivKey', device);
   }
 
   async fetchPrivKey(address: string, passphrase?: string): Promise<DevicePrivateKey> {
-    return await this.call('fetchPrivKey', address, passphrase);
+    return await this.invoke('fetchPrivKey', address, passphrase);
   }
 
   async savePrivKey(keyName: string, keyContent: DevicePrivateKey): Promise<void> {
-    return await this.call('savePrivKey', keyName, keyContent);
+    return await this.invoke('savePrivKey', keyName, keyContent);
   }
 
   async checkConnectivity(address: string, port: number): Promise<boolean> {
-    return await this.call('checkConnectivity', address, port);
+    return await this.invoke('checkConnectivity', address, port);
   }
 
   async devModeToken(name: string): Promise<string> {
-    return await this.call('devModeToken', name);
+    return await this.invoke('devModeToken', name);
   }
 
   async listCrashReports(device: Device): Promise<CrashReport[]> {
-    return await this.call<CrashReportEntry[]>('listCrashReports', device)
+    return await this.invoke<CrashReportEntry[]>('listCrashReports', device)
       .then(entries => Promise.all(entries.map(entry => CrashReport.obtain(this, entry.device, entry.path))));
   }
 
   async saveCrashReport(entry: CrashReportEntry, target: string): Promise<void> {
-    return await this.call('saveCrashReport', {
+    return await this.invoke('saveCrashReport', {
       device: entry.device,
       path: entry.path
     }, target);
   }
 
   async zcat(device: Device, path: string): Promise<string> {
-    return await this.call('zcat', device, path);
+    return await this.invoke('zcat', device, path);
   }
 
   async extendDevMode(device: Device): Promise<any> {
-    return await this.call('extendDevMode', device);
+    return await this.invoke('extendDevMode', device);
   }
 
   async getSystemInfo(device: Device): Promise<Partial<SystemInfo>> {
@@ -125,23 +124,23 @@ export class DeviceManagerService extends IpcClient {
   }
 
   async lunaCall<Param extends Record<string, unknown>>(device: Device, uri: string, param: Param): Promise<Record<string, unknown>> {
-    return await this.call('lunaCall', device, uri, param);
+    return await this.invoke('lunaCall', device, uri, param);
   }
 
   async openShellSession(device: Device): Promise<SessionToken> {
-    return await this.callDirectly('shell-session', 'open', device);
+    return await this.invokeDirectly('shell-session', 'open', device);
   }
 
   async closeShellSession(token: SessionToken): Promise<void> {
-    return await this.callDirectly('shell-session', 'close', token);
+    return await this.invokeDirectly('shell-session', 'close', token);
   }
 
   obtainShellSession(token: SessionToken): Shell {
-    return new IpcShellSession(this.zone, token);
+    throw new Error('not implemented');
   }
 
   async openFileSession(name: string): Promise<IpcFileSession> {
-    return new IpcFileSession(this.zone, await this.callDirectly('file-session', 'open', name));
+    return new IpcFileSession(this.zone, await this.invokeDirectly('file-session', 'open', name));
   }
 
   private onDevicesUpdated(devices: Device[]) {

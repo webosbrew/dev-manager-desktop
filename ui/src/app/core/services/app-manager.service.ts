@@ -1,73 +1,71 @@
-import {Injectable, NgZone} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {PackageInfo} from '../../../../../main/types';
-import {IpcClient} from "./ipc-client";
+import {Device, PackageInfo, RawPackageInfo} from '../../../../../main/types';
+import {RemoteLunaService} from "./remote-luna.service";
+import {RemoteCommandService} from "./remote-command.service";
 
 @Injectable({
   providedIn: 'root'
 })
-export class AppManagerService extends IpcClient {
+export class AppManagerService {
 
   private packagesSubjects: Map<string, Subject<PackageInfo[]>>;
 
-  constructor(zone: NgZone) {
-    super(zone, 'app-manager');
+  constructor(private luna: RemoteLunaService, private cmd: RemoteCommandService) {
     this.packagesSubjects = new Map();
   }
 
-  packages$(device: string): Observable<PackageInfo[]> {
+  packages$(device: Device): Observable<PackageInfo[]> {
     return this.obtainSubject(device).asObservable();
   }
 
-  load(device: string): void {
+  load(device: Device): void {
     const subject = this.obtainSubject(device);
     this.list(device)
       .then(pkgs => subject.next(pkgs))
       .catch((error: any) => subject.error(error));
   }
 
-  async list(device: string): Promise<PackageInfo[]> {
-    return this.call<PackageInfo[]>('list', device);
+  async list(device: Device): Promise<PackageInfo[]> {
+    return this.luna.call(device, 'luna://com.webos.applicationManager/dev/listApps')
+      .then(resp => resp['apps'] as RawPackageInfo[])
+      .then((result) => Promise.all(result.map(item => this.completeIcon(device, item))));
   }
 
-  async info(device: string, id: string): Promise<PackageInfo | null> {
-    return this.call<PackageInfo | null>('info', device, id);
+  private async completeIcon(device: Device, info: RawPackageInfo): Promise<PackageInfo> {
+    const data = await this.cmd.read(device, `${info.folderPath}/${info.icon}`);
+    return {iconUri: `data:application/octet-stream;base64,${btoa(String.fromCharCode(...data))}`, ...info}
+  }
+
+  async info(device: string, id: string): Promise<RawPackageInfo | null> {
+    return null;
   }
 
   async install(device: string, path: string): Promise<void> {
-    return this.call<void>('install', device, path).then(value => {
-      this.load(device);
-      return value;
-    });
+    return;
   }
 
   async installUrl(device: string, url: string): Promise<void> {
-    return this.call<void>('installUrl', device, url).then(value => {
-      this.load(device);
-      return value;
-    });
+    return;
   }
 
   async remove(device: string, pkgName: string): Promise<void> {
-    return this.call<void>('remove', device, pkgName).then(value => {
-      this.load(device);
-      return value;
-    });
+    // TODO: uninstall and reload apps list
   }
 
   async launch(device: string, appId: string): Promise<void> {
-    return this.call('launch', device, appId);
+
   }
 
   async close(device: string, appId: string): Promise<void> {
-    return this.call('close', device, appId);
+
   }
 
-  private obtainSubject(device: string): Subject<PackageInfo[]> {
-    let subject = this.packagesSubjects.get(device);
+  private obtainSubject(device: Device): Subject<PackageInfo[]> {
+    let subject = this.packagesSubjects.get(device.name);
     if (!subject) {
       subject = new BehaviorSubject<PackageInfo[]>([]);
-      this.packagesSubjects.set(device, subject);
+      this.packagesSubjects.set(device.name, subject);
     }
     return subject;
   }

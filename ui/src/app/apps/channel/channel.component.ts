@@ -2,7 +2,7 @@ import {Component, Host, Input, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import {AppsRepoService, RepositoryPage} from '../../core/services';
 import {AppsComponent} from '../apps.component';
-import {PackageInfo} from "../../../../../main/types";
+import {RawPackageInfo} from "../../../../../main/types";
 
 @Component({
   selector: 'app-channel',
@@ -15,7 +15,7 @@ export class ChannelComponent implements OnInit {
   repoPage$?: Observable<RepositoryPage>;
 
   @Input()
-  installed?: Record<string, PackageInfo>;
+  installed?: Record<string, RawPackageInfo>;
 
   constructor(
     @Host() public parent: AppsComponent,

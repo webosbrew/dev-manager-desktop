@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import {Observable, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Device, PackageInfo} from '../../../../main/types';
+import {Device, RawPackageInfo} from '../../../../main/types';
 import {
   AppManagerService,
   AppsRepoService,
@@ -27,7 +27,7 @@ export class InfoComponent {
   sysInfo: Partial<SystemInfo> | null = null;
   devModeInfo: DevModeResponse | null = null;
   devModeRemaining: Observable<string> | null = null;
-  homebrewAppInfo: PackageInfo | null = null;
+  homebrewAppInfo: RawPackageInfo | null = null;
   homebrewAppConfig: Partial<HomebrewChannelConfiguration> | null = null;
   homebrewRepoManifest?: RepositoryItem;
   homebrewRepoHasUpdate: boolean = false;

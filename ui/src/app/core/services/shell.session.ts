@@ -8,27 +8,27 @@ export class IpcShellSession extends IpcClient implements Shell {
   }
 
   closed(): Promise<boolean> {
-    return this.call('closed', this.token);
+    return this.invoke('closed', this.token);
   }
 
   dumb(): Promise<boolean> {
-    return this.call('dumb', this.token);
+    return this.invoke('dumb', this.token);
   }
 
   close(): Promise<void> {
-    return this.call('close', this.token);
+    return this.invoke('close', this.token);
   }
 
   write(data: string): Promise<void> {
-    return this.call('write', this.token, data);
+    return this.invoke('write', this.token, data);
   }
 
   resize(rows: number, cols: number, height: number, width: number): Promise<void> {
-    return this.call('resize', this.token, rows, cols, height, width);
+    return this.invoke('resize', this.token, rows, cols, height, width);
   }
 
   buffer(): Promise<string> {
-    return this.call('buffer', this.token);
+    return this.invoke('buffer', this.token);
   }
 
   listen(event: string, callback: (...args: any[]) => void): this {

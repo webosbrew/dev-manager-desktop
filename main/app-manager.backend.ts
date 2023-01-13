@@ -1,6 +1,6 @@
 import {app, BrowserWindow} from 'electron';
 import {cleanupSession} from './util/ares-utils';
-import {PackageInfo} from './types';
+import {RawPackageInfo} from './types';
 import {Handle, IpcBackend} from './ipc-backend';
 import {download} from 'electron-dl';
 import {InstallOptions, promises} from '@webosbrew/ares-lib';
@@ -14,10 +14,10 @@ export class AppManagerBackend extends IpcBackend {
   }
 
   @Handle
-  async list(device: string): Promise<PackageInfo[]> {
+  async list(device: string): Promise<RawPackageInfo[]> {
     const options: InstallOptions = {device};
     return await Installer.list(options)
-      .then((result) => result.map((item: Partial<PackageInfo>) => ({iconPath: `${item.folderPath}/${item.icon}`, ...item} as PackageInfo)))
+      .then((result) => result.map((item: Partial<RawPackageInfo>) => ({iconPath: `${item.folderPath}/${item.icon}`, ...item} as RawPackageInfo)))
       .finally(() => {
         options.session?.end();
         cleanupSession();
@@ -25,7 +25,7 @@ export class AppManagerBackend extends IpcBackend {
   }
 
   @Handle
-  async info(device: string, id: string): Promise<PackageInfo | null> {
+  async info(device: string, id: string): Promise<RawPackageInfo | null> {
     return this.list(device).then(pkgs => pkgs.find(pkg => pkg.id == id) ?? null);
   }
 

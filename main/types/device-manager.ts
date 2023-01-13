@@ -54,7 +54,7 @@ export declare interface DevicePrivateKey {
   privatePEM?: string;
 }
 
-export declare interface PackageInfo {
+export declare interface RawPackageInfo {
   id: string;
   type: string;
   title: string;
@@ -63,5 +63,8 @@ export declare interface PackageInfo {
   version: string;
   folderPath: string;
   icon: string;
-  iconPath: string;
+}
+
+export declare interface PackageInfo extends RawPackageInfo {
+  iconUri: string;
 }
