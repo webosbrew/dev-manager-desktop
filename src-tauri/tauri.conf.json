@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "npm run build:ui",
-    "beforeDevCommand": "npm run serve:ui",
+    "beforeBuildCommand": "npm run ng:build",
+    "beforeDevCommand": "npm run ng:start",
     "devPath": "http://localhost:1420",
     "distDir": "../ui/dist"
   },
