@@ -10,8 +10,8 @@ export class RemoteCommandService extends IpcClient {
     super(zone, 'remote-command');
   }
 
-  public async exec(device: Device, command: string): Promise<string> {
-    return this.invoke('exec', {device, command});
+  public async exec(device: Device, command: string, stdin?: string): Promise<string> {
+    return this.invoke('exec', {device, command, stdin});
   }
 
   public async read(device: Device, path: string): Promise<Uint8Array> {

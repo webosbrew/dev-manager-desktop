@@ -101,7 +101,7 @@ export class InfoComponent {
 
   private async loadHomebrewInfo(): Promise<void> {
     if (!this.device) return;
-    this.homebrewAppInfo = await this.appManager.info(this.device.name, 'org.webosbrew.hbchannel');
+    this.homebrewAppInfo = await this.appManager.info(this.device, 'org.webosbrew.hbchannel');
     this.homebrewRepoManifest = await this.appsRepo.showApp('org.webosbrew.hbchannel');
     this.homebrewAppConfig = await this.deviceManager.getHbChannelConfig(this.device).catch(() => null);
     if (this.homebrewRepoManifest && this.homebrewAppInfo) {

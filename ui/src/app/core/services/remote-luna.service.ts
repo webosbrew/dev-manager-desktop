@@ -15,9 +15,10 @@ export class RemoteLunaService {
   }
 
   async call<T extends Record<string, any>>(device: Device, uri: string, param: Record<string, unknown> = {}, pub: boolean = true): Promise<T> {
-    return this.commands.exec(device, `luna-send -n 1 ${uri} '${JSON.stringify(param)}'`)
+    const sendCmd = pub ? 'luna-send-pub' : 'luna-send';
+    return this.commands.exec(device, `${sendCmd} -n 1 ${uri} '${JSON.stringify(param)}'`)
       .then(out => {
-        const typed: T & LunaResponse = JSON.parse(out);
+        const typed: T & LunaResponse = JSON.parse(out.trim());
         if (!typed.returnValue) {
           throw new Error(out);
         }

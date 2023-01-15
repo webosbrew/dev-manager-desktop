@@ -9,6 +9,7 @@ mod device_manager;
 mod remote_command;
 
 fn main() {
+  env_logger::init();
   tauri::Builder::default()
     .plugin(device_manager::plugin())
     .plugin(remote_command::plugin())

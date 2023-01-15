@@ -152,25 +152,6 @@ export class DeviceManagerBackend extends IpcBackend {
   }
 
   @Handle
-  async zcat(device: Device, path: string): Promise<string> {
-    const session = await Session.create(device.name);
-    return DeviceManagerBackend.runAndGetOutput(session, `xargs -0 zcat`, Readable.from(path)).finally(() => {
-      session.end();
-      cleanupSession();
-    });
-  }
-
-  @Handle
-  async extendDevMode(device: Device): Promise<any> {
-    const session = await Session.create(device.name);
-    const options = {session, nReplies: 1};
-    const params = {id: 'com.palmdts.devmode', subscribe: false, params: {extend: true}};
-    return new Promise((resolve, reject) => {
-      Luna.send(options, device.lunaAddr.launch, params, response => resolve(response), error => reject(error));
-    });
-  }
-
-  @Handle
   async lunaCall<Param extends Record<string, unknown>>(device: Device, uri: string, param: Param): Promise<Record<string, unknown>> {
     if (!uri.startsWith('luna://')) {
       throw new Error(`Bad luna address ${uri}.`);

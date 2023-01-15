@@ -1,29 +1,36 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, firstValueFrom, Observable, Subject} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../../../../main/types';
 import {RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
+import {map} from "rxjs/operators";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppManagerService {
 
-  private packagesSubjects: Map<string, Subject<PackageInfo[]>>;
+  private packagesSubjects: Map<string, Subject<PackageInfo[] | null>>;
 
   constructor(private luna: RemoteLunaService, private cmd: RemoteCommandService) {
     this.packagesSubjects = new Map();
   }
 
   packages$(device: Device): Observable<PackageInfo[]> {
-    return this.obtainSubject(device).asObservable();
+    return this.obtainSubject(device).pipe(map(v => v ?? []));
   }
 
-  load(device: Device): void {
+  async load(device: Device): Promise<PackageInfo[]> {
     const subject = this.obtainSubject(device);
-    this.list(device)
-      .then(pkgs => subject.next(pkgs))
-      .catch((error: any) => subject.error(error));
+    return this.list(device)
+      .then(pkgs => {
+        subject.next(pkgs);
+        return pkgs;
+      })
+      .catch((error: any) => {
+        subject.error(error);
+        return [];
+      });
   }
 
   async list(device: Device): Promise<PackageInfo[]> {
@@ -37,8 +44,10 @@ export class AppManagerService {
     return {iconUri: `data:application/octet-stream;base64,${btoa(String.fromCharCode(...data))}`, ...info}
   }
 
-  async info(device: string, id: string): Promise<RawPackageInfo | null> {
-    return null;
+  async info(device: Device, id: string): Promise<PackageInfo | null> {
+    return firstValueFrom(this.obtainSubject(device))
+      .then(l => l ?? this.load(device))
+      .then(l => l.find(p => p.id === id) ?? null);
   }
 
   async install(device: string, path: string): Promise<void> {
@@ -61,10 +70,10 @@ export class AppManagerService {
 
   }
 
-  private obtainSubject(device: Device): Subject<PackageInfo[]> {
+  private obtainSubject(device: Device): Subject<PackageInfo[] | null> {
     let subject = this.packagesSubjects.get(device.name);
     if (!subject) {
-      subject = new BehaviorSubject<PackageInfo[]>([]);
+      subject = new BehaviorSubject<PackageInfo[] | null>(null);
       this.packagesSubjects.set(device.name, subject);
     }
     return subject;

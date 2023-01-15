@@ -13,6 +13,7 @@ import {IpcFileSession} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../../../../main/types/luna-apis";
 import {basename} from "@tauri-apps/api/path";
 import {LunaResponse, RemoteLunaService} from "./remote-luna.service";
+import {RemoteCommandService} from "./remote-command.service";
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +24,7 @@ export class DeviceManagerService extends IpcClient {
   private selectedSubject: Subject<Device | null>;
   private shellsSubject: Subject<SessionToken[]>;
 
-  constructor(zone: NgZone, private luna: RemoteLunaService) {
+  constructor(zone: NgZone, private cmd: RemoteCommandService, private luna: RemoteLunaService) {
     super(zone, 'device-manager');
     this.devicesSubject = new BehaviorSubject<Device[]>([]);
     this.selectedSubject = new BehaviorSubject<Device | null>(null);
@@ -95,8 +96,9 @@ export class DeviceManagerService extends IpcClient {
   }
 
   async listCrashReports(device: Device): Promise<CrashReport[]> {
-    return await this.invoke<CrashReportEntry[]>('listCrashReports', device)
-      .then(entries => Promise.all(entries.map(entry => CrashReport.obtain(this, entry.device, entry.path))));
+    return this.cmd.exec(device, 'find /tmp/faultmanager/crash/ -name \'*.gz\' -print0')
+      .then(output => output.split('\0').filter(l => l.length)).then(list =>
+        Promise.all(list.map(l => CrashReport.obtain(this, device, l))));
   }
 
   async saveCrashReport(entry: CrashReportEntry, target: string): Promise<void> {
@@ -107,11 +109,15 @@ export class DeviceManagerService extends IpcClient {
   }
 
   async zcat(device: Device, path: string): Promise<string> {
-    return await this.invoke('zcat', device, path);
+    return await this.cmd.exec(device, `xargs -0 zcat`, path);
   }
 
   async extendDevMode(device: Device): Promise<any> {
-    return await this.invoke('extendDevMode', device);
+    return await this.luna.call(device, 'luna://com.webos.applicationManager/launch', {
+      id: 'com.palmdts.devmode',
+      subscribe: false,
+      params: {extend: true}
+    }, true);
   }
 
   async getSystemInfo(device: Device): Promise<Partial<SystemInfo>> {

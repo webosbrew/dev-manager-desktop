@@ -74,7 +74,26 @@ impl DeviceManager {
     return Ok(devices);
   }
 
-  pub async fn session(&self, device: &Device) -> Result<Arc<Session>, Error> {
+  pub async fn run_with_session<R, F: Fn(&Session) -> Result<R, Box<dyn ErrorTrait>>>(&self, device: &Device, f: F) -> Result<R, Error> {
+    let mut retry = 0;
+    while retry < 3 {
+      let sess = self.obtain_session(device).await?;
+      match f(&sess) {
+        Ok(v) => return Ok(v),
+        Err(e) => {
+          if !e.is::<ssh2::Error>() {
+            log::warn!("Other error! {:?}", e);
+            return Err(Error::new(Other, e.to_string()));
+          }
+          self.remove_session(device);
+        }
+      }
+      retry += 1;
+    }
+    return Err(Error::new(Other, "Too many attempts"));
+  }
+
+  async fn obtain_session(&self, device: &Device) -> Result<Arc<Session>, Error> {
     let mut sessions = self.sessions.write().unwrap();
     let option = sessions.get(&device.name);
     match option {
@@ -87,34 +106,14 @@ impl DeviceManager {
     return Ok(arc);
   }
 
-  pub async fn run_with_session<R, F: Fn(&Session) -> Result<R, Box<dyn ErrorTrait>>>(&self, device: &Device, f: F) -> Result<R, Error> {
-    let mut retry = 0;
-    while retry < 3 {
-      let sess = self.session(device).await?;
-      match f(&sess) {
-        Ok(v) => return Ok(v),
-        Err(e) => {
-          if !e.is::<ssh2::Error>() {
-            println!("Other error! {:?}", e);
-            return Err(Error::new(Other, e.to_string()));
-          }
-          self.remove_session(device);
-        }
-      }
-      retry += 1;
-    }
-    return Err(Error::new(Other, "Too many attempts"));
-  }
-
   fn remove_session(&self, device: &Device) {
     let mut sessions = self.sessions.write().unwrap();
     if sessions.remove(&device.name).is_some() {
-      println!("Dropped dead connection for {}", device.name);
+      log::debug!("Dropped dead connection for {}", device.name);
     }
   }
 
   fn create_session(device: &Device) -> Result<Session, Error> {
-    println!("Created session for {}", device.name);
     let tcp = TcpStream::connect(format!("{}:{}", device.host, device.port))?;
     let mut sess: Session = Session::new()?;
     sess.set_tcp_stream(tcp);
@@ -122,6 +121,7 @@ impl DeviceManager {
     let pubkey_path = home_dir().unwrap().join(".ssh")
       .join(&device.private_key.as_ref().unwrap().open_ssh);
     sess.userauth_pubkey_file(&device.username, None, pubkey_path.as_path(), None)?;
+    log::debug!("Created session for {}", device.name);
     return Ok(sess);
   }
 }
