@@ -1,9 +1,10 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from '../core/services';
-import {firstValueFrom, Subscription} from "rxjs";
-import {Device, SessionToken} from "../../../main/types";
+import {firstValueFrom, noop, Subscription} from "rxjs";
+import {Device} from "../../../main/types";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
+import {RemoteCommandService, ShellSessionToken} from "../core/services/remote-command.service";
 
 
 @Component({
@@ -13,21 +14,21 @@ import {isNonNull} from "../shared/operators";
 })
 export class TerminalComponent implements OnInit, OnDestroy {
 
-  public shells: SessionToken[] = [];
+  public shells: ShellSessionToken[] = [];
 
   public currentShell: string = '';
 
   private subscription?: Subscription;
 
-  constructor(private deviceManager: DeviceManagerService) {
+  constructor(private deviceManager: DeviceManagerService, private cmd: RemoteCommandService) {
   }
 
   ngOnInit(): void {
-    const shells$ = this.deviceManager.shells$;
+    const shells$ = this.cmd.shells$;
     this.subscription = shells$.subscribe(shells => {
       this.shells = shells;
       if (shells.length) {
-        this.currentShell = shells[0].key;
+        this.currentShell = shells[0].id;
       }
     });
     firstValueFrom(shells$).then(async (shells) => {
@@ -42,19 +43,19 @@ export class TerminalComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
-  closeSession(event: Event, session: SessionToken) {
-    this.deviceManager.closeShellSession(session);
+  closeSession(event: Event, session: ShellSessionToken) {
+    this.cmd.closeShell(session).then(noop);
     event.preventDefault();
     event.stopImmediatePropagation();
   }
 
   async newTab(): Promise<void> {
     const device = await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
-    const session = await this.deviceManager.openShellSession(device);
-    this.currentShell = session.key;
+    const session = await this.cmd.shell(device);
+    this.currentShell = session.id;
   }
 
-  shellTracker(index: number, value: SessionToken): string {
-    return value.key;
+  shellTracker(index: number, value: ShellSessionToken): string {
+    return value.id;
   }
 }

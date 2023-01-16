@@ -1,5 +1,6 @@
 import {Attributes, FileEntry, FileItem} from "./file-session";
 import {Device} from "./novacom-data";
+import {ObservableInput, Observer} from "rxjs";
 
 
 export declare interface CrashReportEntry {
@@ -11,8 +12,6 @@ export declare interface Shell {
   closed(): Promise<boolean>;
 
   dumb(): Promise<boolean>;
-
-  listen(event: 'close' | 'data', callback: (...args: any[]) => void): this;
 
   write(data: string): Promise<void>;
 

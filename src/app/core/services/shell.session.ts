@@ -1,39 +1,26 @@
 import {SessionToken, Shell} from "../../../../main/types";
 import {IpcClient} from "./ipc-client";
-import {NgZone} from "@angular/core";
+import {EventEmitter, NgZone} from "@angular/core";
+import {RemoteCommandService, ShellMessage, ShellSessionToken} from "./remote-command.service";
+import {Observable, Subject} from "rxjs";
+import {emit} from "@tauri-apps/api/event";
 
-export class IpcShellSession extends IpcClient implements Shell {
-  constructor(zone: NgZone, private token: SessionToken) {
-    super(zone, 'shell-session');
+interface ShellWritable {
+  write(data: string): Promise<void>;
+
+}
+
+export type ShellObservable = ShellWritable & Observable<string>;
+
+export class ShellSubject extends Subject<string> implements ShellWritable {
+
+  constructor(private cmd: RemoteCommandService, private token: ShellSessionToken) {
+    super();
   }
 
-  closed(): Promise<boolean> {
-    return this.invoke('closed', this.token);
-  }
-
-  dumb(): Promise<boolean> {
-    return this.invoke('dumb', this.token);
-  }
-
-  close(): Promise<void> {
-    return this.invoke('close', this.token);
-  }
-
-  write(data: string): Promise<void> {
-    return this.invoke('write', this.token, data);
-  }
-
-  resize(rows: number, cols: number, height: number, width: number): Promise<void> {
-    return this.invoke('resize', this.token, rows, cols, height, width);
-  }
-
-  buffer(): Promise<string> {
-    return this.invoke('buffer', this.token);
-  }
-
-  listen(event: string, callback: (...args: any[]) => void): this {
-    this.on(`${event}.${this.token.key}`, callback);
-    return this;
+  async write(data: string): Promise<void> {
+    const payload: ShellMessage = {token: this.token, data: Array.from(new TextEncoder().encode(data))};
+    await emit('shell-tx', payload);
   }
 
 }

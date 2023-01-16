@@ -43,8 +43,8 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "env_logger",
- "home",
  "log",
+ "rand 0.8.5",
  "serde",
  "serde_json",
  "ssh2",
@@ -1041,15 +1041,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee512640fe35acbfb4bb779db6f0d80704c2cacfa2e39b601ef3e3f47d1ae4c7"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "home"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "747309b4b440c06d57b0b25f2aee03ee9b5e5397d288c60e21fc709bb98a7408"
-dependencies = [
- "winapi",
 ]
 
 [[package]]

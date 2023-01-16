@@ -13,7 +13,7 @@ import {IpcFileSession} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../../../main/types/luna-apis";
 import {basename} from "@tauri-apps/api/path";
 import {LunaResponse, RemoteLunaService} from "./remote-luna.service";
-import {RemoteCommandService} from "./remote-command.service";
+import {RemoteCommandService, ShellSessionToken} from "./remote-command.service";
 
 @Injectable({
   providedIn: 'root'
@@ -22,15 +22,12 @@ export class DeviceManagerService extends IpcClient {
 
   private devicesSubject: Subject<Device[]>;
   private selectedSubject: Subject<Device | null>;
-  private shellsSubject: Subject<SessionToken[]>;
 
   constructor(zone: NgZone, private cmd: RemoteCommandService, private luna: RemoteLunaService) {
     super(zone, 'device-manager');
     this.devicesSubject = new BehaviorSubject<Device[]>([]);
     this.selectedSubject = new BehaviorSubject<Device | null>(null);
-    this.shellsSubject = new BehaviorSubject<SessionToken[]>([]);
     this.on('devicesUpdated', (devices: Device[]) => this.onDevicesUpdated(devices));
-    this.on('shellsUpdated', (shells: SessionToken[]) => this.shellsSubject.next(shells));
   }
 
   get devices$(): Observable<Device[]> {
@@ -41,9 +38,6 @@ export class DeviceManagerService extends IpcClient {
     return this.selectedSubject.asObservable();
   }
 
-  get shells$(): Observable<SessionToken[]> {
-    return this.shellsSubject.asObservable();
-  }
 
   load(): void {
     this.list().then(devices => this.onDevicesUpdated(devices));
@@ -129,16 +123,7 @@ export class DeviceManagerService extends IpcClient {
   async getHbChannelConfig(device: Device): Promise<Partial<HomebrewChannelConfiguration>> {
     return await this.luna.call(device, 'luna://org.webosbrew.hbchannel.service/getConfiguration', {});
   }
-
-  async openShellSession(device: Device): Promise<SessionToken> {
-    return await this.invokeDirectly('shell-session', 'open', device);
-  }
-
-  async closeShellSession(token: SessionToken): Promise<void> {
-    return await this.invokeDirectly('shell-session', 'close', token);
-  }
-
-  obtainShellSession(token: SessionToken): Shell {
+  obtainShellSession(token: ShellSessionToken): Shell {
     throw new Error('not implemented');
   }
 

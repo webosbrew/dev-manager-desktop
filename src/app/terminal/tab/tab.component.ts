@@ -11,10 +11,10 @@ import {
 } from '@angular/core';
 import {Terminal} from "xterm";
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
-import {SessionToken, Shell} from "../../../../main/types";
 import {fromEvent, Subscription} from "rxjs";
 import {debounceTime} from "rxjs/operators";
-import {DeviceManagerService} from "../../core/services";
+import {RemoteCommandService, ShellSessionToken} from "../../core/services/remote-command.service";
+import {ShellObservable} from "../../core/services/shell.session";
 
 @Component({
   selector: 'app-terminal-tab',
@@ -25,7 +25,7 @@ import {DeviceManagerService} from "../../core/services";
 export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
-  public token: SessionToken | null = null;
+  public token: ShellSessionToken | null = null;
 
   @ViewChild('termwin')
   public termwin: ElementRef<HTMLElement> | null = null;
@@ -35,11 +35,11 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public pendingResize: ITerminalDimensions | null = null;
 
-  private shell: Shell | null = null;
+  private shell: ShellObservable | null = null;
 
   private resizeSubscription?: Subscription;
 
-  constructor(private deviceManager: DeviceManagerService) {
+  constructor(private cmd: RemoteCommandService) {
     this.term = new Terminal({});
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
@@ -81,28 +81,22 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async openDefaultShell(): Promise<void> {
     const token = this.token!;
-    const shell = this.deviceManager.obtainShellSession(token);
+    const shell = this.cmd.shellSession(token);
     this.shell = shell;
 
-    if (await shell.dumb()) {
-      this.term.writeln(`>>> Connected to ${token.device.name} (dumb shell).`);
-      this.term.writeln('>>> Due to restriction of webOS, functionality of this shell is limited.');
-      this.term.writeln('>>> Features like Ctrl+C and Tab will be unavailable.');
-    } else {
-      this.term.writeln(`>>> Connected to ${token.device.name}.`);
-    }
-    shell.listen('close', () => {
-      this.term.writeln('>>> Connection closed.');
-      this.shell = null;
-    }).listen('data', (data: string) => {
+    this.term.writeln(`>>> Connected to ${token.name}.`);
+    shell.subscribe((data) => {
       this.term.write(data);
+    }, (error) => {
+      console.log('shell error', error);
+    }, () => {
+      console.log('shell close');
     });
-    this.term.write(await shell.buffer());
   }
 
   async shellKey(event: KeyboardEvent, key: string): Promise<void> {
-    if (!this.shell || await this.shell.closed()) return;
-    await this.shell.write(key);
+    // if (!this.shell || await this.shell.closed) return;
+    await this.shell?.write(key);
   }
 
   private async autoResize() {
@@ -112,7 +106,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fitAddon.fit();
     if (this.shell) {
-      await this.shell.resize(this.term.rows, this.term.cols, 0, 0);
+      // await this.shell.resize(this.term.rows, this.term.cols, 0, 0);
     }
   }
 
