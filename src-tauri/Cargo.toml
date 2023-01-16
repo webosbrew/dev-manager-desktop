@@ -22,6 +22,7 @@ ssh2 = "0.9.3"
 log = "0.4.17"
 env_logger = "0.10.0"
 rand = "0.8.5"
+vt100 = "0.15.1"
 
 [features]
 # by default Tauri runs in production mode

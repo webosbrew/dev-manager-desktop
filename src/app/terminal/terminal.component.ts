@@ -4,7 +4,7 @@ import {firstValueFrom, noop, Subscription} from "rxjs";
 import {Device} from "../../../main/types";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
-import {RemoteCommandService, ShellSessionToken} from "../core/services/remote-command.service";
+import {RemoteShellService, ShellSessionToken} from "../core/services/remote-shell.service";
 
 
 @Component({
@@ -20,11 +20,11 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   private subscription?: Subscription;
 
-  constructor(private deviceManager: DeviceManagerService, private cmd: RemoteCommandService) {
+  constructor(private deviceManager: DeviceManagerService, private shell: RemoteShellService) {
   }
 
   ngOnInit(): void {
-    const shells$ = this.cmd.shells$;
+    const shells$ = this.shell.shells$;
     this.subscription = shells$.subscribe(shells => {
       this.shells = shells;
       if (shells.length) {
@@ -44,14 +44,14 @@ export class TerminalComponent implements OnInit, OnDestroy {
   }
 
   closeSession(event: Event, session: ShellSessionToken) {
-    this.cmd.closeShell(session).then(noop);
+    this.shell.close(session).then(noop);
     event.preventDefault();
     event.stopImmediatePropagation();
   }
 
   async newTab(): Promise<void> {
     const device = await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
-    const session = await this.cmd.shellOpen(device);
+    const session = await this.shell.open(device);
     this.currentShell = session.id;
   }
 

@@ -2,22 +2,23 @@ use tauri::{AppHandle, Runtime, State};
 use tauri::plugin::{Builder, TauriPlugin};
 
 use crate::device_manager::Device;
-use crate::session_manager::{SessionManager, ShellSessionToken};
+use crate::shell_manager::ShellSessionToken;
+use crate::shell_manager::ShellManager;
 
 #[tauri::command]
-async fn open<R: Runtime>(app: AppHandle<R>, state: State<'_, SessionManager>, device: Device)
+async fn open<R: Runtime>(app: AppHandle<R>, state: State<'_, ShellManager>, device: Device)
                           -> Result<ShellSessionToken, String> {
   return state.shell_open(&device, app).await.map_err(|e| format!("{:?}", e));
 }
 
 #[tauri::command]
-async fn close<R: Runtime>(app: AppHandle<R>, state: State<'_, SessionManager>,
+async fn close<R: Runtime>(app: AppHandle<R>, state: State<'_, ShellManager>,
                            token: ShellSessionToken) -> Result<(), String> {
   return state.shell_close(&token, app).await.map_err(|e| format!("{:?}", e));
 }
 
 #[tauri::command]
-async fn list(state: State<'_, SessionManager>) -> Result<Vec<ShellSessionToken>, String> {
+async fn list(state: State<'_, ShellManager>) -> Result<Vec<ShellSessionToken>, String> {
   return Ok(state.shells_list());
 }
 

@@ -3,7 +3,7 @@ use std::io::{Error, ErrorKind, Write};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Event, Manager, Runtime};
 
-use crate::session_manager::{SessionManager, ShellSessionToken};
+use crate::shell_manager::{ShellManager, ShellSessionToken};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Message {
@@ -13,7 +13,7 @@ pub struct Message {
 
 pub async fn on_tx_event<R: Runtime>(handle: AppHandle<R>, event: Event) -> Result<(), Error> {
   if let Some(payload) = event.payload() {
-    let manager = handle.state::<SessionManager>();
+    let manager = handle.state::<ShellManager>();
     let message = serde_json::from_str::<Message>(payload)?;
     manager.shell_do(&message.token, |mut ch| {
       ch.write_all(message.data.as_slice())?;

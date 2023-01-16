@@ -13,8 +13,7 @@ import {Terminal} from "xterm";
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
 import {fromEvent, Subscription} from "rxjs";
 import {debounceTime} from "rxjs/operators";
-import {RemoteCommandService, ShellSessionToken} from "../../core/services/remote-command.service";
-import {ShellObservable} from "../../core/services/shell.session";
+import {RemoteShellService, ShellObservable, ShellSessionToken} from "../../core/services/remote-shell.service";
 
 @Component({
   selector: 'app-terminal-tab',
@@ -39,7 +38,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private resizeSubscription?: Subscription;
 
-  constructor(private cmd: RemoteCommandService) {
+  constructor(private cmd: RemoteShellService) {
     this.term = new Terminal({});
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);

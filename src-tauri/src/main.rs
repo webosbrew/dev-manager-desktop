@@ -8,9 +8,11 @@ use tauri::Manager;
 
 use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
+use crate::shell_manager::ShellManager;
 
 mod session_manager;
 mod device_manager;
+mod shell_manager;
 mod shell_events;
 mod plugins;
 
@@ -22,6 +24,7 @@ fn main() {
     .plugin(plugins::shell::plugin("remote-shell"))
     .manage(DeviceManager::default())
     .manage(SessionManager::default())
+    .manage(ShellManager::default())
     .setup(|app| {
       let handle = app.app_handle();
       app.listen_global("shell-tx", move |event| {
