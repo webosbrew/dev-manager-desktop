@@ -43,7 +43,7 @@ export class RemoteCommandService extends IpcClient {
     return this.invoke('read', {device, path});
   }
 
-  public async shell(device: Device): Promise<ShellSessionToken> {
+  public async shellOpen(device: Device): Promise<ShellSessionToken> {
     return this.invoke('shell_open', {device});
   }
 

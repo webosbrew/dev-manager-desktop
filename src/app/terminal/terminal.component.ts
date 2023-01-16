@@ -51,7 +51,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   async newTab(): Promise<void> {
     const device = await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
-    const session = await this.cmd.shell(device);
+    const session = await this.cmd.shellOpen(device);
     this.currentShell = session.id;
   }
 

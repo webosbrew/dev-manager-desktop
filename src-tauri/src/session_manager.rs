@@ -12,7 +12,7 @@ use ssh2::{Channel, ExtendedData, Session};
 use tauri::{AppHandle, Manager, Runtime};
 use tauri::api::path::home_dir;
 
-use crate::device_manager::manager::Device;
+use crate::device_manager::Device;
 use crate::shell_events::Message;
 
 #[derive(PartialEq, Eq, Hash, Clone, Serialize, Deserialize, Debug)]

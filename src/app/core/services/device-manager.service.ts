@@ -1,19 +1,12 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, from, Observable, Subject} from "rxjs";
-import {
-  CrashReportEntry,
-  Device,
-  DeviceEditSpec,
-  DevicePrivateKey,
-  SessionToken,
-  Shell
-} from '../../../../main/types';
+import {CrashReportEntry, Device, DeviceEditSpec, DevicePrivateKey} from '../../../../main/types';
 import {IpcClient} from "./ipc-client";
 import {IpcFileSession} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../../../main/types/luna-apis";
 import {basename} from "@tauri-apps/api/path";
-import {LunaResponse, RemoteLunaService} from "./remote-luna.service";
-import {RemoteCommandService, ShellSessionToken} from "./remote-command.service";
+import {RemoteLunaService} from "./remote-luna.service";
+import {RemoteCommandService} from "./remote-command.service";
 
 @Injectable({
   providedIn: 'root'
@@ -123,9 +116,6 @@ export class DeviceManagerService extends IpcClient {
   async getHbChannelConfig(device: Device): Promise<Partial<HomebrewChannelConfiguration>> {
     return await this.luna.call(device, 'luna://org.webosbrew.hbchannel.service/getConfiguration', {});
   }
-  obtainShellSession(token: ShellSessionToken): Shell {
-    throw new Error('not implemented');
-  }
 
   async openFileSession(name: string): Promise<IpcFileSession> {
     return new IpcFileSession(this.zone, await this.invokeDirectly('file-session', 'open', name));
@@ -136,15 +126,6 @@ export class DeviceManagerService extends IpcClient {
     this.selectedSubject.next(devices.find((device) => device.default) ?? devices[0]);
   }
 }
-
-export class ShellInfo {
-  title: string;
-
-  constructor(public device: Device, public token: SessionToken) {
-    this.title = device.name;
-  }
-}
-
 export class CrashReport implements CrashReportEntry {
 
   constructor(public device: Device, public path: string, public title: string, public summary: string,

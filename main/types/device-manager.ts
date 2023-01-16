@@ -1,30 +1,10 @@
 import {Attributes, FileEntry, FileItem} from "./file-session";
 import {Device} from "./novacom-data";
-import {ObservableInput, Observer} from "rxjs";
 
 
 export declare interface CrashReportEntry {
   device: Device;
   path: string;
-}
-
-export declare interface Shell {
-  closed(): Promise<boolean>;
-
-  dumb(): Promise<boolean>;
-
-  write(data: string): Promise<void>;
-
-  resize(rols: number, cols: number, height: number, width: number): Promise<void>;
-
-  buffer(): Promise<string>;
-
-  close(): Promise<void>;
-}
-
-export declare interface SessionToken {
-  key: string;
-  device: Device;
 }
 
 export declare interface FileSession {

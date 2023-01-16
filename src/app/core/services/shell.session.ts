@@ -1,6 +1,3 @@
-import {SessionToken, Shell} from "../../../../main/types";
-import {IpcClient} from "./ipc-client";
-import {EventEmitter, NgZone} from "@angular/core";
 import {RemoteCommandService, ShellMessage, ShellSessionToken} from "./remote-command.service";
 import {Observable, Subject} from "rxjs";
 import {emit} from "@tauri-apps/api/event";

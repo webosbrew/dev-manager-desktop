@@ -3,21 +3,23 @@ all(not(debug_assertions), target_os = "windows"),
 windows_subsystem = "windows"
 )]
 
-use tauri::Manager;
 use tauri::async_runtime;
-use device_manager::manager::DeviceManager;
+use tauri::Manager;
+
+use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
 
-mod device_manager;
 mod session_manager;
-mod remote_command;
+mod device_manager;
 mod shell_events;
+mod plugins;
 
 fn main() {
   env_logger::init();
   tauri::Builder::default()
-    .plugin(device_manager::plugin())
-    .plugin(remote_command::plugin())
+    .plugin(plugins::devices::plugin("device-manager"))
+    .plugin(plugins::cmd::plugin("remote-command"))
+    .plugin(plugins::shell::plugin("remote-shell"))
     .manage(DeviceManager::default())
     .manage(SessionManager::default())
     .setup(|app| {
