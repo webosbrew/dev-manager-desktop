@@ -45,7 +45,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.term.onKey(({domEvent, key}) => this.shellKey(domEvent, key));
+    this.term.onData((data) => this.shellKey(data));
 
     this.resizeSubscription = fromEvent(window, 'resize').pipe(debounceTime(500)).subscribe(() => {
       this.pendingResize = null;
@@ -80,10 +80,9 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
   async openDefaultShell(): Promise<void> {
     const token = this.token!;
-    const shell = this.cmd.shellSession(token);
+    const shell = this.cmd.obtain(token);
     this.shell = shell;
 
-    this.term.writeln(`>>> Connected to ${token.name}.`);
     shell.subscribe((data) => {
       this.term.write(data);
     }, (error) => {
@@ -91,9 +90,22 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     }, () => {
       console.log('shell close');
     });
+    const cols = this.term.cols, rows = this.term.rows;
+    await shell.activate(cols, rows);
+    this.term.reset();
+    const screen = await shell.screen(cols, rows);
+    let firstLine = true;
+    for (let row of screen.rows) {
+      if (!firstLine) {
+        this.term.write('\r\n');
+      }
+      this.term.write(row);
+      firstLine = false;
+    }
+    // this.term.select(screen.cursor[1], screen.cursor[0], 1);
   }
 
-  async shellKey(event: KeyboardEvent, key: string): Promise<void> {
+  async shellKey(key: string): Promise<void> {
     // if (!this.shell || await this.shell.closed) return;
     await this.shell?.write(key);
   }
@@ -105,7 +117,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fitAddon.fit();
     if (this.shell) {
-      // await this.shell.resize(this.term.rows, this.term.cols, 0, 0);
+      await this.shell.resize(this.term.cols, this.term.rows);
     }
   }
 

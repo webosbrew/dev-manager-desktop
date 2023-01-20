@@ -4,7 +4,7 @@
     "beforeBuildCommand": "npm run ng:build",
     "beforeDevCommand": "npm run ng:start",
     "devPath": "http://localhost:1420",
-    "distDir": "../ui/dist"
+    "distDir": "../dist"
   },
   "package": {
     "productName": "dev-manager-desktop",

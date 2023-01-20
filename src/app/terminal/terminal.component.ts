@@ -35,7 +35,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
       if (shells.length) {
         return;
       }
-      await this.newTab();
+      // await this.newTab();
     });
   }
 

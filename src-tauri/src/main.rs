@@ -3,17 +3,14 @@ all(not(debug_assertions), target_os = "windows"),
 windows_subsystem = "windows"
 )]
 
-use tauri::async_runtime;
-use tauri::Manager;
+extern crate core;
 
+use tauri::Manager;
 use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
-use crate::shell_manager::ShellManager;
 
 mod session_manager;
 mod device_manager;
-mod shell_manager;
-mod shell_events;
 mod plugins;
 
 fn main() {
@@ -24,13 +21,8 @@ fn main() {
     .plugin(plugins::shell::plugin("remote-shell"))
     .manage(DeviceManager::default())
     .manage(SessionManager::default())
-    .manage(ShellManager::default())
-    .setup(|app| {
-      let handle = app.app_handle();
-      app.listen_global("shell-tx", move |event| {
-        let handle = handle.clone();
-        async_runtime::spawn(async move { shell_events::on_tx_event(handle.clone(), event).await });
-      });
+    .setup(|a| {
+      a.get_window("main").unwrap().open_devtools();
       return Ok(());
     })
     .run(tauri::generate_context!())
