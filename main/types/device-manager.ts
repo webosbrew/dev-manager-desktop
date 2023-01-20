@@ -45,5 +45,5 @@ export declare interface RawPackageInfo {
 }
 
 export declare interface PackageInfo extends RawPackageInfo {
-  iconUri: string;
+  iconUri?: string;
 }

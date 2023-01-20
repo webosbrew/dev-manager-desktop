@@ -40,8 +40,8 @@ export class AppManagerService {
   }
 
   private async completeIcon(device: Device, info: RawPackageInfo): Promise<PackageInfo> {
-    const data = await this.cmd.read(device, `${info.folderPath}/${info.icon}`);
-    return {iconUri: `data:application/octet-stream;base64,${btoa(String.fromCharCode(...data))}`, ...info}
+    const data = await this.cmd.read(device, `${info.folderPath}/${info.icon}`).catch(() => undefined);
+    return {iconUri: data && `data:application/octet-stream;base64,${btoa(String.fromCharCode(...data))}`, ...info}
   }
 
   async info(device: Device, id: string): Promise<PackageInfo | null> {

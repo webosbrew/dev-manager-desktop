@@ -84,7 +84,7 @@ export class DeviceManagerService extends IpcClient {
 
   async listCrashReports(device: Device): Promise<CrashReport[]> {
     return this.cmd.exec(device, 'find /tmp/faultmanager/crash/ -name \'*.gz\' -print0')
-      .then(output => output.split('\0').filter(l => l.length)).then(list =>
+      .then(output => String.fromCharCode(...output).split('\0').filter(l => l.length)).then(list =>
         Promise.all(list.map(l => CrashReport.obtain(this, device, l))));
   }
 
@@ -95,7 +95,7 @@ export class DeviceManagerService extends IpcClient {
     }, target);
   }
 
-  async zcat(device: Device, path: string): Promise<string> {
+  async zcat(device: Device, path: string): Promise<Uint8Array> {
     return await this.cmd.exec(device, `xargs -0 zcat`, path);
   }
 
@@ -126,6 +126,7 @@ export class DeviceManagerService extends IpcClient {
     this.selectedSubject.next(devices.find((device) => device.default) ?? devices[0]);
   }
 }
+
 export class CrashReport implements CrashReportEntry {
 
   constructor(public device: Device, public path: string, public title: string, public summary: string,
@@ -134,7 +135,7 @@ export class CrashReport implements CrashReportEntry {
 
   static async obtain(dm: DeviceManagerService, device: Device, path: string) {
     const {title, summary, saveName} = await CrashReport.parseTitle(path);
-    const content = from(dm.zcat(device, path).then(content => content.trim()));
+    const content = from(dm.zcat(device, path).then(content => String.fromCharCode(...content).trim()));
     return new CrashReport(device, path, title, summary, saveName, content);
   }
 

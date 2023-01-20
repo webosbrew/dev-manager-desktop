@@ -9,8 +9,8 @@ export class TrustUriPipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {
   }
 
-  transform(uri: string) {
-    return this.sanitizer.bypassSecurityTrustUrl(uri);
+  transform(uri?: string) {
+    return uri && this.sanitizer.bypassSecurityTrustUrl(uri);
   }
 
 }
