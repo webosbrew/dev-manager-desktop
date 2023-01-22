@@ -20,6 +20,9 @@
       },
       "protocol": {
         "all": true
+      },
+      "shell": {
+        "open": ".*"
       }
     },
     "bundle": {
@@ -64,10 +67,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 720,
         "resizable": true,
         "title": "webOS Dev Manager",
-        "width": 800
+        "width": 1024
       }
     ]
   }

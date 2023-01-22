@@ -1,4 +1,4 @@
-use tauri::{AppHandle, Event, Manager, Runtime, State};
+use tauri::{Runtime, State};
 use tauri::plugin::{Builder, TauriPlugin};
 
 use crate::device_manager::Device;

@@ -1,6 +1,4 @@
-use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
-use std::fmt::format;
 use std::hash::{Hash, Hasher};
 use std::net::SocketAddr;
 use std::str::FromStr;
@@ -27,9 +25,14 @@ pub(crate) struct Connection {
 pub(crate) type ConnectionsMap = HashMap<String, Arc<Connection>>;
 
 impl Connection {
-  pub async fn exec(&self, command: &str) -> Result<Vec<u8>, Error> {
+  pub async fn exec(&self, command: &str, stdin: Option<Vec<u8>>) -> Result<Vec<u8>, Error> {
     let mut ch = self.open_cmd_channel().await?;
     ch.exec(true, command).await?;
+    if let Some(data) = stdin {
+      let mut data = data.clone();
+      ch.data(&*data).await?;
+      ch.eof().await?;
+    }
     let mut result: Vec<u8> = Vec::new();
     loop {
       match ch.wait().await.ok_or(Error::new("empty message"))? {

@@ -1,4 +1,4 @@
-import {Attributes, FileEntry, FileItem} from "./file-session";
+import {FileItem} from "./file-session";
 import {Device} from "./novacom-data";
 
 
@@ -9,13 +9,7 @@ export declare interface CrashReportEntry {
 
 export declare interface FileSession {
 
-  readdir(location: string): Promise<FileEntry[]>;
-
-  readdir_ext(location: string): Promise<FileItem[]>;
-
-  readlink(path: string): Promise<string>;
-
-  stat(path: string): Promise<Attributes>;
+  ls(path: string): Promise<FileItem[]>;
 
   rm(path: string, recursive: boolean): Promise<void>;
 
@@ -23,9 +17,9 @@ export declare interface FileSession {
 
   put(localPath: string, remotePath: string): Promise<void>;
 
-  downloadTemp(remotePath: string): Promise<string>;
+  getTemp(remotePath: string): Promise<string>;
 
-  end(): Promise<void>;
+  uploadBatch(strings: string[], pwd: string, failCb: (name: string, e: Error) => Promise<boolean>): Promise<void>;
 }
 
 export declare interface DevicePrivateKey {

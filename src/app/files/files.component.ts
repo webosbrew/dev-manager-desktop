@@ -7,6 +7,7 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
 import {open as openPath} from '@tauri-apps/api/shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/api/dialog';
+import * as path from "path";
 
 class FilesState {
 
@@ -24,6 +25,7 @@ class FilesState {
 })
 export class FilesComponent implements OnInit, OnDestroy {
   device: Device | null = null;
+  session: FileSession | null = null;
   pwd: string | null = null;
   files$: Observable<FilesState>;
 
@@ -43,6 +45,7 @@ export class FilesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.subscription = this.deviceManager.selected$.subscribe((selected) => {
       this.device = selected;
+      this.session = selected && this.deviceManager.fileSession(selected);
       this.cd('/media/developer', true);
     });
   }
@@ -59,26 +62,13 @@ export class FilesComponent implements OnInit, OnDestroy {
     if (!this.device) return;
     console.log('cd', dir);
     this.filesSubject.next(new FilesState(dir));
-    let session: FileSession;
-    try {
-      session = await this.deviceManager.openFileSession(this.device.name);
-    } catch (e) {
-      // MessageDialogComponent.open(this.modalService, {
-      //   title: 'Failed to start session',
-      //   message: (e as Error).message || String(e),
-      //   positive: 'OK',
-      // });
-      this.filesSubject.next(new FilesState(dir, undefined, e as Error));
-      return;
-    }
     let list: FileItem[];
     try {
-      list = await session.readdir_ext(dir);
+      list = await this.session!.ls(dir);
     } catch (e) {
+      console.warn(e);
       this.filesSubject.next(new FilesState(dir, undefined, e as Error));
       return;
-    } finally {
-      await session.end();
     }
     this.pwd = dir;
     this.filesSubject.next(new FilesState(dir, list.sort(this.compareName), undefined));
@@ -103,7 +93,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     if (!this.pwd) return;
     switch (file.type) {
       case 'd': {
-        await this.cd([this.pwd, file.filename].join('/'), true);
+        await this.cd(path.join(this.pwd, file.filename), true);
         break;
       }
       case '-': {
@@ -118,13 +108,12 @@ export class FilesComponent implements OnInit, OnDestroy {
 
   private async openFile(file: FileItem) {
     if (!this.pwd || !this.device) return;
-    const session = await this.deviceManager.openFileSession(this.device.name);
     const progress = ProgressDialogComponent.open(this.modalService);
     let result = false;
     let tempPath: string | null = null;
     do {
       try {
-        tempPath = await session.downloadTemp(file.abspath);
+        tempPath = await this.session!.getTemp(file.abspath);
       } catch (e) {
         result = await MessageDialogComponent.open(this.modalService, {
           title: `Failed to download file ${file.filename}`,
@@ -135,8 +124,8 @@ export class FilesComponent implements OnInit, OnDestroy {
       }
     } while (result);
     progress.dismiss();
-    await session.end();
-    if (!result || !tempPath) return;
+    if (!tempPath) return;
+    console.log(tempPath);
     await openPath(tempPath);
   }
 
@@ -149,13 +138,12 @@ export class FilesComponent implements OnInit, OnDestroy {
     const returnValue = await showOpenDialog({directory: true, multiple: false});
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const session = await this.deviceManager.openFileSession(this.device.name);
     const target = returnValue as string;
     for (const file of files) {
       let result = false;
       do {
         try {
-          await session.get(file.abspath, target);
+          await this.session!.get(file.abspath, target);
         } catch (e) {
           result = await MessageDialogComponent.open(this.modalService, {
             title: `Failed to download file ${file.filename}`,
@@ -170,7 +158,6 @@ export class FilesComponent implements OnInit, OnDestroy {
         break;
       }
     }
-    await session.end();
     progress.dismiss();
   }
 
@@ -186,12 +173,11 @@ export class FilesComponent implements OnInit, OnDestroy {
     }).result;
     if (!answer) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const session = await this.deviceManager.openFileSession(this.device.name);
     for (const file of files) {
       let result = false;
       do {
         try {
-          await session.rm(file.abspath, true);
+          await this.session!.rm(file.abspath, true);
         } catch (e) {
           result = await MessageDialogComponent.open(this.modalService, {
             title: `Failed to delete ${file.filename}`,
@@ -206,7 +192,6 @@ export class FilesComponent implements OnInit, OnDestroy {
         break;
       }
     }
-    await session.end();
     await this.cd(this.pwd, false);
     progress.dismiss();
   }
@@ -216,11 +201,10 @@ export class FilesComponent implements OnInit, OnDestroy {
     const returnValue = await showSaveDialog({defaultPath: file.filename});
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const session = await this.deviceManager.openFileSession(this.device.name);
     let result = false;
     do {
       try {
-        await session.get(file.abspath, returnValue);
+        await this.session!.get(file.abspath, returnValue);
       } catch (e) {
         result = await MessageDialogComponent.open(this.modalService, {
           title: `Failed to download file ${file.filename}`,
@@ -230,7 +214,6 @@ export class FilesComponent implements OnInit, OnDestroy {
         }).result;
       }
     } while (result);
-    await session.end();
     progress.dismiss();
   }
 
@@ -239,8 +222,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     const returnValue = await showOpenDialog({multiple: true});
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    const session = await this.deviceManager.openFileSession(this.device.name);
-    await session.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], this.pwd, async (name, e) => {
+    await this.session!.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], this.pwd, async (name, e) => {
       const result = await MessageDialogComponent.open(this.modalService, {
         title: `Failed to upload file ${name}`,
         message: e.message ?? String(e),
@@ -251,14 +233,13 @@ export class FilesComponent implements OnInit, OnDestroy {
       if (result == null) throw e;
       return result;
     });
-    await session.end();
     await this.cd(this.pwd, false);
     progress.dismiss();
   }
 
   async breadcrumbNav(segs: string[]): Promise<void> {
     segs[0] = '/';
-    await this.cd(segs.join('/'), true);
+    await this.cd(path.join(...segs), true);
   }
 
 }

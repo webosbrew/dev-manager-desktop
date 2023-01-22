@@ -1,65 +1,70 @@
-import {IpcClient} from "./ipc-client";
-import {Attributes, FileEntry, FileItem, FileSession} from "../../../../main/types";
-import {basename} from "@tauri-apps/api/path";
-import {NgZone} from "@angular/core";
+import {Device, FileItem, FileSession, FileType} from '../../../../main/types';
+import {RemoteCommandService} from './remote-command.service';
+import {zip} from 'lodash';
+import * as path from 'path';
+import moment from 'moment';
 
-export class IpcFileSession extends IpcClient implements FileSession {
-  constructor(zone: NgZone, private token: string) {
-    super(zone, 'file-session');
+export class FileSessionImpl implements FileSession {
+  constructor(private cmd: RemoteCommandService, private device: Device) {
   }
 
-  downloadTemp(remotePath: string): Promise<string> {
-    return this.invoke('downloadTemp', this.token, remotePath);
-  }
+  async ls(path: string): Promise<FileItem[]> {
+    const decoder = new TextDecoder();
+    const entries: string[] = decoder.decode(await this.cmd.exec(this.device, `ls -A1 ${FileSessionImpl.escapeShellPath(path)}`))
+      .split('\n').slice(0, -1);
+    const details: string[] = decoder.decode(await this.cmd.exec(this.device, `ls -Al --full-time ${FileSessionImpl.escapeShellPath(path)}`))
+      .split('\n').slice(1, -1);
 
-  get(remotePath: string, localPath: string): Promise<void> {
-    return this.invoke('get', this.token, remotePath, localPath);
-  }
-
-  put(localPath: string, remotePath: string): Promise<void> {
-    return this.invoke('put', this.token, localPath, remotePath);
-  }
-
-  readdir(location: string): Promise<FileEntry[]> {
-    return this.invoke('readdir', this.token, location);
-  }
-
-  readdir_ext(location: string): Promise<FileItem[]> {
-    return this.invoke('readdir_ext', this.token, location);
-  }
-
-  readlink(path: string): Promise<string> {
-    return this.invoke('readlink', this.token, path);
+    const items = zip(details, entries) as [string, string][];
+    return Promise.resolve(items.filter(([detail, entry]) => detail && entry)
+      .map(([detail, entry]) => FileSessionImpl.parseLsLine(path, detail.trimStart(), entry)));
   }
 
   rm(path: string, recursive: boolean): Promise<void> {
-    return this.invoke('rm', this.token, path, recursive);
+    return Promise.resolve(undefined);
   }
 
-  stat(path: string): Promise<Attributes> {
-    return this.invoke('stat', this.token, path);
+  getTemp(remotePath: string): Promise<string> {
+    return this.cmd.getTemp(this.device, remotePath);
   }
 
-  end(): Promise<void> {
-    return this.invoke('close', this.token);
+  get(remotePath: string, localPath: string): Promise<void> {
+    return this.cmd.get(this.device, remotePath, localPath);
   }
 
-  async uploadBatch(sources: string[], destination: string, error?: (name: string, error: Error) => Promise<boolean>): Promise<void> {
-    for (const source of sources) {
-      const filename: string = await basename(source);
-      let result = false;
-      do {
-        try {
-          await this.put(source, [destination, filename].join('/'));
-        } catch (e) {
-          if (!error) throw e;
-          result = await error(filename, e as Error);
-        }
-      } while (result);
-      if (result === null) {
-        break;
-      }
+  put(localPath: string, remotePath: string): Promise<void> {
+    return this.cmd.put(this.device, remotePath, localPath);
+  }
+
+  uploadBatch(strings: string[], pwd: string, failCb: (name: string, e: Error) => Promise<boolean>): Promise<void> {
+    return Promise.reject(new Error("Unimplemented"));
+  }
+
+  private static parseLsLine(cwd: string, line: string, filename: string): FileItem {
+    const mode = line.split(' ', 1)[0];
+    const type = mode.charAt(0) as FileType;
+    const abspath = path.join(cwd, filename);
+    const infoPart = line.substring(0, (type === 'l' ? line.indexOf(`${filename} -> `) : line.length - filename.length) - 1);
+    let columns: string[] = infoPart.split(/ +/);
+    const mtime = columns.slice(-3);
+    let nameStart = line.indexOf(filename);
+    const nameSuffix = line.substring(nameStart + filename.length);
+    return {
+      filename, type, abspath,
+      attrs: {
+        mode: mode.substring(1),
+        uid: columns[2],
+        gid: columns[3],
+        size: parseInt(columns[4], 10),
+        mtime: moment(`${mtime[0]}T${mtime[1]}${mtime[2]}`).unix(),
+      },
+      link: nameSuffix.startsWith(' -> ') ? {
+        target: nameSuffix.substring(4),
+      } : undefined,
     }
   }
 
+  private static escapeShellPath(path: string) {
+    return path.split('\'').map(s => `'${s}'`).join('\\\'');
+  }
 }

@@ -5,7 +5,6 @@ windows_subsystem = "windows"
 
 extern crate core;
 
-use tauri::Manager;
 use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
 
@@ -21,10 +20,6 @@ fn main() {
     .plugin(plugins::shell::plugin("remote-shell"))
     .manage(DeviceManager::default())
     .manage(SessionManager::default())
-    .setup(|a| {
-      a.get_window("main").unwrap().open_devtools();
-      return Ok(());
-    })
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

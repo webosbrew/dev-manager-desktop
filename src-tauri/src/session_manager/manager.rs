@@ -3,17 +3,15 @@ use std::str::FromStr;
 use std::sync::Arc;
 use russh::client;
 use russh::client::Config;
-use uuid::Uuid;
-use tokio::sync::Mutex as AsyncMutex;
 use crate::device_manager::Device;
 use crate::session_manager::{SessionManager, Shell, ShellToken, Error};
 use crate::session_manager::connection::Connection;
 use crate::session_manager::handler::ClientHandler;
 
 impl SessionManager {
-  pub async fn exec(&self, device: Device, command: &str) -> Result<Vec<u8>, Error> {
+  pub async fn exec(&self, device: Device, command: &str, stdin: Option<Vec<u8>>) -> Result<Vec<u8>, Error> {
     let conn = self.conn_obtain(device).await?;
-    return conn.exec(command).await;
+    return conn.exec(command, stdin).await;
   }
 
   pub async fn shell_open(&self, device: &Device, cols: u16, rows: u16) -> Result<ShellToken, Error> {

@@ -1,8 +1,8 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, from, Observable, Subject} from "rxjs";
-import {CrashReportEntry, Device, DeviceEditSpec, DevicePrivateKey} from '../../../../main/types';
+import {CrashReportEntry, Device, DeviceEditSpec, DevicePrivateKey, FileSession} from '../../../../main/types';
 import {IpcClient} from "./ipc-client";
-import {IpcFileSession} from "./file.session";
+import {FileSessionImpl} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../../../main/types/luna-apis";
 import {basename} from "@tauri-apps/api/path";
 import {RemoteLunaService} from "./remote-luna.service";
@@ -117,8 +117,8 @@ export class DeviceManagerService extends IpcClient {
     return await this.luna.call(device, 'luna://org.webosbrew.hbchannel.service/getConfiguration', {});
   }
 
-  async openFileSession(name: string): Promise<IpcFileSession> {
-    return new IpcFileSession(this.zone, await this.invokeDirectly('file-session', 'open', name));
+  fileSession(device: Device): FileSession {
+    return new FileSessionImpl(this.cmd, device);
   }
 
   private onDevicesUpdated(devices: Device[]) {

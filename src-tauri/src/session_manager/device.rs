@@ -1,4 +1,3 @@
-use std::path::{Path, PathBuf};
 use russh_keys::key::KeyPair;
 use russh_keys::load_secret_key;
 use tauri::api::path::home_dir;

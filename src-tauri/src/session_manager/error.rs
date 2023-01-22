@@ -1,8 +1,6 @@
 use std::error::Error as ErrorTrait;
 use std::fmt::{Display, Formatter};
 
-use serde::Serialize;
-
 use crate::session_manager::Error;
 
 impl Error {
@@ -30,7 +28,7 @@ impl Display for Error {
 
 impl From<std::io::Error> for Error {
   fn from(value: std::io::Error) -> Self {
-    return Error::new("IO Error");
+    return Error::new(&format!("IO Error: {:?}", value));
   }
 }
 
