@@ -83,10 +83,7 @@ export class InfoComponent {
   private async loadDevModeInfo(): Promise<void> {
     if (!this.device) return;
     try {
-      const token = await this.deviceManager.devModeToken(this.device.name);
-      if (!token) {
-        throw new Error('Ignore for this case');
-      }
+      const token = await this.deviceManager.devModeToken(this.device);
       const devModeInfo = await this.devMode.checkDevMode(token);
       this.devModeInfo = devModeInfo;
       if (devModeInfo.errorCode == '200') {

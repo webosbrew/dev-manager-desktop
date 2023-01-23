@@ -65,8 +65,11 @@ export class AppManagerService {
     // TODO: uninstall and reload apps list
   }
 
-  async launch(device: string, appId: string): Promise<void> {
-
+  async launch(device: Device, appId: string): Promise<void> {
+    await this.luna.call(device, 'luna://com.webos.applicationManager/launch', {
+      id: appId,
+      subscribe: false,
+    }, true);
   }
 
   async close(device: string, appId: string): Promise<void> {

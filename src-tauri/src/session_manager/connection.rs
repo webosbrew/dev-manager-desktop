@@ -1,20 +1,14 @@
 use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use std::net::SocketAddr;
-use std::str::FromStr;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
-use russh::{Channel, ChannelId, ChannelMsg, client};
-use russh::client::{Config, Handle, Msg};
-use russh_keys::load_secret_key;
-use tauri::api::path::home_dir;
+use russh::{Channel, ChannelMsg};
+use russh::client::{Handle, Msg};
 use tokio::sync::Mutex as AsyncMutex;
 use uuid::Uuid;
-use vt100::Parser;
 
 use crate::device_manager::Device;
+use crate::session_manager::Error;
 use crate::session_manager::handler::ClientHandler;
-use crate::session_manager::{Error, Shell, ShellToken};
 
 pub(crate) struct Connection {
   pub(crate) id: Uuid,
@@ -29,7 +23,7 @@ impl Connection {
     let mut ch = self.open_cmd_channel().await?;
     ch.exec(true, command).await?;
     if let Some(data) = stdin {
-      let mut data = data.clone();
+      let data = data.clone();
       ch.data(&*data).await?;
       ch.eof().await?;
     }

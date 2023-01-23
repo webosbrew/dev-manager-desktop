@@ -48,16 +48,12 @@ export class DeviceManagerService extends IpcClient {
     return await this.invoke('addDevice', spec);
   }
 
-  async modifyDevice(name: string, spec: Partial<DeviceEditSpec>): Promise<Device> {
-    return await this.invoke('modifyDevice', name, spec);
-  }
-
   async setDefault(name: string): Promise<Device> {
-    return await this.invoke('setDefault', name);
+    return await this.invoke('set_default', {name});
   }
 
   async removeDevice(name: string): Promise<void> {
-    return await this.invoke('removeDevice', name);
+    return await this.invoke('remove', {name});
   }
 
   async hasPrivKey(privKey: string): Promise<boolean> {
@@ -80,8 +76,14 @@ export class DeviceManagerService extends IpcClient {
     return await this.invoke('checkConnectivity', address, port);
   }
 
-  async devModeToken(name: string): Promise<string> {
-    return await this.invoke('devModeToken', name);
+  async devModeToken(device: Device): Promise<string> {
+    return await this.file.read(device, '/var/luna/preferences/devmode_enabled', 'utf-8')
+      .then(s => {
+        if (!s) {
+          throw new Error('No dev mode token');
+        }
+        return s.trim();
+      });
   }
 
   async listCrashReports(device: Device): Promise<CrashReport[]> {

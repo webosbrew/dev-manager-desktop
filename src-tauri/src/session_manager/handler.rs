@@ -1,9 +1,8 @@
 use std::future::{Ready, ready};
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{Mutex, Weak};
 
-use russh::{ChannelId, client, client::Session, Error};
+use russh::{client, client::Session, Error};
 use russh_keys::key::PublicKey;
-use uuid::Uuid;
 
 use crate::session_manager::connection::{Connection, ConnectionsMap};
 

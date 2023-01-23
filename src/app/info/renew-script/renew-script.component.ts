@@ -26,7 +26,7 @@ export class RenewScriptComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.devModeTokenSubject.next(await this.deviceManager.devModeToken(this.device.name));
+    this.devModeTokenSubject.next(await this.deviceManager.devModeToken(this.device));
     this.decryptedPrivKey = (await this.deviceManager.loadPrivKey(this.device)).privatePEM;
   }
 

@@ -8,10 +8,8 @@ use rand::{Rng, thread_rng};
 use rand::distributions::Alphanumeric;
 use russh::{Channel, ChannelId};
 use russh::client::Msg;
-use serde::{Deserialize, Deserializer, forward_to_deserialize_any, Serialize, Serializer};
-use serde::de::value::StringDeserializer;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Visitor;
-use serde::ser::SerializeStruct;
 use uuid::Uuid;
 use vt100::Parser;
 

@@ -113,7 +113,7 @@ export class AppsComponent implements OnInit, OnDestroy {
 
   launchApp(id: string): void {
     if (!this.device) return;
-    this.appManager.launch(this.device.name, id);
+    this.appManager.launch(this.device, id).then(noop);
   }
 
   async removePackage(pkg: RawPackageInfo): Promise<void> {

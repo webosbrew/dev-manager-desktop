@@ -15,7 +15,7 @@ mod plugins;
 fn main() {
   env_logger::init();
   tauri::Builder::default()
-    .plugin(plugins::devices::plugin("device-manager"))
+    .plugin(plugins::device::plugin("device-manager"))
     .plugin(plugins::cmd::plugin("remote-command"))
     .plugin(plugins::shell::plugin("remote-shell"))
     .plugin(plugins::file::plugin("remote-file"))

@@ -16,8 +16,17 @@ export class RemoteFileService extends IpcClient {
     return this.invoke('ls', {device, path});
   }
 
-  public async read(device: Device, path: string): Promise<Buffer> {
-    return Buffer.from(await this.invoke('read', {device, path}));
+  public async read(device: Device, path: string, output?: 'buffer'): Promise<Buffer>;
+  public async read(device: Device, path: string, output: 'utf-8'): Promise<string>;
+
+  public async read(device: Device, path: string, output?: 'buffer' | 'utf-8'): Promise<Buffer | string> {
+    const outputData = Buffer.from(await this.invoke('read', {device, path}));
+    switch (output) {
+      case 'utf-8':
+        return outputData.toString('utf-8');
+      default:
+        return outputData;
+    }
   }
 
   public async write(device: Device, path: string, content?: string | Uint8Array): Promise<void> {
