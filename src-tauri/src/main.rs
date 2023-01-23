@@ -18,6 +18,7 @@ fn main() {
     .plugin(plugins::devices::plugin("device-manager"))
     .plugin(plugins::cmd::plugin("remote-command"))
     .plugin(plugins::shell::plugin("remote-shell"))
+    .plugin(plugins::file::plugin("remote-file"))
     .manage(DeviceManager::default())
     .manage(SessionManager::default())
     .run(tauri::generate_context!())

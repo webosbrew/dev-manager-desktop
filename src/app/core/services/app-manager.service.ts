@@ -4,6 +4,9 @@ import {Device, PackageInfo, RawPackageInfo} from '../../../../main/types';
 import {RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {map} from "rxjs/operators";
+import {Buffer} from "buffer";
+import * as path from "path";
+import {RemoteFileService} from "./remote-file.service";
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +15,7 @@ export class AppManagerService {
 
   private packagesSubjects: Map<string, Subject<PackageInfo[] | null>>;
 
-  constructor(private luna: RemoteLunaService, private cmd: RemoteCommandService) {
+  constructor(private luna: RemoteLunaService, private cmd: RemoteCommandService, private file: RemoteFileService) {
     this.packagesSubjects = new Map();
   }
 
@@ -40,8 +43,8 @@ export class AppManagerService {
   }
 
   private async completeIcon(device: Device, info: RawPackageInfo): Promise<PackageInfo> {
-    const data = await this.cmd.read(device, `${info.folderPath}/${info.icon}`).catch(() => undefined);
-    return {iconUri: data && `data:application/octet-stream;base64,${btoa(String.fromCharCode(...data))}`, ...info}
+    const data = await this.file.read(device, path.join(info.folderPath, info.icon)).catch(() => undefined);
+    return {iconUri: data && `data:application/octet-stream;base64,${data.toString('base64')}`, ...info}
   }
 
   async info(device: Device, id: string): Promise<PackageInfo | null> {

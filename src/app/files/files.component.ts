@@ -8,6 +8,7 @@ import {ProgressDialogComponent} from "../shared/components/progress-dialog/prog
 import {open as openPath} from '@tauri-apps/api/shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/api/dialog';
 import * as path from "path";
+import moment from "moment";
 
 class FilesState {
 
@@ -82,11 +83,11 @@ export class FilesComponent implements OnInit, OnDestroy {
   }
 
   compareSize(this: void, a: FileItem, b: FileItem): number {
-    return (a.type == '-' ? (a.attrs?.size ?? 0) : 0) - (b.type == '-' ? (b.attrs?.size ?? 0) : 0);
+    return (a.type == '-' ? (a.size ?? 0) : 0) - (b.type == '-' ? (b.size ?? 0) : 0);
   }
 
   compareMtime(this: void, a: FileItem, b: FileItem): number {
-    return (a.attrs?.mtime ?? 0) - (b.attrs?.mtime ?? 0);
+    return moment(a.mtime).diff(moment(b.mtime));
   }
 
   async openItem(file: FileItem): Promise<void> {

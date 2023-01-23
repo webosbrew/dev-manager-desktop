@@ -18,6 +18,9 @@
         "open": true,
         "save": true
       },
+      "path": {
+        "all": true
+      },
       "protocol": {
         "all": true
       },

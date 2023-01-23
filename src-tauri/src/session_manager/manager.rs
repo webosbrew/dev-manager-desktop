@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::time::Duration;
 use russh::client;
 use russh::client::Config;
 use crate::device_manager::Device;
@@ -41,14 +42,15 @@ impl SessionManager {
   }
 
   async fn conn_new(&self, device: Device) -> Result<Connection, Error> {
-    let config = Arc::new(Config::default());
+    let mut config = Config::default();
+    config.connection_timeout = Some(Duration::from_secs(3));
     let handler = ClientHandler {
       id: device.name.clone(),
       connections: Arc::downgrade(&self.connections),
     };
     let addr = SocketAddr::from_str(&format!("{}:{}", &device.host, &device.port)).unwrap();
     let key = Arc::new(device.secret_key()?);
-    let mut handle = client::connect(config, addr, handler).await?;
+    let mut handle = client::connect(Arc::new(config), addr, handler).await?;
     if !handle.authenticate_publickey(&device.username, key).await? {
       return Err(Error::disconnected());
     }

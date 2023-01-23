@@ -1,4 +1,4 @@
-import {RemoteCommandService} from "./remote-command.service";
+import {escapeSingleQuoteString, RemoteCommandService} from "./remote-command.service";
 import {Injectable} from "@angular/core";
 import {Device} from "../../../../main/types";
 
@@ -16,8 +16,7 @@ export class RemoteLunaService {
 
   async call<T extends Record<string, any>>(device: Device, uri: string, param: Record<string, unknown> = {}, pub: boolean = true): Promise<T> {
     const sendCmd = pub ? 'luna-send-pub' : 'luna-send';
-    return this.commands.exec(device, `${sendCmd} -n 1 ${uri} '${JSON.stringify(param)}'`)
-      .then(out => String.fromCharCode(...out))
+    return this.commands.exec(device, `${sendCmd} -n 1 ${uri} ${escapeSingleQuoteString(JSON.stringify(param))}`, 'utf-8')
       .then(out => {
         const typed: T & LunaResponse = JSON.parse(out.trim());
         if (!typed.returnValue) {

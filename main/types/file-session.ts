@@ -1,18 +1,14 @@
 export type FileType = '-' | 'd' | 'c' | 'b' | 's' | 'p' | 'l' | '';
 
-export declare interface Attributes {
-  mode: string;
-  uid: string;
-  gid: string;
-  size: number;
-  mtime: number;
-}
-
 export declare interface FileItem {
   filename: string;
-  attrs: Attributes | null;
-  link?: LinkInfo;
   type: FileType;
+  mode: string;
+  user: string;
+  group: string;
+  size: number,
+  mtime: string,
+  link?: LinkInfo;
   abspath: string;
 }
 

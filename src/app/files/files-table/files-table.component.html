@@ -28,21 +28,16 @@
         {{file.link.target}}
           </span>
     </td>
-    <ng-container *ngIf="file.attrs as attrs else noAttrs">
-      <td class="text-nowrap">{{attrs.mtime * 1000 | date:'short'}}
-      </td>
-      <td class="text-nowrap">
+    <td class="text-nowrap">{{file.mtime | date:'short'}}
+    </td>
+    <td class="text-nowrap">
           <span *ngIf="file.type === '-'; else nonRegular">
-            {{attrs.size | filesize:sizeOptions}}
+            {{file.size | filesize:sizeOptions}}
           </span>
-        <ng-template #nonRegular>-</ng-template>
-      </td>
-      <td class="text-nowrap font-monospace">{{attrs.mode}}</td>
-      <td class="text-nowrap">{{attrs.uid}}:{{attrs.gid}}</td>
-    </ng-container>
-    <ng-template #noAttrs>
-      <td colspan="4"></td>
-    </ng-template>
+      <ng-template #nonRegular>-</ng-template>
+    </td>
+    <td class="text-nowrap font-monospace">{{file.mode}}</td>
+    <td class="text-nowrap">{{file.user}}:{{file.group}}</td>
   </tr>
   </tbody>
 </table>

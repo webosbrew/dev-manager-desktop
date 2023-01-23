@@ -126,4 +126,5 @@ export class RemoteShellService extends IpcClient {
     }
     return shell;
   }
+
 }

@@ -7,6 +7,8 @@ import {HomebrewChannelConfiguration, SystemInfo} from "../../../../main/types/l
 import {basename} from "@tauri-apps/api/path";
 import {RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
+import {Buffer} from "buffer";
+import {RemoteFileService} from "./remote-file.service";
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +18,7 @@ export class DeviceManagerService extends IpcClient {
   private devicesSubject: Subject<Device[]>;
   private selectedSubject: Subject<Device | null>;
 
-  constructor(zone: NgZone, private cmd: RemoteCommandService, private luna: RemoteLunaService) {
+  constructor(zone: NgZone, private cmd: RemoteCommandService, private file: RemoteFileService, private luna: RemoteLunaService) {
     super(zone, 'device-manager');
     this.devicesSubject = new BehaviorSubject<Device[]>([]);
     this.selectedSubject = new BehaviorSubject<Device | null>(null);
@@ -83,8 +85,8 @@ export class DeviceManagerService extends IpcClient {
   }
 
   async listCrashReports(device: Device): Promise<CrashReport[]> {
-    return this.cmd.exec(device, 'find /tmp/faultmanager/crash/ -name \'*.gz\' -print0')
-      .then(output => String.fromCharCode(...output).split('\0').filter(l => l.length)).then(list =>
+    return this.cmd.exec(device, 'find /tmp/faultmanager/crash/ -name \'*.gz\' -print0', 'utf-8')
+      .then(output => output.split('\0').filter(l => l.length)).then(list =>
         Promise.all(list.map(l => CrashReport.obtain(this, device, l))));
   }
 
@@ -95,8 +97,8 @@ export class DeviceManagerService extends IpcClient {
     }, target);
   }
 
-  async zcat(device: Device, path: string): Promise<Uint8Array> {
-    return await this.cmd.exec(device, `xargs -0 zcat`, path);
+  async zcat(device: Device, path: string): Promise<Buffer> {
+    return await this.cmd.exec(device, `xargs -0 zcat`, 'buffer', path);
   }
 
   async extendDevMode(device: Device): Promise<any> {
@@ -118,7 +120,7 @@ export class DeviceManagerService extends IpcClient {
   }
 
   fileSession(device: Device): FileSession {
-    return new FileSessionImpl(this.cmd, device);
+    return new FileSessionImpl(this.cmd, this.file, device);
   }
 
   private onDevicesUpdated(devices: Device[]) {
@@ -135,7 +137,7 @@ export class CrashReport implements CrashReportEntry {
 
   static async obtain(dm: DeviceManagerService, device: Device, path: string) {
     const {title, summary, saveName} = await CrashReport.parseTitle(path);
-    const content = from(dm.zcat(device, path).then(content => String.fromCharCode(...content).trim()));
+    const content = from(dm.zcat(device, path).then(content => content.toString('utf-8').trim()));
     return new CrashReport(device, path, title, summary, saveName, content);
   }
 
