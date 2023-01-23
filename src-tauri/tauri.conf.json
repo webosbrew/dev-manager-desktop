@@ -43,8 +43,8 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
-      "longDescription": "",
+      "identifier": "org.webosbrew.devman",
+      "longDescription": "LG webOS Device Manager",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
