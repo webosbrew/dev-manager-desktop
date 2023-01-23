@@ -25,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Cache node modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       env:
         cache-name: cache-node-modules
       with:
@@ -41,7 +41,7 @@ jobs:
           ${{ runner.os }}-
 
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
 
@@ -49,10 +49,10 @@ jobs:
       run: npm ci
 
     - name: Check lint
-      run: npm run lint
+      run: npm run ng:lint
 
     - name: Build the app
-      run: npm run pack
+      run: npm run build
 
     # - name: Run headless unit test
     #   uses: GabrielBB/xvfb-action@v1
