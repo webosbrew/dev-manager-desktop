@@ -1,0 +1,43 @@
+<table class="table table-hover">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Last Modified</th>
+    <th>Size</th>
+    <th>Permission</th>
+    <th>Owner</th>
+  </tr>
+  </thead>
+  <tbody class="border-top-0">
+  <tr *ngFor="let file of items" (dblclick)="openItem(file)" (click)="selectItem(file)"
+      [class.table-active]="selectedItems && selectedItems.includes(file)">
+    <td class="text-nowrap">
+          <span class="pe-2" [ngSwitch]="file.type">
+              <i class="bi-folder-fill" *ngSwitchCase="'d'"></i>
+              <i class="bi-file-earmark-fill" *ngSwitchCase="'-'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'c'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'b'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'f'"></i>
+              <i class="bi-gear-fill" *ngSwitchCase="'s'"></i>
+              <i class="bi-link" *ngSwitchCase="'l'"></i>
+              <i class="bi-file-earmark-x-fill" *ngSwitchDefault></i>
+            </span>
+      <span>{{file.filename}}</span>
+      <span *ngIf="file.link" class="text-secondary">
+            <i class="bi-arrow-right-short px-1"></i>
+        {{file.link.target}}
+          </span>
+    </td>
+    <td class="text-nowrap">{{file.mtime | date:'short'}}
+    </td>
+    <td class="text-nowrap">
+          <span *ngIf="file.type === '-'; else nonRegular">
+            {{file.size | filesize:sizeOptions}}
+          </span>
+      <ng-template #nonRegular>-</ng-template>
+    </td>
+    <td class="text-nowrap font-monospace">{{file.mode}}</td>
+    <td class="text-nowrap">{{file.user}}:{{file.group}}</td>
+  </tr>
+  </tbody>
+</table>

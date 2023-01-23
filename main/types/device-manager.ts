@@ -1,4 +1,4 @@
-import {Attributes, FileEntry, FileItem} from "./file-session";
+import {FileItem} from "./file-session";
 import {Device} from "./novacom-data";
 
 
@@ -7,36 +7,9 @@ export declare interface CrashReportEntry {
   path: string;
 }
 
-export declare interface Shell {
-  closed(): Promise<boolean>;
-
-  dumb(): Promise<boolean>;
-
-  listen(event: 'close' | 'data', callback: (...args: any[]) => void): this;
-
-  write(data: string): Promise<void>;
-
-  resize(rols: number, cols: number, height: number, width: number): Promise<void>;
-
-  buffer(): Promise<string>;
-
-  close(): Promise<void>;
-}
-
-export declare interface SessionToken {
-  key: string;
-  device: Device;
-}
-
 export declare interface FileSession {
 
-  readdir(location: string): Promise<FileEntry[]>;
-
-  readdir_ext(location: string): Promise<FileItem[]>;
-
-  readlink(path: string): Promise<string>;
-
-  stat(path: string): Promise<Attributes>;
+  ls(path: string): Promise<FileItem[]>;
 
   rm(path: string, recursive: boolean): Promise<void>;
 
@@ -44,9 +17,9 @@ export declare interface FileSession {
 
   put(localPath: string, remotePath: string): Promise<void>;
 
-  downloadTemp(remotePath: string): Promise<string>;
+  getTemp(remotePath: string): Promise<string>;
 
-  end(): Promise<void>;
+  uploadBatch(strings: string[], pwd: string, failCb: (name: string, e: Error) => Promise<boolean>): Promise<void>;
 }
 
 export declare interface DevicePrivateKey {
@@ -54,7 +27,7 @@ export declare interface DevicePrivateKey {
   privatePEM?: string;
 }
 
-export declare interface PackageInfo {
+export declare interface RawPackageInfo {
   id: string;
   type: string;
   title: string;
@@ -63,5 +36,8 @@ export declare interface PackageInfo {
   version: string;
   folderPath: string;
   icon: string;
-  iconPath: string;
+}
+
+export declare interface PackageInfo extends RawPackageInfo {
+  iconUri?: string;
 }

@@ -1,0 +1,18 @@
+<div class="w-100 h-100 d-flex flex-column">
+  <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0 mt-2 px-2" [animation]="false" [(activeId)]="currentShell">
+    <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.id" [destroyOnHide]="false">
+      <a ngbNavLink href>
+        {{shell.name}}
+        <span class="close position-relative ps-2 font-weight-light" (click)="closeSession($event, shell)">×</span>
+      </a>
+      <ng-template ngbNavContent>
+        <app-terminal-tab [token]="shell" class="terminal-tab"></app-terminal-tab>
+      </ng-template>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href (click)="newTab(); $event.preventDefault()">+</a>
+    </li>
+  </ul>
+
+  <div [ngbNavOutlet]="nav" class="overflow-hidden flex-fill position-relative tabs-container"></div>
+</div>
