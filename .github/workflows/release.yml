@@ -2,79 +2,87 @@ name: 'Release'
 
 on:
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [ windows-latest, ubuntu-latest, macos-latest ]
 
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - uses: olegtarasov/get-tag@v2.1
-      id: tagName
+      - uses: olegtarasov/get-tag@v2.1
+        id: tagName
 
-    - name: Cache node modules
-      uses: actions/cache@v3
-      env:
-        cache-name: cache-node-modules
-      with:
-        # npm cache files are stored in `~/.npm`
-        path: ~/.npm
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
+      - name: Cache node modules
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm`
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16.x
+      - name: Install Required Packages (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
 
-    - run: npm ci
-    - name: Build the app
-      run: npm run dist
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
 
-    - name: Create Release (Windows)
-      id: create_release_windows
-      uses: ncipollo/release-action@v1
-      if: runner.os == 'Windows'
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: Dev Manager ${{ steps.tagName.outputs.tag }}
-        allowUpdates: true
-        omitNameDuringUpdate: true
-        omitBodyDuringUpdate: true
-        omitPrereleaseDuringUpdate: true
-        artifacts: src-tauri/target/release/bundle/msi/*.msi
+      - name: Install NPM Dependencies
+        run: npm ci
 
-    - name: Create Release (Linux)
-      id: create_release_linux
-      uses: ncipollo/release-action@v1
-      if: runner.os == 'Linux'
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: Dev Manager ${{ steps.tagName.outputs.tag }}
-        allowUpdates: true
-        omitNameDuringUpdate: true
-        omitBodyDuringUpdate: true
-        omitPrereleaseDuringUpdate: true
-        artifacts: release/*.AppImage
+      - name: Build the app
+        run: npm run build
 
-    - name: Create Release (macOS)
-      id: create_release_macos
-      uses: ncipollo/release-action@v1
-      if: runner.os == 'macOS'
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: Dev Manager ${{ steps.tagName.outputs.tag }}
-        allowUpdates: true
-        omitNameDuringUpdate: true
-        omitBodyDuringUpdate: true
-        omitPrereleaseDuringUpdate: true
-        artifacts: release/*.dmg
+      - name: Create Release (Windows)
+        id: create_release_windows
+        uses: ncipollo/release-action@v1
+        if: runner.os == 'Windows'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Dev Manager ${{ steps.tagName.outputs.tag }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifacts: src-tauri/target/release/bundle/msi/*.msi
+
+      - name: Create Release (Linux)
+        id: create_release_linux
+        uses: ncipollo/release-action@v1
+        if: runner.os == 'Linux'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Dev Manager ${{ steps.tagName.outputs.tag }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifacts: release/*.AppImage
+
+      - name: Create Release (macOS)
+        id: create_release_macos
+        uses: ncipollo/release-action@v1
+        if: runner.os == 'macOS'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Dev Manager ${{ steps.tagName.outputs.tag }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifacts: release/*.dmg
