@@ -2,7 +2,7 @@ import {BehaviorSubject, noop, Observable, Subject} from "rxjs";
 import {emit, listen} from "@tauri-apps/api/event";
 import {IpcClient} from "./ipc-client";
 import {Injectable, NgZone} from "@angular/core";
-import {Device} from "../../../../main/types";
+import {Device} from "../../types";
 
 
 export interface ShellSessionToken {

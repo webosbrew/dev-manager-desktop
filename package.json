@@ -68,7 +68,7 @@
     "@angular-eslint/template-parser": "13.4.0",
     "@angular/cli": "~13.3.5",
     "@angular/compiler-cli": "~13.3.0",
-    "@tauri-apps/cli": "1.2.2",
+    "@tauri-apps/cli": "^1.2.3",
     "@types/jasmine": "~3.10.0",
     "@types/lodash": "^4.14.182",
     "@types/marked": "^4.0.3",

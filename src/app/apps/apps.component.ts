@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Observable, Subscription} from 'rxjs';
-import {Device, PackageInfo, RawPackageInfo} from '../../../main/types';
+import {Device, PackageInfo, RawPackageInfo} from '../types';
 import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';

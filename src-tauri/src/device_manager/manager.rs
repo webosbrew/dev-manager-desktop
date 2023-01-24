@@ -25,6 +25,9 @@ impl DeviceManager {
 
     pub async fn remove(&self, name: &str) -> Result<(), Error> {
         let mut devices = read()?;
+        if devices.iter().any(|device| device.name == name && device.indelible == Some(true)) {
+            return Err(Error::new("Can't delete indelible device"));
+        }
         devices.retain(|device| device.name != name);
         write(&devices)?;
         return Ok(());

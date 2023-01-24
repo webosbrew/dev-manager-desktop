@@ -1,9 +1,9 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, from, Observable, Subject} from "rxjs";
-import {CrashReportEntry, Device, DeviceEditSpec, DevicePrivateKey, FileSession} from '../../../../main/types';
+import {CrashReportEntry, Device, DeviceLike, DevicePrivateKey, FileSession, NewDevice} from '../../types';
 import {IpcClient} from "./ipc-client";
 import {FileSessionImpl} from "./file.session";
-import {HomebrewChannelConfiguration, SystemInfo} from "../../../../main/types/luna-apis";
+import {HomebrewChannelConfiguration, SystemInfo} from "../../types/luna-apis";
 import {basename} from "@tauri-apps/api/path";
 import {RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
@@ -44,16 +44,18 @@ export class DeviceManagerService extends IpcClient {
     return await this.invoke('list');
   }
 
-  async addDevice(spec: DeviceEditSpec): Promise<Device> {
-    return await this.invoke('addDevice', spec);
-  }
-
   async setDefault(name: string): Promise<Device> {
-    return await this.invoke('set_default', {name});
+    const device = await this.invoke<Device>('set_default', {name});
+    this.load();
+    return device;
   }
 
   async removeDevice(name: string): Promise<void> {
     return await this.invoke('remove', {name});
+  }
+
+  async addDevice(device: NewDevice): Promise<Device> {
+    return Promise.reject(new Error('Not implemented'));
   }
 
   async hasPrivKey(privKey: string): Promise<boolean> {
@@ -64,16 +66,12 @@ export class DeviceManagerService extends IpcClient {
     return await this.invoke('loadPrivKey', device);
   }
 
-  async fetchPrivKey(address: string, passphrase?: string): Promise<DevicePrivateKey> {
+  async fetchPrivKey(address: string, passphrase?: string): Promise<string> {
     return await this.invoke('fetchPrivKey', address, passphrase);
   }
 
-  async savePrivKey(keyName: string, keyContent: DevicePrivateKey): Promise<void> {
-    return await this.invoke('savePrivKey', keyName, keyContent);
-  }
-
-  async checkConnectivity(address: string, port: number): Promise<boolean> {
-    return await this.invoke('checkConnectivity', address, port);
+  async checkConnectivity(device: DeviceLike): Promise<boolean> {
+    return await this.invoke('checkConnectivity', {device});
   }
 
   async devModeToken(device: Device): Promise<string> {
@@ -111,7 +109,7 @@ export class DeviceManagerService extends IpcClient {
     }, true);
   }
 
-  async getSystemInfo(device: Device): Promise<Partial<SystemInfo>> {
+  async getSystemInfo(device: DeviceLike): Promise<Partial<SystemInfo>> {
     return await this.luna.call(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
       keys: ['firmwareVersion', 'modelName', 'sdkVersion']
     });

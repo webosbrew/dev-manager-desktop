@@ -1,6 +1,6 @@
 import {Injectable, NgZone} from "@angular/core";
 import {IpcClient} from "./ipc-client";
-import {Device, FileItem} from "../../../../main/types";
+import {Device, FileItem} from "../../types";
 import {Buffer} from "buffer";
 
 @Injectable({

@@ -1,10 +1,9 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, firstValueFrom, Observable, Subject} from 'rxjs';
-import {Device, PackageInfo, RawPackageInfo} from '../../../../main/types';
+import {Device, PackageInfo, RawPackageInfo} from '../../types';
 import {RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {map} from "rxjs/operators";
-import {Buffer} from "buffer";
 import * as path from "path";
 import {RemoteFileService} from "./remote-file.service";
 

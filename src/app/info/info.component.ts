@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import {Observable, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Device, RawPackageInfo} from '../../../main/types';
+import {Device, RawPackageInfo} from '../types';
 import {
   AppManagerService,
   AppsRepoService,
@@ -15,7 +15,7 @@ import {
 } from '../core/services';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {RenewScriptComponent} from './renew-script/renew-script.component';
-import {HomebrewChannelConfiguration, SystemInfo} from "../../../main/types/luna-apis";
+import {HomebrewChannelConfiguration, SystemInfo} from "../types/luna-apis";
 
 @Component({
   selector: 'app-info',

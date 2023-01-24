@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FileItem} from "../../../../main/types";
+import {FileItem} from "../../types";
 
 @Component({
   selector: 'app-files-table',
