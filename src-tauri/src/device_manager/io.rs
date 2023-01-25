@@ -4,6 +4,7 @@ use std::io::{BufReader, BufWriter, Error as IoError, ErrorKind};
 use std::path::PathBuf;
 
 use serde_json::Value;
+use tauri::api::path::home_dir;
 
 use crate::device_manager::{Device, Error};
 
@@ -24,6 +25,10 @@ pub(crate) fn write(devices: &Vec<Device>) -> Result<(), Error> {
     let writer = BufWriter::new(File::create(path.as_path())?);
     serde_json::to_writer_pretty(writer, devices)?;
     return Ok(());
+}
+
+pub(crate) fn ssh_dir() -> Option<PathBuf> {
+    return home_dir().map(|d| d.join(".ssh"));
 }
 
 fn devices_file_path() -> Result<PathBuf, IoError> {

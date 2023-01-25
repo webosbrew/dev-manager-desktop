@@ -1,7 +1,10 @@
-use russh_keys::decode_secret_key;
+use russh_keys::encoding::Bytes;
+use russh_keys::{decode_secret_key, PublicKeyBase64};
+use std::fs::File;
+use std::io::{BufWriter, Write};
 
-use crate::device_manager::io::{read, write};
-use crate::device_manager::{Device, DeviceManager, Error};
+use crate::device_manager::io::{read, ssh_dir, write};
+use crate::device_manager::{Device, DeviceManager, Error, PrivateKey};
 
 impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
@@ -15,14 +18,32 @@ impl DeviceManager {
         let mut result: Option<Device> = None;
         for mut device in &mut devices {
             if device.name == name {
-                device.default = true;
+                device.default = Some(true);
                 result = Some(device.clone());
             } else {
-                device.default = false;
+                device.default = None;
             }
         }
         write(&devices)?;
         return Ok(result);
+    }
+
+    pub async fn add(&self, device: &Device) -> Result<Device, Error> {
+        let mut device = device.clone();
+        if let Some(key) = &device.private_key {
+            if let PrivateKey::Data { data } = key {
+                let pubkey = key
+                    .priv_key(device.passphrase.as_deref())?
+                    .clone_public_key()?;
+                let name = format!("webos_{}", pubkey.fingerprint());
+                let key_path = ssh_dir().unwrap().join(name.clone());
+                let mut file = File::create(key_path)?;
+                file.write(data.bytes())?;
+                device.private_key = Some(PrivateKey::Path { name });
+            }
+        }
+        log::info!("Save device {:?}", device);
+        return Err(Error::unimplemented());
     }
 
     pub async fn remove(&self, name: &str) -> Result<(), Error> {

@@ -47,6 +47,12 @@ impl From<reqwest::Error> for Error {
     }
 }
 
+impl From<russh_keys::Error> for Error {
+    fn from(value: russh_keys::Error) -> Self {
+        return Error::new(&format!("SSH Key Error: {:?}", value));
+    }
+}
+
 impl From<Box<dyn ErrorTrait>> for Error {
     fn from(value: Box<dyn ErrorTrait>) -> Self {
         return Error::new("General Error");

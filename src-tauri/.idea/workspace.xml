@@ -16,7 +16,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5ebb9939-759c-4154-833b-b5fd9fcf82e2" name="Changes" comment="updated ui src">
-      <change afterPath="$PROJECT_DIR$/src/device_manager/privkey.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
@@ -24,14 +23,11 @@
       <change beforePath="$PROJECT_DIR$/src/device_manager/io.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/device_manager/io.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/device_manager/manager.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/device_manager/manager.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/device_manager/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/device_manager/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/plugins/cmd.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/cmd.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/device_manager/privkey.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/device_manager/privkey.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/plugins/device.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/device.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/plugins/file.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/file.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/session_manager/device.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/device.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/session_manager/error.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/error.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/session_manager/handler.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/handler.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/session_manager/manager.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/manager.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/session_manager/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/session_manager/shell.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/shell.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/app/add-device/add-device.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/app/add-device/add-device.component.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/app/core/services/device-manager.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/app/core/services/device-manager.service.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/app/home/home.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/app/home/home.component.ts" afterDir="false" />
@@ -172,6 +168,7 @@
       <workItem from="1674464267056" duration="1876000" />
       <workItem from="1674623167574" duration="32000" />
       <workItem from="1674623213985" duration="216000" />
+      <workItem from="1674634400985" duration="180000" />
     </task>
     <task id="LOCAL-00001" summary="async based ssh wip">
       <created>1674232159223</created>

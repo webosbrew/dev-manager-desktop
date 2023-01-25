@@ -20,6 +20,11 @@ async fn set_default(
 }
 
 #[tauri::command]
+async fn add(manager: State<'_, DeviceManager>, device: Device) -> Result<Device, Error> {
+    return manager.add(&device).await;
+}
+
+#[tauri::command]
 async fn remove(manager: State<'_, DeviceManager>, name: String) -> Result<(), Error> {
     return manager.remove(&name).await;
 }
@@ -39,6 +44,7 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
         .invoke_handler(tauri::generate_handler![
             list,
             set_default,
+            add,
             remove,
             novacom_getkey
         ])

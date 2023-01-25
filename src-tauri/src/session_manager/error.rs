@@ -42,7 +42,7 @@ impl From<std::io::Error> for Error {
 
 impl From<russh::Error> for Error {
     fn from(value: russh::Error) -> Self {
-        return Error::new(&format!("russh::Error {}", value.to_string()));
+        return Error::new(&format!("russh::Error {:?}", value));
     }
 }
 

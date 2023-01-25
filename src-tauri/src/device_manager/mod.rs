@@ -42,7 +42,8 @@ pub enum PrivateKey {
 pub struct Device {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub order: Option<String>,
-    pub default: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default: Option<bool>,
     pub profile: String,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
