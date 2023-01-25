@@ -16,18 +16,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5ebb9939-759c-4154-833b-b5fd9fcf82e2" name="Changes" comment="updated ui src">
-      <change afterPath="$PROJECT_DIR$/src/device_manager/error.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/device_manager/io.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/device_manager/manager.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/device_manager/mod.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/device_manager/privkey.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/device_manager.rs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/plugins/devices.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/device.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/plugins/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/session_manager/connection.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/connection.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/device_manager/error.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/device_manager/error.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/device_manager/io.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/device_manager/io.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/device_manager/manager.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/device_manager/manager.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/device_manager/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/device_manager/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/plugins/cmd.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/cmd.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/plugins/device.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/device.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/plugins/file.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/plugins/file.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/session_manager/device.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/device.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/session_manager/handler.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/handler.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/session_manager/manager.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/manager.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/session_manager/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/session_manager/shell.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/session_manager/shell.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/app/add-device/add-device.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/app/add-device/add-device.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/app/core/services/device-manager.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/app/core/services/device-manager.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/app/home/home.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/app/home/home.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/app/types/device.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../src/app/types/device.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/styles/shared.scss" beforeDir="false" afterPath="$PROJECT_DIR$/../src/styles/shared.scss" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,26 +78,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "WebServerToolWindowFactoryState": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "last_opened_file_path": "C:/Users/Mariotaku/Projects/webosbrew/dev-manager-desktop/src-tauri/src/device_manager",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
-    "settings.editor.selected.configurable": "CPPToolchains",
-    "ts.external.directory.path": "C:\\Users\\Mariotaku\\AppData\\Local\\JetBrains\\Toolbox\\apps\\CLion\\ch-0\\223.8214.51\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Mariotaku/Projects/webosbrew/dev-manager-desktop/src-tauri/src/device_manager&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;CPPToolchains&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\Mariotaku\\AppData\\Local\\JetBrains\\Toolbox\\apps\\CLion\\ch-0\\223.8214.51\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Mariotaku\Projects\webosbrew\dev-manager-desktop\src-tauri\src\device_manager" />
@@ -160,6 +170,8 @@
       <workItem from="1674123695101" duration="24334000" />
       <workItem from="1674218615514" duration="18236000" />
       <workItem from="1674464267056" duration="1876000" />
+      <workItem from="1674623167574" duration="32000" />
+      <workItem from="1674623213985" duration="216000" />
     </task>
     <task id="LOCAL-00001" summary="async based ssh wip">
       <created>1674232159223</created>

@@ -1,3 +1,5 @@
+use russh_keys::decode_secret_key;
+
 use crate::device_manager::io::{read, write};
 use crate::device_manager::{Device, DeviceManager, Error};
 
@@ -25,11 +27,24 @@ impl DeviceManager {
 
     pub async fn remove(&self, name: &str) -> Result<(), Error> {
         let mut devices = read()?;
-        if devices.iter().any(|device| device.name == name && device.indelible == Some(true)) {
+        if devices
+            .iter()
+            .any(|device| device.name == name && device.indelible == Some(true))
+        {
             return Err(Error::new("Can't delete indelible device"));
         }
         devices.retain(|device| device.name != name);
         write(&devices)?;
         return Ok(());
+    }
+
+    //noinspection HttpUrlsUsage
+    pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
+        let response = reqwest::get(format!("http://{}:9991/webos_rsa", address)).await?;
+        let content = response.text().await?;
+        if let Err(_e) = decode_secret_key(&content, Some(&passphrase)) {
+            return Err(Error::new("Bad key"));
+        }
+        return Ok(content);
     }
 }

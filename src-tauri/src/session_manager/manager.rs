@@ -1,13 +1,15 @@
-use crate::device_manager::Device;
-use crate::session_manager::connection::Connection;
-use crate::session_manager::handler::ClientHandler;
-use crate::session_manager::{Error, SessionManager, Shell, ShellToken};
-use russh::client;
-use russh::client::Config;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
+
+use russh::client;
+use russh::client::Config;
+
+use crate::device_manager::Device;
+use crate::session_manager::connection::Connection;
+use crate::session_manager::handler::ClientHandler;
+use crate::session_manager::{Error, SessionManager, Shell, ShellToken};
 
 impl SessionManager {
     pub async fn exec(
@@ -51,12 +53,13 @@ impl SessionManager {
         if let Some(a) = self.connections.lock().unwrap().get(&device.name) {
             return Ok(a.clone());
         }
-        let name = device.name.clone();
-        let connection = Arc::new(self.conn_new(device).await?);
-        self.connections
-            .lock()
-            .unwrap()
-            .insert(name, connection.clone());
+        let connection = Arc::new(self.conn_new(device.clone()).await?);
+        if !device.new {
+            self.connections
+                .lock()
+                .unwrap()
+                .insert(device.name, connection.clone());
+        }
         return Ok(connection);
     }
 

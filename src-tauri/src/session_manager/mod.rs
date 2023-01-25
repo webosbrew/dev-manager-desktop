@@ -7,8 +7,9 @@ use serde::Serialize;
 use uuid::Uuid;
 use vt100::Parser;
 
-use crate::session_manager::connection::ConnectionsMap;
 use connection::Connection;
+
+use crate::session_manager::connection::ConnectionsMap;
 
 mod connection;
 mod device;

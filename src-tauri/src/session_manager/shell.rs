@@ -1,20 +1,11 @@
 use std::fmt;
-use std::io::Write;
-use std::str::FromStr;
-use std::string::ParseError;
-use std::sync::{Arc, Mutex};
 
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
-use russh::client::Msg;
-use russh::{Channel, ChannelId};
+use std::str::FromStr;
+
 use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use uuid::Uuid;
-use vt100::Parser;
 
-use crate::device_manager::Device;
-use crate::session_manager::connection::Connection;
 use crate::session_manager::{Error, Shell, ShellToken};
 
 impl Shell {

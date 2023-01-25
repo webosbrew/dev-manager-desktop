@@ -1,17 +1,11 @@
-use std::env;
-use std::fs::File;
-use std::io::{BufReader, Error as IoError, ErrorKind};
-use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-
-use crate::device_manager::io::{read, write};
 
 mod error;
 mod io;
 mod manager;
+mod privkey;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct DeviceSessionToken {
@@ -32,9 +26,16 @@ impl Default for DeviceManager {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct PrivateKey {
-    #[serde(rename = "openSsh")]
-    pub open_ssh: String,
+#[serde(untagged)]
+pub enum PrivateKey {
+    Path {
+        #[serde(rename = "openSsh")]
+        name: String,
+    },
+    Data {
+        #[serde(rename = "openSshData")]
+        data: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -49,6 +50,8 @@ pub struct Device {
     pub host: String,
     pub port: u16,
     pub username: String,
+    #[serde(default, skip_serializing)]
+    pub(crate) new: bool,
     #[serde(rename = "privateKey", skip_serializing_if = "Option::is_none")]
     pub private_key: Option<PrivateKey>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

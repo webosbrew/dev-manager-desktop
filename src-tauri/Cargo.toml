@@ -27,6 +27,7 @@ russh = { version = "0.34.0", features = ["openssl"] }
 russh-keys = { version = "0.22.0", features = ["openssl"] }
 tokio = "1.24.2"
 uuid = { version = "1.2.2", features = ["v1"] }
+reqwest = "0.11.14"
 
 [features]
 # by default Tauri runs in production mode

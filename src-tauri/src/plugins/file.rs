@@ -1,16 +1,17 @@
-use crate::device_manager::Device;
-use crate::plugins::cmd::escape_path;
-use crate::session_manager::{Error, SessionManager};
-use serde::Serialize;
 use std::env::temp_dir;
-use std::io::BufRead;
 use std::iter::zip;
 use std::path::Path;
+
+use serde::Serialize;
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{Runtime, State};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use uuid::Uuid;
+
+use crate::device_manager::Device;
+use crate::plugins::cmd::escape_path;
+use crate::session_manager::{Error, SessionManager};
 
 #[tauri::command]
 async fn ls(

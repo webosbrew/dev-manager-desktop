@@ -1,6 +1,6 @@
 use std::env;
 use std::fs::File;
-use std::io::{BufReader, BufWriter, Error as IoError, ErrorKind, Write};
+use std::io::{BufReader, BufWriter, Error as IoError, ErrorKind};
 use std::path::PathBuf;
 
 use serde_json::Value;

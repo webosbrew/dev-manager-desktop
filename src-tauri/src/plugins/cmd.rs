@@ -1,13 +1,7 @@
-use std::env::temp_dir;
-use std::path::Path;
-
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Runtime, State,
 };
-use tokio::fs;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::session_manager::{Error, SessionManager};
@@ -57,8 +51,8 @@ mod tests {
             String::from("'/dev/null'")
         );
         assert_eq!(
-            escape_path(&String::from("/path/with/single'quote")),
-            String::from("'/path/with/single'\\''quote'")
+            escape_path(&String::from("/path/with/'symbol")),
+            String::from("'/path/with/'\\''symbol'")
         );
     }
 }

@@ -24,9 +24,23 @@ async fn remove(manager: State<'_, DeviceManager>, name: String) -> Result<(), E
     return manager.remove(&name).await;
 }
 
+#[tauri::command]
+async fn novacom_getkey(
+    manager: State<'_, DeviceManager>,
+    address: String,
+    passphrase: String,
+) -> Result<String, Error> {
+    return manager.novacom_getkey(&address, &passphrase).await;
+}
+
 /// Initializes the plugin.
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
     Builder::new(name)
-        .invoke_handler(tauri::generate_handler![list, set_default, remove])
+        .invoke_handler(tauri::generate_handler![
+            list,
+            set_default,
+            remove,
+            novacom_getkey
+        ])
         .build()
 }

@@ -4,7 +4,7 @@ use std::sync::{Mutex, Weak};
 use russh::{client, client::Session, Error};
 use russh_keys::key::PublicKey;
 
-use crate::session_manager::connection::{Connection, ConnectionsMap};
+use crate::session_manager::connection::ConnectionsMap;
 
 #[derive(Default)]
 pub(crate) struct ClientHandler {
