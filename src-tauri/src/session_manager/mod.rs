@@ -1,14 +1,16 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock, Weak};
 
-use russh::client::Msg;
 use russh::Channel;
+use russh::client::Msg;
 use serde::Serialize;
+use tokio::sync::Mutex as AsyncMutex;
 use uuid::Uuid;
 use vt100::Parser;
 
-use crate::session_manager::connection::ConnectionsMap;
 use connection::Connection;
+
+use crate::session_manager::connection::ConnectionsMap;
 
 mod connection;
 mod device;
@@ -30,6 +32,17 @@ pub struct Shell {
     pub(crate) parser: Mutex<Parser>,
 }
 
+pub struct Proc {
+    pub(crate) command: String,
+    pub(crate) ch: AsyncMutex<Option<Channel<Msg>>>,
+}
+
+#[derive(Clone, Serialize)]
+pub struct ProcData {
+    pub index: u64,
+    pub data: Vec<u8>,
+}
+
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct ShellToken {
     pub connection_id: Uuid,
@@ -44,5 +57,20 @@ pub struct ShellBuffer {
 
 #[derive(Debug, Serialize, Clone)]
 pub struct Error {
-    message: String,
+    pub message: String,
+    #[serde(flatten)]
+    pub kind: ErrorKind,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(untagged)]
+pub enum ErrorKind {
+    Message,
+    Unimplemented,
+    NeedsReconnect,
+    Authorization,
+    ExitStatus {
+        status: u32,
+        output: Vec<u8>,
+    },
 }

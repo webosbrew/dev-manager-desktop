@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {Device} from '../../../main/types';
+import {Device} from '../types';
 import {AddDeviceComponent} from '../add-device/add-device.component';
 import {DeviceManagerService} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
@@ -51,6 +51,7 @@ export class HomeComponent {
   }
 
   openSetupDevice(): void {
-    this.modalService.open(AddDeviceComponent, {size: 'lg', centered: true, scrollable: true});
+    const ref = this.modalService.open(AddDeviceComponent, {size: 'lg', centered: true, scrollable: true});
+    ref.result.then((device) => this.deviceManager.setDefault(device.name));
   }
 }

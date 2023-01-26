@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Observable, Subscription} from 'rxjs';
-import {Device, PackageInfo, RawPackageInfo} from '../../../main/types';
+import {Device, PackageInfo, RawPackageInfo} from '../types';
 import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
@@ -93,7 +93,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
     const file: File = files[0];
     const progress = ProgressDialogComponent.open(this.modalService);
-    await this.appManager.install(this.device.name, file.webkitRelativePath);
+    await this.appManager.install(this.device, file.webkitRelativePath);
     progress.close(true);
   }
 
@@ -107,7 +107,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
     const path = Array.isArray(open) ? open[0] : open;
     const progress = ProgressDialogComponent.open(this.modalService);
-    await this.appManager.install(this.device.name, path);
+    await this.appManager.install(this.device, path);
     progress.close(true);
   }
 
@@ -128,7 +128,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     if (!await confirm.result) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.remove(this.device.name, pkg.id);
+      await this.appManager.remove(this.device, pkg.id);
     } catch (e) {
       // Ignore
     }
@@ -139,7 +139,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     if (!this.device) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.installUrl(this.device.name, item.manifest!.ipkUrl);
+      await this.appManager.install(this.device, item.manifest!.ipkUrl);
     } catch (e) {
       // Ignore
     }
@@ -150,7 +150,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     if (!this.device) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.installUrl(this.device.name, item.manifestBeta!.ipkUrl);
+      await this.appManager.install(this.device, item.manifestBeta!.ipkUrl);
     } catch (e) {
       // Ignore
     }

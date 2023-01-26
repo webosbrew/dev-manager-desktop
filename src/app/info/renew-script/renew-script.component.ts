@@ -1,6 +1,6 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
-import {Device} from '../../../../main/types';
+import {Device} from '../../types';
 import {DeviceManagerService} from '../../core/services';
 import {BehaviorSubject, noop, Observable, Subject} from 'rxjs';
 import {save as showSaveDialog} from '@tauri-apps/api/dialog'

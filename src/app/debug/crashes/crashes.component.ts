@@ -1,6 +1,6 @@
 import {Component, Input} from '@angular/core';
 import {CrashReport, DeviceManagerService} from '../../core/services';
-import {Device} from "../../../../main/types";
+import {Device} from "../../types";
 import {lastValueFrom} from "rxjs";
 import {save} from '@tauri-apps/api/dialog';
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";

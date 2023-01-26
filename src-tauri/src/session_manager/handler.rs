@@ -1,8 +1,9 @@
+use async_trait::async_trait;
 use std::future::{ready, Ready};
-use std::sync::{Mutex, Weak};
+use std::sync::{Arc, Mutex, Weak};
 
-use russh::{client, client::Session, Error};
-use russh_keys::key::PublicKey;
+use russh::{ChannelId, ChannelOpenFailure, client, client::Session, Error};
+use russh_keys::key::{PublicKey, SignatureHash};
 
 use crate::session_manager::connection::{Connection, ConnectionsMap};
 
@@ -10,24 +11,24 @@ use crate::session_manager::connection::{Connection, ConnectionsMap};
 pub(crate) struct ClientHandler {
     pub(super) id: String,
     pub(super) connections: Weak<Mutex<ConnectionsMap>>,
+    pub(super) hash_alg: Arc<Mutex<Option<SignatureHash>>>,
 }
 
+#[async_trait]
 impl client::Handler for ClientHandler {
     type Error = Error;
-    type FutureBool = Ready<Result<(Self, bool), Error>>;
-    type FutureUnit = Ready<Result<(Self, Session), Error>>;
 
-    fn finished_bool(self, b: bool) -> Self::FutureBool {
-        ready(Ok((self, b)))
+    async fn check_server_key(self, server_public_key: &PublicKey)
+                              -> Result<(Self, bool), Self::Error> {
+        log::info!("server_public_key: {:?}", server_public_key);
+        let alg: Option<SignatureHash> = match server_public_key {
+            PublicKey::Ed25519(_) => None,
+            PublicKey::RSA { .. } => SignatureHash::from_rsa_hostkey_algo(server_public_key.name().as_bytes()),
+        };
+        *self.hash_alg.lock().unwrap() = alg;
+        return Ok((self, true));
     }
 
-    fn finished(self, session: Session) -> Self::FutureUnit {
-        ready(Ok((self, session)))
-    }
-
-    fn check_server_key(self, server_public_key: &PublicKey) -> Self::FutureBool {
-        self.finished_bool(true)
-    }
 }
 
 impl Drop for ClientHandler {

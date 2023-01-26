@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from '../core/services';
 import {firstValueFrom, noop, Subscription} from "rxjs";
-import {Device} from "../../../main/types";
+import {Device} from "../types";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
 import {RemoteShellService, ShellSessionToken} from "../core/services/remote-shell.service";

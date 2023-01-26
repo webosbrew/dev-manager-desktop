@@ -1,10 +1,9 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, firstValueFrom, Observable, Subject} from 'rxjs';
-import {Device, PackageInfo, RawPackageInfo} from '../../../../main/types';
+import {Device, PackageInfo, RawPackageInfo} from '../../types';
 import {RemoteLunaService} from "./remote-luna.service";
-import {RemoteCommandService} from "./remote-command.service";
+import {escapeSingleQuoteString, RemoteCommandService} from "./remote-command.service";
 import {map} from "rxjs/operators";
-import {Buffer} from "buffer";
 import * as path from "path";
 import {RemoteFileService} from "./remote-file.service";
 
@@ -53,16 +52,74 @@ export class AppManagerService {
       .then(l => l.find(p => p.id === id) ?? null);
   }
 
-  async install(device: string, path: string): Promise<void> {
-    return;
+  async install(device: Device, location: string): Promise<void> {
+    const url = new URL(location);
+    const path = `/tmp/devman_dl_${Date.now()}.ipk`
+    switch (url.protocol) {
+      case 'file:':
+        await this.file.put(device, path, location);
+        break;
+      default:
+        await this.cmd.exec(device, `wget -qO ${escapeSingleQuoteString(path)} ${escapeSingleQuoteString(location)}`);
+        break;
+    }
+    const observable = await this.luna.subscribe(device, 'luna://com.webos.appInstallService/dev/install', {
+      id: 'com.ares.defaultName',
+      ipkUrl: path,
+      subscribe: true,
+    });
+    return new Promise<void>((resolve, reject) => {
+      const subscription = observable.subscribe({
+        next: (v) => {
+          if (v['statusValue'] === 30) {
+            resolve();
+          } else if (v['returnValue'] === false) {
+            reject(new Error(`${v['errorCode']}: ${v['errorText']}`));
+          } else if (v['details']?.errorCode !== undefined) {
+            reject(new Error(`${v['details'].errorCode}: ${v['details'].reason}`));
+          } else {
+            return;
+          }
+          subscription.unsubscribe();
+        }, error: (v) => {
+          console.warn('subscribe error', v);
+          reject(v);
+        },
+        complete: () => {
+          console.log('subscribe complete');
+          resolve();
+        }
+      });
+    }).finally(() => this.load(device));
   }
 
-  async installUrl(device: string, url: string): Promise<void> {
-    return;
-  }
-
-  async remove(device: string, pkgName: string): Promise<void> {
-    // TODO: uninstall and reload apps list
+  async remove(device: Device, id: string): Promise<void> {
+    const observable = await this.luna.subscribe(device, 'luna://com.webos.appInstallService/dev/remove', {
+      id, subscribe: true,
+    });
+    return new Promise<void>((resolve, reject) => {
+      const subscription = observable.subscribe({
+        next: (v) => {
+          if (v['statusValue'] === 31) {
+            resolve();
+          } else if (v['returnValue'] === false) {
+            reject(new Error(`${v['errorCode']}: ${v['errorText']}`));
+          } else if (v['details']?.reason !== undefined) {
+            reject(new Error(`${v['details'].state}: ${v['details'].reason}`));
+          } else {
+            return;
+          }
+          subscription.unsubscribe();
+        }, error: (v) => {
+          console.warn('subscribe error', v);
+          reject(v);
+        },
+        complete: () => {
+          console.log('subscribe complete');
+          resolve();
+        }
+      });
+    }).finally(() => this.load(device));
   }
 
   async launch(device: Device, appId: string): Promise<void> {
@@ -70,10 +127,6 @@ export class AppManagerService {
       id: appId,
       subscribe: false,
     }, true);
-  }
-
-  async close(device: string, appId: string): Promise<void> {
-
   }
 
   private obtainSubject(device: Device): Subject<PackageInfo[] | null> {

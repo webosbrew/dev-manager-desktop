@@ -1,4 +1,4 @@
-import {Device, FileItem, FileSession, FileType} from '../../../../main/types';
+import {Device, FileItem, FileSession, FileType} from '../../types';
 import {escapeSingleQuoteString, RemoteCommandService} from './remote-command.service';
 import {zip} from 'lodash';
 import * as path from 'path';

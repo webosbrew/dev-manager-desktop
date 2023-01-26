@@ -2,7 +2,7 @@ import {Component, Host, Input, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import {AppsRepoService, RepositoryPage} from '../../core/services';
 import {AppsComponent} from '../apps.component';
-import {RawPackageInfo} from "../../../../main/types";
+import {RawPackageInfo} from "../../types";
 
 @Component({
   selector: 'app-channel',

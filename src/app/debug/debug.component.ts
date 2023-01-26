@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
 import {DeviceManagerService} from "../core/services";
-import {Device} from "../../../main/types";
+import {Device} from "../types";
 import {Subscription} from "rxjs";
 
 @Component({

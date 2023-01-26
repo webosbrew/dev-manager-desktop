@@ -1,16 +1,17 @@
-use crate::device_manager::Device;
-use crate::plugins::cmd::escape_path;
-use crate::session_manager::{Error, SessionManager};
-use serde::Serialize;
 use std::env::temp_dir;
-use std::io::BufRead;
 use std::iter::zip;
 use std::path::Path;
-use tauri::plugin::{Builder, TauriPlugin};
+
+use serde::Serialize;
 use tauri::{Runtime, State};
+use tauri::plugin::{Builder, TauriPlugin};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use uuid::Uuid;
+
+use crate::device_manager::Device;
+use crate::plugins::cmd::escape_path;
+use crate::session_manager::{Error, SessionManager};
 
 #[tauri::command]
 async fn ls(
@@ -21,6 +22,7 @@ async fn ls(
     if !path.starts_with("/") {
         return Err(Error::new("Absolute path required"));
     }
+    log::info!("ls {}", path);
     let mut entries: Vec<String> = String::from_utf8(
         manager
             .exec(
@@ -30,10 +32,10 @@ async fn ls(
             )
             .await?,
     )
-    .unwrap()
-    .split('\0')
-    .map(|l| String::from(l))
-    .collect();
+        .unwrap()
+        .split('\0')
+        .map(|l| String::from(l))
+        .collect();
     // Last line is empty, remove it
     entries.pop();
     entries.sort();
@@ -49,10 +51,10 @@ async fn ls(
                 )
                 .await?,
         )
-        .unwrap()
-        .split('\n')
-        .map(|l| String::from(l))
-        .collect();
+            .unwrap()
+            .split('\n')
+            .map(|l| String::from(l))
+            .collect();
         // Last line is empty, remove it
         details.pop();
         assert_eq!(chunk.len(), details.len());
