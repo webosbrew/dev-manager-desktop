@@ -2,14 +2,10 @@ import {Component} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {DeviceManagerService} from '../core/services';
-import {
-  MessageDialogComponent,
-  MessageDialogConfig
-} from '../shared/components/message-dialog/message-dialog.component';
+import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {KeyserverHintComponent} from './keyserver-hint/keyserver-hint.component';
-import {ConnHintComponent} from './conn-hint/conn-hint.component';
-import {Device, NewDevice, NewDeviceBase} from "../types";
+import {Device, NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../types";
 
 @Component({
   selector: 'app-info',
@@ -27,10 +23,10 @@ export class AddDeviceComponent {
     fb: FormBuilder,
   ) {
     this.formGroup = fb.group({
-      name: ['tv'],
-      address: [''],
-      port: ['9922'],
-      description: [''],
+      name: ['tv', Validators.pattern(/^[_a-zA-Z][a-zA-Z0-9#_-]*/)],
+      address: ['', Validators.pattern(/^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/)],
+      port: [9922],
+      description: [undefined],
       // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
       sshUsername: ['prisoner', Validators.pattern(/^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$/)],
       sshAuth: ['devKey'],
@@ -71,13 +67,12 @@ export class AddDeviceComponent {
   private async doAddDevice(): Promise<Device> {
     const value = this.setupInfo;
     const newDevice = await this.toNewDevice(value);
-    await this.testConnectivity(newDevice);
     try {
       console.log(newDevice);
       const info = await this.deviceManager.getSystemInfo(newDevice);
       console.log(info);
     } catch (e) {
-      console.log('Failed to get device info', e);
+      console.log('Failed to get device info:', e);
       // Something wrong happened. Abort adding by default
       if (!await this.confirmVerificationFailure(newDevice, e as Error)) {
         throw e;
@@ -86,24 +81,11 @@ export class AddDeviceComponent {
     return await this.deviceManager.addDevice(newDevice);
   }
 
-  private async testConnectivity(device: NewDevice): Promise<void> {
-    try {
-      await this.deviceManager.checkConnectivity(device);
-    } catch (e) {
-      const config: MessageDialogConfig = {
-        title: 'Unable to connect to device',
-        message: ConnHintComponent,
-        positive: 'OK',
-      };
-      throw config;
-    }
-  }
-
   private async fetchPrivKey(address: string, passphrase: string): Promise<string> {
     let retryCount = 0;
     while (retryCount < 3) {
       try {
-        return await this.deviceManager.fetchPrivKey(address, passphrase);
+        return await this.deviceManager.novacomGetKey(address, passphrase);
       } catch (e) {
         const confirm = MessageDialogComponent.open(this.modalService, {
           title: 'Failed to fetch private key',
@@ -133,6 +115,7 @@ export class AddDeviceComponent {
 
   private async toNewDevice(value: SetupInfo): Promise<NewDevice> {
     const base: NewDeviceBase = {
+      new: true,
       profile: 'ose',
       name: value.name,
       description: value.description,
@@ -142,18 +125,18 @@ export class AddDeviceComponent {
     };
     switch (value.sshAuth) {
       case 'password': {
-        return {...base, newAuth: 'password', password: value.sshPassword!};
+        return {...base, password: value.sshPassword!};
       }
       case 'devKey': {
         return {
-          ...base, newAuth: 'devKey', privateKey: {
+          ...base, privateKey: {
             openSshData: await this.fetchPrivKey(value.address, value.sshPrivkeyPassphrase!),
-          }, passphrase: value.sshPrivkeyPassphrase
+          }, passphrase: value.sshPrivkeyPassphrase!
         };
       }
       case 'localKey': {
         return {
-          ...base, newAuth: 'localKey', privateKey: {
+          ...base, privateKey: {
             openSsh: value.sshPrivkey!,
           }, passphrase: value.sshPrivkeyPassphrase
         };
@@ -169,7 +152,7 @@ interface SetupInfo {
   port: number;
   description?: string;
   sshUsername: string;
-  sshAuth: 'password' | 'devKey' | 'localKey';
+  sshAuth: NewDeviceAuthentication;
   sshPassword?: string;
   sshPrivkey?: string;
   sshPrivkeyPassphrase?: string;

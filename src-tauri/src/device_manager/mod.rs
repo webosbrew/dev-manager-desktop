@@ -59,6 +59,8 @@ pub struct Device {
     pub files: Option<DeviceFileTransfer>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub passphrase: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
     #[serde(rename = "logDaemon", skip_serializing_if = "Option::is_none")]
     pub log_daemon: Option<String>,
     #[serde(

@@ -51,6 +51,7 @@ export class HomeComponent {
   }
 
   openSetupDevice(): void {
-    this.modalService.open(AddDeviceComponent, {size: 'lg', centered: true, scrollable: true});
+    const ref = this.modalService.open(AddDeviceComponent, {size: 'lg', centered: true, scrollable: true});
+    ref.result.then((device) => this.deviceManager.setDefault(device.name));
   }
 }

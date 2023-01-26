@@ -14,7 +14,10 @@ export declare interface Device {
   files?: string;
 }
 
+export type NewDeviceAuthentication = 'password' | 'localKey' | 'devKey';
+
 export declare interface NewDeviceBase extends Omit<Device, 'privateKey' | 'passphrase' | 'password'> {
+  new: true;
   name: string;
   description?: string;
   host: string;
@@ -23,12 +26,10 @@ export declare interface NewDeviceBase extends Omit<Device, 'privateKey' | 'pass
 }
 
 export declare interface NewDeviceWithPassword extends NewDeviceBase {
-  newAuth: 'password';
   password: string;
 }
 
 export declare interface NewDeviceWithLocalPrivateKey extends NewDeviceBase {
-  newAuth: 'localKey';
   privateKey: {
     openSsh: string;
   };
@@ -36,11 +37,10 @@ export declare interface NewDeviceWithLocalPrivateKey extends NewDeviceBase {
 }
 
 export declare interface NewDeviceWithDevicePrivateKey extends NewDeviceBase {
-  newAuth: 'devKey';
   privateKey: {
     openSshData: string;
   };
-  passphrase?: string;
+  passphrase: string;
 }
 
 export type NewDevice = NewDeviceWithPassword | NewDeviceWithLocalPrivateKey | NewDeviceWithDevicePrivateKey;

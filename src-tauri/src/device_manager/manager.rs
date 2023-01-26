@@ -1,7 +1,7 @@
 use russh_keys::encoding::Bytes;
-use russh_keys::{decode_secret_key, PublicKeyBase64};
+use russh_keys::decode_secret_key;
 use std::fs::File;
-use std::io::{BufWriter, Write};
+use std::io::Write;
 
 use crate::device_manager::io::{read, ssh_dir, write};
 use crate::device_manager::{Device, DeviceManager, Error, PrivateKey};
@@ -33,7 +33,7 @@ impl DeviceManager {
         if let Some(key) = &device.private_key {
             if let PrivateKey::Data { data } = key {
                 let pubkey = key
-                    .priv_key(device.passphrase.as_deref())?
+                    .priv_key(device.passphrase.as_deref(), None)?
                     .clone_public_key()?;
                 let name = format!("webos_{}", pubkey.fingerprint());
                 let key_path = ssh_dir().unwrap().join(name.clone());
@@ -42,8 +42,11 @@ impl DeviceManager {
                 device.private_key = Some(PrivateKey::Path { name });
             }
         }
-        log::info!("Save device {:?}", device);
-        return Err(Error::unimplemented());
+        log::info!("Save device {}", device.name);
+        let mut devices = read()?;
+        devices.push(device.clone());
+        write(&devices)?;
+        return Ok(device);
     }
 
     pub async fn remove(&self, name: &str) -> Result<(), Error> {

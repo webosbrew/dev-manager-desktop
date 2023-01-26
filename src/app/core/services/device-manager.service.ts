@@ -55,23 +55,19 @@ export class DeviceManagerService extends IpcClient {
   }
 
   async addDevice(device: NewDevice): Promise<Device> {
-    return Promise.reject(new Error('Not implemented'));
-  }
-
-  async hasPrivKey(privKey: string): Promise<boolean> {
-    return await this.invoke('hasPrivKey', privKey);
+    return await this.invoke('add', {device});
   }
 
   async loadPrivKey(device: Device): Promise<DevicePrivateKey> {
-    return await this.invoke('loadPrivKey', device);
+    return await this.invoke('loadPrivKey', {device});
   }
 
-  async fetchPrivKey(address: string, passphrase?: string): Promise<string> {
-    return await this.invoke('fetchPrivKey', address, passphrase);
+  async novacomGetKey(address: string, passphrase: string): Promise<string> {
+    return await this.invoke('novacom_getkey', {address, passphrase});
   }
 
-  async checkConnectivity(device: DeviceLike): Promise<boolean> {
-    return await this.invoke('checkConnectivity', {device});
+  async test(device: DeviceLike): Promise<boolean> {
+    return await this.invoke('test', {device});
   }
 
   async devModeToken(device: Device): Promise<string> {

@@ -3,8 +3,8 @@ use std::iter::zip;
 use std::path::Path;
 
 use serde::Serialize;
-use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{Runtime, State};
+use tauri::plugin::{Builder, TauriPlugin};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use uuid::Uuid;
@@ -22,6 +22,7 @@ async fn ls(
     if !path.starts_with("/") {
         return Err(Error::new("Absolute path required"));
     }
+    log::info!("ls {}", path);
     let mut entries: Vec<String> = String::from_utf8(
         manager
             .exec(
@@ -31,10 +32,10 @@ async fn ls(
             )
             .await?,
     )
-    .unwrap()
-    .split('\0')
-    .map(|l| String::from(l))
-    .collect();
+        .unwrap()
+        .split('\0')
+        .map(|l| String::from(l))
+        .collect();
     // Last line is empty, remove it
     entries.pop();
     entries.sort();
@@ -50,10 +51,10 @@ async fn ls(
                 )
                 .await?,
         )
-        .unwrap()
-        .split('\n')
-        .map(|l| String::from(l))
-        .collect();
+            .unwrap()
+            .split('\n')
+            .map(|l| String::from(l))
+            .collect();
         // Last line is empty, remove it
         details.pop();
         assert_eq!(chunk.len(), details.len());

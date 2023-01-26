@@ -112,7 +112,7 @@ export class InfoComponent {
     if (!item) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.installUrl(this.device.name, item.manifest!.ipkUrl);
+      await this.appManager.install(this.device, item.manifest!.ipkUrl);
     } catch (e) {
       // Ignore
     }

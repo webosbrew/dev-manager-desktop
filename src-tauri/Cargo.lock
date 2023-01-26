@@ -2616,8 +2616,7 @@ dependencies = [
 [[package]]
 name = "russh"
 version = "0.35.0-beta.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bd075593e0e0880877d9d9c67abf6dbb8bea6cbecc13d2d444d3ca5b20dceea"
+source = "git+https://github.com/mariotaku/russh?branch=rsa-hash-override#38d405df3d8a7c4f872152f12b77b2408ec0507a"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -2652,8 +2651,7 @@ dependencies = [
 [[package]]
 name = "russh-cryptovec"
 version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3fdf036c2216b554053d19d4af45c1722d13b00ac494ea19825daf4beac034e"
+source = "git+https://github.com/mariotaku/russh?branch=rsa-hash-override#38d405df3d8a7c4f872152f12b77b2408ec0507a"
 dependencies = [
  "libc",
  "winapi",
@@ -2662,8 +2660,7 @@ dependencies = [
 [[package]]
 name = "russh-keys"
 version = "0.23.0-beta.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "583adc8a2d6a70b86abb6fb9b0564b85df58198586a7665920d46ffaf7ac383d"
+source = "git+https://github.com/mariotaku/russh?branch=rsa-hash-override#38d405df3d8a7c4f872152f12b77b2408ec0507a"
 dependencies = [
  "aes",
  "bcrypt-pbkdf",
