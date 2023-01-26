@@ -129,10 +129,6 @@ export class AppManagerService {
     }, true);
   }
 
-  async close(device: string, appId: string): Promise<void> {
-
-  }
-
   private obtainSubject(device: Device): Subject<PackageInfo[] | null> {
     let subject = this.packagesSubjects.get(device.name);
     if (!subject) {
