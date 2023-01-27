@@ -50,7 +50,8 @@
         "exceptionDomain": "",
         "frameworks": [],
         "providerShortName": null,
-        "signingIdentity": null
+        "signingIdentity": null,
+        "license": "../LICENSE"
       },
       "resources": [],
       "shortDescription": "",
@@ -59,6 +60,9 @@
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
         "timestampUrl": "",
+        "wix": {
+          "license": "../LICENSE"
+        },
         "webviewInstallMode": {
           "type": "embedBootstrapper"
         }

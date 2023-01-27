@@ -37,6 +37,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
 
+      - name: install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
@@ -45,8 +48,22 @@ jobs:
       - name: Install NPM Dependencies
         run: npm ci
 
-      - name: Build the app
+      - name: Build the app (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          rustup target add i686-pc-windows-msvc
+          npm run build
+          npm run build -- --target i686-pc-windows-msvc
+
+      - name: Build the app (Linux)
+        if: runner.os == 'Linux'
         run: npm run build
+
+      - name: Build the app (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          rustup target add aarch64-apple-darwin
+          npm run build -- --target universal-apple-darwin
 
       - name: Create Release (Windows)
         id: create_release_windows
@@ -59,7 +76,7 @@ jobs:
           omitNameDuringUpdate: true
           omitBodyDuringUpdate: true
           omitPrereleaseDuringUpdate: true
-          artifacts: src-tauri/target/release/bundle/msi/*.msi
+          artifacts: src-tauri/target/**/release/bundle/msi/*.msi
 
       - name: Create Release (Linux)
         id: create_release_linux
