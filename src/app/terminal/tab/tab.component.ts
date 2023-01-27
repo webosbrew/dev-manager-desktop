@@ -93,7 +93,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     });
     const cols = this.term.cols, rows = this.term.rows;
     this.term.reset();
-    const screen = await shell.screen(cols, rows);
+    const screen = await shell.screen(rows, cols);
     let firstLine = true;
     for (let row of screen.rows) {
       if (!firstLine) {

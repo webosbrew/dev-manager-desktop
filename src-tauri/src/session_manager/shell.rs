@@ -36,12 +36,13 @@ impl Shell {
     }
 
     pub async fn screen(&self, cols: u16, rows: u16) -> Result<ShellBuffer, Error> {
-        if self.ready.available_permits() > 0 {
+        if self.sender.lock().await.is_some() {
             log::info!("fetching screen {:?} with {cols} cols and {rows} rows", self.token);
         } else if let Some(ch) = self.channel.lock().await.as_mut() {
             log::info!("initializing {:?} with {cols} cols and {rows} rows", self.token);
             let mut have_pty = true;
-            if let Err(e) = ch.request_pty(true, "xterm-256color",
+            self.parser.lock().unwrap().set_size(rows, cols);
+            if let Err(e) = ch.request_pty(true, "xterm",
                                            cols as u32, rows as u32,
                                            0, 0, &[]).await {
                 match e {
@@ -71,21 +72,18 @@ impl Shell {
     }
 
     pub(crate) async fn run<F>(&self, rx: F) -> Result<(), Error> where F: Fn(u32, &[u8]) -> () {
-        let (mut sender, mut receiver) = unbounded_channel::<Vec<u8>>();
-        *self.sender.lock().await = Some(sender);
         log::info!("waiting permit to run {:?}", self.token);
         let permit = self.ready.acquire().await.unwrap();
         log::info!("shell started {:?}", self.token);
+        let (mut sender, mut receiver) = unbounded_channel::<Vec<u8>>();
+        *self.sender.lock().await = Some(sender);
         let mut status: Option<u32> = None;
         let mut eof: bool = false;
         loop {
             tokio::select! {
                 data = receiver.recv() => {
                     match data {
-                        Some(data) => {
-                            log::info!("writing data to {:?} ({} bytes)", self.token, data.len());
-                            self.send(&data[..]).await?;
-                        },
+                        Some(data) => self.send(&data[..]).await?,
                         None => {
                             self.close().await?;
                             break;
