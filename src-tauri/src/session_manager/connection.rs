@@ -22,6 +22,8 @@ pub(crate) type ConnectionsMap = HashMap<String, Arc<Connection>>;
 impl Connection {
     pub async fn exec(&self, command: &str, stdin: &Option<Vec<u8>>) -> Result<Vec<u8>, Error> {
         let mut ch = self.open_cmd_channel().await?;
+        let id = ch.id();
+        log::debug!("{id}: Exec {{ command: {command} }}");
         ch.exec(true, command).await?;
         if let Some(data) = stdin {
             let data = data.clone();
@@ -30,29 +32,41 @@ impl Connection {
         }
         let mut stdout: Vec<u8> = Vec::new();
         let mut stderr: Vec<u8> = Vec::new();
-        let mut status: u32 = 0;
+        let mut status: Option<u32> = None;
+        let mut eof: bool = false;
         loop {
             match ch.wait().await.ok_or(Error::new("empty message"))? {
-                ChannelMsg::Data { data } => stdout.append(&mut data.to_vec()),
+                ChannelMsg::Data { data } => {
+                    log::debug!("{id}: Data {{ data: {data:?} }}");
+                    stdout.append(&mut data.to_vec());
+                }
                 ChannelMsg::ExtendedData { data, ext } => {
-                    log::info!("Channel#{}: ExtendedData {}: {}", ch.id(), ext,
-                        String::from_utf8_lossy(&data.to_vec()));
+                    log::debug!("{id}: ExtendedData {{ data: {data:?}, ext: {ext} }}");
                     if ext == 1 {
                         stderr.append(&mut data.to_vec());
                     }
                 }
                 ChannelMsg::ExitStatus { exit_status } => {
-                    status = exit_status;
-                    break;
+                    log::debug!("{id}: ExitStatus {{ exit_status: {exit_status} }}");
+                    status = Some(exit_status);
+                    if eof {
+                        break;
+                    }
                 }
-                ChannelMsg::Close => log::info!("Channel#{}:Close", ch.id()),
-                ChannelMsg::Eof => log::info!("Channel#{}:Eof", ch.id()),
-                _ => {}
+                ChannelMsg::Eof => {
+                    log::debug!("{id}: Eof");
+                    eof = true;
+                    if status.is_some() {
+                        break;
+                    }
+                }
+                msg => log::debug!("{id}: {msg:?}"),
             }
         }
+        let status = status.unwrap_or(0);
         if status != 0 {
             return Err(Error {
-                message: format!("Command exited with non-zero return code"),
+                message: format!("Command exited with non-zero return code {status}"),
                 kind: ErrorKind::ExitStatus { status, output: stderr },
             });
         }
@@ -67,18 +81,16 @@ impl Connection {
         });
     }
 
-    pub(crate) async fn disconnect(&self) -> Result<(), Error> {
+    pub(crate) fn remove_from_pool(&self) -> () {
         if let Some(connections) = self.connections.upgrade() {
             connections.lock().unwrap().remove(&self.device.name);
         }
-        self.handle.lock().await.disconnect(Disconnect::ByApplication, "", "").await?;
-        return Ok(());
     }
 
     async fn open_cmd_channel(&self) -> Result<Channel<Msg>, Error> {
         let result = self.handle.lock().await.channel_open_session().await;
         if let Err(e) = result {
-            self.disconnect().await.unwrap_or(());
+            self.remove_from_pool();
             if let russh::Error::ChannelOpenFailure(_) = e {
                 return Err(Error::reconnect());
             }
@@ -116,7 +128,8 @@ impl Proc {
             ch.exec(true, self.command.as_bytes()).await?;
         }
         let mut stderr: Vec<u8> = Vec::new();
-        let mut status: u32 = 0;
+        let mut status: Option<u32> = None;
+        let mut eof: bool = false;
         let mut index: u64 = 0;
         loop {
             if let Some(ch) = self.ch.lock().await.as_mut() {
@@ -133,17 +146,25 @@ impl Proc {
                         }
                     }
                     ChannelMsg::ExitStatus { exit_status } => {
-                        status = exit_status;
-                        break;
+                        status = Some(exit_status);
+                        if eof {
+                            break;
+                        }
+                    }
+                    ChannelMsg::Eof => {
+                        eof = true;
+                        if status.is_some() {
+                            break;
+                        }
                     }
                     ChannelMsg::Close => log::info!("Channel:Close"),
-                    ChannelMsg::Eof => log::info!("Channel:Eof"),
                     _ => {}
                 }
             } else {
                 break;
             }
         }
+        let status = status.unwrap_or(0);
         if status != 0 {
             return Err(Error {
                 message: format!("Command exited with non-zero return code"),

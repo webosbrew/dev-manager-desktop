@@ -23,7 +23,6 @@ impl SessionManager {
     ) -> Result<Vec<u8>, Error> {
         loop {
             let conn = self.conn_obtain(device.clone()).await?;
-            log::info!("obtained connection for command {}", command);
             match conn.exec(command, &stdin).await {
                 Ok(data) => return Ok(data),
                 Err(e) => match e.kind {
@@ -40,7 +39,6 @@ impl SessionManager {
     pub async fn proc_open(&self, device: Device, command: &str) -> Result<Proc, Error> {
         loop {
             let conn = self.conn_obtain(device.clone()).await?;
-            log::info!("obtained connection for proc_open {}", command);
             match conn.open(command).await {
                 Ok(data) => return Ok(data),
                 Err(e) => match e.kind {
@@ -82,16 +80,20 @@ impl SessionManager {
     }
 
     async fn conn_obtain(&self, device: Device) -> Result<Arc<Connection>, Error> {
+        if device.new {
+            return Ok(Arc::new(self.conn_new(device.clone()).await?));
+        }
+        let guard = self.lock.lock().await;
         if let Some(a) = self.connections.lock().unwrap().get(&device.name) {
             return Ok(a.clone());
         }
         let connection = Arc::new(self.conn_new(device.clone()).await?);
-        if !device.new {
-            self.connections
-                .lock()
-                .unwrap()
-                .insert(device.name, connection.clone());
-        }
+        log::info!("Connection to {} has been created", device.name);
+        self.connections
+            .lock()
+            .unwrap()
+            .insert(device.name, connection.clone());
+        drop(guard);
         return Ok(connection);
     }
 

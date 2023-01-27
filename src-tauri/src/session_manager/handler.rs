@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use std::future::{ready, Ready};
 use std::sync::{Arc, Mutex, Weak};
-
+use tokio::sync::Mutex as AsyncMutex;
 use russh::{ChannelId, ChannelOpenFailure, client, client::Session, Error};
 use russh_keys::key::{PublicKey, SignatureHash};
 
@@ -28,13 +28,14 @@ impl client::Handler for ClientHandler {
         *self.hash_alg.lock().unwrap() = alg;
         return Ok((self, true));
     }
-
 }
 
 impl Drop for ClientHandler {
     fn drop(&mut self) {
         if let Some(c) = self.connections.upgrade() {
-            c.lock().unwrap().remove(&self.id);
+            if let Some(removed) = c.lock().unwrap().remove(&self.id) {
+                log::info!("Dropped connection to {}", removed.device.name)
+            }
         }
     }
 }

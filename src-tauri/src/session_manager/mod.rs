@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex, RwLock, Weak};
 use russh::Channel;
 use russh::client::Msg;
 use serde::Serialize;
-use tokio::sync::Mutex as AsyncMutex;
+use tokio::sync::{Mutex as AsyncMutex, Semaphore};
 use uuid::Uuid;
 use vt100::Parser;
 
@@ -22,6 +22,7 @@ mod shell;
 #[derive(Default)]
 pub struct SessionManager {
     pub(crate) shells: RwLock<HashMap<ShellToken, Arc<Shell>>>,
+    lock: AsyncMutex<()>,
     connections: Arc<Mutex<ConnectionsMap>>,
 }
 
@@ -69,6 +70,7 @@ pub enum ErrorKind {
     Unimplemented,
     NeedsReconnect,
     Authorization,
+    EmptyData,
     ExitStatus {
         status: u32,
         output: Vec<u8>,

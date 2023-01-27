@@ -138,32 +138,38 @@ export class CrashReport implements CrashReportEntry {
   }
 
   private static async parseTitle(path: string): Promise<{ title: string, summary: string; saveName: string; }> {
-    const fn = (await basename(path)).replace(/[\x00-\x1f]/g, '/').replace(/.gz$/, '');
-    let match = fn.match(/.*____(.+)\.(\d+)\..+$/)
+    const name = (await basename(path)).replace(/[\x00-\x1f]/g, '/').replace(/.gz$/, '');
+    let appDirIdx = -1, appDirPrefix = '';
+    for (const prefix of ['/usr/palm/applications/', '/var/palm/jail/']) {
+      appDirIdx = name.indexOf(prefix);
+      if (appDirIdx >= 0) {
+        appDirPrefix = prefix;
+        break;
+      }
+    }
+    let processName = '', processId = '', summary = '', saveName = name.replace(/\//g, '_');
+    let match = name.match(/.*____(.+)\.(\d+)\..+$/);
     if (match) {
-      const startIdx = fn.indexOf('/'), endIdx = fn.lastIndexOf('____');
-      return {
-        title: match[1],
-        summary: `PID: ${match[2]}`,
-        saveName: fn.substring(startIdx, endIdx).replace('/', '_')
-      };
+      const startIdx = name.indexOf('/'), endIdx = name.lastIndexOf('____');
+      processName = match[1];
+      processId = match[2];
+      summary = name.substring(startIdx, endIdx);
+      saveName = summary.replace(/\//g, '_');
     }
-    const appDirPrefix = '/usr/palm/applications/';
-    const appDirIdx = fn.indexOf(appDirPrefix);
     if (appDirIdx < 0) {
-      return {title: 'Application Crash', summary: fn, saveName: fn.replace('/', '_')};
+      return {title: `${processName} (${processId})`, summary, saveName};
     }
-    const substr = fn.substring(appDirIdx + appDirPrefix.length);
+    const substr = name.substring(appDirIdx + appDirPrefix.length);
     const firstSlash = substr.indexOf('/'), lastSlash = substr.lastIndexOf('/');
     const appId = substr.substring(0, firstSlash > 0 ? firstSlash : undefined);
-    let content = '';
     if (lastSlash > 0) {
       const lastUnderscoreIdx = substr.lastIndexOf('____');
       if (lastUnderscoreIdx > 0) {
-        content = substr.substring(lastSlash + 1, lastUnderscoreIdx);
+        summary = substr.substring(lastSlash + 1, lastUnderscoreIdx);
       }
     }
-    return {title: appId, summary: content, saveName: fn.replace('/', '_')};
+    const title = processId ? `${appId} (${processId})` : appId;
+    return {title, summary, saveName};
   }
 
 }
