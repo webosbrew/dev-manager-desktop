@@ -1,16 +1,22 @@
-use async_trait::async_trait;
 use std::future::{ready, Ready};
 use std::sync::{Arc, Mutex, Weak};
-use tokio::sync::Mutex as AsyncMutex;
+
+use async_trait::async_trait;
 use russh::{ChannelId, ChannelOpenFailure, client, client::Session, Error};
 use russh_keys::key::{PublicKey, SignatureHash};
+use tokio::sync::Mutex as AsyncMutex;
+use uuid::Uuid;
 
 use crate::session_manager::connection::{Connection, ConnectionsMap};
+use crate::session_manager::shell::ShellsMap;
+use crate::session_manager::ShellToken;
 
 #[derive(Default)]
 pub(crate) struct ClientHandler {
-    pub(super) id: String,
+    pub(super) id: Uuid,
+    pub(super) key: String,
     pub(super) connections: Weak<Mutex<ConnectionsMap>>,
+    pub(super) shells: Weak<Mutex<ShellsMap>>,
     pub(super) hash_alg: Arc<Mutex<Option<SignatureHash>>>,
 }
 
@@ -33,7 +39,7 @@ impl client::Handler for ClientHandler {
 impl Drop for ClientHandler {
     fn drop(&mut self) {
         if let Some(c) = self.connections.upgrade() {
-            if let Some(removed) = c.lock().unwrap().remove(&self.id) {
+            if let Some(removed) = c.lock().unwrap().remove(&self.key) {
                 log::info!("Dropped connection to {}", removed.device.name)
             }
         }

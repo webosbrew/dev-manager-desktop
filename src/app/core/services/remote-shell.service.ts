@@ -5,10 +5,7 @@ import {Injectable, NgZone} from "@angular/core";
 import {Device} from "../../types";
 
 
-export interface ShellSessionToken {
-  readonly name: string;
-  readonly id: string;
-}
+export type ShellSessionToken = string;
 
 export interface ShellMessage {
   token: ShellSessionToken;
@@ -23,7 +20,6 @@ export interface ShellScreenContent {
 export type ShellObservable = ShellWritable & Observable<string>;
 
 interface ShellWritable {
-  activate(rows: number, cols: number): Promise<void>;
 
   screen(rows: number, cols: number): Promise<ShellScreenContent>;
 
@@ -37,10 +33,6 @@ export class ShellSubject extends Subject<string> implements ShellWritable {
 
   constructor(private shell: RemoteShellService, private token: ShellSessionToken) {
     super();
-  }
-
-  async activate(rows: number, cols: number): Promise<void> {
-    await this.shell.activate(this.token, rows, cols);
   }
 
   async screen(rows: number, cols: number): Promise<ShellScreenContent> {
@@ -73,7 +65,8 @@ export class RemoteShellService extends IpcClient {
     }).then(noop);
     listen('shell-rx', e => {
       const message = e.payload as ShellMessage;
-      const shell = this.shellSessions.get(message.token.id);
+      console.log(message);
+      const shell = this.shellSessions.get(message.token);
       if (shell) {
         shell.next(String.fromCharCode(...message.data));
       }
@@ -98,10 +91,6 @@ export class RemoteShellService extends IpcClient {
     return this.invoke('list', {});
   }
 
-  async activate(token: ShellSessionToken, rows: number, cols: number): Promise<void> {
-    await this.invoke('activate', {token, rows, cols});
-  }
-
   async screen(token: ShellSessionToken, rows: number, cols: number): Promise<ShellScreenContent> {
     return await this.invoke('screen', {token, rows, cols});
   }
@@ -119,10 +108,10 @@ export class RemoteShellService extends IpcClient {
   }
 
   obtain(token: ShellSessionToken): ShellObservable {
-    let shell = this.shellSessions.get(token.id);
+    let shell = this.shellSessions.get(token);
     if (!shell) {
       shell = new ShellSubject(this, token);
-      this.shellSessions.set(token.id, shell);
+      this.shellSessions.set(token, shell);
     }
     return shell;
   }

@@ -29,7 +29,7 @@ async fn spawn<R: Runtime>(
 
 async fn proc_worker<R: Runtime>(app: AppHandle<R>, device: Device, command: String, token: String) -> Result<(), Error> {
     let manager = app.state::<SessionManager>();
-    let proc = Arc::new(manager.proc_open(device, &command).await?);
+    let proc = Arc::new(manager.spawn(device, &command).await?);
     let proc_ev = proc.clone();
     let handler = app.once_global(format!("cmd-interrupt-{}", token), move |ev| {
         log::info!("interrupting proc");

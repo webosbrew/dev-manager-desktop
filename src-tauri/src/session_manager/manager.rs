@@ -36,10 +36,10 @@ impl SessionManager {
         }
     }
 
-    pub async fn proc_open(&self, device: Device, command: &str) -> Result<Proc, Error> {
+    pub async fn spawn(&self, device: Device, command: &str) -> Result<Proc, Error> {
         loop {
             let conn = self.conn_obtain(device.clone()).await?;
-            match conn.open(command).await {
+            match conn.spawn(command).await {
                 Ok(data) => return Ok(data),
                 Err(e) => match e.kind {
                     ErrorKind::NeedsReconnect => {
@@ -52,27 +52,43 @@ impl SessionManager {
         }
     }
 
-    pub async fn shell_open(
-        &self,
-        device: &Device,
-        cols: u16,
-        rows: u16,
-    ) -> Result<ShellToken, Error> {
-        return Err(Error::unimplemented());
+    pub async fn shell_open(&self, device: Device) -> Result<Arc<Shell>, Error> {
+        loop {
+            let conn = self.conn_obtain(device.clone()).await?;
+            match conn.shell().await {
+                Ok(data) => {
+                    let shell = Arc::new(conn.shell().await?);
+                    self.shells.lock().unwrap().insert(shell.token.clone(), shell.clone());
+                    return Ok(shell);
+                }
+                Err(e) => match e.kind {
+                    ErrorKind::NeedsReconnect => {
+                        log::info!("retry connection");
+                        continue;
+                    }
+                    _ => return Err(e)
+                }
+            }
+        }
     }
 
     pub async fn shell_close(&self, token: &ShellToken) -> Result<(), Error> {
-        return Err(Error::unimplemented());
+        let shell = self.shells.lock().unwrap().remove(&token).clone();
+        if let Some(shell) = shell {
+            shell.close().await?;
+        }
+        return Ok(());
     }
 
-    pub fn shell_find(&self, token: &ShellToken) -> Option<Arc<Shell>> {
-        return self.shells.read().unwrap().get(token).map(|a| a.clone());
+    pub fn shell_find(&self, token: &ShellToken) -> Result<Arc<Shell>, Error> {
+        return self.shells.lock().unwrap().get(token).map(|a| a.clone())
+            .ok_or_else(|| Error { message: String::from("No shell"), kind: ErrorKind::NotFound });
     }
 
     pub fn shell_list(&self) -> Vec<ShellToken> {
         return self
             .shells
-            .read()
+            .lock()
             .unwrap()
             .keys()
             .map(|k| k.clone())
@@ -98,14 +114,17 @@ impl SessionManager {
     }
 
     async fn conn_new(&self, device: Device) -> Result<Connection, Error> {
+        let id = Uuid::new_v4();
         let mut config = Config::default();
         config.preferred.key = &[ED25519, RSA_SHA2_512, RSA_SHA2_256, SSH_RSA];
         config.preferred.kex = &[DH_G14_SHA1, DH_G1_SHA1, CURVE25519, DH_G14_SHA256];
         config.connection_timeout = Some(Duration::from_secs(3));
         let last_server_hash_alg: Arc<Mutex<Option<SignatureHash>>> = Arc::new(Mutex::default());
         let handler = ClientHandler {
-            id: device.name.clone(),
+            id: id.clone(),
+            key: device.name.clone(),
             connections: Arc::downgrade(&self.connections),
+            shells: Arc::downgrade(&self.shells),
             hash_alg: last_server_hash_alg.clone(),
         };
         let addr = SocketAddr::from_str(&format!("{}:{}", &device.host, &device.port)).unwrap();
@@ -136,6 +155,6 @@ impl SessionManager {
             });
         }
         log::debug!("Authenticated to {}", addr);
-        return Ok(Connection::new(device, handle, Arc::downgrade(&self.connections)));
+        return Ok(Connection::new(id, device, handle, Arc::downgrade(&self.connections)));
     }
 }

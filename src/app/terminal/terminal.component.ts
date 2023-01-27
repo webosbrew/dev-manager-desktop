@@ -28,7 +28,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
     this.subscription = shells$.subscribe(shells => {
       this.shells = shells;
       if (shells.length) {
-        this.currentShell = shells[0].id;
+        this.currentShell = shells[0];
       }
     });
     firstValueFrom(shells$).then(async (shells) => {
@@ -52,10 +52,10 @@ export class TerminalComponent implements OnInit, OnDestroy {
   async newTab(): Promise<void> {
     const device = await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
     const session = await this.shell.open(device);
-    this.currentShell = session.id;
+    this.currentShell = session;
   }
 
   shellTracker(index: number, value: ShellSessionToken): string {
-    return value.id;
+    return value;
   }
 }

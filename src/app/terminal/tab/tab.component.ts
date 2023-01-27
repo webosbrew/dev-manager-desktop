@@ -69,6 +69,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   connError(error: Error): void {
+    console.log(error);
     this.term.writeln('>>> Connection error. Press any key to reconnect.');
     this.term.writeln(`>>> ${String(error)}`);
   }
@@ -91,7 +92,6 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
       console.log('shell close');
     });
     const cols = this.term.cols, rows = this.term.rows;
-    await shell.activate(cols, rows);
     this.term.reset();
     const screen = await shell.screen(cols, rows);
     let firstLine = true;
