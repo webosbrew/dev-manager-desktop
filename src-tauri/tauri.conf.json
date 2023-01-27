@@ -7,7 +7,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "dev-manager-desktop",
+    "productName": "webOS Dev Manager",
     "version": "../package.json"
   },
   "tauri": {
@@ -44,7 +44,7 @@
         "icons/icon.ico"
       ],
       "identifier": "org.webosbrew.devman",
-      "longDescription": "LG webOS Device Manager",
+      "longDescription": "webOS Dev Manager",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -58,7 +58,10 @@
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
-        "timestampUrl": ""
+        "timestampUrl": "",
+        "webviewInstallMode": {
+          "type": "embedBootstrapper"
+        }
       }
     },
     "security": {
