@@ -89,7 +89,7 @@ jobs:
           omitNameDuringUpdate: true
           omitBodyDuringUpdate: true
           omitPrereleaseDuringUpdate: true
-          artifacts: "src-tauri/target/release/bundle/deb/*.deb,src-tauri/target/release/bundle/appimage/*.AppImage"
+          artifacts: "src-tauri/target/**/release/bundle/deb/*.deb,src-tauri/target/**/release/bundle/appimage/*.AppImage"
 
       - name: Create Release (macOS)
         id: create_release_macos
@@ -102,4 +102,4 @@ jobs:
           omitNameDuringUpdate: true
           omitBodyDuringUpdate: true
           omitPrereleaseDuringUpdate: true
-          artifacts: src-tauri/target/release/bundle/dmg/*.dmg
+          artifacts: src-tauri/target/**/release/bundle/dmg/*.dmg
