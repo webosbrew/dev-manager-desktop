@@ -7,7 +7,6 @@ export declare interface Device {
   privateKey?: { openSsh: string };
   passphrase?: string;
   password?: string;
-
   description?: string;
   default?: boolean;
   indelible?: boolean;

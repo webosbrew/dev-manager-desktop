@@ -3,16 +3,16 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use russh::{client, kex, Preferred};
 use russh::client::Config;
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
-use russh_keys::key::{ED25519, RSA_SHA2_256, RSA_SHA2_512, SignatureHash, SSH_RSA};
+use russh::{client, kex, Preferred};
+use russh_keys::key::{SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
 use uuid::Uuid;
 
 use crate::device_manager::Device;
-use crate::session_manager::{Error, ErrorKind, Proc, SessionManager, Shell, ShellToken};
 use crate::session_manager::connection::Connection;
 use crate::session_manager::handler::ClientHandler;
+use crate::session_manager::{Error, ErrorKind, Proc, SessionManager, Shell, ShellToken};
 
 impl SessionManager {
     pub async fn exec(
@@ -30,8 +30,8 @@ impl SessionManager {
                         log::info!("retry connection");
                         continue;
                     }
-                    _ => return Err(e)
-                }
+                    _ => return Err(e),
+                },
             };
         }
     }
@@ -46,8 +46,8 @@ impl SessionManager {
                         log::info!("retry connection");
                         continue;
                     }
-                    _ => return Err(e)
-                }
+                    _ => return Err(e),
+                },
             };
         }
     }
@@ -58,7 +58,10 @@ impl SessionManager {
             match conn.shell().await {
                 Ok(data) => {
                     let shell = Arc::new(conn.shell().await?);
-                    self.shells.lock().unwrap().insert(shell.token.clone(), shell.clone());
+                    self.shells
+                        .lock()
+                        .unwrap()
+                        .insert(shell.token.clone(), shell.clone());
                     return Ok(shell);
                 }
                 Err(e) => match e.kind {
@@ -66,8 +69,8 @@ impl SessionManager {
                         log::info!("retry connection");
                         continue;
                     }
-                    _ => return Err(e)
-                }
+                    _ => return Err(e),
+                },
             }
         }
     }
@@ -81,8 +84,16 @@ impl SessionManager {
     }
 
     pub fn shell_find(&self, token: &ShellToken) -> Result<Arc<Shell>, Error> {
-        return self.shells.lock().unwrap().get(token).map(|a| a.clone())
-            .ok_or_else(|| Error { message: String::from("No shell"), kind: ErrorKind::NotFound });
+        return self
+            .shells
+            .lock()
+            .unwrap()
+            .get(token)
+            .map(|a| a.clone())
+            .ok_or_else(|| Error {
+                message: String::from("No shell"),
+                kind: ErrorKind::NotFound,
+            });
     }
 
     pub fn shell_list(&self) -> Vec<ShellToken> {
@@ -130,10 +141,16 @@ impl SessionManager {
         let addr = SocketAddr::from_str(&format!("{}:{}", &device.host, &device.port)).unwrap();
         log::debug!("Connecting to {}", addr);
         let mut handle = client::connect(Arc::new(config), addr, handler).await?;
-        log::debug!("Connected to {}, sig_alg: {:?}", addr, last_server_hash_alg.lock().unwrap());
+        log::debug!(
+            "Connected to {}, sig_alg: {:?}",
+            addr,
+            last_server_hash_alg.lock().unwrap()
+        );
         if let Some(key) = &device.private_key {
-            let key = Arc::new(key.priv_key(device.passphrase.as_deref(),
-                                            last_server_hash_alg.lock().unwrap().clone())?);
+            let key = Arc::new(key.priv_key(
+                device.passphrase.as_deref(),
+                last_server_hash_alg.lock().unwrap().clone(),
+            )?);
             log::debug!("Key algorithm: {:?}", key.name());
             if !handle.authenticate_publickey(&device.username, key).await? {
                 return Err(Error {
@@ -142,7 +159,10 @@ impl SessionManager {
                 });
             }
         } else if let Some(password) = &device.password {
-            if !handle.authenticate_password(&device.username, password).await? {
+            if !handle
+                .authenticate_password(&device.username, password)
+                .await?
+            {
                 return Err(Error {
                     message: format!("Device refused password authorization"),
                     kind: ErrorKind::Authorization,
@@ -155,6 +175,11 @@ impl SessionManager {
             });
         }
         log::debug!("Authenticated to {}", addr);
-        return Ok(Connection::new(id, device, handle, Arc::downgrade(&self.connections)));
+        return Ok(Connection::new(
+            id,
+            device,
+            handle,
+            Arc::downgrade(&self.connections),
+        ));
     }
 }

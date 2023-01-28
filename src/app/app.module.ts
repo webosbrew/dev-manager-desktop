@@ -17,6 +17,7 @@ import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {NgbAccordionModule, NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
 import {NgBootstrapDarkmodeModule} from "ng-bootstrap-darkmode";
+import { RemoveDeviceComponent } from './remove-device/remove-device.component';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import {NgBootstrapDarkmodeModule} from "ng-bootstrap-darkmode";
     ConnHintComponent,
     RenewScriptComponent,
     UpdateDetailsComponent,
+    RemoveDeviceComponent,
   ],
   imports: [
     BrowserModule,

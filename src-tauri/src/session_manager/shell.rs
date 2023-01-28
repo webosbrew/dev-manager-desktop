@@ -1,14 +1,14 @@
+use russh::ChannelMsg;
 use std::collections::HashMap;
 use std::fmt;
 use std::str::FromStr;
 use std::sync::Arc;
-use russh::ChannelMsg;
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::mpsc::unbounded_channel;
-use tokio::sync::MutexGuard;
 use tokio::sync::oneshot::channel;
+use tokio::sync::MutexGuard;
 use uuid::Uuid;
 
 use crate::session_manager::{Error, Shell, ShellBuffer, ShellToken};
@@ -36,29 +36,17 @@ impl Shell {
     }
 
     pub async fn screen(&self, cols: u16, rows: u16) -> Result<ShellBuffer, Error> {
-        if self.sender.lock().await.is_some() {
-            log::info!("fetching screen {:?} with {cols} cols and {rows} rows", self.token);
-        } else if let Some(ch) = self.channel.lock().await.as_mut() {
-            log::info!("initializing {:?} with {cols} cols and {rows} rows", self.token);
-            let mut have_pty = true;
-            self.parser.lock().unwrap().set_size(rows, cols);
-            if let Err(e) = ch.request_pty(true, "xterm",
-                                           cols as u32, rows as u32,
-                                           0, 0, &[]).await {
-                match e {
-                    russh::Error::SendError => have_pty = false,
-                    e => return Err(e.into())
-                }
-            }
-            ch.request_shell(true).await?;
-            self.ready.add_permits(1);
-        } else {
-            return Err(Error::disconnected());
-        }
+        self.activate(cols, rows).await?;
         let guard = self.parser.lock().unwrap();
         let screen = guard.screen();
+        let mut rows: Vec<Vec<u8>> = screen.rows_formatted(0, cols).collect();
+        if let Some(idx) = rows.iter().rposition(|row| !row.is_empty()) {
+            rows = Vec::from(&rows[0..idx + 1]);
+        } else {
+            rows = Vec::new();
+        }
         return Ok(ShellBuffer {
-            rows: screen.rows_formatted(0, cols).collect(),
+            rows,
             cursor: screen.cursor_position(),
         });
     }
@@ -71,7 +59,10 @@ impl Shell {
         return Ok(());
     }
 
-    pub(crate) async fn run<F>(&self, rx: F) -> Result<(), Error> where F: Fn(u32, &[u8]) -> () {
+    pub(crate) async fn run<F>(&self, rx: F) -> Result<(), Error>
+        where
+            F: Fn(u32, &[u8]) -> (),
+    {
         log::info!("waiting permit to run {:?}", self.token);
         let permit = self.ready.acquire().await.unwrap();
         log::info!("shell started {:?}", self.token);
@@ -121,6 +112,34 @@ impl Shell {
             }
         }
         self.ready.close();
+        return Ok(());
+    }
+
+    async fn activate(&self, cols: u16, rows: u16) -> Result<(), Error> {
+        if self.sender.lock().await.is_some() {
+            return Ok(());
+        }
+        if let Some(ch) = self.channel.lock().await.as_mut() {
+            log::info!(
+                "initializing {:?} with {cols} cols and {rows} rows",
+                self.token
+            );
+            let mut have_pty = true;
+            self.parser.lock().unwrap().set_size(rows, cols);
+            if let Err(e) = ch
+                .request_pty(true, "xterm", cols as u32, rows as u32, 0, 0, &[])
+                .await
+            {
+                match e {
+                    russh::Error::SendError => have_pty = false,
+                    e => return Err(e.into()),
+                }
+            }
+            ch.request_shell(true).await?;
+            self.ready.add_permits(1);
+        } else {
+            return Err(Error::disconnected());
+        }
         return Ok(());
     }
 

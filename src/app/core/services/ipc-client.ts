@@ -5,16 +5,18 @@ export abstract class IpcClient {
   protected constructor(protected zone: NgZone, public category: string) {
   }
 
-  protected invoke<T>(method: string, ...args: any[]): Promise<T> {
+  protected invoke<T>(method: string, args?: Record<string, unknown>): Promise<T> {
     // eslint-disable-next-line
-    return this.invokeDirectly(this.category, method, ...args);
+    return this.invokeDirectly(this.category, method, args);
   }
 
-  protected invokeDirectly<T>(plugin: string, method: string, ...args: any[]): Promise<T> {
+  protected invokeDirectly<T>(plugin: string, method: string, args?: Record<string, unknown>): Promise<T> {
     // eslint-disable-next-line
     return new Promise<T>((resolve, reject) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      tauri.invoke(`plugin:${plugin}|${method}`, ...args)
+      const cmd = `plugin:${plugin}|${method}`;
+      console.info(`invoke tauri ${cmd}`, args);
+      tauri.invoke(cmd, args)
         .then((result) => this.zone.run(() => resolve(result as any)))
         .catch(reason => this.zone.run(() => reject(reason)));
     });

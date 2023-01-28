@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock, Weak};
 
-use russh::Channel;
 use russh::client::Msg;
+use russh::Channel;
 use serde::Serialize;
-use tokio::sync::{Mutex as AsyncMutex, Semaphore};
 use tokio::sync::mpsc::UnboundedSender;
+use tokio::sync::{Mutex as AsyncMutex, Semaphore};
 use uuid::Uuid;
 use vt100::Parser;
 
@@ -19,8 +19,8 @@ mod device;
 mod error;
 mod handler;
 mod manager;
-mod shell;
 mod proc;
+mod shell;
 
 #[derive(Default)]
 pub struct SessionManager {
@@ -84,8 +84,5 @@ pub enum ErrorKind {
     Authorization,
     NotFound,
     EmptyData,
-    ExitStatus {
-        status: u32,
-        output: Vec<u8>,
-    },
+    ExitStatus { status: u32, output: Vec<u8> },
 }

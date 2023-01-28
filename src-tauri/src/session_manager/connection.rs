@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, Weak};
 
-use russh::{Channel, ChannelMsg, Disconnect, Sig};
 use russh::client::{Handle, Msg};
+use russh::{Channel, ChannelMsg, Disconnect, Sig};
 use tokio::sync::{Mutex as AsyncMutex, Semaphore};
 use uuid::Uuid;
 use vt100::Parser;
 
 use crate::device_manager::Device;
-use crate::session_manager::{Error, ErrorKind, Proc, Shell, ShellToken};
 use crate::session_manager::handler::ClientHandler;
+use crate::session_manager::{Error, ErrorKind, Proc, Shell, ShellToken};
 
 pub(crate) struct Connection {
     pub(crate) id: Uuid,
@@ -68,7 +68,10 @@ impl Connection {
         if status != 0 {
             return Err(Error {
                 message: format!("Command exited with non-zero return code {status}"),
-                kind: ErrorKind::ExitStatus { status, output: stderr },
+                kind: ErrorKind::ExitStatus {
+                    status,
+                    output: stderr,
+                },
             });
         }
         return Ok(stdout.to_vec());
@@ -83,15 +86,26 @@ impl Connection {
     }
 
     pub async fn shell(&self) -> Result<Shell, Error> {
-        let connections = self.connections.upgrade().expect("Connections should be available");
-        let conn = connections.lock().unwrap().get(&self.device.name).expect("Connection should be available").clone();
+        let connections = self
+            .connections
+            .upgrade()
+            .expect("Connections should be available");
+        let conn = connections
+            .lock()
+            .unwrap()
+            .get(&self.device.name)
+            .expect("Connection should be available")
+            .clone();
         let mut ch = self.open_cmd_channel().await?;
         return Ok(Shell {
-            token: ShellToken { connection_id: self.id, channel_id: ch.id().to_string() },
+            token: ShellToken {
+                connection_id: self.id,
+                channel_id: ch.id().to_string(),
+            },
             connection: Arc::downgrade(&conn),
             channel: AsyncMutex::new(Some(ch)),
             sender: AsyncMutex::default(),
-            parser: Mutex::new(Parser::new(24, 80, 0)),
+            parser: Mutex::new(Parser::new(24, 80, 1000)),
             ready: Semaphore::new(0),
         });
     }
@@ -114,8 +128,12 @@ impl Connection {
         return Ok(result?);
     }
 
-    pub(crate) fn new(id: Uuid, device: Device, handle: Handle<ClientHandler>,
-                      connections: Weak<Mutex<ConnectionsMap>>) -> Connection {
+    pub(crate) fn new(
+        id: Uuid,
+        device: Device,
+        handle: Handle<ClientHandler>,
+        connections: Weak<Mutex<ConnectionsMap>>,
+    ) -> Connection {
         log::info!("Created connection {} for device {}", id, device.name);
         return Connection {
             id,
@@ -135,4 +153,3 @@ impl Drop for Connection {
         );
     }
 }
-

@@ -3,7 +3,10 @@ use russh::ChannelMsg;
 use crate::session_manager::{Error, ErrorKind, Proc};
 
 impl Proc {
-    pub async fn run<F>(&self, stdout: F) -> Result<(), Error> where F: Fn(u64, &[u8]) -> () {
+    pub async fn run<F>(&self, stdout: F) -> Result<(), Error>
+    where
+        F: Fn(u64, &[u8]) -> (),
+    {
         if let Some(ch) = self.ch.lock().await.as_mut() {
             ch.exec(true, self.command.as_bytes()).await?;
         }
@@ -19,8 +22,11 @@ impl Proc {
                         index += 1;
                     }
                     ChannelMsg::ExtendedData { data, ext } => {
-                        log::info!("Channel: ExtendedData {}: {}", ext,
-                        String::from_utf8_lossy(&data.to_vec()));
+                        log::info!(
+                            "Channel: ExtendedData {}: {}",
+                            ext,
+                            String::from_utf8_lossy(&data.to_vec())
+                        );
                         if ext == 1 {
                             stderr.append(&mut data.to_vec());
                         }
@@ -48,7 +54,10 @@ impl Proc {
         if status != 0 {
             return Err(Error {
                 message: format!("Command exited with non-zero return code"),
-                kind: ErrorKind::ExitStatus { status, output: stderr },
+                kind: ErrorKind::ExitStatus {
+                    status,
+                    output: stderr,
+                },
             });
         }
         return Ok(());

@@ -1,23 +1,35 @@
-use tauri::{AppHandle, Manager, Runtime, State};
 use tauri::plugin::{Builder, TauriPlugin};
+use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
 use crate::session_manager::{Error, SessionManager, ShellBuffer, ShellData, ShellToken};
 
 #[tauri::command]
-async fn open<R: Runtime>(app: AppHandle<R>, manager: State<'_, SessionManager>, device: Device) -> Result<ShellToken, Error> {
+async fn open<R: Runtime>(
+    app: AppHandle<R>,
+    manager: State<'_, SessionManager>,
+    device: Device,
+) -> Result<ShellToken, Error> {
     let shell = manager.shell_open(device).await?;
-    app.emit_all("shells-updated", manager.shell_list()).unwrap_or(());
+    app.emit_all("shells-updated", manager.shell_list())
+        .unwrap_or(());
     let run_shell = shell.clone();
     tokio::spawn(async move {
         let token = run_shell.token.clone();
-        run_shell.run(move |fd, data| {
-            app.emit_all("shell-rx", ShellData {
-                token: token.clone(),
-                fd,
-                data: Vec::from(data),
-            }).unwrap_or(());
-        }).await.unwrap_or(());
+        run_shell
+            .run(move |fd, data| {
+                app.emit_all(
+                    "shell-rx",
+                    ShellData {
+                        token: token.clone(),
+                        fd,
+                        data: Vec::from(data),
+                    },
+                )
+                .unwrap_or(());
+            })
+            .await
+            .unwrap_or(());
     });
     return Ok(shell.token.clone());
 }

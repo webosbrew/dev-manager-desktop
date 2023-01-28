@@ -1,5 +1,8 @@
 use std::sync::Arc;
-use tauri::{AppHandle, Manager, plugin::{Builder, TauriPlugin}, Runtime, State};
+use tauri::{
+    plugin::{Builder, TauriPlugin},
+    AppHandle, Manager, Runtime, State,
+};
 use uuid::Uuid;
 
 use crate::device_manager::Device;
@@ -27,7 +30,12 @@ async fn spawn<R: Runtime>(
     return Ok(string);
 }
 
-async fn proc_worker<R: Runtime>(app: AppHandle<R>, device: Device, command: String, token: String) -> Result<(), Error> {
+async fn proc_worker<R: Runtime>(
+    app: AppHandle<R>,
+    device: Device,
+    command: String,
+    token: String,
+) -> Result<(), Error> {
     let manager = app.state::<SessionManager>();
     let proc = Arc::new(manager.spawn(device, &command).await?);
     let proc_ev = proc.clone();
@@ -39,11 +47,16 @@ async fn proc_worker<R: Runtime>(app: AppHandle<R>, device: Device, command: Str
         });
     });
     proc.run(|index, data| {
-        app.emit_all(&format!("cmd-read-{}", token.clone()), ProcData {
-            index,
-            data: Vec::<u8>::from(data),
-        }).unwrap_or(());
-    }).await?;
+        app.emit_all(
+            &format!("cmd-read-{}", token.clone()),
+            ProcData {
+                index,
+                data: Vec::<u8>::from(data),
+            },
+        )
+        .unwrap_or(());
+    })
+    .await?;
     app.unlisten(handler);
     return Ok(());
 }

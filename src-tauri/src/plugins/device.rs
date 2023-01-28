@@ -25,8 +25,12 @@ async fn add(manager: State<'_, DeviceManager>, device: Device) -> Result<Device
 }
 
 #[tauri::command]
-async fn remove(manager: State<'_, DeviceManager>, name: String) -> Result<(), Error> {
-    return manager.remove(&name).await;
+async fn remove(
+    manager: State<'_, DeviceManager>,
+    name: String,
+    remove_key: bool,
+) -> Result<(), Error> {
+    return manager.remove(&name, remove_key).await;
 }
 
 #[tauri::command]

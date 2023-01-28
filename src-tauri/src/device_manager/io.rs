@@ -1,5 +1,5 @@
 use std::env;
-use std::fs::File;
+use std::fs::{create_dir_all, File};
 use std::io::{BufReader, BufWriter, Error as IoError, ErrorKind};
 use std::path::PathBuf;
 
@@ -8,41 +8,71 @@ use tauri::api::path::home_dir;
 
 use crate::device_manager::{Device, Error};
 
-pub(crate) fn read() -> Result<Vec<Device>, Error> {
-    let path = devices_file_path()?;
-    let file = File::open(path.as_path())?;
-    let reader = BufReader::new(file);
+pub(crate) async fn read() -> Result<Vec<Device>, Error> {
+    return tokio::task::spawn_blocking(move || -> Result<Vec<Device>, Error> {
+        let path = devices_file_path()?;
+        let file = match File::open(path.as_path()) {
+            Ok(file) => file,
+            Err(e) => {
+                return match e.kind() {
+                    ErrorKind::NotFound => Ok(Vec::new()),
+                    _ => Err(e.into()),
+                }
+            }
+        };
+        let reader = BufReader::new(file);
 
-    let raw_list: Vec<Value> = serde_json::from_reader(reader)?;
-    return Ok(raw_list
-        .iter()
-        .filter_map(|v| serde_json::from_value::<Device>(v.clone()).ok())
-        .collect());
+        let raw_list: Vec<Value> = serde_json::from_reader(reader)?;
+        return Ok(raw_list
+            .iter()
+            .filter_map(|v| serde_json::from_value::<Device>(v.clone()).ok())
+            .collect());
+    })
+    .await
+    .unwrap();
 }
 
-pub(crate) fn write(devices: &Vec<Device>) -> Result<(), Error> {
-    let path = devices_file_path()?;
-    let writer = BufWriter::new(File::create(path.as_path())?);
-    serde_json::to_writer_pretty(writer, devices)?;
-    return Ok(());
+pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
+    return tokio::task::spawn_blocking(move || -> Result<(), Error> {
+        let path = devices_file_path()?;
+        let file = match File::create(path.as_path()) {
+            Ok(file) => file,
+            Err(e) => match e.kind() {
+                ErrorKind::NotFound => {
+                    let parent = path.parent().ok_or_else(|| Error::bad_config())?;
+                    create_dir_all(parent)?;
+                    File::create(path.as_path())?
+                }
+                _ => return Err(e.into()),
+            },
+        };
+        let writer = BufWriter::new(file);
+        serde_json::to_writer_pretty(writer, &devices)?;
+        return Ok(());
+    })
+    .await
+    .unwrap();
 }
 
 pub(crate) fn ssh_dir() -> Option<PathBuf> {
     return home_dir().map(|d| d.join(".ssh"));
 }
 
-fn devices_file_path() -> Result<PathBuf, IoError> {
-    return match env::var("APPDATA")
+pub(crate) fn ensure_ssh_dir() -> Result<PathBuf, Error> {
+    let dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
+    if !dir.exists() {
+        create_dir_all(dir.clone())?;
+    }
+    return Ok(dir);
+}
+
+fn devices_file_path() -> Result<PathBuf, Error> {
+    let home = env::var("APPDATA")
         .or_else(|_| env::var("HOME"))
         .or_else(|_| env::var("USERPROFILE"))
-    {
-        Ok(val) => Ok(PathBuf::from(val)
-            .join(".webos")
-            .join("ose")
-            .join("novacom-devices.json")),
-        _err => Err(IoError::new(
-            ErrorKind::NotFound,
-            "Failed to open data path",
-        )),
-    };
+        .map_err(|_| Error::bad_config())?;
+    return Ok(PathBuf::from(home)
+        .join(".webos")
+        .join("ose")
+        .join("novacom-devices.json"));
 }

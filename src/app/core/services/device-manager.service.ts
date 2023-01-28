@@ -50,8 +50,8 @@ export class DeviceManagerService extends IpcClient {
     return device;
   }
 
-  async removeDevice(name: string): Promise<void> {
-    return await this.invoke('remove', {name});
+  async removeDevice(name: string, removeKey: boolean): Promise<void> {
+    return await this.invoke('remove', {name, removeKey}).then(() => this.load());
   }
 
   async addDevice(device: NewDevice): Promise<Device> {
@@ -89,8 +89,9 @@ export class DeviceManagerService extends IpcClient {
   async saveCrashReport(entry: CrashReportEntry, target: string): Promise<void> {
     return await this.invoke('saveCrashReport', {
       device: entry.device,
-      path: entry.path
-    }, target);
+      path: entry.path,
+      target
+    });
   }
 
   async zcat(device: Device, path: string): Promise<Buffer> {

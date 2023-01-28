@@ -39,7 +39,9 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
   private resizeSubscription?: Subscription;
 
   constructor(private cmd: RemoteShellService) {
-    this.term = new Terminal({});
+    this.term = new Terminal({
+      scrollback: 1000,
+    });
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
   }
@@ -94,6 +96,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     const cols = this.term.cols, rows = this.term.rows;
     this.term.reset();
     const screen = await shell.screen(rows, cols);
+    console.log(screen);
     let firstLine = true;
     for (let row of screen.rows) {
       if (!firstLine) {
@@ -117,7 +120,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fitAddon.fit();
     if (this.shell) {
-      await this.shell.resize(this.term.cols, this.term.rows);
+      await this.shell.resize(this.term.rows, this.term.cols);
     }
   }
 
