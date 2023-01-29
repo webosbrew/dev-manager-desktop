@@ -16,12 +16,12 @@ import {debounceTime} from "rxjs/operators";
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
 
 @Component({
-  selector: 'app-terminal-tab',
-  templateUrl: './tab.component.html',
-  styleUrls: ['./tab.component.scss'],
+  selector: 'app-terminal-pty',
+  templateUrl: './pty.component.html',
+  styleUrls: ['./pty.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
   public token?: ShellToken;
@@ -90,14 +90,6 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
   async openDefaultShell(token: ShellToken): Promise<void> {
     const shell = this.cmd.obtain(token);
     this.shell = shell;
-
-    shell.subscribe((data) => {
-      this.term.write(data);
-    }, (error) => {
-      console.log('shell error', error);
-    }, () => {
-      console.log('shell close');
-    });
     const cols = this.term.cols, rows = this.term.rows;
     this.term.reset();
     const screen = await shell.screen(rows, cols);
@@ -111,6 +103,13 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
       firstLine = false;
     }
     // this.term.select(screen.cursor[1], screen.cursor[0], 1);
+    shell.subscribe((data) => {
+      this.term.write(data);
+    }, (error) => {
+      console.log('shell error', error);
+    }, () => {
+      console.log('shell close');
+    });
   }
 
   async shellKey(key: string): Promise<void> {

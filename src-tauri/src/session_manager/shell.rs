@@ -7,8 +7,8 @@ use std::sync::Arc;
 use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::mpsc::unbounded_channel;
-use tokio::sync::oneshot::channel;
-use tokio::sync::MutexGuard;
+
+
 use uuid::Uuid;
 
 use crate::session_manager::{Error, Shell, ShellBuffer, ShellCallback, ShellInfo, ShellToken};
@@ -36,7 +36,6 @@ impl Shell {
     }
 
     pub async fn screen(&self, cols: u16, rows: u16) -> Result<ShellBuffer, Error> {
-        self.activate(cols, rows).await?;
         let guard = self.parser.lock().unwrap();
         let screen = guard.screen();
         let mut rows: Vec<Vec<u8>> = screen.rows_formatted(0, cols).collect();
@@ -63,9 +62,6 @@ impl Shell {
     where
         CB: ShellCallback + Send + 'static,
     {
-        log::info!("waiting permit to run {:?}", self.token);
-        let permit = self.ready.acquire().await.unwrap();
-        log::info!("shell started {:?}", self.token);
         let (sender, mut receiver) = unbounded_channel::<Vec<u8>>();
         *self.sender.lock().await = Some(sender);
         let mut status: Option<u32> = None;
@@ -116,7 +112,6 @@ impl Shell {
                 }
             }
         }
-        self.ready.close();
         return Ok(());
     }
 
@@ -124,6 +119,7 @@ impl Shell {
         return ShellInfo {
             token: self.token.clone(),
             title: self.title(),
+            has_pty: self.has_pty,
             created_at: self.created_at,
         };
     }
@@ -137,19 +133,6 @@ impl Shell {
                 "initializing {:?} with {cols} cols and {rows} rows",
                 self.token
             );
-            let mut have_pty = true;
-            self.parser.lock().unwrap().set_size(rows, cols);
-            if let Err(e) = ch
-                .request_pty(true, "xterm", cols as u32, rows as u32, 0, 0, &[])
-                .await
-            {
-                match e {
-                    russh::Error::SendError => have_pty = false,
-                    e => return Err(e.into()),
-                }
-            }
-            ch.request_shell(true).await?;
-            self.ready.add_permits(1);
         } else {
             return Err(Error::disconnected());
         }
@@ -174,6 +157,9 @@ impl Shell {
     }
 
     fn process(&self, data: &[u8]) -> bool {
+        if !self.has_pty {
+            return false;
+        }
         let mut parser = self.parser.lock().unwrap();
         let old = parser.screen().clone();
         parser.process(data);

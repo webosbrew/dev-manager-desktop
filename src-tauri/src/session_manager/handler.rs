@@ -1,15 +1,15 @@
-use std::future::{ready, Ready};
+
 use std::sync::{Arc, Mutex, Weak};
 
 use async_trait::async_trait;
-use russh::{client, client::Session, ChannelId, ChannelOpenFailure, Error};
+use russh::{client, Error};
 use russh_keys::key::{PublicKey, SignatureHash};
-use tokio::sync::Mutex as AsyncMutex;
+
 use uuid::Uuid;
 
-use crate::session_manager::connection::{Connection, ConnectionsMap};
+use crate::session_manager::connection::{ConnectionsMap};
 use crate::session_manager::shell::ShellsMap;
-use crate::session_manager::ShellToken;
+
 
 #[derive(Default)]
 pub(crate) struct ClientHandler {

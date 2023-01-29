@@ -3,7 +3,7 @@ use russh_keys::encoding::Bytes;
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 
-use crate::device_manager::io::{ensure_ssh_dir, read, ssh_dir, write};
+use crate::device_manager::io::{ensure_ssh_dir, read, write};
 use crate::device_manager::{Device, DeviceManager, Error, PrivateKey};
 
 impl DeviceManager {

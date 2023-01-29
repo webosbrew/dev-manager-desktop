@@ -1,12 +1,12 @@
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex, RwLock, Weak};
+
+use std::sync::{Arc, Mutex, Weak};
 use std::time::Instant;
 
 use russh::client::Msg;
 use russh::Channel;
 use serde::Serialize;
 use tokio::sync::mpsc::UnboundedSender;
-use tokio::sync::{Mutex as AsyncMutex, Semaphore};
+use tokio::sync::{Mutex as AsyncMutex};
 use uuid::Uuid;
 use vt100::Parser;
 
@@ -45,11 +45,11 @@ pub struct Shell {
     pub token: ShellToken,
     created_at: Instant,
     def_title: String,
+    has_pty: bool,
     connection: Weak<Connection>,
     pub(crate) channel: AsyncMutex<Option<Channel<Msg>>>,
     pub(crate) sender: AsyncMutex<Option<UnboundedSender<Vec<u8>>>>,
     pub(crate) parser: Mutex<Parser>,
-    pub(crate) ready: Semaphore,
 }
 
 pub trait ShellCallback: Sized + Sync {
@@ -68,6 +68,8 @@ pub struct ShellToken {
 pub struct ShellInfo {
     pub token: ShellToken,
     pub title: String,
+    #[serde(rename = "hasPty")]
+    pub has_pty: bool,
     #[serde(skip_serializing)]
     created_at: Instant,
 }

@@ -4,13 +4,15 @@ import {CommonModule} from '@angular/common';
 import {TerminalRoutingModule} from './terminal-routing.module';
 import {NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
 import {TerminalComponent} from "./terminal.component";
-import {TabComponent} from "./tab/tab.component";
+import {PtyComponent} from "./pty/pty.component";
+import { DumbComponent } from './dumb/dumb.component';
 
 
 @NgModule({
   declarations: [
     TerminalComponent,
-    TabComponent,
+    PtyComponent,
+    DumbComponent,
   ],
   imports: [
     CommonModule,

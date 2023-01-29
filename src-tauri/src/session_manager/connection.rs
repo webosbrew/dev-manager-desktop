@@ -3,8 +3,8 @@ use std::sync::{Arc, Mutex, Weak};
 use std::time::Instant;
 
 use russh::client::{Handle, Msg};
-use russh::{Channel, ChannelMsg, Disconnect, Sig};
-use tokio::sync::{Mutex as AsyncMutex, Semaphore};
+use russh::{Channel, ChannelMsg};
+use tokio::sync::Mutex as AsyncMutex;
 use uuid::Uuid;
 use vt100::Parser;
 
@@ -86,7 +86,7 @@ impl Connection {
         });
     }
 
-    pub async fn shell(&self) -> Result<Shell, Error> {
+    pub async fn shell(&self, cols: u16, rows: u16) -> Result<Shell, Error> {
         let connections = self
             .connections
             .upgrade()
@@ -97,7 +97,17 @@ impl Connection {
             .get(&self.device.name)
             .expect("Connection should be available")
             .clone();
-        let ch = self.open_cmd_channel().await?;
+        let mut ch = self.open_cmd_channel().await?;
+        let mut got_pty = false;
+        match ch
+            .request_pty(true, "xterm", cols as u32, rows as u32, 0, 0, &[])
+            .await
+        {
+            Ok(_) => got_pty = true,
+            Err(russh::Error::SendError) => got_pty = false,
+            e => e?,
+        }
+        ch.request_shell(true).await?;
         return Ok(Shell {
             token: ShellToken {
                 connection_id: self.id,
@@ -105,11 +115,11 @@ impl Connection {
             },
             created_at: Instant::now(),
             def_title: format!("{}@{}", self.device.username, self.device.name),
+            has_pty: got_pty,
             connection: Arc::downgrade(&conn),
             channel: AsyncMutex::new(Some(ch)),
             sender: AsyncMutex::default(),
-            parser: Mutex::new(Parser::new(24, 80, 1000)),
-            ready: Semaphore::new(0),
+            parser: Mutex::new(Parser::new(rows, cols, 1000)),
         });
     }
 

@@ -11,8 +11,10 @@ async fn open<R: Runtime>(
     app: AppHandle<R>,
     manager: State<'_, SessionManager>,
     device: Device,
+    cols: u16,
+    rows: u16,
 ) -> Result<ShellInfo, Error> {
-    let shell = manager.shell_open(device).await?;
+    let shell = manager.shell_open(device, cols, rows).await?;
     app.emit_all("shells-updated", manager.shell_list())
         .unwrap_or(());
     let run_shell = shell.clone();

@@ -13,6 +13,7 @@ export type ShellToken = string;
 export interface ShellInfo {
   token: ShellToken;
   title: string;
+  hasPty: boolean;
 }
 
 export interface ShellMessage {
@@ -88,8 +89,8 @@ export class RemoteShellService extends IpcClient {
     this.list().then(shells => this.shellsSubject.next(shells));
   }
 
-  async open(device: Device): Promise<ShellInfo> {
-    return this.invoke('open', {device});
+  async open(device: Device, rows: number, cols: number): Promise<ShellInfo> {
+    return this.invoke('open', {device, rows, cols});
   }
 
   async close(token: ShellToken): Promise<void> {

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from '../core/services';
 import {firstValueFrom, noop, Subscription} from "rxjs";
 import {Device} from "../types";
@@ -9,7 +9,7 @@ import {ITerminalDimensions} from "xterm-addon-fit";
 
 
 @Component({
-  selector: 'app-terminal',
+  selector: 'app-terminal-host',
   templateUrl: './terminal.component.html',
   styleUrls: ['./terminal.component.scss'],
 })
@@ -55,7 +55,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   async newTab(): Promise<void> {
     const device = await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
-    const shellInfo = await this.shell.open(device);
+    const shellInfo = await this.shell.open(device, this.termSize.rows, this.termSize.cols);
     this.currentShell = shellInfo.token;
   }
 

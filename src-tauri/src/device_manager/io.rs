@@ -1,6 +1,6 @@
 use std::env;
 use std::fs::{create_dir_all, File};
-use std::io::{BufReader, BufWriter, Error as IoError, ErrorKind};
+use std::io::{BufReader, BufWriter, ErrorKind};
 use std::path::PathBuf;
 
 use serde_json::Value;

@@ -4,8 +4,8 @@ use crate::session_manager::{Error, ErrorKind, Proc};
 
 impl Proc {
     pub async fn run<F>(&self, stdout: F) -> Result<(), Error>
-    where
-        F: Fn(u64, &[u8]) -> (),
+        where
+            F: Fn(u64, &[u8]) -> (),
     {
         if let Some(ch) = self.ch.lock().await.as_mut() {
             ch.exec(true, self.command.as_bytes()).await?;
@@ -64,10 +64,9 @@ impl Proc {
     }
 
     pub async fn interrupt(&self) -> Result<(), Error> {
-        if let mut guard = self.ch.lock().await {
-            if let Some(ch) = guard.take() {
-                ch.close().await?;
-            }
+        let mut guard = self.ch.lock().await;
+        if let Some(ch) = guard.take() {
+            ch.close().await?;
         }
         return Ok(());
     }

@@ -5,14 +5,14 @@ use std::time::Duration;
 
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
-use russh::{client, kex, Preferred};
+use russh::{client};
 use russh_keys::key::{SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
 use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::session_manager::connection::Connection;
 use crate::session_manager::handler::ClientHandler;
-use crate::session_manager::shell::ShellsMap;
+
 use crate::session_manager::{
     Error, ErrorKind, Proc, SessionManager, Shell, ShellInfo, ShellToken,
 };
@@ -55,12 +55,17 @@ impl SessionManager {
         }
     }
 
-    pub async fn shell_open(&self, device: Device) -> Result<Arc<Shell>, Error> {
+    pub async fn shell_open(
+        &self,
+        device: Device,
+        cols: u16,
+        rows: u16,
+    ) -> Result<Arc<Shell>, Error> {
         loop {
             let conn = self.conn_obtain(device.clone()).await?;
-            match conn.shell().await {
+            match conn.shell(cols, rows).await {
                 Ok(data) => {
-                    let shell = Arc::new(conn.shell().await?);
+                    let shell = Arc::new(data);
                     self.shells
                         .lock()
                         .unwrap()
@@ -182,8 +187,8 @@ impl SessionManager {
     ) -> Result<(Handle<ClientHandler>, Option<SignatureHash>), russh::Error> {
         let mut config = Config::default();
         if legacy_algo {
-            config.preferred.key = &[ED25519, RSA_SHA2_512, RSA_SHA2_256, SSH_RSA];
-            config.preferred.kex = &[DH_G14_SHA1, DH_G1_SHA1, CURVE25519, DH_G14_SHA256];
+            config.preferred.key = &[SSH_RSA, RSA_SHA2_512, RSA_SHA2_256, ED25519];
+            config.preferred.kex = &[DH_G14_SHA1, DH_G1_SHA1, DH_G14_SHA256, CURVE25519];
         }
         config.connection_timeout = Some(Duration::from_secs(3));
         let server_sig_alg: Arc<Mutex<Option<SignatureHash>>> = Arc::new(Mutex::default());
