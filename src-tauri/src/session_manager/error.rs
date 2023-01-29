@@ -10,12 +10,6 @@ impl Error {
             kind: ErrorKind::Message,
         };
     }
-    pub fn bad_config() -> Error {
-        return Error {
-            message: String::from("Bad configuration"),
-            kind: ErrorKind::Message,
-        };
-    }
     pub fn unimplemented() -> Error {
         return Error {
             message: String::from("Not implemented"),
@@ -41,7 +35,7 @@ impl ErrorTrait for Error {}
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         return match &self.kind {
-            ErrorKind::ExitStatus { status, .. } => {
+            ErrorKind::ExitStatus { exit_code: status, .. } => {
                 f.write_fmt(format_args!("Error::ExitStatus: {{{}}}", status))
             }
             other => f.write_fmt(format_args!("Error::{:?}", other)),

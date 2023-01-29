@@ -8,6 +8,7 @@ import {AttrsPermissionsPipe} from "./attrs-permissions.pipe";
 import {NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
 import {NgLetModule} from "ng-let";
 import { FilesTableComponent } from './files-table/files-table.component';
+import {SharedModule} from "../shared/shared.module";
 
 
 @NgModule({
@@ -22,6 +23,7 @@ import { FilesTableComponent } from './files-table/files-table.component';
         NgxFilesizeModule,
         NgbTooltipModule,
         NgLetModule,
+        SharedModule,
     ]
 })
 export class FilesModule {

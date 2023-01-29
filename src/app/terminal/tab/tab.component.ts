@@ -1,11 +1,11 @@
 import {
   AfterViewInit,
   Component,
-  ElementRef,
+  ElementRef, EventEmitter,
   HostListener,
   Input,
   OnDestroy,
-  OnInit,
+  OnInit, Output,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
@@ -24,7 +24,10 @@ import {RemoteShellService, ShellObservable, ShellToken} from "../../core/servic
 export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
-  public token: ShellToken | null = null;
+  public token?: ShellToken;
+
+  @Output()
+  public termSizeChanged: EventEmitter<ITerminalDimensions> = new EventEmitter<ITerminalDimensions>();
 
   @ViewChild('termwin')
   public termwin: ElementRef<HTMLElement> | null = null;
@@ -32,7 +35,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
   public term: Terminal;
   public fitAddon: FitAddon;
 
-  public pendingResize: ITerminalDimensions | null = null;
+  public pendingResize?: ITerminalDimensions;
 
   private shell: ShellObservable | null = null;
 
@@ -50,15 +53,18 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     this.term.onData((data) => this.shellKey(data));
 
     this.resizeSubscription = fromEvent(window, 'resize').pipe(debounceTime(500)).subscribe(() => {
-      this.pendingResize = null;
+      this.pendingResize = undefined;
       this.autoResize();
     });
   }
 
   ngAfterViewInit(): void {
     this.term.open(this.termwin!.nativeElement);
-    // eslint-disable-next-line
-    this.openDefaultShell().catch(e => this.connError(e));
+    const token = this.token;
+    if (token) {
+      // eslint-disable-next-line
+      this.openDefaultShell(token).catch(e => this.connError(e));
+    }
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(() => this.autoResize(), 30);
   }
@@ -81,8 +87,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     this.pendingResize = this.fitAddon.proposeDimensions();
   }
 
-  async openDefaultShell(): Promise<void> {
-    const token = this.token!;
+  async openDefaultShell(token: ShellToken): Promise<void> {
     const shell = this.cmd.obtain(token);
     this.shell = shell;
 
@@ -118,6 +123,7 @@ export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!dimensions || !dimensions.cols || !dimensions.rows) {
       return;
     }
+    this.termSizeChanged.next(dimensions);
     this.fitAddon.fit();
     if (this.shell) {
       await this.shell.resize(this.term.rows, this.term.cols);

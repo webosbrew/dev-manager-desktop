@@ -3,10 +3,10 @@
     <nav class="col-3 col-xl-2 d-none d-md-block bg-panel sidebar border-right">
       <div class="sidebar-sticky">
         <ng-container *ngIf="(deviceManager.devices$ | async) as devices">
-          <select class="form-select" (change)="markDefault($any($event.target).value)" [(ngModel)]="selectedDevice"
-                  *ngIf="devices.length > 0; else noDevice">
+          <select class="form-select" (change)="markDefault(devices[deviceSelect.selectedIndex])"
+                  [(ngModel)]="selectedDevice" *ngIf="devices.length > 0; else noDevice" #deviceSelect>
             <option *ngFor="let device of devices" [selected]="device.default"
-                    [value]="device">
+                    [ngValue]="device">
               {{device.name}}
             </option>
           </select>

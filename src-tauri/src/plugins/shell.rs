@@ -2,7 +2,9 @@ use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
-use crate::session_manager::{Error, SessionManager, ShellBuffer, ShellData, ShellInfo, ShellToken};
+use crate::session_manager::{
+    Error, SessionManager, ShellBuffer, ShellData, ShellInfo, ShellToken,
+};
 
 #[tauri::command]
 async fn open<R: Runtime>(

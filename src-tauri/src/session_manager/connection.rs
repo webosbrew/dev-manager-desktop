@@ -70,8 +70,8 @@ impl Connection {
             return Err(Error {
                 message: format!("Command exited with non-zero return code {status}"),
                 kind: ErrorKind::ExitStatus {
-                    status,
-                    output: stderr,
+                    exit_code: status,
+                    stderr,
                 },
             });
         }

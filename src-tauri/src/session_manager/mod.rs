@@ -94,6 +94,7 @@ pub enum ErrorKind {
     NeedsReconnect,
     Authorization,
     NotFound,
+    FileNotFound { path: String },
     EmptyData,
-    ExitStatus { status: u32, output: Vec<u8> },
+    ExitStatus { exit_code: u32, stderr: Vec<u8> },
 }

@@ -4,6 +4,8 @@ import {IpcClient} from "./ipc-client";
 import {Injectable, NgZone} from "@angular/core";
 import {Device} from "../../types";
 import {Buffer} from "buffer";
+import {filter} from "rxjs/operators";
+import {isNonNull} from "../../shared/operators";
 
 
 export type ShellToken = string;
@@ -60,12 +62,12 @@ export class ShellSubject extends Subject<Uint8Array> implements ShellWritable {
 })
 export class RemoteShellService extends IpcClient {
 
-  private shellsSubject: Subject<ShellInfo[]>;
+  private shellsSubject: Subject<ShellInfo[] | null>;
   private shellSessions: Map<string, ShellSubject> = new Map();
 
   constructor(zone: NgZone) {
     super(zone, 'remote-shell');
-    this.shellsSubject = new BehaviorSubject<ShellInfo[]>([]);
+    this.shellsSubject = new BehaviorSubject<ShellInfo[] | null>(null);
     listen('shells-updated', e => {
       this.shellsSubject.next(e.payload as ShellInfo[]);
     }).then(noop);
@@ -81,7 +83,6 @@ export class RemoteShellService extends IpcClient {
       this.obtain(e.payload as ShellToken);
     }).then(noop);
     this.list().then(shells => this.shellsSubject.next(shells));
-    this.shellsSubject.subscribe(s => console.log('shells updated', s));
   }
 
   async open(device: Device): Promise<ShellInfo> {
@@ -109,7 +110,7 @@ export class RemoteShellService extends IpcClient {
   }
 
   get shells$(): Observable<ShellInfo[]> {
-    return this.shellsSubject.asObservable();
+    return this.shellsSubject.pipe(filter(isNonNull));
   }
 
   obtain(token: ShellToken): ShellObservable {

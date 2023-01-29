@@ -24,6 +24,7 @@ impl DeviceManager {
                 device.default = None;
             }
         }
+        log::info!("{:?}", devices);
         write(devices).await?;
         return Ok(result);
     }

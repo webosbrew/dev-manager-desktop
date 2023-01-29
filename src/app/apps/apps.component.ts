@@ -79,7 +79,7 @@ export class AppsComponent implements OnInit, OnDestroy {
         }
       }, error: noop
     });
-    this.appManager.load(device);
+    this.appManager.load(device).catch(noop);
   }
 
   async dropFiles(event: DragEvent): Promise<void> {

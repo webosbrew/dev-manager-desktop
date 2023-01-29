@@ -3,7 +3,7 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use russh::client::Config;
+use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
 use russh::{client, kex, Preferred};
 use russh_keys::key::{SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
@@ -12,8 +12,10 @@ use uuid::Uuid;
 use crate::device_manager::Device;
 use crate::session_manager::connection::Connection;
 use crate::session_manager::handler::ClientHandler;
-use crate::session_manager::{Error, ErrorKind, Proc, SessionManager, Shell, ShellInfo, ShellToken};
 use crate::session_manager::shell::ShellsMap;
+use crate::session_manager::{
+    Error, ErrorKind, Proc, SessionManager, Shell, ShellInfo, ShellToken,
+};
 
 impl SessionManager {
     pub async fn exec(
@@ -129,31 +131,18 @@ impl SessionManager {
 
     async fn conn_new(&self, device: Device) -> Result<Connection, Error> {
         let id = Uuid::new_v4();
-        let mut config = Config::default();
-        config.preferred.key = &[ED25519, RSA_SHA2_512, RSA_SHA2_256, SSH_RSA];
-        config.preferred.kex = &[DH_G14_SHA1, DH_G1_SHA1, CURVE25519, DH_G14_SHA256];
-        config.connection_timeout = Some(Duration::from_secs(3));
-        let last_server_hash_alg: Arc<Mutex<Option<SignatureHash>>> = Arc::new(Mutex::default());
-        let handler = ClientHandler {
-            id: id.clone(),
-            key: device.name.clone(),
-            connections: Arc::downgrade(&self.connections),
-            shells: Arc::downgrade(&self.shells),
-            hash_alg: last_server_hash_alg.clone(),
+        let mut use_legacy_algo = false;
+        let (mut handle, sig_alg) = match self.try_conn(&id, &device, false).await {
+            Ok(v) => v,
+            Err(_e @ russh::Error::KexInit)
+            | Err(_e @ russh::Error::NoCommonKexAlgo)
+            | Err(_e @ russh::Error::NoCommonKeyAlgo)
+            | Err(_e @ russh::Error::NoCommonCipher) => self.try_conn(&id, &device, true).await?,
+            e => e?,
         };
-        let addr = SocketAddr::from_str(&format!("{}:{}", &device.host, &device.port)).unwrap();
-        log::debug!("Connecting to {}", addr);
-        let mut handle = client::connect(Arc::new(config), addr, handler).await?;
-        log::debug!(
-            "Connected to {}, sig_alg: {:?}",
-            addr,
-            last_server_hash_alg.lock().unwrap()
-        );
+        log::debug!("Connected to {}, sig_alg: {:?}", device.name, sig_alg);
         if let Some(key) = &device.private_key {
-            let key = Arc::new(key.priv_key(
-                device.passphrase.as_deref(),
-                last_server_hash_alg.lock().unwrap().clone(),
-            )?);
+            let key = Arc::new(key.priv_key(device.passphrase.as_deref(), sig_alg)?);
             log::debug!("Key algorithm: {:?}", key.name());
             if !handle.authenticate_publickey(&device.username, key).await? {
                 return Err(Error {
@@ -177,12 +166,38 @@ impl SessionManager {
                 kind: ErrorKind::Authorization,
             });
         }
-        log::debug!("Authenticated to {}", addr);
+        log::debug!("Authenticated to {}", device.name);
         return Ok(Connection::new(
             id,
             device,
             handle,
             Arc::downgrade(&self.connections),
         ));
+    }
+
+    async fn try_conn(
+        &self,
+        id: &Uuid,
+        device: &Device,
+        legacy_algo: bool,
+    ) -> Result<(Handle<ClientHandler>, Option<SignatureHash>), russh::Error> {
+        let mut config = Config::default();
+        if legacy_algo {
+            config.preferred.key = &[ED25519, RSA_SHA2_512, RSA_SHA2_256, SSH_RSA];
+            config.preferred.kex = &[DH_G14_SHA1, DH_G1_SHA1, CURVE25519, DH_G14_SHA256];
+        }
+        config.connection_timeout = Some(Duration::from_secs(3));
+        let server_sig_alg: Arc<Mutex<Option<SignatureHash>>> = Arc::new(Mutex::default());
+        let handler = ClientHandler {
+            id: id.clone(),
+            key: device.name.clone(),
+            connections: Arc::downgrade(&self.connections),
+            shells: Arc::downgrade(&self.shells),
+            sig_alg: server_sig_alg.clone(),
+        };
+        let addr = SocketAddr::from_str(&format!("{}:{}", &device.host, &device.port)).unwrap();
+        log::debug!("Connecting to {}", addr);
+        let handle = client::connect(Arc::new(config), addr, handler).await?;
+        return Ok((handle, server_sig_alg.lock().unwrap().clone()));
     }
 }

@@ -16,10 +16,14 @@
 
   .xterm {
     height: 100% !important;
+    padding: 5px;
 
     .xterm-viewport {
       width: 100% !important;
       height: 100% !important;
+
+      overflow-y: scroll;
+      overflow-x: hidden;
     }
   }
 

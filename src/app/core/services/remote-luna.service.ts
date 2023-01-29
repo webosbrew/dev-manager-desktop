@@ -20,8 +20,8 @@ export class RemoteLunaService {
     const sendCmd = pub ? 'luna-send-pub' : 'luna-send';
     return this.commands.exec(device, `${sendCmd} -n 1 ${uri} ${escapeSingleQuoteString(JSON.stringify(param))}`, 'utf-8')
       .catch(e => {
-        if (e instanceof ExecutionError && e.status == 127) {
-          throw new LunaUnsupportedError(`Failed to call luna API: ${e.data}`);
+        if (e.status == 127) {
+          throw new LunaUnsupportedError(`Failed to call luna API. Is this really a webOS device?`);
         }
         throw e;
       })

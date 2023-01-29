@@ -60,8 +60,8 @@ impl Shell {
     }
 
     pub(crate) async fn run<F>(&self, rx: F) -> Result<(), Error>
-        where
-            F: Fn(u32, &[u8]) -> (),
+    where
+        F: Fn(u32, &[u8]) -> (),
     {
         log::info!("waiting permit to run {:?}", self.token);
         let permit = self.ready.acquire().await.unwrap();
@@ -183,8 +183,8 @@ impl Shell {
 
 impl Serialize for ShellToken {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         return serializer.serialize_str(&format!("{}/{}", self.connection_id, self.channel_id));
     }
@@ -192,8 +192,8 @@ impl Serialize for ShellToken {
 
 impl<'de> Deserialize<'de> for ShellToken {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         return deserializer.deserialize_string(ShellTokenVisitor);
     }
@@ -210,8 +210,8 @@ impl<'de> Visitor<'de> for ShellTokenVisitor {
 
     // parse the version from the string
     fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-        where
-            E: std::error::Error,
+    where
+        E: std::error::Error,
     {
         let mut split = value.split('/');
         let first = split.next().unwrap();

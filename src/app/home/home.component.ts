@@ -41,8 +41,8 @@ export class HomeComponent {
     await this.deviceManager.removeDevice(device.name, answer.deleteSshKey);
   }
 
-  markDefault(name: string): void {
-    this.deviceManager.setDefault(name).catch(reason => {
+  markDefault(device: Device): void {
+    this.deviceManager.setDefault(device.name).catch(reason => {
       console.log(reason);
     });
   }

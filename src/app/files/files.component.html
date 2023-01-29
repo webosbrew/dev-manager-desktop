@@ -21,13 +21,8 @@
     </div>
     <ng-template #loadingAndError>
       <div class="p-3">
-        <div class="card m-2" *ngIf="state.error">
-          <div class="card-body">
-            <h5 class="card-title">Unable to load apps</h5>
-            <p class="card-text">Failed to connect to {{device.name}}</p>
-            <button class="btn btn-primary" (click)="cd(state.dir)">Retry</button>
-          </div>
-        </div>
+        <app-error-card title="Unable to list directory" [error]="state.error" (retry)="cd(state.dir)">
+        </app-error-card>
         <div *ngIf="!state.error">Loading</div>
       </div>
     </ng-template>

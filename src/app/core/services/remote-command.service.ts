@@ -24,9 +24,9 @@ export class RemoteCommandService extends IpcClient {
     try {
       const stdout: number[] = await this.invoke('exec', {device, command, stdin});
       return this.convertOutput(stdout, outputEncoding) as any;
-    } catch (e: any) {
-      if (e.status && e.output) {
-        throw new ExecutionError(e.message, e.status, this.convertOutput(e.output, outputEncoding));
+    } catch (e: IpcErrors.ExitStatus | any) {
+      if (e.exit_code && e.stderr) {
+        throw new ExecutionError(e.stderr, e.exit_code, this.convertOutput(e.stderr, outputEncoding));
       }
       throw e;
     }
@@ -109,6 +109,13 @@ declare interface ProcData {
 export class ExecutionError<T = Buffer | string> extends Error {
   constructor(message: string, public status: number, public data: T) {
     super(message);
+  }
+}
+
+namespace IpcErrors {
+  export interface ExitStatus {
+    exit_code: number;
+    stderr: number;
   }
 }
 

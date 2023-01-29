@@ -67,7 +67,6 @@ export class FilesComponent implements OnInit, OnDestroy {
     try {
       list = await this.session!.ls(dir);
     } catch (e) {
-      console.warn(e);
       this.filesSubject.next(new FilesState(dir, undefined, e as Error));
       return;
     }

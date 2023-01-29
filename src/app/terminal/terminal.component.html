@@ -1,6 +1,6 @@
 <div class="w-100 h-100 d-flex flex-column">
   <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0 mt-2 px-2" [animation]="false" [(activeId)]="currentShell">
-    <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell" [destroyOnHide]="false">
+    <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.token" [destroyOnHide]="false">
       <a ngbNavLink href>
         {{shell.title}}
         <span class="close position-relative ps-2 font-weight-light"
@@ -15,5 +15,10 @@
     </li>
   </ul>
 
-  <div [ngbNavOutlet]="nav" class="overflow-hidden flex-fill position-relative tabs-container"></div>
+  <div class="overflow-hidden flex-fill position-relative">
+    <div class="position-absolute w-100 h-100" [ngbNavOutlet]="nav">
+      <app-terminal-tab (termSizeChanged)="termResized($event)"></app-terminal-tab>
+    </div>
+    <div class="position-absolute w-100 h-100 tabs-container" [ngbNavOutlet]="nav"></div>
+  </div>
 </div>

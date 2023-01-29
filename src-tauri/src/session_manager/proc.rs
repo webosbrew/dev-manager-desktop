@@ -55,8 +55,8 @@ impl Proc {
             return Err(Error {
                 message: format!("Command exited with non-zero return code"),
                 kind: ErrorKind::ExitStatus {
-                    status,
-                    output: stderr,
+                    exit_code: status,
+                    stderr,
                 },
             });
         }

@@ -1,22 +1,25 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from '../core/services';
 import {firstValueFrom, noop, Subscription} from "rxjs";
 import {Device} from "../types";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
 import {RemoteShellService, ShellInfo, ShellToken} from "../core/services/remote-shell.service";
+import {ITerminalDimensions} from "xterm-addon-fit";
 
 
 @Component({
   selector: 'app-terminal',
   templateUrl: './terminal.component.html',
-  styleUrls: ['./terminal.component.scss']
+  styleUrls: ['./terminal.component.scss'],
 })
 export class TerminalComponent implements OnInit, OnDestroy {
 
   public shells: ShellInfo[] = [];
 
   public currentShell: string = '';
+
+  public termSize: ITerminalDimensions = {rows: 24, cols: 80};
 
   private subscription?: Subscription;
 
@@ -33,9 +36,10 @@ export class TerminalComponent implements OnInit, OnDestroy {
     });
     firstValueFrom(shells$).then(async (shells) => {
       if (shells.length) {
+        this.currentShell = shells[0].token;
         return;
       }
-      // await this.newTab();
+      await this.newTab();
     });
   }
 
@@ -57,5 +61,9 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   shellTracker(index: number, value: ShellInfo): string {
     return value.token;
+  }
+
+  termResized(event: ITerminalDimensions) {
+    console.log(event);
   }
 }

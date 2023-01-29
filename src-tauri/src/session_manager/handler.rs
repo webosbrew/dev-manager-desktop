@@ -17,7 +17,7 @@ pub(crate) struct ClientHandler {
     pub(super) key: String,
     pub(super) connections: Weak<Mutex<ConnectionsMap>>,
     pub(super) shells: Weak<Mutex<ShellsMap>>,
-    pub(super) hash_alg: Arc<Mutex<Option<SignatureHash>>>,
+    pub(super) sig_alg: Arc<Mutex<Option<SignatureHash>>>,
 }
 
 #[async_trait]
@@ -35,7 +35,7 @@ impl client::Handler for ClientHandler {
                 SignatureHash::from_rsa_hostkey_algo(server_public_key.name().as_bytes())
             }
         };
-        *self.hash_alg.lock().unwrap() = alg;
+        *self.sig_alg.lock().unwrap() = alg;
         return Ok((self, true));
     }
 }
