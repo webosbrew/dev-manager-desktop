@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock, Weak};
+use std::time::Instant;
 
 use russh::client::Msg;
 use russh::Channel;
@@ -42,6 +43,8 @@ pub struct ProcData {
 
 pub struct Shell {
     pub token: ShellToken,
+    created_at: Instant,
+    def_title: String,
     connection: Weak<Connection>,
     pub(crate) channel: AsyncMutex<Option<Channel<Msg>>>,
     pub(crate) sender: AsyncMutex<Option<UnboundedSender<Vec<u8>>>>,
@@ -53,6 +56,14 @@ pub struct Shell {
 pub struct ShellToken {
     pub connection_id: Uuid,
     pub channel_id: String,
+}
+
+#[derive(Clone, Serialize, Debug)]
+pub struct ShellInfo {
+    pub token: ShellToken,
+    pub title: String,
+    #[serde(skip_serializing)]
+    created_at: Instant,
 }
 
 #[derive(Hash, Clone, Debug, Serialize)]

@@ -11,7 +11,7 @@ use tokio::sync::oneshot::channel;
 use tokio::sync::MutexGuard;
 use uuid::Uuid;
 
-use crate::session_manager::{Error, Shell, ShellBuffer, ShellToken};
+use crate::session_manager::{Error, Shell, ShellBuffer, ShellInfo, ShellToken};
 
 pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
 
@@ -73,6 +73,7 @@ impl Shell {
         loop {
             tokio::select! {
                 data = receiver.recv() => {
+                    log::info!("Write {{ data: {:?} }}", data);
                     match data {
                         Some(data) => self.send(&data[..]).await?,
                         None => {
@@ -84,10 +85,12 @@ impl Shell {
                 result = self.wait() => {
                     match result? {
                         ChannelMsg::Data { data } => {
+                            log::info!("Data {{ data: {:?} }}", data);
                             self.parser.lock().unwrap().process(data.as_ref());
                             rx(0, data.as_ref());
                         }
                         ChannelMsg::ExtendedData { data, ext } => {
+                            log::info!("ExtendedData {{ data: {:?}, ext: {} }}", data, ext);
                             if ext == 1 {
                                 self.parser.lock().unwrap().process(data.as_ref());
                                 rx(1, data.as_ref());
@@ -113,6 +116,14 @@ impl Shell {
         }
         self.ready.close();
         return Ok(());
+    }
+
+    pub fn info(&self) -> ShellInfo {
+        return ShellInfo {
+            token: self.token.clone(),
+            title: self.title(),
+            created_at: self.created_at,
+        };
     }
 
     async fn activate(&self, cols: u16, rows: u16) -> Result<(), Error> {
@@ -158,6 +169,15 @@ impl Shell {
         } else {
             Err(Error::disconnected())
         };
+    }
+
+    fn title(&self) -> String {
+        let guard = self.parser.lock().unwrap();
+        let title = guard.screen().title();
+        if title.is_empty() {
+            return self.def_title.clone();
+        }
+        return String::from(title);
     }
 }
 

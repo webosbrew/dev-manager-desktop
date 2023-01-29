@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex, Weak};
+use std::time::Instant;
 
 use russh::client::{Handle, Msg};
 use russh::{Channel, ChannelMsg, Disconnect, Sig};
@@ -102,6 +103,8 @@ impl Connection {
                 connection_id: self.id,
                 channel_id: ch.id().to_string(),
             },
+            created_at: Instant::now(),
+            def_title: format!("{}@{}", self.device.username, self.device.name),
             connection: Arc::downgrade(&conn),
             channel: AsyncMutex::new(Some(ch)),
             sender: AsyncMutex::default(),

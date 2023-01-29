@@ -13,7 +13,7 @@ import {Terminal} from "xterm";
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
 import {fromEvent, Subscription} from "rxjs";
 import {debounceTime} from "rxjs/operators";
-import {RemoteShellService, ShellObservable, ShellSessionToken} from "../../core/services/remote-shell.service";
+import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
 
 @Component({
   selector: 'app-terminal-tab',
@@ -24,7 +24,7 @@ import {RemoteShellService, ShellObservable, ShellSessionToken} from "../../core
 export class TabComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input()
-  public token: ShellSessionToken | null = null;
+  public token: ShellToken | null = null;
 
   @ViewChild('termwin')
   public termwin: ElementRef<HTMLElement> | null = null;

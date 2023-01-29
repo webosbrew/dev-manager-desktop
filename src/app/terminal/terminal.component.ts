@@ -4,7 +4,7 @@ import {firstValueFrom, noop, Subscription} from "rxjs";
 import {Device} from "../types";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
-import {RemoteShellService, ShellSessionToken} from "../core/services/remote-shell.service";
+import {RemoteShellService, ShellInfo, ShellToken} from "../core/services/remote-shell.service";
 
 
 @Component({
@@ -14,7 +14,7 @@ import {RemoteShellService, ShellSessionToken} from "../core/services/remote-she
 })
 export class TerminalComponent implements OnInit, OnDestroy {
 
-  public shells: ShellSessionToken[] = [];
+  public shells: ShellInfo[] = [];
 
   public currentShell: string = '';
 
@@ -28,7 +28,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
     this.subscription = shells$.subscribe(shells => {
       this.shells = shells;
       if (shells.length) {
-        this.currentShell = shells[0];
+        this.currentShell = shells[0].token;
       }
     });
     firstValueFrom(shells$).then(async (shells) => {
@@ -43,7 +43,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
     this.subscription?.unsubscribe();
   }
 
-  closeSession(event: Event, session: ShellSessionToken) {
+  closeSession(event: Event, session: ShellToken) {
     this.shell.close(session).then(noop);
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -51,11 +51,11 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   async newTab(): Promise<void> {
     const device = await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
-    const session = await this.shell.open(device);
-    this.currentShell = session;
+    const shellInfo = await this.shell.open(device);
+    this.currentShell = shellInfo.token;
   }
 
-  shellTracker(index: number, value: ShellSessionToken): string {
-    return value;
+  shellTracker(index: number, value: ShellInfo): string {
+    return value.token;
   }
 }

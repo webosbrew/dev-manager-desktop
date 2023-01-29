@@ -2,14 +2,14 @@ use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
-use crate::session_manager::{Error, SessionManager, ShellBuffer, ShellData, ShellToken};
+use crate::session_manager::{Error, SessionManager, ShellBuffer, ShellData, ShellInfo, ShellToken};
 
 #[tauri::command]
 async fn open<R: Runtime>(
     app: AppHandle<R>,
     manager: State<'_, SessionManager>,
     device: Device,
-) -> Result<ShellToken, Error> {
+) -> Result<ShellInfo, Error> {
     let shell = manager.shell_open(device).await?;
     app.emit_all("shells-updated", manager.shell_list())
         .unwrap_or(());
@@ -31,7 +31,7 @@ async fn open<R: Runtime>(
             .await
             .unwrap_or(());
     });
-    return Ok(shell.token.clone());
+    return Ok(shell.info());
 }
 
 #[tauri::command]
@@ -72,7 +72,7 @@ async fn screen(
 }
 
 #[tauri::command]
-async fn list(manager: State<'_, SessionManager>) -> Result<Vec<ShellToken>, Error> {
+async fn list(manager: State<'_, SessionManager>) -> Result<Vec<ShellInfo>, Error> {
     return Ok(manager.shell_list());
 }
 

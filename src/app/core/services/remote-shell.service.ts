@@ -3,12 +3,18 @@ import {emit, listen} from "@tauri-apps/api/event";
 import {IpcClient} from "./ipc-client";
 import {Injectable, NgZone} from "@angular/core";
 import {Device} from "../../types";
+import {Buffer} from "buffer";
 
 
-export type ShellSessionToken = string;
+export type ShellToken = string;
+
+export interface ShellInfo {
+  token: ShellToken;
+  title: string;
+}
 
 export interface ShellMessage {
-  token: ShellSessionToken;
+  token: ShellToken;
   data: number[];
 }
 
@@ -17,7 +23,7 @@ export interface ShellScreenContent {
   cursor: [number, number];
 }
 
-export type ShellObservable = ShellWritable & Observable<string>;
+export type ShellObservable = ShellWritable & Observable<Uint8Array>;
 
 interface ShellWritable {
 
@@ -28,10 +34,10 @@ interface ShellWritable {
   resize(rows: number, cols: number): Promise<void>;
 }
 
-export class ShellSubject extends Subject<string> implements ShellWritable {
+export class ShellSubject extends Subject<Uint8Array> implements ShellWritable {
   private readonly encoder = new TextEncoder();
 
-  constructor(private shell: RemoteShellService, private token: ShellSessionToken) {
+  constructor(private shell: RemoteShellService, private token: ShellToken) {
     super();
   }
 
@@ -54,60 +60,59 @@ export class ShellSubject extends Subject<string> implements ShellWritable {
 })
 export class RemoteShellService extends IpcClient {
 
-  private shellsSubject: Subject<ShellSessionToken[]>;
+  private shellsSubject: Subject<ShellInfo[]>;
   private shellSessions: Map<string, ShellSubject> = new Map();
 
   constructor(zone: NgZone) {
     super(zone, 'remote-shell');
-    this.shellsSubject = new BehaviorSubject<ShellSessionToken[]>([]);
+    this.shellsSubject = new BehaviorSubject<ShellInfo[]>([]);
     listen('shells-updated', e => {
-      this.shellsSubject.next(e.payload as ShellSessionToken[]);
+      this.shellsSubject.next(e.payload as ShellInfo[]);
     }).then(noop);
     listen('shell-rx', e => {
       const message = e.payload as ShellMessage;
-      console.log(message);
       const shell = this.shellSessions.get(message.token);
       if (shell) {
-        shell.next(String.fromCharCode(...message.data));
+        shell.next(Buffer.from(message.data));
       }
     }).then(noop);
     listen('shell-opened', e => {
       console.log('shell-opened', this.shellSessions, e.payload);
-      this.obtain(e.payload as ShellSessionToken);
+      this.obtain(e.payload as ShellToken);
     }).then(noop);
     this.list().then(shells => this.shellsSubject.next(shells));
     this.shellsSubject.subscribe(s => console.log('shells updated', s));
   }
 
-  async open(device: Device): Promise<ShellSessionToken> {
+  async open(device: Device): Promise<ShellInfo> {
     return this.invoke('open', {device});
   }
 
-  async close(token: ShellSessionToken): Promise<void> {
+  async close(token: ShellToken): Promise<void> {
     return this.invoke('close', {token});
   }
 
-  async list(): Promise<ShellSessionToken[]> {
+  async list(): Promise<ShellInfo[]> {
     return this.invoke('list', {});
   }
 
-  async screen(token: ShellSessionToken, rows: number, cols: number): Promise<ShellScreenContent> {
+  async screen(token: ShellToken, rows: number, cols: number): Promise<ShellScreenContent> {
     return await this.invoke('screen', {token, rows, cols});
   }
 
-  async write(token: ShellSessionToken, data: number[]): Promise<void> {
+  async write(token: ShellToken, data: number[]): Promise<void> {
     await this.invoke('write', {token, data});
   }
 
-  async resize(token: ShellSessionToken, rows: number, cols: number): Promise<void> {
+  async resize(token: ShellToken, rows: number, cols: number): Promise<void> {
     await this.invoke('resize', {token, rows, cols});
   }
 
-  get shells$(): Observable<ShellSessionToken[]> {
+  get shells$(): Observable<ShellInfo[]> {
     return this.shellsSubject.asObservable();
   }
 
-  obtain(token: ShellSessionToken): ShellObservable {
+  obtain(token: ShellToken): ShellObservable {
     let shell = this.shellSessions.get(token);
     if (!shell) {
       shell = new ShellSubject(this, token);

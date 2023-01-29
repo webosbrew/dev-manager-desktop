@@ -2,11 +2,12 @@
   <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0 mt-2 px-2" [animation]="false" [(activeId)]="currentShell">
     <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell" [destroyOnHide]="false">
       <a ngbNavLink href>
-        {{shell}}
-        <span class="close position-relative ps-2 font-weight-light" (click)="closeSession($event, shell)">×</span>
+        {{shell.title}}
+        <span class="close position-relative ps-2 font-weight-light"
+              (click)="closeSession($event, shell.token)">×</span>
       </a>
       <ng-template ngbNavContent>
-        <app-terminal-tab [token]="shell" class="terminal-tab"></app-terminal-tab>
+        <app-terminal-tab [token]="shell.token" class="terminal-tab"></app-terminal-tab>
       </ng-template>
     </li>
     <li class="nav-item">

@@ -12,7 +12,8 @@ use uuid::Uuid;
 use crate::device_manager::Device;
 use crate::session_manager::connection::Connection;
 use crate::session_manager::handler::ClientHandler;
-use crate::session_manager::{Error, ErrorKind, Proc, SessionManager, Shell, ShellToken};
+use crate::session_manager::{Error, ErrorKind, Proc, SessionManager, Shell, ShellInfo, ShellToken};
+use crate::session_manager::shell::ShellsMap;
 
 impl SessionManager {
     pub async fn exec(
@@ -96,14 +97,16 @@ impl SessionManager {
             });
     }
 
-    pub fn shell_list(&self) -> Vec<ShellToken> {
-        return self
+    pub fn shell_list(&self) -> Vec<ShellInfo> {
+        let mut list: Vec<ShellInfo> = self
             .shells
             .lock()
             .unwrap()
-            .keys()
-            .map(|k| k.clone())
+            .iter()
+            .map(|(_, shell)| shell.info())
             .collect();
+        list.sort_by_key(|v| v.created_at);
+        return list;
     }
 
     async fn conn_obtain(&self, device: Device) -> Result<Arc<Connection>, Error> {
