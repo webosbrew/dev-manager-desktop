@@ -3,7 +3,7 @@ use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
 use crate::session_manager::{
-    Error, SessionManager, ShellBuffer, ShellData, ShellInfo, ShellToken,
+    Error, SessionManager, ShellBuffer, ShellCallback, ShellData, ShellInfo, ShellToken,
 };
 
 #[tauri::command]
@@ -17,21 +17,11 @@ async fn open<R: Runtime>(
         .unwrap_or(());
     let run_shell = shell.clone();
     tokio::spawn(async move {
-        let token = run_shell.token.clone();
-        run_shell
-            .run(move |fd, data| {
-                app.emit_all(
-                    "shell-rx",
-                    ShellData {
-                        token: token.clone(),
-                        fd,
-                        data: Vec::from(data),
-                    },
-                )
-                .unwrap_or(());
-            })
-            .await
-            .unwrap_or(());
+        let cb = PluginShellCb::<R> {
+            token: run_shell.token.clone(),
+            app,
+        };
+        run_shell.run(cb).await.unwrap_or(());
     });
     return Ok(shell.info());
 }
@@ -84,4 +74,24 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
             open, close, write, resize, screen, list
         ])
         .build()
+}
+
+struct PluginShellCb<R: Runtime> {
+    token: ShellToken,
+    app: AppHandle<R>,
+}
+
+impl<R: Runtime> ShellCallback for PluginShellCb<R> {
+    fn rx(&self, fd: u32, data: &[u8]) {
+        let payload = ShellData {
+            token: self.token.clone(),
+            fd,
+            data: Vec::from(data),
+        };
+        self.app.emit_all("shell-rx", payload).unwrap_or(());
+    }
+
+    fn info(&self, info: ShellInfo) {
+        self.app.emit_all("shell-info", info).unwrap_or(());
+    }
 }

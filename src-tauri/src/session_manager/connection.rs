@@ -97,7 +97,7 @@ impl Connection {
             .get(&self.device.name)
             .expect("Connection should be available")
             .clone();
-        let mut ch = self.open_cmd_channel().await?;
+        let ch = self.open_cmd_channel().await?;
         return Ok(Shell {
             token: ShellToken {
                 connection_id: self.id,

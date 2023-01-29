@@ -11,7 +11,7 @@ use tokio::sync::oneshot::channel;
 use tokio::sync::MutexGuard;
 use uuid::Uuid;
 
-use crate::session_manager::{Error, Shell, ShellBuffer, ShellInfo, ShellToken};
+use crate::session_manager::{Error, Shell, ShellBuffer, ShellCallback, ShellInfo, ShellToken};
 
 pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
 
@@ -59,14 +59,14 @@ impl Shell {
         return Ok(());
     }
 
-    pub(crate) async fn run<F>(&self, rx: F) -> Result<(), Error>
+    pub(crate) async fn run<CB>(&self, cb: CB) -> Result<(), Error>
     where
-        F: Fn(u32, &[u8]) -> (),
+        CB: ShellCallback + Send + 'static,
     {
         log::info!("waiting permit to run {:?}", self.token);
         let permit = self.ready.acquire().await.unwrap();
         log::info!("shell started {:?}", self.token);
-        let (mut sender, mut receiver) = unbounded_channel::<Vec<u8>>();
+        let (sender, mut receiver) = unbounded_channel::<Vec<u8>>();
         *self.sender.lock().await = Some(sender);
         let mut status: Option<u32> = None;
         let mut eof: bool = false;
@@ -85,15 +85,17 @@ impl Shell {
                 result = self.wait() => {
                     match result? {
                         ChannelMsg::Data { data } => {
-                            log::info!("Data {{ data: {:?} }}", data);
-                            self.parser.lock().unwrap().process(data.as_ref());
-                            rx(0, data.as_ref());
+                            let sh_changed = self.process(data.as_ref());
+                            cb.rx(0, data.as_ref());
+                            if sh_changed {
+                                cb.info(self.info());
+                            }
                         }
                         ChannelMsg::ExtendedData { data, ext } => {
                             log::info!("ExtendedData {{ data: {:?}, ext: {} }}", data, ext);
                             if ext == 1 {
-                                self.parser.lock().unwrap().process(data.as_ref());
-                                rx(1, data.as_ref());
+                                self.process(data.as_ref());
+                                cb.rx(1, data.as_ref());
                             }
                         }
                         ChannelMsg::ExitStatus { exit_status } => {
@@ -169,6 +171,13 @@ impl Shell {
         } else {
             Err(Error::disconnected())
         };
+    }
+
+    fn process(&self, data: &[u8]) -> bool {
+        let mut parser = self.parser.lock().unwrap();
+        let old = parser.screen().clone();
+        parser.process(data);
+        return !parser.screen().title_diff(&old).is_empty();
     }
 
     fn title(&self) -> String {

@@ -52,6 +52,12 @@ pub struct Shell {
     pub(crate) ready: Semaphore,
 }
 
+pub trait ShellCallback: Sized + Sync {
+    fn rx(&self, fd: u32, data: &[u8]);
+
+    fn info(&self, info: ShellInfo);
+}
+
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct ShellToken {
     pub connection_id: Uuid,

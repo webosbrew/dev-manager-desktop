@@ -131,7 +131,6 @@ impl SessionManager {
 
     async fn conn_new(&self, device: Device) -> Result<Connection, Error> {
         let id = Uuid::new_v4();
-        let mut use_legacy_algo = false;
         let (mut handle, sig_alg) = match self.try_conn(&id, &device, false).await {
             Ok(v) => v,
             Err(_e @ russh::Error::KexInit)

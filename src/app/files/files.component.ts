@@ -9,6 +9,8 @@ import {open as openPath} from '@tauri-apps/api/shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/api/dialog';
 import * as path from "path";
 import moment from "moment";
+import {RemoteCommandService} from "../core/services/remote-command.service";
+import {trimEnd} from "lodash";
 
 class FilesState {
 
@@ -28,6 +30,7 @@ export class FilesComponent implements OnInit, OnDestroy {
   device: Device | null = null;
   session: FileSession | null = null;
   pwd: string | null = null;
+  home: string | null = null;
   files$: Observable<FilesState>;
 
   selectedItems: FileItem[] | null = null;
@@ -38,16 +41,20 @@ export class FilesComponent implements OnInit, OnDestroy {
   constructor(
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
+    private cmd: RemoteCommandService,
   ) {
     this.filesSubject = new BehaviorSubject<FilesState>(new FilesState(''));
     this.files$ = this.filesSubject.asObservable();
   }
 
   ngOnInit(): void {
-    this.subscription = this.deviceManager.selected$.subscribe((selected) => {
+    this.subscription = this.deviceManager.selected$.subscribe(async (selected) => {
       this.device = selected;
       this.session = selected && this.deviceManager.fileSession(selected);
-      this.cd('/media/developer', true);
+      if (selected) {
+        this.home = await this.homeDir();
+      }
+      await this.cd(this.home ?? '/media/developer', true);
     });
   }
 
@@ -73,6 +80,13 @@ export class FilesComponent implements OnInit, OnDestroy {
     this.pwd = dir;
     this.filesSubject.next(new FilesState(dir, list.sort(this.compareName), undefined));
     this.selectedItems = null;
+  }
+
+  async homeDir(): Promise<string> {
+    const def = '/media/developer';
+    if (!this.device) return def;
+    let path = await this.cmd.exec(this.device, 'echo -n $HOME', 'utf-8');
+    return trimEnd(path, ' /');
   }
 
   compareName(this: void, a: FileItem, b: FileItem): number {

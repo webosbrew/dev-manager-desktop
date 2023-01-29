@@ -1,5 +1,5 @@
 import {BehaviorSubject, noop, Observable, Subject} from "rxjs";
-import {emit, listen} from "@tauri-apps/api/event";
+import {listen} from "@tauri-apps/api/event";
 import {IpcClient} from "./ipc-client";
 import {Injectable, NgZone} from "@angular/core";
 import {Device} from "../../types";
@@ -77,6 +77,9 @@ export class RemoteShellService extends IpcClient {
       if (shell) {
         shell.next(Buffer.from(message.data));
       }
+    }).then(noop);
+    listen('shell-info', () => {
+      this.list().then(l => this.shellsSubject.next(l));
     }).then(noop);
     listen('shell-opened', e => {
       console.log('shell-opened', this.shellSessions, e.payload);
