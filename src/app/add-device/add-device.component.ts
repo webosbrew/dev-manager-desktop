@@ -106,7 +106,8 @@ export class AddDeviceComponent {
   private async confirmVerificationFailure(device: NewDevice, e: Error): Promise<boolean> {
     const ref = MessageDialogComponent.open(this.modalService, {
       title: 'Verification Failed',
-      message: 'Add this device anyway?',
+      message: `Add ${device.name} anyway?`,
+      error: e,
       positive: 'OK',
       negative: 'Cancel',
     });
