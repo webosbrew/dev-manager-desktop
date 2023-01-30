@@ -7,9 +7,10 @@ TV - [Download Now](https://github.com/webosbrew/dev-manager-desktop/releases/la
 
 - Mo need to install LG SDK or IDE
 - Add device without need to use command line
-- Configuration compatible with [ares-cli](https://github.com/webosose/ares-cli)
 - Install apps on TV with a few clicks
+- Configuration compatible with [ares-cli](https://github.com/webosose/ares-cli)
 - Works on Windows, Linux and macOS (Apple Silicon too!)
+- Dark mode follows system preferences
 
 ![Add Device](https://user-images.githubusercontent.com/830358/215522596-196d9629-3942-4533-bebb-5a81ba62ebc0.png)
 
