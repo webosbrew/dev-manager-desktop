@@ -1,0 +1,23 @@
+.tabs-container {
+  background-color: black;
+}
+
+.terminal-tab {
+  position: absolute;
+  margin: auto;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.terminal-placeholder {
+  .xterm {
+    height: 100% !important;
+
+    .xterm-viewport {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  }
+}
