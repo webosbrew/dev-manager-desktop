@@ -2616,7 +2616,7 @@ dependencies = [
 [[package]]
 name = "russh"
 version = "0.35.0-beta.9"
-source = "git+https://github.com/mariotaku/russh?branch=rsa-hash-override#38d405df3d8a7c4f872152f12b77b2408ec0507a"
+source = "git+https://github.com/mariotaku/russh?rev=42f0e2c#42f0e2c02e17d18b7ba9f0d19e3ea89cf10fdb8c"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -2651,7 +2651,7 @@ dependencies = [
 [[package]]
 name = "russh-cryptovec"
 version = "0.7.0"
-source = "git+https://github.com/mariotaku/russh?branch=rsa-hash-override#38d405df3d8a7c4f872152f12b77b2408ec0507a"
+source = "git+https://github.com/mariotaku/russh?rev=42f0e2c#42f0e2c02e17d18b7ba9f0d19e3ea89cf10fdb8c"
 dependencies = [
  "libc",
  "winapi",
@@ -2660,7 +2660,7 @@ dependencies = [
 [[package]]
 name = "russh-keys"
 version = "0.23.0-beta.1"
-source = "git+https://github.com/mariotaku/russh?branch=rsa-hash-override#38d405df3d8a7c4f872152f12b77b2408ec0507a"
+source = "git+https://github.com/mariotaku/russh?rev=42f0e2c#42f0e2c02e17d18b7ba9f0d19e3ea89cf10fdb8c"
 dependencies = [
  "aes",
  "bcrypt-pbkdf",

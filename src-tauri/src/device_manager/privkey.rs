@@ -10,6 +10,7 @@ impl PrivateKey {
         passphrase: Option<&str>,
         hash: Option<SignatureHash>,
     ) -> Result<KeyPair, Error> {
+        let passphrase = passphrase.filter(|s| !s.is_empty());
         return match self {
             PrivateKey::Path { name } => {
                 load_secret_key_with_hash(ssh_dir().unwrap().join(name), passphrase.clone(), hash)
