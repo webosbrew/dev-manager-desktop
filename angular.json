@@ -45,7 +45,8 @@
             },
             "allowedCommonJsDependencies": [
               "rxjs",
-              "semver"
+              "semver",
+              "buffer"
             ]
           },
           "configurations": {

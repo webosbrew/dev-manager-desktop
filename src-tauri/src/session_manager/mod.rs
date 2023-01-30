@@ -104,5 +104,6 @@ pub enum ErrorKind {
     NotFound,
     FileNotFound { path: String },
     EmptyData,
+    NoPty,
     ExitStatus { exit_code: u32, stderr: Vec<u8> },
 }

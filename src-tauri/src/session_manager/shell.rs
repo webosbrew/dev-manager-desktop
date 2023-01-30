@@ -8,10 +8,11 @@ use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::mpsc::unbounded_channel;
 
-
 use uuid::Uuid;
 
-use crate::session_manager::{Error, Shell, ShellBuffer, ShellCallback, ShellInfo, ShellToken};
+use crate::session_manager::{
+    Error, ErrorKind, Shell, ShellBuffer, ShellCallback, ShellInfo, ShellToken,
+};
 
 pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
 
@@ -26,6 +27,12 @@ impl Shell {
     }
 
     pub async fn resize(&self, cols: u16, rows: u16) -> Result<(), Error> {
+        if !self.has_pty {
+            return Err(Error {
+                message: String::from("Can't resize. This shell is a dumb shell"),
+                kind: ErrorKind::NoPty,
+            });
+        }
         if let Some(ch) = self.channel.lock().await.as_mut() {
             ch.window_change(cols as u32, rows as u32, 0, 0).await?;
         } else {
@@ -36,6 +43,12 @@ impl Shell {
     }
 
     pub async fn screen(&self, cols: u16, rows: u16) -> Result<ShellBuffer, Error> {
+        if !self.has_pty {
+            return Err(Error {
+                message: String::from("Can't get screen content. This shell is a dumb shell"),
+                kind: ErrorKind::NoPty,
+            });
+        }
         let guard = self.parser.lock().unwrap();
         let screen = guard.screen();
         let mut rows: Vec<Vec<u8>> = screen.rows_formatted(0, cols).collect();
@@ -70,7 +83,6 @@ impl Shell {
                 data = receiver.recv() => {
                     log::info!("Write {{ data: {:?} }}", data);
                     match data {
-                        // TODO transform data for dumb shell
                         Some(data) => self.send(&data[..]).await?,
                         None => {
                             self.close().await?;
@@ -81,7 +93,6 @@ impl Shell {
                 result = self.wait() => {
                     match result? {
                         ChannelMsg::Data { data } => {
-                            // TODO: process data for dumb shell
                             let sh_changed = self.process(data.as_ref());
                             cb.rx(0, data.as_ref());
                             if sh_changed {
@@ -90,7 +101,6 @@ impl Shell {
                         }
                         ChannelMsg::ExtendedData { data, ext } => {
                             log::info!("ExtendedData {{ data: {:?}, ext: {} }}", data, ext);
-                            // TODO: process data for dumb shell
                             if ext == 1 {
                                 self.process(data.as_ref());
                                 cb.rx(1, data.as_ref());

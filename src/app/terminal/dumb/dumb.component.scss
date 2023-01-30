@@ -1,0 +1,17 @@
+.container {
+  font-family: monospace;
+  color: white;
+  overflow-y: scroll;
+}
+
+.logs {
+}
+
+.prompt {
+  textarea {
+    resize: none;
+    background: none;
+    border: none;
+    font-size: 0.875rem;
+  }
+}

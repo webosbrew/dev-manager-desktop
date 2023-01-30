@@ -16,6 +16,7 @@ export class CrashesComponent {
   private deviceField: Device | null = null;
 
   reports?: CrashReport[];
+  reportsError?: Error;
 
   constructor(public deviceManager: DeviceManagerService, private modals: NgbModal) {
   }
@@ -27,8 +28,13 @@ export class CrashesComponent {
   @Input()
   set device(device: Device | null) {
     this.deviceField = device;
-    if (device) {
-      this.deviceManager.listCrashReports(device).then(reports => this.reports = reports);
+    this.reload();
+  }
+
+  public reload() {
+    if (this.deviceField) {
+      this.deviceManager.listCrashReports(this.deviceField).then(reports => this.reports = reports)
+        .catch(e => this.reportsError = e);
     } else {
       this.reports = undefined;
     }

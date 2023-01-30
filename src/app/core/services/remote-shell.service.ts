@@ -26,7 +26,7 @@ export interface ShellScreenContent {
   cursor: [number, number];
 }
 
-export type ShellObservable = ShellWritable & Observable<Uint8Array>;
+export type ShellObservable = ShellWritable & Observable<Buffer>;
 
 interface ShellWritable {
 
@@ -37,7 +37,7 @@ interface ShellWritable {
   resize(rows: number, cols: number): Promise<void>;
 }
 
-export class ShellSubject extends Subject<Uint8Array> implements ShellWritable {
+export class ShellSubject extends Subject<Buffer> implements ShellWritable {
   private readonly encoder = new TextEncoder();
 
   constructor(private shell: RemoteShellService, private token: ShellToken) {
@@ -70,13 +70,13 @@ export class RemoteShellService extends IpcClient {
     super(zone, 'remote-shell');
     this.shellsSubject = new BehaviorSubject<ShellInfo[] | null>(null);
     listen('shells-updated', e => {
-      this.shellsSubject.next(e.payload as ShellInfo[]);
+      zone.run(() => this.shellsSubject.next(e.payload as ShellInfo[]));
     }).then(noop);
     listen('shell-rx', e => {
       const message = e.payload as ShellMessage;
       const shell = this.shellSessions.get(message.token);
       if (shell) {
-        shell.next(Buffer.from(message.data));
+        zone.run(() => shell.next(Buffer.from(message.data)));
       }
     }).then(noop);
     listen('shell-info', () => {
