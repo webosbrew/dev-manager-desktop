@@ -1,19 +1,22 @@
 import {
   AfterViewInit,
   Component,
-  ElementRef, EventEmitter,
+  ElementRef,
+  EventEmitter,
   HostListener,
   Input,
   OnDestroy,
-  OnInit, Output,
+  OnInit,
+  Output,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
 import {Terminal} from "xterm";
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
-import {fromEvent, Subscription} from "rxjs";
-import {debounceTime} from "rxjs/operators";
+import {fromEvent, noop, Subscription, tap} from "rxjs";
+import {debounceTime, filter, map} from "rxjs/operators";
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
+import {isNonNull} from "../../shared/operators";
 
 @Component({
   selector: 'app-terminal-pty',
@@ -52,10 +55,16 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     this.term.onData((data) => this.shellKey(data));
 
-    this.resizeSubscription = fromEvent(window, 'resize').pipe(debounceTime(500)).subscribe(() => {
-      this.pendingResize = undefined;
-      this.autoResize();
-    });
+    this.resizeSubscription = fromEvent(window, 'resize')
+      .pipe(
+        map(() => this.fitAddon.proposeDimensions()),
+        filter(isNonNull),
+        tap((size) => this.pendingResize = size),
+        debounceTime(500)
+      ).subscribe(() => {
+        this.pendingResize = undefined;
+        this.autoResize().then(noop);
+      });
   }
 
   ngAfterViewInit(): void {
@@ -102,7 +111,6 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
       this.term.write(row);
       firstLine = false;
     }
-    // this.term.select(screen.cursor[1], screen.cursor[0], 1);
     shell.subscribe((data) => {
       this.term.write(data);
     }, (error) => {

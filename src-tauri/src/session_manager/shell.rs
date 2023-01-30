@@ -51,8 +51,7 @@ impl Shell {
     }
 
     pub async fn close(&self) -> Result<(), Error> {
-        let mut option = self.channel.lock().await.take();
-        if let Some(ch) = option {
+        if let Some(ch) = self.channel.lock().await.take() {
             ch.close().await?;
         }
         return Ok(());
@@ -71,6 +70,7 @@ impl Shell {
                 data = receiver.recv() => {
                     log::info!("Write {{ data: {:?} }}", data);
                     match data {
+                        // TODO transform data for dumb shell
                         Some(data) => self.send(&data[..]).await?,
                         None => {
                             self.close().await?;
@@ -81,6 +81,7 @@ impl Shell {
                 result = self.wait() => {
                     match result? {
                         ChannelMsg::Data { data } => {
+                            // TODO: process data for dumb shell
                             let sh_changed = self.process(data.as_ref());
                             cb.rx(0, data.as_ref());
                             if sh_changed {
@@ -89,6 +90,7 @@ impl Shell {
                         }
                         ChannelMsg::ExtendedData { data, ext } => {
                             log::info!("ExtendedData {{ data: {:?}, ext: {} }}", data, ext);
+                            // TODO: process data for dumb shell
                             if ext == 1 {
                                 self.process(data.as_ref());
                                 cb.rx(1, data.as_ref());

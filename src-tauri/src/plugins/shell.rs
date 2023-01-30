@@ -29,8 +29,15 @@ async fn open<R: Runtime>(
 }
 
 #[tauri::command]
-async fn close(manager: State<'_, SessionManager>, token: ShellToken) -> Result<(), Error> {
-    return manager.shell_close(&token).await;
+async fn close<R: Runtime>(
+    app: AppHandle<R>,
+    manager: State<'_, SessionManager>,
+    token: ShellToken,
+) -> Result<(), Error> {
+    manager.shell_close(&token).await?;
+    app.emit_all("shells-updated", manager.shell_list())
+        .unwrap_or(());
+    return Ok(());
 }
 
 #[tauri::command]
