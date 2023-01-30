@@ -44,7 +44,7 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private resizeSubscription?: Subscription;
 
-  constructor(private cmd: RemoteShellService) {
+  constructor(private shells: RemoteShellService) {
     this.term = new Terminal({
       scrollback: 1000,
     });
@@ -97,7 +97,7 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async openDefaultShell(token: ShellToken): Promise<void> {
-    const shell = this.cmd.obtain(token);
+    const shell = this.shells.obtain(token);
     this.shell = shell;
     const cols = this.term.cols, rows = this.term.rows;
     this.term.reset();

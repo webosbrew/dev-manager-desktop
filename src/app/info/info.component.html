@@ -1,11 +1,7 @@
-<div class="p-4">
-  <div class="card" *ngIf="device && infoError">
-    <div class="card-body">
-      <h5 class="card-title">Unable to get device info</h5>
-      <p class="card-text">Failed to connect to {{device.name}}</p>
-      <button class="btn btn-primary" (click)="loadInfo()">Retry</button>
-    </div>
-  </div>
+<div class="p-3">
+  <app-error-card [error]="infoError" title="Unable to get device info" (retry)="loadInfo()"
+                  *ngIf="device && infoError">
+  </app-error-card>
   <div class="card" *ngIf="sysInfo">
     <div class="card-body">
       <h5 class="card-title">Device - {{sysInfo.modelName}}</h5>

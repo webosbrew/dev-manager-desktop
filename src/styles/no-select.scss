@@ -2,15 +2,17 @@
 :not(input):not(textarea),
 :not(input):not(textarea)::after,
 :not(input):not(textarea)::before {
-    user-select: none;
-    cursor: default;
+  user-select: none;
+  cursor: default;
 }
+
 input, button, textarea, :focus {
-    outline: none;
+  outline: none;
 }
 
 button, a {
   cursor: pointer !important;
+
   ::before {
     cursor: pointer !important;
   }
@@ -18,10 +20,16 @@ button, a {
 
 /* disable image and anchor dragging */
 a:not([draggable=true]), img:not([draggable=true]) {
-    user-drag: none;
+  user-drag: none;
 }
+
 a[href^="http://"],
 a[href^="https://"],
 a[href^="ftp://"] {
-    user-drag: auto;
+  user-drag: auto;
+}
+
+.user-select-text {
+  user-select: text !important;
+  cursor: text !important;
 }

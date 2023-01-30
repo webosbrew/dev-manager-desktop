@@ -50,6 +50,7 @@
     "ng-bootstrap-darkmode": "^5.0.0",
     "ng-let": "^13.0.6",
     "ngx-filesize": "^2.0.16",
+    "ngx-textarea-autosize": "2.0.3",
     "path-browserify": "^1.0.1",
     "rxjs": "~7.5.0",
     "semver": "^7.3.7",

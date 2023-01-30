@@ -5,7 +5,8 @@ import {TerminalRoutingModule} from './terminal-routing.module';
 import {NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
 import {TerminalComponent} from "./terminal.component";
 import {PtyComponent} from "./pty/pty.component";
-import { DumbComponent } from './dumb/dumb.component';
+import {DumbComponent} from './dumb/dumb.component';
+import {TextareaAutosizeModule} from "ngx-textarea-autosize";
 
 
 @NgModule({
@@ -17,7 +18,8 @@ import { DumbComponent } from './dumb/dumb.component';
   imports: [
     CommonModule,
     NgbNavModule,
-    TerminalRoutingModule
+    TerminalRoutingModule,
+    TextareaAutosizeModule,
   ]
 })
 export class TerminalModule {

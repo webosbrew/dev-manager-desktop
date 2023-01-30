@@ -7,8 +7,8 @@
               (click)="closeSession($event, shell.token)">×</span>
       </a>
       <ng-template ngbNavContent [ngSwitch]="shell.hasPty">
-        <app-terminal-pty [token]="shell.token" class="terminal-tab" *ngSwitchCase="true"></app-terminal-pty>
-        <app-terminal-dumb class="terminal-tab" *ngSwitchDefault></app-terminal-dumb>
+        <app-terminal-pty class="terminal-tab" [token]="shell.token" *ngSwitchCase="true"></app-terminal-pty>
+        <app-terminal-dumb class="terminal-tab" [token]="shell.token" *ngSwitchDefault></app-terminal-dumb>
       </ng-template>
     </li>
     <li class="nav-item">

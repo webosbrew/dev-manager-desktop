@@ -82,8 +82,15 @@ export class DeviceManagerService extends IpcClient {
 
   async listCrashReports(device: Device): Promise<CrashReport[]> {
     return this.cmd.exec(device, 'find /tmp/faultmanager/crash/ -name \'*.gz\' -print0', 'utf-8')
-      .then(output => output.split('\0').filter(l => l.length)).then(list =>
-        Promise.all(list.map(l => CrashReport.obtain(this, device, l))));
+      .catch((e) => {
+        if (e.data) {
+          throw new Error(e.data);
+        } else {
+          throw e;
+        }
+      })
+      .then(output => output.split('\0').filter(l => l.length))
+      .then(list => Promise.all(list.map(l => CrashReport.obtain(this, device, l))));
   }
 
   async saveCrashReport(entry: CrashReportEntry, target: string): Promise<void> {

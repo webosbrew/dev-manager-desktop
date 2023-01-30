@@ -1,4 +1,4 @@
-<div class="w-100 h-100 row mx-0 overflow-hidden">
+<div class="w-100 h-100 row mx-0 overflow-hidden" *ngIf="!reportsError else error">
   <ul ngbNav #nav="ngbNav" class="col-4 col-lg-3 col-xl-2 nav-pills p-2" orientation="vertical">
     <li [ngbNavItem]="report.path" *ngFor="let report of reports">
       <a class="report-entry" ngbNavLink>
@@ -28,3 +28,8 @@
 
   <div [ngbNavOutlet]="nav" class="col-8 col-lg-9 col-xl-10 h-100 px-0"></div>
 </div>
+<ng-template #error>
+  <div class="p-3">
+    <app-error-card title="Failed to find crash reports" [error]="reportsError" (retry)="reload()"></app-error-card>
+  </div>
+</ng-template>
