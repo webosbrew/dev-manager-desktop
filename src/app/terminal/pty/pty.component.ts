@@ -53,7 +53,8 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.term.onData((data) => this.shellKey(data));
+    this.term.onData((data) => this.shellData(data));
+    this.term.onKey(({domEvent}) => this.shellKey(domEvent));
 
     this.resizeSubscription = fromEvent(window, 'resize')
       .pipe(
@@ -120,9 +121,27 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  async shellKey(key: string): Promise<void> {
+  async shellData(key: string): Promise<void> {
     // if (!this.shell || await this.shell.closed) return;
     await this.shell?.write(key);
+  }
+
+  async shellKey(event: KeyboardEvent): Promise<void> {
+    if (
+      (event.key === 'Insert' && event.shiftKey) ||
+      (event.key === 'v' && event.ctrlKey)
+    ) {
+      const text = await navigator.clipboard.readText();
+      console.info('pasting text', text);
+      await this.shell?.write(text);
+    } else if (
+      (event.key === 'Insert' && event.ctrlKey) ||
+      (event.key === 'c' && event.ctrlKey && event.shiftKey)
+    ) {
+      const text = this.term.getSelection();
+      console.info('copying text', text);
+      await navigator.clipboard.writeText(text);
+    }
   }
 
   private async autoResize() {
