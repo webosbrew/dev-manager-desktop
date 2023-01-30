@@ -24,6 +24,7 @@ export class MessageDialogComponent implements AfterViewInit, MessageDialogConfi
   alternative?: string;
   positiveStyle?: ButtonStyle = 'primary';
   messageExtras?: Record<string, any>;
+  error?: Error;
 
   @ViewChild('messageComponent', {read: ViewContainerRef})
   messageComponent?: ViewContainerRef;
@@ -83,5 +84,6 @@ export interface MessageDialogConfig {
   negative?: string | null;
   alternative?: string | null;
   positiveStyle?: ButtonStyle;
+  error?: Error;
   messageExtras?: { [keys: string]: any };
 }
