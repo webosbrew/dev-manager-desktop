@@ -36,8 +36,6 @@ export class DeviceManagerService extends IpcClient {
 
   load(): void {
     this.list().then(devices => this.onDevicesUpdated(devices));
-    // this.invokeDirectly<SessionToken[]>('shell-session', 'list')
-    //   .then(shells => this.shellsSubject.next(shells));
   }
 
   async list(): Promise<Device[]> {
@@ -66,10 +64,6 @@ export class DeviceManagerService extends IpcClient {
     return await this.invoke('novacom_getkey', {address, passphrase});
   }
 
-  async test(device: DeviceLike): Promise<boolean> {
-    return await this.invoke('test', {device});
-  }
-
   async devModeToken(device: Device): Promise<string> {
     return await this.file.read(device, '/var/luna/preferences/devmode_enabled', 'utf-8')
       .then(s => {
@@ -91,14 +85,6 @@ export class DeviceManagerService extends IpcClient {
       })
       .then(output => output.split('\0').filter(l => l.length))
       .then(list => Promise.all(list.map(l => CrashReport.obtain(this, device, l))));
-  }
-
-  async saveCrashReport(entry: CrashReportEntry, target: string): Promise<void> {
-    return await this.invoke('saveCrashReport', {
-      device: entry.device,
-      path: entry.path,
-      target
-    });
   }
 
   async zcat(device: Device, path: string): Promise<Buffer> {
