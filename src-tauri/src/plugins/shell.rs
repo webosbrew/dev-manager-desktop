@@ -34,7 +34,7 @@ async fn close<R: Runtime>(
     manager: State<'_, SessionManager>,
     token: ShellToken,
 ) -> Result<(), Error> {
-    manager.shell_close(&token).await?;
+    manager.shell_close(&token)?;
     app.emit_all("shells-updated", manager.shell_list())
         .unwrap_or(());
     return Ok(());
@@ -102,5 +102,12 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
 
     fn info(&self, info: ShellInfo) {
         self.app.emit_all("shell-info", info).unwrap_or(());
+    }
+
+    fn closed(self) {
+        let manager = self.app.state::<SessionManager>();
+        manager.shell_close(&self.token).unwrap_or(());
+        self.app.emit_all("shells-updated", manager.shell_list())
+            .unwrap_or(());
     }
 }

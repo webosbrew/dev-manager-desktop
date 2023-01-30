@@ -83,7 +83,7 @@ impl SessionManager {
         }
     }
 
-    pub async fn shell_close(&self, token: &ShellToken) -> Result<(), Error> {
+    pub fn shell_close(&self, token: &ShellToken) -> Result<(), Error> {
         let shell = self.shells.lock().unwrap().remove(&token).clone();
         if let Some(shell) = shell {
             let shell = shell.clone();

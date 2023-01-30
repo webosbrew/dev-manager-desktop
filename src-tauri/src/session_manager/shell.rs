@@ -124,6 +124,8 @@ impl Shell {
                 }
             }
         }
+        self.channel.lock().await.take();
+        cb.closed();
         return Ok(());
     }
 

@@ -1,4 +1,3 @@
-
 use std::sync::{Arc, Mutex, Weak};
 use std::time::Instant;
 
@@ -6,7 +5,7 @@ use russh::client::Msg;
 use russh::Channel;
 use serde::Serialize;
 use tokio::sync::mpsc::UnboundedSender;
-use tokio::sync::{Mutex as AsyncMutex};
+use tokio::sync::Mutex as AsyncMutex;
 use uuid::Uuid;
 use vt100::Parser;
 
@@ -56,6 +55,8 @@ pub trait ShellCallback: Sized + Sync {
     fn rx(&self, fd: u32, data: &[u8]);
 
     fn info(&self, info: ShellInfo);
+
+    fn closed(self);
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
