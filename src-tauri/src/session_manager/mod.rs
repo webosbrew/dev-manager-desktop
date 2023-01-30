@@ -15,7 +15,6 @@ use crate::session_manager::connection::ConnectionsMap;
 use crate::session_manager::shell::ShellsMap;
 
 mod connection;
-mod device;
 mod error;
 mod handler;
 mod manager;

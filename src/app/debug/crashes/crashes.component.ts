@@ -1,8 +1,9 @@
 import {Component, Input} from '@angular/core';
 import {CrashReport, DeviceManagerService} from '../../core/services';
 import {Device} from "../../types";
-import {lastValueFrom} from "rxjs";
+import {firstValueFrom} from "rxjs";
 import {save} from '@tauri-apps/api/dialog';
+import {writeTextFile} from '@tauri-apps/api/fs';
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 
@@ -41,7 +42,7 @@ export class CrashesComponent {
   }
 
   async copyReport(report: CrashReport): Promise<void> {
-    await navigator.clipboard.writeText(await lastValueFrom(report.content));
+    await navigator.clipboard.writeText(await firstValueFrom(report.content));
   }
 
   async saveReport(report: CrashReport): Promise<void> {
@@ -58,7 +59,7 @@ export class CrashesComponent {
     }
     const progress = ProgressDialogComponent.open(this.modals);
     try {
-      await this.deviceManager.saveCrashReport(report, target);
+      await writeTextFile(target, await firstValueFrom(report.content));
     } finally {
       progress.close();
     }
