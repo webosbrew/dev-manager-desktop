@@ -3,9 +3,9 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use russh::client;
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
-use russh::{client};
 use russh_keys::key::{SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
 use uuid::Uuid;
 
@@ -86,7 +86,10 @@ impl SessionManager {
     pub async fn shell_close(&self, token: &ShellToken) -> Result<(), Error> {
         let shell = self.shells.lock().unwrap().remove(&token).clone();
         if let Some(shell) = shell {
-            shell.close().await?;
+            let shell = shell.clone();
+            tokio::spawn(async move {
+                shell.close().await.unwrap_or(());
+            });
         }
         return Ok(());
     }
