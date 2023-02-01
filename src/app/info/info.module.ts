@@ -10,11 +10,11 @@ import {SharedModule} from "../shared/shared.module";
   declarations: [
     InfoComponent,
   ],
-    imports: [
-        CommonModule,
-        InfoRoutingModule,
-        SharedModule,
-    ]
+  imports: [
+    CommonModule,
+    InfoRoutingModule,
+    SharedModule
+  ]
 })
 export class InfoModule {
 }

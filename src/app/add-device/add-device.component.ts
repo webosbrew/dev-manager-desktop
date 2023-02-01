@@ -1,11 +1,13 @@
 import {Component} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, Validators} from '@angular/forms';
 import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {DeviceManagerService} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {KeyserverHintComponent} from './keyserver-hint/keyserver-hint.component';
 import {Device, NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../types";
+import {Observable, of} from "rxjs";
+import {fromPromise} from "rxjs/internal/observable/innerFrom";
 
 @Component({
   selector: 'app-info',
@@ -30,10 +32,14 @@ export class AddDeviceComponent {
       // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
       sshUsername: ['prisoner', Validators.pattern(/^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$/)],
       sshAuth: ['devKey'],
-      sshPassword: [],
-      sshPrivkey: [],
-      sshPrivkeyPassphrase: [''],
+      sshPassword: [''],
+      sshPrivateKey: ['', [], [(c: AbstractControl) => this.validatePrivateKeyName(c)]],
+      sshPrivateKeyPassphrase: ['', [], [(c: AbstractControl) => this.validatePrivateKeyPassphrase(c)]],
     });
+    const sshPrivateKey = this.formGroup.get('sshPrivateKey')!;
+    const sshPrivateKeyPassphrase = this.formGroup.get('sshPrivateKeyPassphrase')!;
+    sshPrivateKey.valueChanges.subscribe(() => sshPrivateKeyPassphrase.markAsDirty());
+    sshPrivateKeyPassphrase.valueChanges.subscribe(() => sshPrivateKey.markAsDirty());
   }
 
   get sshAuth(): string | null {
@@ -131,18 +137,54 @@ export class AddDeviceComponent {
       case 'devKey': {
         return {
           ...base, privateKey: {
-            openSshData: await this.fetchPrivKey(value.address, value.sshPrivkeyPassphrase!),
-          }, passphrase: value.sshPrivkeyPassphrase!
+            openSshData: await this.fetchPrivKey(value.address, value.sshPrivateKeyPassphrase!),
+          }, passphrase: value.sshPrivateKeyPassphrase!
         };
       }
       case 'localKey': {
         return {
           ...base, privateKey: {
-            openSsh: value.sshPrivkey!,
-          }, passphrase: value.sshPrivkeyPassphrase
+            openSsh: value.sshPrivateKey!,
+          }, passphrase: value.sshPrivateKeyPassphrase
         };
       }
     }
+  }
+
+  private validatePrivateKeyName(control: AbstractControl): Observable<null | ValidationErrors> {
+    const name: string = control.value;
+    if (!name) {
+      return of(null);
+    }
+    const passphrase = (control.parent?.value as SetupInfo)?.sshPrivateKeyPassphrase || undefined;
+    return fromPromise(this.deviceManager.verifyLocalPrivateKey(name, passphrase)
+      .then(() => null).catch(e => {
+        switch (e.reason) {
+          case 'PassphraseRequired':
+          case 'BadPassphrase':
+          case 'UnsupportedKey':
+          case 'IO':
+            return {[e.reason]: true};
+        }
+        console.log(e);
+        return null;
+      }));
+  }
+
+  private validatePrivateKeyPassphrase(control: AbstractControl): Observable<null | ValidationErrors> {
+    const name = (control.parent?.value as SetupInfo)?.sshPrivateKey || undefined;
+    if (!name) {
+      return of(null);
+    }
+    const passphrase: string = control.value;
+    return fromPromise(this.deviceManager.verifyLocalPrivateKey(name, passphrase)
+      .then(() => null).catch(e => {
+        switch (e.reason) {
+          case 'BadPassphrase':
+            return {[e.reason]: true};
+        }
+        return null;
+      }));
   }
 
 }
@@ -155,6 +197,6 @@ interface SetupInfo {
   sshUsername: string;
   sshAuth: NewDeviceAuthentication;
   sshPassword?: string;
-  sshPrivkey?: string;
-  sshPrivkeyPassphrase?: string;
+  sshPrivateKey?: string;
+  sshPrivateKeyPassphrase?: string;
 }

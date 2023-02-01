@@ -10,14 +10,12 @@ import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {CoreModule} from './core/core.module';
 import {HomeComponent} from './home/home.component';
-import {CrashesComponent} from './debug/crashes/crashes.component';
 import {RenewScriptComponent} from './info/renew-script/renew-script.component';
-import {ExternalLinkDirective} from './shared/directives';
 import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {NgbAccordionModule, NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
 import {NgBootstrapDarkmodeModule} from "ng-bootstrap-darkmode";
-import { RemoveDeviceComponent } from './remove-device/remove-device.component';
+import {RemoveDeviceComponent} from './remove-device/remove-device.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +23,6 @@ import { RemoveDeviceComponent } from './remove-device/remove-device.component';
     HomeComponent,
     AddDeviceComponent,
     KeyserverHintComponent,
-    ExternalLinkDirective,
     ConnHintComponent,
     RenewScriptComponent,
     UpdateDetailsComponent,

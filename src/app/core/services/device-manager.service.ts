@@ -56,21 +56,25 @@ export class DeviceManagerService extends IpcClient {
     return await this.invoke('add', {device});
   }
 
-  async loadPrivKey(device: Device): Promise<DevicePrivateKey> {
-    return await this.invoke('loadPrivKey', {device});
+  async readPrivKey(device: Device): Promise<string> {
+    return await this.invoke('privkey_read', {device});
   }
 
   async novacomGetKey(address: string, passphrase: string): Promise<string> {
     return await this.invoke('novacom_getkey', {address, passphrase});
   }
 
+  async verifyLocalPrivateKey(name: string, passphrase?: string): Promise<void> {
+    await this.invoke('localkey_verify', {name, passphrase});
+  }
+
   async devModeToken(device: Device): Promise<string> {
     return await this.file.read(device, '/var/luna/preferences/devmode_enabled', 'utf-8')
       .then(s => {
-        if (!s) {
-          throw new Error('No dev mode token');
+        if (!s || !s.match(/^[0-9a-z]+$/)) {
+          throw new Error('No valid dev mode token');
         }
-        return s.trim();
+        return s;
       });
   }
 

@@ -31,6 +31,7 @@ export class AppManagerService {
       })
       .catch((error: any) => {
         subject.error(error);
+        this.packagesSubjects.delete(device.name);
         return [];
       });
   }
@@ -127,10 +128,9 @@ export class AppManagerService {
     }).finally(() => this.load(device));
   }
 
-  async launch(device: Device, appId: string): Promise<void> {
+  async launch(device: Device, appId: string, params?: Record<string, any>): Promise<void> {
     await this.luna.call(device, 'luna://com.webos.applicationManager/launch', {
-      id: appId,
-      subscribe: false,
+      id: appId, subscribe: false, params
     }, true);
   }
 

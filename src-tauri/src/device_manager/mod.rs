@@ -81,7 +81,13 @@ pub enum DeviceFileTransfer {
     Sftp,
 }
 
-#[derive(Debug, Serialize, Clone)]
-pub struct Error {
-    message: String,
+#[derive(Debug, Serialize)]
+#[serde(tag = "reason")]
+pub enum Error {
+    Message { message: String },
+    UnsupportedKey { type_name: String },
+    PassphraseRequired,
+    BadPassphrase,
+    IO { name: String, message:String },
+    Unimplemented { feature: Option<String> },
 }
