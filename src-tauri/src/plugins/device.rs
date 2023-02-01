@@ -42,6 +42,23 @@ async fn novacom_getkey(
     return manager.novacom_getkey(&address, &passphrase).await;
 }
 
+#[tauri::command]
+async fn localkey_verify(
+    manager: State<'_, DeviceManager>,
+    name: String,
+    passphrase: Option<String>,
+) -> Result<(), Error> {
+    return manager.localkey_verify(&name, passphrase.as_deref()).await;
+}
+
+#[tauri::command]
+async fn privkey_read(device: Device) -> Result<String, Error> {
+    return Ok(device
+        .private_key
+        .ok_or_else(|| Error::bad_config())?
+        .content()?);
+}
+
 /// Initializes the plugin.
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
     Builder::new(name)
@@ -50,7 +67,9 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
             set_default,
             add,
             remove,
-            novacom_getkey
+            novacom_getkey,
+            localkey_verify,
+            privkey_read,
         ])
         .build()
 }

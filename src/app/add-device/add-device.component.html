@@ -33,14 +33,26 @@
                [required]="sshAuth === 'password'">
       </div>
       <div class="col-md-6" [hidden]="sshAuth !== 'localKey'">
-        <label for="sshPrivkey">Private Key Name</label>
-        <input type="text" class="form-control" id="sshPrivkey" formControlName="sshPrivkey"
+        <label for="sshPrivateKey">Private Key Name</label>
+        <input type="text" class="form-control" id="sshPrivateKey" formControlName="sshPrivateKey"
                [required]="sshAuth === 'localKey'">
+        <div class="invalid-feedback" *ngIf="formGroup.get('sshPrivateKey')?.hasError('UnsupportedKey')">
+          Unsupported private key. Please use RSA or Ed25519 based key.
+        </div>
+        <div class="invalid-feedback" *ngIf="formGroup.get('sshPrivateKey')?.hasError('IO')">
+          Can't find private key
+        </div>
+        <div class="invalid-feedback" *ngIf="formGroup.get('sshPrivateKey')?.hasError('PassphraseRequired')">
+          This private key requires passphrase
+        </div>
       </div>
       <div class="col-md-6" [hidden]="sshAuth !== 'devKey' && sshAuth !== 'localKey'">
-        <label for="sshPrivkeyPassphrase">Passphrase</label>
-        <input type="text" class="form-control" id="sshPrivkeyPassphrase" formControlName="sshPrivkeyPassphrase"
+        <label for="sshPrivateKeyPassphrase">Passphrase</label>
+        <input type="text" class="form-control" id="sshPrivateKeyPassphrase" formControlName="sshPrivateKeyPassphrase"
                [required]="sshAuth === 'devKey'">
+        <div class="invalid-feedback" *ngIf="formGroup.get('sshPrivateKeyPassphrase')?.hasError('BadPassphrase')">
+          Wrong passphrase
+        </div>
       </div>
       <div class="col-md-12">
         <label for="deviceDescription">Description</label>

@@ -1,29 +1,17 @@
-import {HttpClient} from '@angular/common/http';
-import {Injectable} from '@angular/core';
-import {firstValueFrom} from "rxjs";
+import {Injectable, NgZone} from '@angular/core';
+import {IpcClient} from "./ipc-client";
 
 @Injectable({
   providedIn: 'root'
 })
-export class DevModeService {
+export class DevModeService extends IpcClient {
 
-  constructor(private http: HttpClient) {
+  constructor(zone: NgZone) {
+    super(zone, "dev-mode");
   }
 
   async checkDevMode(sessionToken: string): Promise<DevModeResponse> {
-    return firstValueFrom(this.http.get<DevModeResponse>(`https://developer.lge.com/secure/CheckDevModeSession.dev`, {
-      params: {sessionToken},
-      observe: 'body',
-      responseType: 'json'
-    }));
-  }
-
-  async resetDevMode(sessionToken: string): Promise<any> {
-    return firstValueFrom(this.http.get(`https://developer.lge.com/secure/ResetDevModeSession.dev`, {
-      params: {sessionToken},
-      observe: 'body',
-      responseType: 'json'
-    }));
+    return this.invoke<string>('check', {sessionToken}).then(json => JSON.parse(json));
   }
 }
 

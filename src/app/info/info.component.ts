@@ -115,7 +115,10 @@ export class InfoComponent {
       await this.appManager.install(this.device, item.manifest!.ipkUrl);
     } catch (e) {
       // Ignore
+    } finally {
+      progress.close(true);
     }
-    progress.close(true);
+    await this.loadHomebrewInfo();
   }
+
 }

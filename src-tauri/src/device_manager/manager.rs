@@ -1,10 +1,14 @@
-use russh_keys::decode_secret_key;
+use crate::device_manager::io::{ensure_ssh_dir, read, ssh_dir, write};
+use crate::device_manager::{Device, DeviceManager, Error, PrivateKey};
 use russh_keys::encoding::Bytes;
+use russh_keys::key::KeyPair;
+use russh_keys::Error as SshKeyError;
+use russh_keys::{decode_secret_key, load_secret_key};
+use serde::__private::from_utf8_lossy;
+use std::fs;
+use std::io::ErrorKind;
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
-
-use crate::device_manager::io::{ensure_ssh_dir, read, write};
-use crate::device_manager::{Device, DeviceManager, Error, PrivateKey};
 
 impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
@@ -83,9 +87,27 @@ impl DeviceManager {
     pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
         let response = reqwest::get(format!("http://{}:9991/webos_rsa", address)).await?;
         let content = response.text().await?;
-        if let Err(_e) = decode_secret_key(&content, Some(&passphrase)) {
-            return Err(Error::new("Bad key"));
-        }
+        let passphrase = Some(passphrase).filter(|s| !s.is_empty());
+        decode_secret_key(&content, passphrase).map_err(DeviceManager::map_loadkey_err)?;
         return Ok(content);
+    }
+
+    pub async fn localkey_verify(&self, name: &str, passphrase: Option<&str>) -> Result<(), Error> {
+        let ssh_dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
+        let key_file = fs::canonicalize(ssh_dir.join(name))?;
+        let passphrase = passphrase.filter(|s| !s.is_empty());
+        load_secret_key(key_file.clone(), passphrase).map_err(DeviceManager::map_loadkey_err)?;
+        return Ok(());
+    }
+
+    fn map_loadkey_err(e: SshKeyError) -> Error {
+        return match e {
+            SshKeyError::UnsupportedKeyType(t) => Error::UnsupportedKey {
+                type_name: String::from(from_utf8_lossy(&t)),
+            },
+            SshKeyError::KeyIsEncrypted => Error::PassphraseRequired,
+            SshKeyError::IndexOutOfBounds => Error::BadPassphrase,
+            e => e.into(),
+        };
     }
 }

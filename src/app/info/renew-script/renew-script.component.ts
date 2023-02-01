@@ -12,7 +12,7 @@ import {save as showSaveDialog} from '@tauri-apps/api/dialog'
 })
 export class RenewScriptComponent implements OnInit {
 
-  public decryptedPrivKey?: string;
+  public privKeyContent?: string;
   public devModeToken$: Observable<string>;
   private devModeTokenSubject: Subject<string>;
 
@@ -27,7 +27,7 @@ export class RenewScriptComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     this.devModeTokenSubject.next(await this.deviceManager.devModeToken(this.device));
-    this.decryptedPrivKey = (await this.deviceManager.loadPrivKey(this.device)).privatePEM;
+    this.privKeyContent = await this.deviceManager.readPrivKey(this.device);
   }
 
   async copyScript(content: string): Promise<void> {

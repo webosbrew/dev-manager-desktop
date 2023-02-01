@@ -7,7 +7,8 @@ import {MessageDialogComponent} from './components/message-dialog/message-dialog
 import {ProgressDialogComponent} from './components/progress-dialog/progress-dialog.component';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {MessageTraceComponent} from './components/message-dialog/message-trace/message-trace.component';
-import { ErrorCardComponent } from './components/error-card/error-card.component';
+import {ErrorCardComponent} from './components/error-card/error-card.component';
+import {ExternalLinkDirective} from "./directives";
 
 @NgModule({
   declarations: [
@@ -17,9 +18,18 @@ import { ErrorCardComponent } from './components/error-card/error-card.component
     ProgressDialogComponent,
     MessageTraceComponent,
     ErrorCardComponent,
+    ExternalLinkDirective,
   ],
   imports: [CommonModule, FormsModule, NgbModule],
-    exports: [FormsModule, TrustUriPipe, ErrorCardComponent]
+  exports: [
+    PageNotFoundComponent,
+    TrustUriPipe,
+    MessageDialogComponent,
+    ProgressDialogComponent,
+    MessageTraceComponent,
+    ErrorCardComponent,
+    ExternalLinkDirective
+  ]
 })
 export class SharedModule {
 }

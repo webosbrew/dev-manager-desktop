@@ -38,10 +38,13 @@
             <pre class="pre-scrollable bg-panel p-3" #renewScript><![CDATA[#!/bin/sh]]>
 <ng-container><![CDATA[
 cat > /tmp/webos_privkey_{{device.name}} << END_OF_PRIVKEY
-{{decryptedPrivKey}}
+{{privKeyContent}}
 END_OF_PRIVKEY
 
 chmod 600 /tmp/webos_privkey_{{device.name}}
+]]></ng-container>
+<ng-container *ngIf="device.passphrase"><![CDATA[
+ssh-keygen -p -P '{{device.passphrase}}' -N '' -f /tmp/webos_privkey_{{device.name}}
 ]]></ng-container>
 <![CDATA[sessionToken=$(ssh -i /tmp/webos_privkey_{{device.name}} \
  -o ConnectTimeout=3 -o StrictHostKeyChecking=no \

@@ -1,3 +1,4 @@
+use std::fmt::format;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
@@ -7,6 +8,8 @@ use russh::client;
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
 use russh_keys::key::{SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
+use tokio::net::{TcpSocket, TcpStream};
+use tokio::time::error::Elapsed;
 use uuid::Uuid;
 
 use crate::device_manager::Device;
@@ -141,10 +144,16 @@ impl SessionManager {
         let id = Uuid::new_v4();
         let (mut handle, sig_alg) = match self.try_conn(&id, &device, false).await {
             Ok(v) => v,
-            Err(_e @ russh::Error::KexInit)
-            | Err(_e @ russh::Error::NoCommonKexAlgo)
-            | Err(_e @ russh::Error::NoCommonKeyAlgo)
-            | Err(_e @ russh::Error::NoCommonCipher) => self.try_conn(&id, &device, true).await?,
+            Err(russh::Error::KexInit)
+            | Err(russh::Error::NoCommonKexAlgo)
+            | Err(russh::Error::NoCommonKeyAlgo)
+            | Err(russh::Error::NoCommonCipher) => self.try_conn(&id, &device, true).await?,
+            Err(russh::Error::ConnectionTimeout) => {
+                return Err(Error {
+                    message: format!("Timeout connecting to {}", device.name),
+                    kind: ErrorKind::Timeout,
+                })
+            }
             e => e?,
         };
         log::debug!("Connected to {}, sig_alg: {:?}", device.name, sig_alg);
@@ -204,7 +213,15 @@ impl SessionManager {
         };
         let addr = SocketAddr::from_str(&format!("{}:{}", &device.host, &device.port)).unwrap();
         log::debug!("Connecting to {}", addr);
-        let handle = client::connect(Arc::new(config), addr, handler).await?;
+        let handle = match tokio::time::timeout(
+            Duration::from_secs(5),
+            client::connect(Arc::new(config), addr, handler),
+        )
+        .await
+        {
+            Ok(resp) => resp?,
+            Err(_) => return Err(russh::Error::ConnectionTimeout),
+        };
         return Ok((handle, server_sig_alg.lock().unwrap().clone()));
     }
 }
