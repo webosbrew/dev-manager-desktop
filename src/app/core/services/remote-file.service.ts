@@ -2,18 +2,23 @@ import {Injectable, NgZone} from "@angular/core";
 import {IpcClient} from "./ipc-client";
 import {Device, FileItem} from "../../types";
 import {Buffer} from "buffer";
+import {RemoteCommandService} from "./remote-command.service";
 
 @Injectable({
   providedIn: 'root'
 })
 export class RemoteFileService extends IpcClient {
 
-  constructor(zone: NgZone) {
+  constructor(zone: NgZone, private cmd: RemoteCommandService) {
     super(zone, 'remote-file');
   }
 
   public async ls(device: Device, path: string): Promise<FileItem[]> {
     return this.invoke('ls', {device, path});
+  }
+
+  public async rm(device: Device, path: string, recursive: boolean): Promise<void> {
+    await this.cmd.exec(device, `xargs -0 rm ${recursive ? '-r' : ''}`, 'buffer', path);
   }
 
   public async read(device: Device, path: string, output?: 'buffer'): Promise<Buffer>;

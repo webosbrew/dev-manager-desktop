@@ -27,7 +27,7 @@ export class FileSessionImpl implements FileSession {
   }
 
   async rm(path: string, recursive: boolean): Promise<void> {
-    await this.cmd.exec(this.device, `xargs -0 rm ${recursive ? '-r' : ''}`, 'buffer', path);
+    await this.file.rm(this.device, path, recursive);
   }
 
   getTemp(remotePath: string): Promise<string> {
