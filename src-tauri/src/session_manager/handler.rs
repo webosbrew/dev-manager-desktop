@@ -1,15 +1,12 @@
-
 use std::sync::{Arc, Mutex, Weak};
 
 use async_trait::async_trait;
 use russh::{client, Error};
 use russh_keys::key::{PublicKey, SignatureHash};
-
 use uuid::Uuid;
 
-use crate::session_manager::connection::{ConnectionsMap};
+use crate::session_manager::connection::ConnectionsMap;
 use crate::session_manager::shell::ShellsMap;
-
 
 #[derive(Default)]
 pub(crate) struct ClientHandler {
@@ -28,7 +25,6 @@ impl client::Handler for ClientHandler {
         self,
         server_public_key: &PublicKey,
     ) -> Result<(Self, bool), Self::Error> {
-        log::info!("server_public_key: {:?}", server_public_key);
         let alg: Option<SignatureHash> = match server_public_key {
             PublicKey::Ed25519(_) => None,
             PublicKey::RSA { .. } => {

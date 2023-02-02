@@ -7,15 +7,14 @@ use std::time::Duration;
 use russh::client;
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
-use russh_keys::key::{SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
+use russh_keys::key::{KeyPair, SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
 use tokio::net::{TcpSocket, TcpStream};
 use tokio::time::error::Elapsed;
 use uuid::Uuid;
 
-use crate::device_manager::Device;
+use crate::device_manager::{Device, PrivateKey};
 use crate::session_manager::connection::Connection;
 use crate::session_manager::handler::ClientHandler;
-
 use crate::session_manager::{
     Error, ErrorKind, Proc, SessionManager, Shell, ShellInfo, ShellToken,
 };
@@ -158,9 +157,16 @@ impl SessionManager {
         };
         log::debug!("Connected to {}, sig_alg: {:?}", device.name, sig_alg);
         if let Some(key) = &device.private_key {
-            let key = Arc::new(key.priv_key(device.passphrase.as_deref(), sig_alg)?);
-            log::debug!("Key algorithm: {:?}", key.name());
-            if !handle.authenticate_publickey(&device.username, key).await? {
+            if !self
+                .try_pubkey_auth(
+                    &mut handle,
+                    &device.username,
+                    key,
+                    &device.passphrase,
+                    sig_alg,
+                )
+                .await?
+            {
                 return Err(Error {
                     message: format!("Device refused pubkey authorization"),
                     kind: ErrorKind::Authorization,
@@ -223,5 +229,44 @@ impl SessionManager {
             Err(_) => return Err(russh::Error::ConnectionTimeout),
         };
         return Ok((handle, server_sig_alg.lock().unwrap().clone()));
+    }
+
+    async fn try_pubkey_auth(
+        &self,
+        handle: &mut Handle<ClientHandler>,
+        username: &str,
+        key: &PrivateKey,
+        passphrase: &Option<String>,
+        sig_alg: Option<SignatureHash>,
+    ) -> Result<bool, russh::Error> {
+        match key.key_pair(passphrase.as_deref())? {
+            kp @ KeyPair::RSA { .. } => {
+                if let Some(alg) = sig_alg {
+                    log::debug!("Authenticate with key algorithm: {:?}", alg.name());
+                    let kp = kp.with_signature_hash(alg).unwrap();
+                    return handle.authenticate_publickey(username, Arc::new(kp)).await;
+                } else {
+                    for alg in [
+                        SignatureHash::SHA2_512,
+                        SignatureHash::SHA2_256,
+                        SignatureHash::SHA1,
+                    ] {
+                        log::debug!("Try authenticate with key algorithm: {:?}", alg.name());
+                        let kp = kp.with_signature_hash(alg).unwrap();
+                        if handle
+                            .authenticate_publickey(username, Arc::new(kp))
+                            .await?
+                        {
+                            return Ok(true);
+                        }
+                    }
+                }
+            }
+            kp => {
+                log::debug!("Authenticate with key: {:?}", key);
+                return handle.authenticate_publickey(username, Arc::new(kp)).await;
+            }
+        }
+        return Ok(false);
     }
 }
