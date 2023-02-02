@@ -1,8 +1,9 @@
-use crate::device_manager::io::ssh_dir;
-use russh_keys::key::{KeyPair, SignatureHash};
-use russh_keys::{decode_secret_key, load_secret_key, Error};
 use std::io::Read;
 
+use russh_keys::key::{KeyPair, SignatureHash};
+use russh_keys::{decode_secret_key, load_secret_key, Error};
+
+use crate::device_manager::io::ssh_dir;
 use crate::device_manager::PrivateKey;
 
 impl PrivateKey {
@@ -18,17 +19,9 @@ impl PrivateKey {
         };
     }
 
-    pub fn priv_key(
-        &self,
-        passphrase: Option<&str>,
-        hash: Option<SignatureHash>,
-    ) -> Result<KeyPair, Error> {
+    pub fn key_pair(&self, passphrase: Option<&str>) -> Result<KeyPair, Error> {
         let passphrase = passphrase.filter(|s| !s.is_empty());
         let content = self.content()?;
-        let mut keypair = decode_secret_key(&content, passphrase.clone())?;
-        if let Some(hash) = hash {
-            keypair = keypair.with_signature_hash(hash).unwrap_or(keypair);
-        }
-        return Ok(keypair);
+        return Ok(decode_secret_key(&content, passphrase.clone())?);
     }
 }

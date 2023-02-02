@@ -1,14 +1,15 @@
-use crate::device_manager::io::{ensure_ssh_dir, read, ssh_dir, write};
-use crate::device_manager::{Device, DeviceManager, Error, PrivateKey};
+use std::fs;
+use std::io::ErrorKind;
+
 use russh_keys::encoding::Bytes;
 use russh_keys::key::KeyPair;
 use russh_keys::Error as SshKeyError;
 use russh_keys::{decode_secret_key, load_secret_key};
-use serde::__private::from_utf8_lossy;
-use std::fs;
-use std::io::ErrorKind;
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
+
+use crate::device_manager::io::{ensure_ssh_dir, read, ssh_dir, write};
+use crate::device_manager::{Device, DeviceManager, Error, PrivateKey};
 
 impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
@@ -38,7 +39,7 @@ impl DeviceManager {
         if let Some(key) = &device.private_key {
             if let PrivateKey::Data { data } = key {
                 let pubkey = key
-                    .priv_key(device.passphrase.as_deref(), None)?
+                    .key_pair(device.passphrase.as_deref())?
                     .clone_public_key()?;
                 let name = format!("webos_{}", pubkey.fingerprint());
                 let key_path = ensure_ssh_dir()?.join(name.clone());
@@ -103,7 +104,7 @@ impl DeviceManager {
     fn map_loadkey_err(e: SshKeyError) -> Error {
         return match e {
             SshKeyError::UnsupportedKeyType(t) => Error::UnsupportedKey {
-                type_name: String::from(from_utf8_lossy(&t)),
+                type_name: String::from(String::from_utf8_lossy(&t)),
             },
             SshKeyError::KeyIsEncrypted => Error::PassphraseRequired,
             SshKeyError::IndexOutOfBounds => Error::BadPassphrase,
