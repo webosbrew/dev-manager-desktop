@@ -89,8 +89,8 @@ export class RemoteShellService extends IpcClient {
     this.list().then(shells => this.shellsSubject.next(shells));
   }
 
-  async open(device: Device, rows: number, cols: number): Promise<ShellInfo> {
-    return this.invoke('open', {device, rows, cols});
+  async open(device: Device, rows: number, cols: number, dumb?: boolean): Promise<ShellInfo> {
+    return this.invoke('open', {device, rows, cols, dumb});
   }
 
   async close(token: ShellToken): Promise<void> {

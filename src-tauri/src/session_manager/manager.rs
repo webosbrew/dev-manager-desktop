@@ -62,10 +62,11 @@ impl SessionManager {
         device: Device,
         cols: u16,
         rows: u16,
+        dumb: Option<bool>,
     ) -> Result<Arc<Shell>, Error> {
         loop {
             let conn = self.conn_obtain(device.clone()).await?;
-            match conn.shell(cols, rows).await {
+            match conn.shell(cols, rows, dumb).await {
                 Ok(data) => {
                     let shell = Arc::new(data);
                     self.shells

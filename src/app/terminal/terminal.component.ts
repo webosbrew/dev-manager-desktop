@@ -23,7 +23,9 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   private subscription?: Subscription;
 
-  constructor(private deviceManager: DeviceManagerService, private shell: RemoteShellService) {
+  public preferDumbShell: boolean = false;
+
+  constructor(public deviceManager: DeviceManagerService, private shell: RemoteShellService) {
   }
 
   ngOnInit(): void {
@@ -53,9 +55,9 @@ export class TerminalComponent implements OnInit, OnDestroy {
     event.stopImmediatePropagation();
   }
 
-  async newTab(): Promise<void> {
-    const device = await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
-    const shellInfo = await this.shell.open(device, this.termSize.rows, this.termSize.cols);
+  async newTab(device?: Device): Promise<void> {
+    const startWith = device ?? await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
+    const shellInfo = await this.shell.open(startWith, this.termSize.rows, this.termSize.cols, this.preferDumbShell);
     this.currentShell = shellInfo.token;
   }
 

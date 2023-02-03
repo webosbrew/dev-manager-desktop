@@ -13,8 +13,9 @@ async fn open<R: Runtime>(
     device: Device,
     cols: u16,
     rows: u16,
+    dumb: Option<bool>,
 ) -> Result<ShellInfo, Error> {
-    let shell = manager.shell_open(device, cols, rows).await?;
+    let shell = manager.shell_open(device, cols, rows, dumb).await?;
     app.emit_all("shells-updated", manager.shell_list())
         .unwrap_or(());
     let run_shell = shell.clone();
@@ -107,7 +108,8 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
     fn closed(self) {
         let manager = self.app.state::<SessionManager>();
         manager.shell_close(&self.token).unwrap_or(());
-        self.app.emit_all("shells-updated", manager.shell_list())
+        self.app
+            .emit_all("shells-updated", manager.shell_list())
             .unwrap_or(());
     }
 }
