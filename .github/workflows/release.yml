@@ -3,6 +3,7 @@ name: 'Release'
 on:
   release:
     types: [ created ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -16,6 +17,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - uses: olegtarasov/get-tag@v2.1.2
+        if: ${{ github.event_name == 'release' }}
         id: tagName
 
       - name: Cache node modules
@@ -65,23 +67,19 @@ jobs:
           rustup target add aarch64-apple-darwin
           npm run build -- --target universal-apple-darwin
 
-      - name: Create Release (Windows)
-        id: create_release_windows
-        uses: ncipollo/release-action@v1
-        if: runner.os == 'Windows'
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: Dev Manager ${{ steps.tagName.outputs.tag }}
-          allowUpdates: true
-          omitNameDuringUpdate: true
-          omitBodyDuringUpdate: true
-          omitPrereleaseDuringUpdate: true
-          artifacts: src-tauri/target/**/release/bundle/msi/*.msi
+          name: ${{ runner.os }}-snapshot
+          path: |
+            src-tauri/target/**/release/bundle/deb/*.deb
+            src-tauri/target/**/release/bundle/appimage/*.AppImage
+            src-tauri/target/**/release/bundle/msi/*.msi
+            src-tauri/target/**/release/bundle/dmg/*.dmg
 
-      - name: Create Release (Linux)
-        id: create_release_linux
+      - name: Create Release
         uses: ncipollo/release-action@v1
-        if: runner.os == 'Linux'
+        if: github.event_name == 'release'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: Dev Manager ${{ steps.tagName.outputs.tag }}
@@ -89,17 +87,7 @@ jobs:
           omitNameDuringUpdate: true
           omitBodyDuringUpdate: true
           omitPrereleaseDuringUpdate: true
-          artifacts: "src-tauri/target/**/release/bundle/deb/*.deb,src-tauri/target/**/release/bundle/appimage/*.AppImage"
-
-      - name: Create Release (macOS)
-        id: create_release_macos
-        uses: ncipollo/release-action@v1
-        if: runner.os == 'macOS'
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: Dev Manager ${{ steps.tagName.outputs.tag }}
-          allowUpdates: true
-          omitNameDuringUpdate: true
-          omitBodyDuringUpdate: true
-          omitPrereleaseDuringUpdate: true
-          artifacts: src-tauri/target/**/release/bundle/dmg/*.dmg
+          artifacts: "src-tauri/target/**/release/bundle/deb/*.deb,\
+            src-tauri/target/**/release/bundle/appimage/*.AppImage,\
+            src-tauri/target/**/release/bundle/msi/*.msi,\
+            src-tauri/target/**/release/bundle/dmg/*.dmg"
