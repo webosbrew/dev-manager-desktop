@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {AbstractControl, AsyncValidatorFn, FormBuilder, FormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators} from '@angular/forms';
 import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {DeviceManagerService} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
@@ -53,24 +53,26 @@ export class AddDeviceComponent {
   addDevice(): void {
     const progress = ProgressDialogComponent.open(this.modalService);
     this.doAddDevice().then(device => {
-      // Close setup wizard
-      this.modal.close(device);
+      if (device) {
+        // Close setup wizard
+        this.modal.close(device);
+      }
     }).catch(error => {
-      if (error instanceof Error) {
+      if (error.positive) {
+        MessageDialogComponent.open(this.modalService, error);
+      } else {
         MessageDialogComponent.open(this.modalService, {
           title: 'Failed to add device',
-          message: error.message,
+          message: error.message || 'Unknown error',
           positive: 'OK',
         });
-      } else if (error.positive) {
-        MessageDialogComponent.open(this.modalService, error);
       }
     }).finally(() => {
       progress.close(true);
     });
   }
 
-  private async doAddDevice(): Promise<Device> {
+  private async doAddDevice(): Promise<Device | null> {
     const value = this.setupInfo;
     const newDevice = await this.toNewDevice(value);
     try {
@@ -81,7 +83,7 @@ export class AddDeviceComponent {
       console.log('Failed to get device info:', e);
       // Something wrong happened. Abort adding by default
       if (!await this.confirmVerificationFailure(newDevice, e as Error)) {
-        throw e;
+        return null;
       }
     }
     return await this.deviceManager.addDevice(newDevice);
