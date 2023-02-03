@@ -7,6 +7,7 @@ import {MessageDialogComponent} from '../shared/components/message-dialog/messag
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {keyBy} from 'lodash';
 import {open as showOpenDialog} from '@tauri-apps/api/dialog';
+import {basename} from "@tauri-apps/api/path";
 
 @Component({
   selector: 'app-apps',
@@ -93,8 +94,13 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
     const file: File = files[0];
     const progress = ProgressDialogComponent.open(this.modalService);
-    await this.appManager.install(this.device, file.webkitRelativePath);
-    progress.close(true);
+    try {
+      await this.appManager.install(this.device, file.webkitRelativePath);
+    } catch (e) {
+      this.handleInstallationError(file.name, e as Error);
+    } finally {
+      progress.close(true);
+    }
   }
 
   async openInstallChooser(): Promise<void> {
@@ -107,8 +113,13 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
     const path = Array.isArray(open) ? open[0] : open;
     const progress = ProgressDialogComponent.open(this.modalService);
-    await this.appManager.install(this.device, path);
-    progress.close(true);
+    try {
+      await this.appManager.install(this.device, path);
+    } catch (e) {
+      this.handleInstallationError(await basename(path), e as Error);
+    } finally {
+      progress.close(true);
+    }
   }
 
   launchApp(id: string): void {
@@ -140,10 +151,11 @@ export class AppsComponent implements OnInit, OnDestroy {
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
       await this.appManager.install(this.device, item.manifest!.ipkUrl);
-    } catch (e) {
-      // Ignore
+    } catch (e: any) {
+      this.handleInstallationError(item.title, e as Error);
+    } finally {
+      progress.close(true);
     }
-    progress.close(true);
   }
 
   async installBetaPackage(item: RepositoryItem): Promise<void> {
@@ -152,8 +164,18 @@ export class AppsComponent implements OnInit, OnDestroy {
     try {
       await this.appManager.install(this.device, item.manifestBeta!.ipkUrl);
     } catch (e) {
-      // Ignore
+      this.handleInstallationError(item.title, e as Error);
+    } finally {
+      progress.close(true);
     }
-    progress.close(true);
+  }
+
+  private handleInstallationError(name: string, e: Error) {
+    MessageDialogComponent.open(this.modalService, {
+      title: `Failed to install ${name}`,
+      message: e.message,
+      error: e,
+      positive: 'Close',
+    });
   }
 }

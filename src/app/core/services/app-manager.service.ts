@@ -66,7 +66,7 @@ export class AppManagerService {
         await this.file.put(device, path, location);
         break;
       default:
-        await this.cmd.exec(device, `wget -qO ${escapeSingleQuoteString(path)} ${escapeSingleQuoteString(location)}`);
+        await this.cmd.exec(device, `curl -sL ${escapeSingleQuoteString(location)} --output ${escapeSingleQuoteString(path)}`);
         break;
     }
     const observable = await this.luna.subscribe(device, 'luna://com.webos.appInstallService/dev/install', {
@@ -84,6 +84,7 @@ export class AppManagerService {
           } else if (v['details']?.errorCode !== undefined) {
             reject(new Error(`${v['details'].errorCode}: ${v['details'].reason}`));
           } else {
+            console.log('install output', v);
             return;
           }
           subscription.unsubscribe();
@@ -96,7 +97,10 @@ export class AppManagerService {
           resolve();
         }
       });
-    }).finally(() => this.load(device));
+    }).finally(() => {
+      this.file.rm(device, path, false);
+      this.load(device);
+    });
   }
 
   async remove(device: Device, id: string): Promise<void> {
