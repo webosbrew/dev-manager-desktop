@@ -79,6 +79,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "env_logger",
+ "hex",
  "log",
  "openssl",
  "rand 0.8.5",
@@ -87,6 +88,7 @@ dependencies = [
  "russh-keys",
  "serde",
  "serde_json",
+ "sha2 0.10.6",
  "tauri",
  "tauri-build",
  "tokio",
@@ -1334,6 +1336,12 @@ checksum = "ee512640fe35acbfb4bb779db6f0d80704c2cacfa2e39b601ef3e3f47d1ae4c7"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "hex-literal"
