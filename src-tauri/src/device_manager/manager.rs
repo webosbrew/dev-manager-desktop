@@ -3,8 +3,8 @@ use std::io::ErrorKind;
 
 use russh_keys::encoding::Bytes;
 use russh_keys::key::KeyPair;
-use russh_keys::Error as SshKeyError;
 use russh_keys::{decode_secret_key, load_secret_key};
+use russh_keys::{Error as SshKeyError, PublicKeyBase64};
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 
@@ -41,7 +41,10 @@ impl DeviceManager {
                 let pubkey = key
                     .key_pair(device.passphrase.as_deref())?
                     .clone_public_key()?;
-                let name = format!("webos_{}", pubkey.fingerprint());
+                use sha2::{Digest, Sha256};
+                let mut hasher = Sha256::new();
+                hasher.update(&pubkey.public_key_bytes());
+                let name = format!("webos_{}", &hex::encode(&hasher.finalize())[..10]);
                 let key_path = ensure_ssh_dir()?.join(name.clone());
                 let mut file = File::create(key_path).await?;
                 file.write(data.bytes()).await?;
