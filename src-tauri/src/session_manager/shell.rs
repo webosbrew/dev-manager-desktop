@@ -57,6 +57,9 @@ impl Shell {
         } else {
             rows = Vec::new();
         }
+        for x in &mut rows {
+            x.extend(b"\x1b\x5b\x30\x6d");
+        }
         return Ok(ShellBuffer {
             rows,
             cursor: screen.cursor_position(),

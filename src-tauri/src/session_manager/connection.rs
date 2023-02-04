@@ -86,7 +86,7 @@ impl Connection {
         });
     }
 
-    pub async fn shell(&self, cols: u16, rows: u16) -> Result<Shell, Error> {
+    pub async fn shell(&self, cols: u16, rows: u16, dumb: Option<bool>) -> Result<Shell, Error> {
         let connections = self
             .connections
             .upgrade()
@@ -99,13 +99,15 @@ impl Connection {
             .clone();
         let mut ch = self.open_cmd_channel().await?;
         let mut got_pty = false;
-        match ch
-            .request_pty(true, "xterm", cols as u32, rows as u32, 0, 0, &[])
-            .await
-        {
-            Ok(_) => got_pty = true,
-            Err(russh::Error::SendError) => got_pty = false,
-            e => e?,
+        if !dumb.unwrap_or(false) {
+            match ch
+                .request_pty(true, "xterm", cols as u32, rows as u32, 0, 0, &[])
+                .await
+            {
+                Ok(_) => got_pty = true,
+                Err(russh::Error::SendError) => got_pty = false,
+                e => e?,
+            }
         }
         ch.request_shell(true).await?;
         return Ok(Shell {
