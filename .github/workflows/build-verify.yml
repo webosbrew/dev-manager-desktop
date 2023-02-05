@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Cache node modules
+      - name: Cache Node Modules
         uses: actions/cache@v3
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
@@ -41,13 +41,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Install Rust stable
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache rust project
+      - name: Cache Rust Project
         uses: Swatinem/rust-cache@v2
         with:
           prefix-key: ${{ runner.os }}-rust
+          workspaces: src-tauri
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
