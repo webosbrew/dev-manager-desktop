@@ -102,13 +102,17 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
     this.shell = shell;
     const cols = this.term.cols, rows = this.term.rows;
     const screen = await shell.screen(rows, cols);
-    let firstLine = true;
-    for (let row of screen.rows) {
-      if (!firstLine) {
-        this.term.write('\r\n');
+    if (screen.data) {
+      this.term.writeln(screen.data);
+    } else if (screen.rows) {
+      let firstLine = true;
+      for (let row of screen.rows) {
+        if (!firstLine) {
+          this.term.write('\r\n');
+        }
+        this.term.write(row);
+        firstLine = false;
       }
-      this.term.write(row);
-      firstLine = false;
     }
     shell.subscribe((data) => {
       this.term.write(data);

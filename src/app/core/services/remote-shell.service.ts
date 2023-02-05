@@ -22,7 +22,8 @@ export interface ShellMessage {
 }
 
 export interface ShellScreenContent {
-  rows: Uint8Array[];
+  rows?: Uint8Array[];
+  data?: Uint8Array;
   cursor: [number, number];
 }
 

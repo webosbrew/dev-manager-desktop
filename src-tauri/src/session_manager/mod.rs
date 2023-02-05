@@ -82,8 +82,9 @@ pub struct ShellData {
 }
 
 #[derive(Clone, Serialize, Debug)]
-pub struct ShellBuffer {
-    rows: Vec<Vec<u8>>,
+pub struct ShellScreen {
+    rows: Option<Vec<Vec<u8>>>,
+    data: Option<Vec<u8>>,
     cursor: (u16, u16),
 }
 

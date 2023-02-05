@@ -3,7 +3,7 @@ use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
 use crate::session_manager::{
-    Error, SessionManager, ShellBuffer, ShellCallback, ShellData, ShellInfo, ShellToken,
+    Error, SessionManager, ShellScreen, ShellCallback, ShellData, ShellInfo, ShellToken,
 };
 
 #[tauri::command]
@@ -66,11 +66,10 @@ async fn resize(
 async fn screen(
     manager: State<'_, SessionManager>,
     token: ShellToken,
-    rows: u16,
     cols: u16,
-) -> Result<ShellBuffer, Error> {
+) -> Result<ShellScreen, Error> {
     let shell = manager.shell_find(&token)?;
-    return shell.screen(cols, rows).await;
+    return shell.screen(cols).await;
 }
 
 #[tauri::command]
