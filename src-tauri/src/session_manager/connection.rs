@@ -27,6 +27,12 @@ impl Connection {
         let id = ch.id();
         log::debug!("{id}: Exec {{ command: {command} }}");
         ch.exec(true, command).await?;
+        if !Connection::wait_reply(&mut ch).await? {
+            return Err(Error {
+                message: format!("Failed to execute {command}"),
+                kind: ErrorKind::NegativeReply,
+            });
+        }
         if let Some(data) = stdin {
             let data = data.clone();
             ch.data(&*data).await?;
@@ -68,7 +74,7 @@ impl Connection {
         let status = status.unwrap_or(0);
         if status != 0 {
             return Err(Error {
-                message: format!("Command exited with non-zero return code {status}"),
+                message: format!("Command `{command}` exited with non-zero return code {status}"),
                 kind: ErrorKind::ExitStatus {
                     exit_code: status,
                     stderr,
@@ -100,16 +106,17 @@ impl Connection {
         let mut ch = self.open_cmd_channel().await?;
         let mut got_pty = false;
         if !dumb.unwrap_or(false) {
-            match ch
-                .request_pty(true, "xterm", cols as u32, rows as u32, 0, 0, &[])
-                .await
-            {
-                Ok(_) => got_pty = true,
-                Err(russh::Error::SendError) => got_pty = false,
-                e => e?,
-            }
+            ch.request_pty(true, "xterm", cols as u32, rows as u32, 0, 0, &[])
+                .await?;
+            got_pty = Connection::wait_reply(&mut ch).await?;
         }
         ch.request_shell(true).await?;
+        if !Connection::wait_reply(&mut ch).await? {
+            return Err(Error {
+                message: String::from("Failed to request shell"),
+                kind: ErrorKind::NegativeReply,
+            });
+        }
         return Ok(Shell {
             token: ShellToken {
                 connection_id: self.id,
@@ -156,6 +163,16 @@ impl Connection {
             handle: AsyncMutex::new(handle),
             connections,
         };
+    }
+
+    pub(crate) async fn wait_reply(ch: &mut Channel<Msg>) -> Result<bool, russh::Error> {
+        loop {
+            match ch.wait().await.ok_or_else(|| russh::Error::SendError)? {
+                ChannelMsg::Success => return Ok(true),
+                ChannelMsg::Failure => return Ok(false),
+                _ => continue,
+            }
+        }
     }
 }
 

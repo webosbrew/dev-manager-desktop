@@ -106,5 +106,6 @@ pub enum ErrorKind {
     EmptyData,
     NoPty,
     Timeout,
+    NegativeReply,
     ExitStatus { exit_code: u32, stderr: Vec<u8> },
 }

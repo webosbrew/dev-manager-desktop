@@ -1,14 +1,21 @@
 use russh::ChannelMsg;
 
+use crate::session_manager::connection::Connection;
 use crate::session_manager::{Error, ErrorKind, Proc};
 
 impl Proc {
     pub async fn run<F>(&self, stdout: F) -> Result<(), Error>
-        where
-            F: Fn(u64, &[u8]) -> (),
+    where
+        F: Fn(u64, &[u8]) -> (),
     {
         if let Some(ch) = self.ch.lock().await.as_mut() {
             ch.exec(true, self.command.as_bytes()).await?;
+            if !Connection::wait_reply(ch).await? {
+                return Err(Error {
+                    message: format!("Failed to execute {}", self.command),
+                    kind: ErrorKind::NegativeReply,
+                });
+            }
         }
         let mut stderr: Vec<u8> = Vec::new();
         let mut status: Option<u32> = None;
