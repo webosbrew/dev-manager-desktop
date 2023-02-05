@@ -1,5 +1,5 @@
 .tabs-container {
-  background-color: black;
+  //background-color: black;
 }
 
 .terminal-tab {
@@ -20,4 +20,42 @@
       height: 100% !important;
     }
   }
+}
+
+.terminal-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  .xterm {
+    height: 100% !important;
+    padding: 5px;
+
+    .xterm-viewport {
+      //width: 100% !important;
+      height: 100% !important;
+
+      overflow-y: scroll;
+      overflow-x: hidden;
+    }
+  }
+
+}
+
+.terminal-resize {
+  position: absolute;
+  margin: auto;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: fit-content;
+  height: min-content;
+  padding: 5px 10px;
+
+  color: white;
+  background-color: rgba($color: #000000, $alpha: 0.5);
+  border-radius: 4px;
 }

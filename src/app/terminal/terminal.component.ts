@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import {DeviceManagerService} from '../core/services';
 import {firstValueFrom, noop, Subscription} from "rxjs";
 import {Device} from "../types";
@@ -12,6 +12,7 @@ import {ITerminalDimensions} from "xterm-addon-fit";
   selector: 'app-terminal-host',
   templateUrl: './terminal.component.html',
   styleUrls: ['./terminal.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class TerminalComponent implements OnInit, OnDestroy {
 
@@ -19,11 +20,12 @@ export class TerminalComponent implements OnInit, OnDestroy {
 
   public currentShell: string = '';
 
-  public termSize: ITerminalDimensions = {rows: 24, cols: 80};
+  public termSize?: ITerminalDimensions;
 
   private subscription?: Subscription;
 
   public preferDumbShell: boolean = false;
+  public pendingResize?: ITerminalDimensions;
 
   constructor(public deviceManager: DeviceManagerService, private shell: RemoteShellService) {
   }
@@ -41,7 +43,6 @@ export class TerminalComponent implements OnInit, OnDestroy {
         this.currentShell = shells[0].token;
         return;
       }
-      await this.newTab();
     });
   }
 
@@ -56,8 +57,13 @@ export class TerminalComponent implements OnInit, OnDestroy {
   }
 
   async newTab(device?: Device): Promise<void> {
+    const size = this.termSize;
+    console.log(size);
+    if (!size) {
+      return;
+    }
     const startWith = device ?? await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
-    const shellInfo = await this.shell.open(startWith, this.termSize.rows, this.termSize.cols, this.preferDumbShell);
+    const shellInfo = await this.shell.open(startWith, size.rows, size.cols, this.preferDumbShell);
     this.currentShell = shellInfo.token;
   }
 

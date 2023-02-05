@@ -8,6 +8,7 @@ import {PtyComponent} from "./pty/pty.component";
 import {DumbComponent} from './dumb/dumb.component';
 import {TextareaAutosizeModule} from "ngx-textarea-autosize";
 import {FormsModule} from "@angular/forms";
+import {SizeCalculatorComponent} from './size-calculator/size-calculator.component';
 
 
 @NgModule({
@@ -15,6 +16,7 @@ import {FormsModule} from "@angular/forms";
     TerminalComponent,
     PtyComponent,
     DumbComponent,
+    SizeCalculatorComponent,
   ],
   imports: [
     CommonModule,

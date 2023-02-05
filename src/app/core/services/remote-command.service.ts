@@ -1,5 +1,5 @@
 import {Injectable, NgZone} from "@angular/core";
-import {IpcClient} from "./ipc-client";
+import {BackendClient, BackendError} from "./backend-client";
 import {DeviceLike} from "../../types";
 import {Buffer} from "buffer";
 import {listen, emit, UnlistenFn} from '@tauri-apps/api/event';
@@ -8,14 +8,30 @@ import {ReplaySubject} from "rxjs";
 @Injectable({
   providedIn: 'root'
 })
-export class RemoteCommandService extends IpcClient {
+export class RemoteCommandService extends BackendClient {
   private encoder = new TextEncoder();
 
   constructor(zone: NgZone) {
     super(zone, 'remote-command');
   }
 
+  /**
+   *
+   * @param device Device to invoke command
+   * @param command Command to execute
+   * @param outputEncoding
+   * @param stdinData
+   * @throws ExecutionError If the command doesn't exit with status 0
+   */
   public async exec(device: DeviceLike, command: string, outputEncoding?: 'buffer', stdinData?: string | Uint8Array): Promise<Buffer>;
+  /**
+   *
+   * @param device Device to invoke command
+   * @param command Command to execute
+   * @param outputEncoding
+   * @param stdinData
+   * @throws ExecutionError If the command doesn't exit with status 0
+   */
   public async exec(device: DeviceLike, command: string, outputEncoding: 'utf-8', stdinData?: string | Uint8Array): Promise<string>;
 
   public async exec<T = Buffer | string>(device: DeviceLike, command: string, outputEncoding?: 'buffer' | 'utf-8', stdinData?: string | Uint8Array):
@@ -24,9 +40,12 @@ export class RemoteCommandService extends IpcClient {
     try {
       const stdout: number[] = await this.invoke('exec', {device, command, stdin});
       return this.convertOutput(stdout, outputEncoding) as any;
-    } catch (e: IpcErrors.ExitStatus | any) {
-      if (e.exit_code && e.stderr) {
-        throw new ExecutionError(e.stderr, e.exit_code, this.convertOutput(e.stderr, outputEncoding));
+    } catch (e) {
+      if (e instanceof BackendError) {
+        if (e.reason === 'ExitStatus') {
+          const stderr = e['stderr'] as number[];
+          throw new ExecutionError(e.message, e['exit_code'] as number, this.convertOutput(stderr, outputEncoding));
+        }
       }
       throw e;
     }
@@ -112,11 +131,13 @@ export class ExecutionError<T = Buffer | string> extends Error {
   }
 }
 
+export interface ExitStatusError {
+  reason: 'ExitStatus';
+  exit_code: number;
+  stderr: number;
+}
+
 namespace IpcErrors {
-  export interface ExitStatus {
-    exit_code: number;
-    stderr: number;
-  }
 }
 
 export function escapeSingleQuoteString(value: string) {

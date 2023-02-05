@@ -10,8 +10,9 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use uuid::Uuid;
 
 use crate::device_manager::Device;
+use crate::error::Error;
 use crate::plugins::cmd::escape_path;
-use crate::session_manager::{Error, SessionManager};
+use crate::session_manager::SessionManager;
 
 #[tauri::command]
 async fn ls(

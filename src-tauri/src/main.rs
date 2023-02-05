@@ -11,6 +11,7 @@ use crate::session_manager::SessionManager;
 mod device_manager;
 mod plugins;
 mod session_manager;
+mod error;
 
 fn main() {
     env_logger::init();
@@ -19,7 +20,7 @@ fn main() {
         .plugin(plugins::cmd::plugin("remote-command"))
         .plugin(plugins::shell::plugin("remote-shell"))
         .plugin(plugins::file::plugin("remote-file"))
-        .plugin(plugins::file::plugin("dev-mode"))
+        .plugin(plugins::devmode::plugin("dev-mode"))
         .manage(DeviceManager::default())
         .manage(SessionManager::default())
         .run(tauri::generate_context!())

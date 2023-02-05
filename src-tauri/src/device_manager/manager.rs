@@ -1,15 +1,14 @@
 use std::fs;
-use std::io::ErrorKind;
 
-use russh_keys::encoding::Bytes;
-use russh_keys::key::KeyPair;
 use russh_keys::{decode_secret_key, load_secret_key};
 use russh_keys::{Error as SshKeyError, PublicKeyBase64};
-use tokio::fs::{remove_file, File};
+use russh_keys::encoding::Bytes;
+use tokio::fs::{File, remove_file};
 use tokio::io::AsyncWriteExt;
 
+use crate::device_manager::{Device, DeviceManager, PrivateKey};
 use crate::device_manager::io::{ensure_ssh_dir, read, ssh_dir, write};
-use crate::device_manager::{Device, DeviceManager, Error, PrivateKey};
+use crate::error::Error;
 
 impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {

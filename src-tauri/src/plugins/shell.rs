@@ -2,8 +2,9 @@ use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
+use crate::error::Error;
 use crate::session_manager::{
-    Error, SessionManager, ShellScreen, ShellCallback, ShellData, ShellInfo, ShellToken,
+    SessionManager, ShellCallback, ShellData, ShellInfo, ShellScreen, ShellToken,
 };
 
 #[tauri::command]

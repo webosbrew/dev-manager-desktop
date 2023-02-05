@@ -6,7 +6,8 @@ use std::path::PathBuf;
 use serde_json::Value;
 use tauri::api::path::home_dir;
 
-use crate::device_manager::{Device, Error};
+use crate::device_manager::Device;
+use crate::error::Error;
 
 pub(crate) async fn read() -> Result<Vec<Device>, Error> {
     return tokio::task::spawn_blocking(move || -> Result<Vec<Device>, Error> {
@@ -17,7 +18,7 @@ pub(crate) async fn read() -> Result<Vec<Device>, Error> {
                 return match e.kind() {
                     ErrorKind::NotFound => Ok(Vec::new()),
                     _ => Err(e.into()),
-                }
+                };
             }
         };
         let reader = BufReader::new(file);
@@ -28,8 +29,8 @@ pub(crate) async fn read() -> Result<Vec<Device>, Error> {
             .filter_map(|v| serde_json::from_value::<Device>(v.clone()).ok())
             .collect());
     })
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 }
 
 pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
@@ -50,8 +51,8 @@ pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
         serde_json::to_writer_pretty(writer, &devices)?;
         return Ok(());
     })
-    .await
-    .unwrap();
+        .await
+        .unwrap();
 }
 
 pub(crate) fn ssh_dir() -> Option<PathBuf> {

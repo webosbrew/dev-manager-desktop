@@ -1,5 +1,5 @@
 import {Injectable, NgZone} from "@angular/core";
-import {IpcClient} from "./ipc-client";
+import {BackendClient} from "./backend-client";
 import {Device, FileItem} from "../../types";
 import {Buffer} from "buffer";
 import {RemoteCommandService} from "./remote-command.service";
@@ -7,7 +7,7 @@ import {RemoteCommandService} from "./remote-command.service";
 @Injectable({
   providedIn: 'root'
 })
-export class RemoteFileService extends IpcClient {
+export class RemoteFileService extends BackendClient {
 
   constructor(zone: NgZone, private cmd: RemoteCommandService) {
     super(zone, 'remote-file');

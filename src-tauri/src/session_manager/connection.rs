@@ -9,8 +9,9 @@ use uuid::Uuid;
 use vt100::Parser;
 
 use crate::device_manager::Device;
+use crate::error::Error;
 use crate::session_manager::handler::ClientHandler;
-use crate::session_manager::{Error, ErrorKind, Proc, Shell, ShellToken};
+use crate::session_manager::{Proc, Shell, ShellToken};
 
 pub(crate) struct Connection {
     pub(crate) id: Uuid,
@@ -28,10 +29,7 @@ impl Connection {
         log::debug!("{id}: Exec {{ command: {command} }}");
         ch.exec(true, command).await?;
         if !Connection::wait_reply(&mut ch).await? {
-            return Err(Error {
-                message: format!("Failed to execute {command}"),
-                kind: ErrorKind::NegativeReply,
-            });
+            return Err(Error::NegativeReply);
         }
         if let Some(data) = stdin {
             let data = data.clone();
@@ -73,12 +71,9 @@ impl Connection {
         }
         let status = status.unwrap_or(0);
         if status != 0 {
-            return Err(Error {
-                message: format!("Command `{command}` exited with non-zero return code {status}"),
-                kind: ErrorKind::ExitStatus {
-                    exit_code: status,
-                    stderr,
-                },
+            return Err(Error::ExitStatus {
+                exit_code: status,
+                stderr,
             });
         }
         return Ok(stdout.to_vec());
@@ -93,16 +88,6 @@ impl Connection {
     }
 
     pub async fn shell(&self, cols: u16, rows: u16, dumb: Option<bool>) -> Result<Shell, Error> {
-        let connections = self
-            .connections
-            .upgrade()
-            .expect("Connections should be available");
-        let conn = connections
-            .lock()
-            .unwrap()
-            .get(&self.device.name)
-            .expect("Connection should be available")
-            .clone();
         let mut ch = self.open_cmd_channel().await?;
         let mut got_pty = false;
         if !dumb.unwrap_or(false) {
@@ -112,10 +97,7 @@ impl Connection {
         }
         ch.request_shell(true).await?;
         if !Connection::wait_reply(&mut ch).await? {
-            return Err(Error {
-                message: String::from("Failed to request shell"),
-                kind: ErrorKind::NegativeReply,
-            });
+            return Err(Error::NegativeReply);
         }
         return Ok(Shell {
             token: ShellToken {
@@ -125,7 +107,6 @@ impl Connection {
             created_at: Instant::now(),
             def_title: format!("{}@{}", self.device.username, self.device.name),
             has_pty: got_pty,
-            connection: Arc::downgrade(&conn),
             channel: AsyncMutex::new(Some(ch)),
             sender: AsyncMutex::default(),
             parser: Mutex::new(Parser::new(rows, cols, 1000)),
@@ -143,7 +124,7 @@ impl Connection {
         if let Err(e) = result {
             self.remove_from_pool();
             if let russh::Error::ChannelOpenFailure(_) = e {
-                return Err(Error::reconnect());
+                return Err(Error::NeedsReconnect);
             }
             return Err(e.into());
         }

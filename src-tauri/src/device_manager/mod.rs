@@ -2,7 +2,6 @@ use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 
-mod error;
 mod io;
 mod manager;
 mod privkey;
@@ -79,15 +78,4 @@ pub enum DeviceFileTransfer {
     Stream,
     #[serde(rename = "sftp")]
     Sftp,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(tag = "reason")]
-pub enum Error {
-    Message { message: String },
-    UnsupportedKey { type_name: String },
-    PassphraseRequired,
-    BadPassphrase,
-    IO { name: String, message:String },
-    Unimplemented { feature: Option<String> },
 }

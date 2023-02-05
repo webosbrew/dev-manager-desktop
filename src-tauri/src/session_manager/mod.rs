@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use russh::client::Msg;
@@ -9,13 +9,10 @@ use tokio::sync::Mutex as AsyncMutex;
 use uuid::Uuid;
 use vt100::Parser;
 
-use connection::Connection;
-
 use crate::session_manager::connection::ConnectionsMap;
 use crate::session_manager::shell::ShellsMap;
 
 mod connection;
-mod error;
 mod handler;
 mod manager;
 mod proc;
@@ -44,7 +41,6 @@ pub struct Shell {
     created_at: Instant,
     def_title: String,
     has_pty: bool,
-    connection: Weak<Connection>,
     pub(crate) channel: AsyncMutex<Option<Channel<Msg>>>,
     pub(crate) sender: AsyncMutex<Option<UnboundedSender<Vec<u8>>>>,
     pub(crate) parser: Mutex<Parser>,
@@ -86,27 +82,4 @@ pub struct ShellScreen {
     rows: Option<Vec<Vec<u8>>>,
     data: Option<Vec<u8>>,
     cursor: (u16, u16),
-}
-
-#[derive(Debug, Serialize, Clone)]
-pub struct Error {
-    pub message: String,
-    #[serde(flatten)]
-    pub kind: ErrorKind,
-}
-
-#[derive(Debug, Serialize, Clone)]
-#[serde(untagged)]
-pub enum ErrorKind {
-    Message,
-    Unimplemented,
-    NeedsReconnect,
-    Authorization,
-    NotFound,
-    FileNotFound { path: String },
-    EmptyData,
-    NoPty,
-    Timeout,
-    NegativeReply,
-    ExitStatus { exit_code: u32, stderr: Vec<u8> },
 }

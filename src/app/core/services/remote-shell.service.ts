@@ -1,6 +1,6 @@
 import {BehaviorSubject, noop, Observable, Subject} from "rxjs";
 import {listen} from "@tauri-apps/api/event";
-import {IpcClient} from "./ipc-client";
+import {BackendClient} from "./backend-client";
 import {Injectable, NgZone} from "@angular/core";
 import {Device} from "../../types";
 import {Buffer} from "buffer";
@@ -62,7 +62,7 @@ export class ShellSubject extends Subject<Buffer> implements ShellWritable {
 @Injectable({
   providedIn: 'root'
 })
-export class RemoteShellService extends IpcClient {
+export class RemoteShellService extends BackendClient {
 
   private shellsSubject: Subject<ShellInfo[] | null>;
   private shellSessions: Map<string, ShellSubject> = new Map();
