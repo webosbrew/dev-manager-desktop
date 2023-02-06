@@ -1,10 +1,11 @@
-use tauri::State;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Runtime,
 };
+use tauri::State;
 
-use crate::device_manager::{Device, DeviceManager, Error};
+use crate::device_manager::{Device, DeviceManager};
+use crate::error::Error;
 
 #[tauri::command]
 async fn list(manager: State<'_, DeviceManager>) -> Result<Vec<Device>, Error> {

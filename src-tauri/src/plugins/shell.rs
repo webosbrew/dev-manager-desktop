@@ -2,8 +2,9 @@ use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
+use crate::error::Error;
 use crate::session_manager::{
-    Error, SessionManager, ShellBuffer, ShellCallback, ShellData, ShellInfo, ShellToken,
+    SessionManager, ShellCallback, ShellData, ShellInfo, ShellScreen, ShellToken,
 };
 
 #[tauri::command]
@@ -16,8 +17,7 @@ async fn open<R: Runtime>(
     dumb: Option<bool>,
 ) -> Result<ShellInfo, Error> {
     let shell = manager.shell_open(device, cols, rows, dumb).await?;
-    app.emit_all("shells-updated", manager.shell_list())
-        .unwrap_or(());
+    app.emit_all("shells-opened", &shell.token).unwrap_or(());
     let run_shell = shell.clone();
     tokio::spawn(async move {
         let cb = PluginShellCb::<R> {
@@ -66,11 +66,10 @@ async fn resize(
 async fn screen(
     manager: State<'_, SessionManager>,
     token: ShellToken,
-    rows: u16,
     cols: u16,
-) -> Result<ShellBuffer, Error> {
+) -> Result<ShellScreen, Error> {
     let shell = manager.shell_find(&token)?;
-    return shell.screen(cols, rows).await;
+    return shell.screen(cols).await;
 }
 
 #[tauri::command]
@@ -108,8 +107,6 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
     fn closed(self) {
         let manager = self.app.state::<SessionManager>();
         manager.shell_close(&self.token).unwrap_or(());
-        self.app
-            .emit_all("shells-updated", manager.shell_list())
-            .unwrap_or(());
+        self.app.emit_all("shells-closed", self.token).unwrap_or(());
     }
 }

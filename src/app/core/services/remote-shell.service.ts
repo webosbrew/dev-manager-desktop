@@ -1,11 +1,9 @@
 import {BehaviorSubject, noop, Observable, Subject} from "rxjs";
 import {listen} from "@tauri-apps/api/event";
-import {IpcClient} from "./ipc-client";
+import {BackendClient} from "./backend-client";
 import {Injectable, NgZone} from "@angular/core";
 import {Device} from "../../types";
 import {Buffer} from "buffer";
-import {filter} from "rxjs/operators";
-import {isNonNull} from "../../shared/operators";
 
 
 export type ShellToken = string;
@@ -22,7 +20,8 @@ export interface ShellMessage {
 }
 
 export interface ShellScreenContent {
-  rows: Uint8Array[];
+  rows?: Uint8Array[];
+  data?: Uint8Array;
   cursor: [number, number];
 }
 
@@ -61,7 +60,7 @@ export class ShellSubject extends Subject<Buffer> implements ShellWritable {
 @Injectable({
   providedIn: 'root'
 })
-export class RemoteShellService extends IpcClient {
+export class RemoteShellService extends BackendClient {
 
   private shellsSubject: Subject<ShellInfo[] | null>;
   private shellSessions: Map<string, ShellSubject> = new Map();
@@ -69,9 +68,6 @@ export class RemoteShellService extends IpcClient {
   constructor(zone: NgZone) {
     super(zone, 'remote-shell');
     this.shellsSubject = new BehaviorSubject<ShellInfo[] | null>(null);
-    listen('shells-updated', e => {
-      zone.run(() => this.shellsSubject.next(e.payload as ShellInfo[]));
-    }).then(noop);
     listen('shell-rx', e => {
       const message = e.payload as ShellMessage;
       const shell = this.shellSessions.get(message.token);
@@ -86,7 +82,6 @@ export class RemoteShellService extends IpcClient {
       console.log('shell-opened', this.shellSessions, e.payload);
       this.obtain(e.payload as ShellToken);
     }).then(noop);
-    this.list().then(shells => this.shellsSubject.next(shells));
   }
 
   async open(device: Device, rows: number, cols: number, dumb?: boolean): Promise<ShellInfo> {
@@ -111,10 +106,6 @@ export class RemoteShellService extends IpcClient {
 
   async resize(token: ShellToken, rows: number, cols: number): Promise<void> {
     await this.invoke('resize', {token, rows, cols});
-  }
-
-  get shells$(): Observable<ShellInfo[]> {
-    return this.shellsSubject.pipe(filter(isNonNull));
   }
 
   obtain(token: ShellToken): ShellObservable {

@@ -1,7 +1,7 @@
 use std::io::Read;
 
-use russh_keys::key::{KeyPair, SignatureHash};
-use russh_keys::{decode_secret_key, load_secret_key, Error};
+use russh_keys::{decode_secret_key, Error};
+use russh_keys::key::KeyPair;
 
 use crate::device_manager::io::ssh_dir;
 use crate::device_manager::PrivateKey;

@@ -1,4 +1,3 @@
-use std::fmt::format;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
@@ -7,17 +6,14 @@ use std::time::Duration;
 use russh::client;
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
-use russh_keys::key::{KeyPair, SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
-use tokio::net::{TcpSocket, TcpStream};
-use tokio::time::error::Elapsed;
+use russh_keys::key::{ED25519, KeyPair, RSA_SHA2_256, RSA_SHA2_512, SignatureHash, SSH_RSA};
 use uuid::Uuid;
 
 use crate::device_manager::{Device, PrivateKey};
+use crate::error::Error;
+use crate::session_manager::{Proc, SessionManager, Shell, ShellInfo, ShellToken};
 use crate::session_manager::connection::Connection;
 use crate::session_manager::handler::ClientHandler;
-use crate::session_manager::{
-    Error, ErrorKind, Proc, SessionManager, Shell, ShellInfo, ShellToken,
-};
 
 impl SessionManager {
     pub async fn exec(
@@ -29,14 +25,8 @@ impl SessionManager {
         loop {
             let conn = self.conn_obtain(device.clone()).await?;
             match conn.exec(command, &stdin).await {
-                Ok(data) => return Ok(data),
-                Err(e) => match e.kind {
-                    ErrorKind::NeedsReconnect => {
-                        log::info!("retry connection");
-                        continue;
-                    }
-                    _ => return Err(e),
-                },
+                Err(Error::NeedsReconnect) => continue,
+                e => return e,
             };
         }
     }
@@ -45,14 +35,8 @@ impl SessionManager {
         loop {
             let conn = self.conn_obtain(device.clone()).await?;
             match conn.spawn(command).await {
-                Ok(data) => return Ok(data),
-                Err(e) => match e.kind {
-                    ErrorKind::NeedsReconnect => {
-                        log::info!("retry connection");
-                        continue;
-                    }
-                    _ => return Err(e),
-                },
+                Err(Error::NeedsReconnect) => continue,
+                e => return e,
             };
         }
     }
@@ -75,13 +59,8 @@ impl SessionManager {
                         .insert(shell.token.clone(), shell.clone());
                     return Ok(shell);
                 }
-                Err(e) => match e.kind {
-                    ErrorKind::NeedsReconnect => {
-                        log::info!("retry connection");
-                        continue;
-                    }
-                    _ => return Err(e),
-                },
+                Err(Error::NeedsReconnect) => continue,
+                Err(e) => return Err(e),
             }
         }
     }
@@ -104,10 +83,7 @@ impl SessionManager {
             .unwrap()
             .get(token)
             .map(|a| a.clone())
-            .ok_or_else(|| Error {
-                message: String::from("No shell"),
-                kind: ErrorKind::NotFound,
-            });
+            .ok_or_else(|| Error::NotFound);
     }
 
     pub fn shell_list(&self) -> Vec<ShellInfo> {
@@ -149,10 +125,7 @@ impl SessionManager {
             | Err(russh::Error::NoCommonKeyAlgo)
             | Err(russh::Error::NoCommonCipher) => self.try_conn(&id, &device, true).await?,
             Err(russh::Error::ConnectionTimeout) => {
-                return Err(Error {
-                    message: format!("Timeout connecting to {}", device.name),
-                    kind: ErrorKind::Timeout,
-                })
+                return Err(Error::Timeout);
             }
             e => e?,
         };
@@ -168,9 +141,8 @@ impl SessionManager {
                 )
                 .await?
             {
-                return Err(Error {
+                return Err(Error::Authorization {
                     message: format!("Device refused pubkey authorization"),
-                    kind: ErrorKind::Authorization,
                 });
             }
         } else if let Some(password) = &device.password {
@@ -178,15 +150,13 @@ impl SessionManager {
                 .authenticate_password(&device.username, password)
                 .await?
             {
-                return Err(Error {
+                return Err(Error::Authorization {
                     message: format!("Device refused password authorization"),
-                    kind: ErrorKind::Authorization,
                 });
             }
         } else if !handle.authenticate_none(&device.username).await? {
-            return Err(Error {
+            return Err(Error::Authorization {
                 message: format!("Device refused authorization"),
-                kind: ErrorKind::Authorization,
             });
         }
         log::debug!("Authenticated to {}", device.name);

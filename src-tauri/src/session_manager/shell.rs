@@ -1,18 +1,16 @@
-use russh::ChannelMsg;
 use std::collections::HashMap;
 use std::fmt;
 use std::str::FromStr;
 use std::sync::Arc;
 
+use russh::ChannelMsg;
 use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tokio::sync::mpsc::unbounded_channel;
-
 use uuid::Uuid;
 
-use crate::session_manager::{
-    Error, ErrorKind, Shell, ShellBuffer, ShellCallback, ShellInfo, ShellToken,
-};
+use crate::error::Error;
+use crate::session_manager::{Shell, ShellCallback, ShellInfo, ShellScreen, ShellToken};
 
 pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
 
@@ -21,36 +19,38 @@ impl Shell {
         if let Some(sender) = self.sender.lock().await.as_mut() {
             sender.send(Vec::<u8>::from(data)).unwrap();
         } else {
-            return Err(Error::disconnected());
+            return Err(Error::Disconnected);
         }
         return Ok(());
     }
 
     pub async fn resize(&self, cols: u16, rows: u16) -> Result<(), Error> {
         if !self.has_pty {
-            return Err(Error {
-                message: String::from("Can't resize. This shell is a dumb shell"),
-                kind: ErrorKind::NoPty,
-            });
+            return Err(Error::Unsupported);
         }
         if let Some(ch) = self.channel.lock().await.as_mut() {
             ch.window_change(cols as u32, rows as u32, 0, 0).await?;
         } else {
-            return Err(Error::disconnected());
+            return Err(Error::Disconnected);
         }
         self.parser.lock().unwrap().set_size(rows, cols);
         return Ok(());
     }
 
-    pub async fn screen(&self, cols: u16, rows: u16) -> Result<ShellBuffer, Error> {
+    pub async fn screen(&self, cols: u16) -> Result<ShellScreen, Error> {
         if !self.has_pty {
-            return Err(Error {
-                message: String::from("Can't get screen content. This shell is a dumb shell"),
-                kind: ErrorKind::NoPty,
-            });
+            return Err(Error::Unsupported);
         }
         let guard = self.parser.lock().unwrap();
         let screen = guard.screen();
+        let (_, screen_cols) = screen.size();
+        if cols == screen_cols {
+            return Ok(ShellScreen {
+                rows: None,
+                data: Some(screen.contents_formatted()),
+                cursor: screen.cursor_position(),
+            });
+        }
         let mut rows: Vec<Vec<u8>> = screen.rows_formatted(0, cols).collect();
         if let Some(idx) = rows.iter().rposition(|row| !row.is_empty()) {
             rows = Vec::from(&rows[0..idx + 1]);
@@ -60,8 +60,9 @@ impl Shell {
         for x in &mut rows {
             x.extend(b"\x1b\x5b\x30\x6d");
         }
-        return Ok(ShellBuffer {
-            rows,
+        return Ok(ShellScreen {
+            rows: Some(rows),
+            data: None,
             cursor: screen.cursor_position(),
         });
     }
@@ -141,27 +142,12 @@ impl Shell {
         };
     }
 
-    async fn activate(&self, cols: u16, rows: u16) -> Result<(), Error> {
-        if self.sender.lock().await.is_some() {
-            return Ok(());
-        }
-        if let Some(ch) = self.channel.lock().await.as_mut() {
-            log::info!(
-                "initializing {:?} with {cols} cols and {rows} rows",
-                self.token
-            );
-        } else {
-            return Err(Error::disconnected());
-        }
-        return Ok(());
-    }
-
     async fn wait(&self) -> Result<ChannelMsg, Error> {
         return if let Some(ch) = self.channel.lock().await.as_mut() {
             let msg = ch.wait().await;
-            msg.ok_or_else(|| Error::disconnected())
+            msg.ok_or_else(|| Error::Disconnected)
         } else {
-            Err(Error::disconnected())
+            Err(Error::Disconnected)
         };
     }
 
@@ -169,7 +155,7 @@ impl Shell {
         return if let Some(ch) = self.channel.lock().await.as_mut() {
             return Ok(ch.data(data).await?);
         } else {
-            Err(Error::disconnected())
+            Err(Error::Disconnected)
         };
     }
 

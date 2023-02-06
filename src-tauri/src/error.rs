@@ -1,19 +1,36 @@
 use std::error::Error as ErrorTrait;
 use std::fmt::{Display, Formatter};
 
-use crate::device_manager::Error;
+use serde::Serialize;
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(tag = "reason")]
+pub enum Error {
+    Authorization { message: String },
+    BadPassphrase,
+    Disconnected,
+    ExitStatus { exit_code: u32, stderr: Vec<u8> },
+    IO { name: String, message: String },
+    Message { message: String },
+    NeedsReconnect,
+    NegativeReply,
+    NotFound,
+    PassphraseRequired,
+    Timeout,
+    Unsupported,
+    UnsupportedKey { type_name: String },
+}
 
 impl Error {
-    pub fn new(message: String) -> Error {
-        return Error::Message { message };
+    pub fn new<S: Into<String>>(message: S) -> Error {
+        return Error::Message {
+            message: message.into(),
+        };
     }
     pub fn bad_config() -> Error {
         return Error::Message {
             message: String::from("Bad configuration"),
         };
-    }
-    pub fn unimplemented() -> Error {
-        return Error::Unimplemented { feature: None };
     }
 }
 
@@ -45,6 +62,12 @@ impl From<serde_json::Error> for Error {
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         return Error::new(format!("HTTP Error: {:?}", value));
+    }
+}
+
+impl From<russh::Error> for Error {
+    fn from(value: russh::Error) -> Self {
+        return Error::new(format!("russh::Error::{:?}: {}", value, value.to_string()));
     }
 }
 

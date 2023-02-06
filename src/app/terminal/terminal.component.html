@@ -1,44 +1,59 @@
-<div class="w-100 h-100 d-flex flex-column">
-  <ul ngbNav #nav="ngbNav" class="nav-tabs flex-shrink-0 mt-2 px-2" [animation]="false" [(activeId)]="currentShell">
-    <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.token" [destroyOnHide]="false">
-      <a ngbNavLink>
-        {{shell.title}}
-        <span class="close position-relative ps-2 font-weight-light"
-              (click)="closeSession($event, shell.token)">×</span>
-      </a>
-      <ng-template ngbNavContent [ngSwitch]="shell.hasPty">
-        <app-terminal-pty class="terminal-tab" [token]="shell.token" *ngSwitchCase="true"></app-terminal-pty>
-        <app-terminal-dumb class="terminal-tab" [token]="shell.token" *ngSwitchDefault></app-terminal-dumb>
-      </ng-template>
-    </li>
-    <li>
-    </li>
-    <li class="nav-item">
-      <div class="btn-group btn-group-sm mt-1 ms-2" role="group" aria-label="New Tab">
+<div class="position-relative w-100 h-100">
+  <div class="w-100 h-100 position-absolute d-flex flex-column" [class.opacity-0]="shells.length === 0">
+    <div class="d-flex flex-row overflow-hidden mt-2 w-100 flex-nowrap border-bottom">
+      <ul ngbNav #nav="ngbNav" class="terminal-tabs nav-tabs flex-shrink-1 flex-nowrap border-bottom-0 px-2"
+          [animation]="false" [(activeId)]="currentShell">
+        <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.token" [destroyOnHide]="false">
+          <a class="text-nowrap" ngbNavLink>
+            {{shell.title}}
+            <span class="close position-relative ps-2 font-weight-light"
+                  (click)="closeTab(shell.token);$event.preventDefault();$event.stopImmediatePropagation();">×</span>
+          </a>
+          <ng-template ngbNavContent [ngSwitch]="shell.hasPty">
+            <ng-container *ngSwitchCase="true">
+              <app-terminal-pty class="terminal-tab-page" [token]="shell.token" [size]="termSize"
+                                *ngIf="termSize"></app-terminal-pty>
+              <div class="terminal-resize" *ngIf="pendingResize">
+                {{pendingResize.rows}} &times; {{pendingResize.cols}}
+              </div>
+            </ng-container>
+            <app-terminal-dumb class="terminal-tab-page" [token]="shell.token" *ngSwitchDefault></app-terminal-dumb>
+          </ng-template>
+        </li>
+        <li>
+        </li>
+      </ul>
+      <div class="btn-group btn-group-sm my-1 mx-2 flex-shrink-0 flex-nowrap" role="group" aria-label="New Tab">
         <button type="button" class="btn btn-secondary" (click)="newTab()">
           <i class="bi bi-plus-lg"></i>
         </button>
-        <div class="btn-group btn-group-sm" ngbDropdown role="group" aria-label="Button group with nested dropdown">
+        <div class="btn-group btn-group-sm" ngbDropdown role="group" container="body"
+             aria-label="Button group with nested dropdown">
           <button type="button" class="btn btn-secondary" ngbDropdownToggle>
           </button>
           <div class="dropdown-menu" ngbDropdownMenu>
-            <div class="dropdown-item-text d-flex flex-row text-nowrap">
-              <label class="form-check-label" for="useDumbShell">Prefer dumb shell</label>
-              <input type="checkbox" class="form-check-input ms-3" id="useDumbShell" [(ngModel)]="preferDumbShell">
-            </div>
-            <div class="dropdown-divider"></div>
             <button ngbDropdownItem *ngFor="let device of (deviceManager.devices$ | async)"
                     (click)="newTab(device)">{{device.name}}</button>
+<!--            <div class="dropdown-divider"></div>-->
+<!--            <button ngbDropdownItem>Open in system terminal...<i class="bi bi-box-arrow-up-right ms-2"></i></button>-->
           </div>
         </div>
       </div>
-    </li>
-  </ul>
-
-  <div class="overflow-hidden flex-fill position-relative">
-    <div class="position-absolute w-100 h-100">
-      <app-terminal-pty (termSizeChanged)="termSize = $event"></app-terminal-pty>
     </div>
-    <div class="position-absolute w-100 h-100 tabs-container" [ngbNavOutlet]="nav"></div>
+    <div class="overflow-hidden flex-fill position-relative">
+      <div class="position-absolute w-100 h-100">
+        <app-terminal-size-calculator [(size)]="termSize" (pendingResizeChange)="pendingResize = $event">
+        </app-terminal-size-calculator>
+      </div>
+      <div class="position-absolute w-100 h-100 tabs-container" [ngbNavOutlet]="nav"></div>
+    </div>
+  </div>
+
+  <div class="position-absolute w-100 h-100 p-4" *ngIf="shells.length === 0">
+    <h4>Select a device to start terminal session</h4>
+    <div class="list-group mt-3">
+      <button class="list-group-item list-group-item-action" type="button" (click)="newTab(device)"
+              *ngFor="let device of (deviceManager.devices$ | async)">{{device.name}}</button>
+    </div>
   </div>
 </div>

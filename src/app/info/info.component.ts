@@ -2,15 +2,15 @@ import {Component, Injector} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import 'moment-duration-format';
-import {Observable, timer} from 'rxjs';
+import {Observable, of, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {Device, RawPackageInfo} from '../types';
 import {
   AppManagerService,
   AppsRepoService,
   DeviceManagerService,
-  DevModeResponse,
   DevModeService,
+  DevModeStatus,
   RepositoryItem,
 } from '../core/services';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
@@ -25,7 +25,7 @@ import {HomebrewChannelConfiguration, SystemInfo} from "../types/luna-apis";
 export class InfoComponent {
   device: Device | null = null;
   sysInfo: Partial<SystemInfo> | null = null;
-  devModeInfo: DevModeResponse | null = null;
+  devModeInfo: DevModeStatus | null = null;
   devModeRemaining: Observable<string> | null = null;
   homebrewAppInfo: RawPackageInfo | null = null;
   homebrewAppConfig: Partial<HomebrewChannelConfiguration> | null = null;
@@ -83,14 +83,16 @@ export class InfoComponent {
   private async loadDevModeInfo(): Promise<void> {
     if (!this.device) return;
     try {
-      const token = await this.deviceManager.devModeToken(this.device);
-      const devModeInfo = await this.devMode.checkDevMode(token);
+      const devModeInfo = await this.devMode.status(this.device);
       this.devModeInfo = devModeInfo;
-      if (devModeInfo.errorCode == '200') {
-        const expireDate = moment().add(devModeInfo.errorMsg, 'h');
+      if (devModeInfo.remaining) {
+        const expireDate = moment().add(devModeInfo.remaining, 'h');
         this.devModeRemaining = timer(0, 1000).pipe(map(() => moment.duration(expireDate.diff(moment())).format('hh:mm:ss')));
+      } else {
+        this.devModeRemaining = of("--:--");
       }
     } catch (e) {
+      console.log(e);
       this.devModeInfo = null;
       this.devModeRemaining = null;
     }
