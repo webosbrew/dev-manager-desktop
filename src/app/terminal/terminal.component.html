@@ -34,8 +34,8 @@
           <div class="dropdown-menu" ngbDropdownMenu>
             <button ngbDropdownItem *ngFor="let device of (deviceManager.devices$ | async)"
                     (click)="newTab(device)">{{device.name}}</button>
-            <div class="dropdown-divider"></div>
-            <button ngbDropdownItem>Open in system terminal...<i class="bi bi-box-arrow-up-right ms-2"></i></button>
+<!--            <div class="dropdown-divider"></div>-->
+<!--            <button ngbDropdownItem>Open in system terminal...<i class="bi bi-box-arrow-up-right ms-2"></i></button>-->
           </div>
         </div>
       </div>
