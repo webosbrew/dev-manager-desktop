@@ -1,7 +1,7 @@
-use std::env;
-use std::fs::{create_dir_all, File};
+use std::fs::{create_dir_all, File, Metadata, Permissions};
 use std::io::{BufReader, BufWriter, ErrorKind};
 use std::path::PathBuf;
+use std::{env, fs};
 
 use serde_json::Value;
 use tauri::api::path::home_dir;
@@ -29,8 +29,8 @@ pub(crate) async fn read() -> Result<Vec<Device>, Error> {
             .filter_map(|v| serde_json::from_value::<Device>(v.clone()).ok())
             .collect());
     })
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 }
 
 pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
@@ -38,21 +38,28 @@ pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
         let path = devices_file_path()?;
         let file = match File::create(path.as_path()) {
             Ok(file) => file,
-            Err(e) => match e.kind() {
-                ErrorKind::NotFound => {
-                    let parent = path.parent().ok_or_else(|| Error::bad_config())?;
-                    create_dir_all(parent)?;
-                    File::create(path.as_path())?
+            Err(e) => {
+                match e.kind() {
+                    ErrorKind::PermissionDenied => {
+                        fix_devices_json_perm(path.clone())?;
+                    }
+                    ErrorKind::NotFound => {
+                        let parent = path.parent().ok_or_else(|| Error::bad_config())?;
+                        create_dir_all(parent)?;
+                    }
+                    _ => return Err(e.into()),
                 }
-                _ => return Err(e.into()),
-            },
+                File::create(path.as_path())?
+            }
         };
+        log::info!("make the file writable: {:?}", path);
+        file.metadata()?.permissions().set_readonly(false);
         let writer = BufWriter::new(file);
         serde_json::to_writer_pretty(writer, &devices)?;
         return Ok(());
     })
-        .await
-        .unwrap();
+    .await
+    .unwrap();
 }
 
 pub(crate) fn ssh_dir() -> Option<PathBuf> {
@@ -67,13 +74,35 @@ pub(crate) fn ensure_ssh_dir() -> Result<PathBuf, Error> {
     return Ok(dir);
 }
 
+#[cfg(target_family = "windows")]
 fn devices_file_path() -> Result<PathBuf, Error> {
     let home = env::var("APPDATA")
-        .or_else(|_| env::var("HOME"))
         .or_else(|_| env::var("USERPROFILE"))
         .map_err(|_| Error::bad_config())?;
     return Ok(PathBuf::from(home)
         .join(".webos")
         .join("ose")
         .join("novacom-devices.json"));
+}
+
+#[cfg(not(unix))]
+fn fix_devices_json_perm(path: PathBuf) -> Result<(), Error> {
+    let mut perm = fs::metadata(path.clone())?.permissions();
+    perm.set_readonly(false);
+    fs::set_permissions(path, perm)?;
+    return Ok(());
+}
+
+#[cfg(not(target_family = "windows"))]
+fn devices_file_path() -> Result<PathBuf, Error> {
+    let home = home_dir().ok_or_else(|| Error::bad_config())?;
+    return Ok(home.join(".webos").join("ose").join("novacom-devices.json"));
+}
+
+#[cfg(unix)]
+fn fix_devices_json_perm(path: PathBuf) -> Result<(), Error> {
+    use std::os::unix::fs::PermissionsExt;
+    let perm = fs::Permissions::from_mode(0o644);
+    fs::set_permissions(path, perm)?;
+    return Ok(());
 }
