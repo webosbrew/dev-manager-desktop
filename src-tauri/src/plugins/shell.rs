@@ -17,8 +17,7 @@ async fn open<R: Runtime>(
     dumb: Option<bool>,
 ) -> Result<ShellInfo, Error> {
     let shell = manager.shell_open(device, cols, rows, dumb).await?;
-    app.emit_all("shells-updated", manager.shell_list())
-        .unwrap_or(());
+    app.emit_all("shells-opened", &shell.token).unwrap_or(());
     let run_shell = shell.clone();
     tokio::spawn(async move {
         let cb = PluginShellCb::<R> {
@@ -108,8 +107,6 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
     fn closed(self) {
         let manager = self.app.state::<SessionManager>();
         manager.shell_close(&self.token).unwrap_or(());
-        self.app
-            .emit_all("shells-updated", manager.shell_list())
-            .unwrap_or(());
+        self.app.emit_all("shells-closed", self.token).unwrap_or(());
     }
 }

@@ -2,7 +2,16 @@
   //background-color: black;
 }
 
-.terminal-tab {
+ul.terminal-tabs {
+  overflow-y: hidden;
+  overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.terminal-tab-page {
   position: absolute;
   margin: auto;
   left: 0;

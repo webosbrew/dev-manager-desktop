@@ -48,17 +48,26 @@ async fn proc_worker<R: Runtime>(
             proc_ev.interrupt().await.unwrap_or(());
         });
     });
-    proc.run(|index, data| {
-        app.emit_all(
-            &format!("cmd-read-{}", token.clone()),
-            ProcData {
-                index,
-                data: Vec::<u8>::from(data),
-            },
-        )
-        .unwrap_or(());
-    })
-    .await?;
+    if let Err(e) = proc
+        .run(|index, data| {
+            app.emit_all(
+                &format!("cmd-read-{}", token.clone()),
+                ProcData {
+                    index,
+                    data: Vec::<u8>::from(data),
+                },
+            )
+            .unwrap_or(());
+        })
+        .await
+    {
+        log::info!("{:?}", e);
+        app.emit_all(&format!("cmd-error-{}", token.clone()), e)
+            .unwrap_or(());
+    } else {
+        app.emit_all(&format!("cmd-finish-{}", token.clone()), ())
+            .unwrap_or(());
+    }
     app.unlisten(handler);
     return Ok(());
 }

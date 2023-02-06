@@ -1,9 +1,8 @@
-import {escapeSingleQuoteString, ExecutionError, ExitStatusError, RemoteCommandService} from "./remote-command.service";
+import {escapeSingleQuoteString, ExecutionError, RemoteCommandService} from "./remote-command.service";
 import {Injectable} from "@angular/core";
 import {DeviceLike} from "../../types";
-import {finalize, Observable} from "rxjs";
+import {catchError, finalize, Observable} from "rxjs";
 import {map} from "rxjs/operators";
-import {BackendError} from "./backend-client";
 
 export declare interface LunaResponse extends Record<string, any> {
   returnValue: boolean,
@@ -48,6 +47,12 @@ export class RemoteLunaService {
     const subject = await this.commands.popen(device, command, 'utf-8');
     return subject.pipe(map(v => {
       return JSON.parse(v.trim());
+    }), catchError(e => {
+      console.log(e);
+      if (e instanceof ExecutionError && e.status == 127) {
+        throw new LunaUnsupportedError(`Failed to find command ${sendCmd}. Is this really a webOS device?`);
+      }
+      throw e;
     }), finalize(() => subject.close()));
   }
 }

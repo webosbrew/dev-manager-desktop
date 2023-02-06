@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(tag = "reason")]
 pub enum Error {
     Authorization { message: String },

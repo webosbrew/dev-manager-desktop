@@ -48,7 +48,7 @@ export class BackendError extends Error {
     Object.assign(this, omit(body, 'message', 'reason'));
   }
 
-  static isError(e: unknown): e is BackendError {
+  static isCompatible(e: unknown): e is BackendErrorBody {
     return typeof ((e as any).reason) === 'string';
   }
 }
