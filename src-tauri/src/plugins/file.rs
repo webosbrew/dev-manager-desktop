@@ -28,8 +28,8 @@ async fn ls(
         manager
             .exec(
                 device.clone(),
-                "xargs -0 -I PATH find PATH -maxdepth 1 -print0",
-                Some(path.clone().into_bytes()),
+                &format!("find {} -maxdepth 1 -print0", escape_path(&path)),
+                None,
             )
             .await?,
     )
