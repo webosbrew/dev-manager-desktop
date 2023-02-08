@@ -34,13 +34,15 @@ export abstract class BackendClient {
 
 interface BackendErrorBody {
   reason: ErrorReason,
-  message?: string
+  message?: string,
+
+  [key: string]: unknown;
 }
 
 export class BackendError extends Error {
   reason: ErrorReason;
 
-  [key: string | symbol]: unknown;
+  [key: string]: unknown;
 
   constructor(body: BackendErrorBody) {
     super(body.message ?? body.reason);
@@ -48,8 +50,8 @@ export class BackendError extends Error {
     Object.assign(this, omit(body, 'message', 'reason'));
   }
 
-  static isCompatible(e: unknown): e is BackendErrorBody {
-    return typeof ((e as any).reason) === 'string';
+  static isCompatible(e: unknown): e is BackendError {
+    return e instanceof Error && (typeof (e as any).reason === 'string');
   }
 }
 

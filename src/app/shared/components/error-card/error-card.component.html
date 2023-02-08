@@ -2,6 +2,7 @@
   <div class="card-body">
     <h5 class="card-title" *ngIf="title">{{title}}</h5>
     <p class="card-text">{{error.message}}</p>
+    <pre class="card-text" *ngIf="details as details">{{details}}</pre>
     <button class="btn btn-primary" (click)="retry.emit()">Retry</button>
   </div>
 </div>

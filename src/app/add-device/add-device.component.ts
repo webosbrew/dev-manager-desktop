@@ -98,6 +98,7 @@ export class AddDeviceComponent {
         const confirm = MessageDialogComponent.open(this.modalService, {
           title: 'Failed to fetch private key',
           message: KeyserverHintComponent,
+          error: e as Error,
           positive: 'Retry',
           negative: 'Cancel',
         });
