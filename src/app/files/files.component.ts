@@ -132,6 +132,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         result = await MessageDialogComponent.open(this.modalService, {
           title: `Failed to download file ${file.filename}`,
           message: (e as Error).message ?? String(e),
+          error: e as Error,
           positive: 'Retry',
           negative: 'Cancel',
         }).result;
@@ -162,6 +163,7 @@ export class FilesComponent implements OnInit, OnDestroy {
           result = await MessageDialogComponent.open(this.modalService, {
             title: `Failed to download file ${file.filename}`,
             message: (e as Error).message ?? String(e),
+            error: e as Error,
             positive: 'Retry',
             negative: 'Skip',
             alternative: 'Abort',
@@ -196,6 +198,7 @@ export class FilesComponent implements OnInit, OnDestroy {
           result = await MessageDialogComponent.open(this.modalService, {
             title: `Failed to delete ${file.filename}`,
             message: (e as Error).message ?? String(e),
+            error: e as Error,
             positive: 'Retry',
             negative: 'Skip',
             alternative: 'Abort',
@@ -223,6 +226,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         result = await MessageDialogComponent.open(this.modalService, {
           title: `Failed to download file ${file.filename}`,
           message: (e as Error).message ?? String(e),
+          error: e as Error,
           positive: 'Retry',
           negative: 'Cancel',
         }).result;
@@ -236,19 +240,23 @@ export class FilesComponent implements OnInit, OnDestroy {
     const returnValue = await showOpenDialog({multiple: true});
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
-    await this.session!.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], this.pwd, async (name, e) => {
-      const result = await MessageDialogComponent.open(this.modalService, {
-        title: `Failed to upload file ${name}`,
-        message: e.message ?? String(e),
-        positive: 'Retry',
-        negative: 'Skip',
-        alternative: 'Abort',
-      }).result;
-      if (result == null) throw e;
-      return result;
-    });
-    await this.cd(this.pwd, false);
-    progress.dismiss();
+    try {
+      await this.session!.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], this.pwd, async (name, e) => {
+        const result = await MessageDialogComponent.open(this.modalService, {
+          title: `Failed to upload file ${name}`,
+          message: e.message ?? String(e),
+          error: e as Error,
+          positive: 'Retry',
+          negative: 'Skip',
+          alternative: 'Abort',
+        }).result;
+        if (result == null) throw e;
+        return result;
+      });
+      await this.cd(this.pwd, false);
+    } finally {
+      progress.dismiss();
+    }
   }
 
   async breadcrumbNav(segs: string[]): Promise<void> {

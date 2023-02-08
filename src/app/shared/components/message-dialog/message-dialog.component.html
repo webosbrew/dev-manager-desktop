@@ -4,9 +4,9 @@
 <div class="modal-body" [ngSwitch]="messageType">
   <p *ngSwitchCase="'string'">{{message}}</p>
   <ng-template *ngSwitchCase="'component'" #messageComponent></ng-template>
-  <div class="card w-100 p-2" *ngIf="error && error.message !== message">
+  <div class="card w-100 p-2" *ngIf="error && $any(error).details as details">
     <label class="card-title">More info about the error:</label>
-    <pre class="card-body w-100 p-0">{{error.message}}</pre>
+    <pre class="card-body w-100 p-0">{{details}}</pre>
   </div>
 </div>
 <div class="modal-footer">

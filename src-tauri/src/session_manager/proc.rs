@@ -58,6 +58,7 @@ impl Proc {
         let status = status.unwrap_or(0);
         if status != 0 {
             return Err(Error::ExitStatus {
+                message: format!("Command `{}` exited with status {}", self.command, status),
                 exit_code: status,
                 stderr,
             });

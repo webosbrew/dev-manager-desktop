@@ -1,5 +1,5 @@
 import {Device, FileItem, FileSession, FileType} from '../../types';
-import {escapeSingleQuoteString, RemoteCommandService} from './remote-command.service';
+import {escapeSingleQuoteString, ExecutionError, RemoteCommandService} from './remote-command.service';
 import {zip} from 'lodash';
 import * as path from 'path';
 import {basename} from '@tauri-apps/api/path'
@@ -13,15 +13,15 @@ export class FileSessionImpl implements FileSession {
 
   async ls(path: string): Promise<FileItem[]> {
     return this.file.ls(this.device, path).catch(e => {
-      if (e.exit_code && e.stderr) {
-        const stderr = Buffer.from(e.stderr).toString('utf-8');
+      if (ExecutionError.isCompatible(e)) {
+        const stderr = e.details as string;
         if (stderr.includes('No such file or directory')) {
           throw new FileError.NotFound(path, stderr);
         } else if (stderr.includes('Permission denied')) {
           throw new FileError.Denied(path, stderr);
         }
       }
-      console.log(String.fromCharCode(...e.stderr));
+      console.log(e.data);
       throw e;
     });
   }

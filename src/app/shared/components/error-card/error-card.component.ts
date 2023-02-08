@@ -18,4 +18,8 @@ export class ErrorCardComponent {
   constructor() {
   }
 
+  get details(): string | undefined {
+    return (this.error as any)?.details;
+  }
+
 }

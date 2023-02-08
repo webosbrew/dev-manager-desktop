@@ -39,12 +39,11 @@ export class RemoteCommandService extends BackendClient {
     const stdin = typeof stdinData === 'string' ? [...this.encoder.encode(stdinData)] : stdinData;
     try {
       const stdout: number[] = await this.invoke('exec', {device, command, stdin});
-      return convertOutput(stdout, outputEncoding) as any;
+      return convertOutput(stdout, outputEncoding as any) as any;
     } catch (e) {
-      if (e instanceof BackendError) {
+      if (BackendError.isCompatible(e)) {
         if (e.reason === 'ExitStatus') {
-          const stderr = e['stderr'] as number[];
-          throw new ExecutionError(e.message, e['exit_code'] as number, convertOutput(stderr, outputEncoding));
+          throw ExecutionError.fromBackendError(e);
         }
       }
       throw e;
@@ -110,8 +109,7 @@ export class CommandSubject<T = Buffer | string> extends ReplaySubject<T> {
       if (BackendError.isCompatible(event.payload)) {
         const be = new BackendError(event.payload);
         if (be.reason === 'ExitStatus') {
-          const stderr = be['stderr'] as number[];
-          subject.error(new ExecutionError(be.message, be['exit_code'] as number, convertOutput(stderr, outputEncoding)));
+          subject.error(ExecutionError.fromBackendError(be));
         } else {
           subject.error(be);
         }
@@ -131,26 +129,35 @@ declare interface ProcData {
   data: number[];
 }
 
-export class ExecutionError<T = Buffer | string> extends Error {
-  constructor(message: string, public status: number, public data: T) {
+export class ExecutionError extends Error {
+  constructor(message: string, public status: number, public details: string) {
     super(message);
   }
-}
 
-export interface ExitStatusError {
-  reason: 'ExitStatus';
-  exit_code: number;
-  stderr: number;
-}
+  static isCompatible(e: unknown): e is ExecutionError {
+    if (!(e instanceof Error)) {
+      return false;
+    }
+    const p = e as Partial<ExecutionError>;
+    return typeof (p.status) === 'number' && p.details !== null;
+  }
 
-namespace IpcErrors {
+  static fromBackendError(e: BackendError): ExecutionError | BackendError {
+    const stderr = e['stderr'] as number[];
+    const data = convertOutput(stderr, 'utf-8');
+    const exitCode = e['exit_code'] as number;
+    return new ExecutionError(`Command exited with code ${exitCode}`, exitCode, data);
+  }
 }
 
 export function escapeSingleQuoteString(value: string) {
   return value.split('\'').map(s => `'${s}'`).join('\\\'');
 }
 
-function convertOutput(data: number[], format?: 'buffer' | 'utf-8'): Buffer | string {
+export function convertOutput(data: number[], format: 'buffer'): Buffer;
+export function convertOutput(data: number[], format: 'utf-8'): string;
+
+export function convertOutput(data: number[], format: 'buffer' | 'utf-8'): Buffer | string {
   const outputData = Buffer.from(data);
   switch (format) {
     case 'utf-8':

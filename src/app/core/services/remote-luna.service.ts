@@ -20,7 +20,7 @@ export class RemoteLunaService {
     const sendCmd = pub ? 'luna-send-pub' : 'luna-send';
     return this.commands.exec(device, `${sendCmd} -n 1 ${uri} ${escapeSingleQuoteString(JSON.stringify(param))}`, 'utf-8')
       .catch(e => {
-        if (e instanceof ExecutionError && e.status == 127) {
+        if (ExecutionError.isCompatible(e) && e.status == 127) {
           throw new LunaUnsupportedError(`Failed to find command ${sendCmd}. Is this really a webOS device?`);
         }
         throw e;
@@ -49,7 +49,7 @@ export class RemoteLunaService {
       return JSON.parse(v.trim());
     }), catchError(e => {
       console.log(e);
-      if (e instanceof ExecutionError && e.status == 127) {
+      if (ExecutionError.isCompatible(e) && e.status == 127) {
         throw new LunaUnsupportedError(`Failed to find command ${sendCmd}. Is this really a webOS device?`);
       }
       throw e;

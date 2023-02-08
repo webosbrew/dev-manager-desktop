@@ -6,19 +6,32 @@ use serde::Serialize;
 #[derive(Debug, Serialize, Clone)]
 #[serde(tag = "reason")]
 pub enum Error {
-    Authorization { message: String },
+    Authorization {
+        message: String,
+    },
     BadPassphrase,
     Disconnected,
-    ExitStatus { exit_code: u32, stderr: Vec<u8> },
-    IO { name: String, message: String },
-    Message { message: String },
+    ExitStatus {
+        message: String,
+        exit_code: u32,
+        stderr: Vec<u8>,
+    },
+    IO {
+        name: String,
+        message: String,
+    },
+    Message {
+        message: String,
+    },
     NeedsReconnect,
     NegativeReply,
     NotFound,
     PassphraseRequired,
     Timeout,
     Unsupported,
-    UnsupportedKey { type_name: String },
+    UnsupportedKey {
+        type_name: String,
+    },
 }
 
 impl Error {
