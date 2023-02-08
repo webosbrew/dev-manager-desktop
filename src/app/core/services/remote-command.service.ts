@@ -135,7 +135,11 @@ export class ExecutionError extends Error {
   }
 
   static isCompatible(e: unknown): e is ExecutionError {
-    return (e instanceof Error) && (typeof ((e as any).status) === 'number' && (e as any).data);
+    if (!(e instanceof Error)) {
+      return false;
+    }
+    const p = e as Partial<ExecutionError>;
+    return typeof (p.status) === 'number' && p.details !== null;
   }
 
   static fromBackendError(e: BackendError): ExecutionError | BackendError {
@@ -144,15 +148,6 @@ export class ExecutionError extends Error {
     const exitCode = e['exit_code'] as number;
     return new ExecutionError(`Command exited with code ${exitCode}`, exitCode, data);
   }
-}
-
-export interface ExitStatusError {
-  reason: 'ExitStatus';
-  exit_code: number;
-  stderr: number;
-}
-
-namespace IpcErrors {
 }
 
 export function escapeSingleQuoteString(value: string) {

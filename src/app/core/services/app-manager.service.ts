@@ -46,7 +46,7 @@ export class AppManagerService {
     const data = await this.file.read(device, path.join(info.folderPath, info.icon))
       .then(d => d.length > 0 ? d : undefined)
       .catch((e) => {
-        console.warn(e);
+        console.warn('failed to fetch app icon', e);
         return undefined;
       });
     return {iconUri: data && `data:application/octet-stream;base64,${data.toString('base64')}`, ...info}
