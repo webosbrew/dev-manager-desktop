@@ -43,19 +43,39 @@ async fn ls(
     let mut items = Vec::<FileItem>::new();
     for chunk in entries.chunks(100) {
         let ls_input = chunk.join("\0").into_bytes();
-        let mut details: Vec<String> = String::from_utf8(
-            manager
-                .exec(
-                    device.clone(),
-                    "xargs -0 ls -ld --full-time",
-                    Some(ls_input),
-                )
-                .await?,
-        )
-        .unwrap()
-        .split('\n')
-        .map(|l| String::from(l))
-        .collect();
+        let ls_output = match manager
+            .exec(device.clone(), "xargs -0 ls -ld --full-time", Some(ls_input.clone()))
+            .await
+        {
+            Ok(v) => v,
+            Err(Error::ExitStatus {
+                message,
+                exit_code,
+                stderr,
+            }) => {
+                if exit_code == 123 {
+                    manager
+                        .exec(
+                            device.clone(),
+                            "xargs -0 ls -ld -e",
+                            Some(ls_input),
+                        )
+                        .await?
+                } else {
+                    return Err(Error::ExitStatus {
+                        message,
+                        exit_code,
+                        stderr,
+                    });
+                }
+            }
+            Err(e) => return Err(e),
+        };
+        let mut details: Vec<String> = String::from_utf8(ls_output)
+            .unwrap()
+            .split('\n')
+            .map(|l| String::from(l))
+            .collect();
         // Last line is empty, remove it
         details.pop();
         assert_eq!(chunk.len(), details.len());
