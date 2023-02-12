@@ -12,6 +12,7 @@ mod device_manager;
 mod plugins;
 mod session_manager;
 mod error;
+mod ssh_files;
 
 fn main() {
     env_logger::init();

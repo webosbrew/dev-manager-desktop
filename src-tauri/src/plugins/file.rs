@@ -13,6 +13,7 @@ use crate::device_manager::Device;
 use crate::error::Error;
 use crate::plugins::cmd::escape_path;
 use crate::session_manager::SessionManager;
+use crate::ssh_files::ls::for_entries;
 
 #[tauri::command]
 async fn ls(
@@ -41,24 +42,19 @@ async fn ls(
     entries.pop();
     entries.sort();
     let mut items = Vec::<FileItem>::new();
+    let mut ls_legacy = false;
     for chunk in entries.chunks(100) {
-        let ls_input = chunk.join("\0").into_bytes();
-        let mut details: Vec<String> = String::from_utf8(
-            manager
-                .exec(
-                    device.clone(),
-                    "xargs -0 ls -ld --full-time",
-                    Some(ls_input),
-                )
-                .await?,
-        )
-        .unwrap()
-        .split('\n')
-        .map(|l| String::from(l))
-        .collect();
-        // Last line is empty, remove it
-        details.pop();
-        assert_eq!(chunk.len(), details.len());
+        let details = match for_entries(&manager, device.clone(), chunk, ls_legacy).await {
+            Ok(details) => details,
+            Err(Error::Unsupported) => {
+                if ls_legacy {
+                    return Err(Error::Unsupported);
+                }
+                ls_legacy = true;
+                for_entries(&manager, device.clone(), chunk, true).await?
+            }
+            Err(e) => return Err(e),
+        };
         let mut group: Vec<FileItem> = zip(chunk, details)
             .skip(1)
             .map(|(entry, line)| {
