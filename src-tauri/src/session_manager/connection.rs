@@ -23,7 +23,7 @@ pub(crate) struct Connection {
 pub(crate) type ConnectionsMap = HashMap<String, Arc<Connection>>;
 
 impl Connection {
-    pub async fn exec(&self, command: &str, stdin: &Option<Vec<u8>>) -> Result<Vec<u8>, Error> {
+    pub async fn exec(&self, command: &str, stdin: Option<&[u8]>) -> Result<Vec<u8>, Error> {
         let mut ch = self.open_cmd_channel().await?;
         let id = ch.id();
         log::debug!("{id}: Exec {{ command: {command} }}");
@@ -32,8 +32,7 @@ impl Connection {
             return Err(Error::NegativeReply);
         }
         if let Some(data) = stdin {
-            let data = data.clone();
-            ch.data(&*data).await?;
+            ch.data(data).await?;
             ch.eof().await?;
         }
         let mut stdout: Vec<u8> = Vec::new();

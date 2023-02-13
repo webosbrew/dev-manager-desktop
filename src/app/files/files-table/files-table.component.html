@@ -23,12 +23,12 @@
               <i class="bi-file-earmark-x-fill" *ngSwitchDefault></i>
             </span>
       <span>{{file.filename}}</span>
-      <span *ngIf="file.link" class="text-secondary">
-            <i class="bi-arrow-right-short px-1"></i>
-        {{file.link.target}}
-          </span>
+      <ng-container *ngIf="file.link as link">
+        <i class="bi-arrow-right-short text-secondary px-1"></i>
+        <span class="text-secondary" [class.text-decoration-line-through]="link.broken">{{link.target}}</span>
+      </ng-container>
     </td>
-    <td class="text-nowrap">{{file.mtime | date:'short'}}
+    <td class="text-nowrap">{{file.mtime * 1000 | date:'short'}}
     </td>
     <td class="text-nowrap">
           <span *ngIf="file.type === '-'; else nonRegular">

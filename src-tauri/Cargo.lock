@@ -79,6 +79,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "env_logger",
+ "file-mode",
  "hex",
  "log",
  "openssl",
@@ -839,6 +840,15 @@ checksum = "1e1c54951450cbd39f3dbcf1005ac413b49487dabf18a720ad2383eccfeffb92"
 dependencies = [
  "memoffset",
  "rustc_version 0.3.3",
+]
+
+[[package]]
+name = "file-mode"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "773ea145485772b8d354624b32adbe20e776353d3e48c7b03ef44e3455e9815c"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

@@ -100,7 +100,7 @@ export class FilesComponent implements OnInit, OnDestroy {
   }
 
   compareMtime(this: void, a: FileItem, b: FileItem): number {
-    return moment(a.mtime).diff(moment(b.mtime));
+    return a.mtime - b.mtime;
   }
 
   async openItem(file: FileItem): Promise<void> {

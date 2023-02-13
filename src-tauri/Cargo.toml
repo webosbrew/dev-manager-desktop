@@ -31,6 +31,7 @@ reqwest = { version = "0.11.14", features = ["json"] }
 async-trait = "0.1.63"
 sha2 = "0.10.6"
 hex = "0.4.3"
+file-mode = "0.1.2"
 
 [features]
 # by default Tauri runs in production mode

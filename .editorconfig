@@ -11,7 +11,7 @@ trim_trailing_whitespace = true
 [*.ts]
 quote_type = single
 
-[*.rs]
+[*.{rs,py}]
 indent_size = 4
 
 [*.md]
