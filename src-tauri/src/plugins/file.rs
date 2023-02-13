@@ -1,8 +1,7 @@
 use std::env::temp_dir;
-use std::iter::zip;
 use std::path::Path;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{Runtime, State};
 use tokio::fs;
@@ -13,7 +12,8 @@ use crate::device_manager::Device;
 use crate::error::Error;
 use crate::plugins::cmd::escape_path;
 use crate::session_manager::SessionManager;
-use crate::ssh_files::ls::for_entries;
+
+use file_mode::Mode;
 
 #[tauri::command]
 async fn ls(
@@ -25,45 +25,15 @@ async fn ls(
         return Err(Error::new("Absolute path required"));
     }
     log::info!("ls {}", path);
-    let mut entries: Vec<String> = String::from_utf8(
-        manager
-            .exec(
-                device.clone(),
-                &format!("find {} -maxdepth 1 -print0", escape_path(&path)),
-                None,
-            )
-            .await?,
-    )
-    .unwrap()
-    .split('\0')
-    .map(|l| String::from(l))
-    .collect();
-    // Last line is empty, remove it
-    entries.pop();
-    entries.sort();
-    let mut items = Vec::<FileItem>::new();
-    let mut ls_legacy = false;
-    for chunk in entries.chunks(100) {
-        let details = match for_entries(&manager, device.clone(), chunk, ls_legacy).await {
-            Ok(details) => details,
-            Err(Error::Unsupported) => {
-                if ls_legacy {
-                    return Err(Error::Unsupported);
-                }
-                ls_legacy = true;
-                for_entries(&manager, device.clone(), chunk, true).await?
-            }
-            Err(e) => return Err(e),
-        };
-        let mut group: Vec<FileItem> = zip(chunk, details)
-            .skip(1)
-            .map(|(entry, line)| {
-                return FileItem::new(&path, &entry, &line);
-            })
-            .collect();
-        items.append(&mut group);
-    }
-    return Ok(items);
+    let output = manager
+        .exec(
+            device.clone(),
+            &format!("python - {}", escape_path(&path)),
+            Some(include_bytes!("../../res/scripts/files_ls.py")),
+        )
+        .await?;
+    let entries = serde_json::from_slice::<Vec<FileEntry>>(&output)?;
+    return Ok(entries.iter().map(|e| e.into()).collect());
 }
 
 #[tauri::command]
@@ -88,7 +58,7 @@ async fn write(
         .exec(
             device,
             &format!("dd of={}", escape_path(&path)),
-            Some(content),
+            Some(content.as_slice()),
         )
         .await?;
     return Ok(());
@@ -120,7 +90,11 @@ async fn put(
     let mut buf = Vec::<u8>::new();
     file.read_to_end(&mut buf).await?;
     manager
-        .exec(device, &format!("dd of={}", escape_path(&path)), Some(buf))
+        .exec(
+            device,
+            &format!("dd of={}", escape_path(&path)),
+            Some(buf.as_slice()),
+        )
         .await?;
     return Ok(());
 }
@@ -161,62 +135,49 @@ pub struct FileItem {
     user: String,
     group: String,
     size: usize,
-    mtime: String,
+    mtime: f64,
     abspath: String,
     link: Option<LinkInfo>,
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkInfo {
     target: String,
+    broken: Option<bool>,
 }
 
-impl FileItem {
-    fn basename(dir: &str, path: &str) -> String {
-        let without_dir = &path[dir.len()..];
-        return String::from(without_dir.strip_prefix("/").unwrap_or(without_dir));
-    }
+#[derive(Deserialize, Clone, Debug)]
+pub(crate) struct FileEntry {
+    name: String,
+    stat: FileStat,
+    abspath: String,
+    link: Option<LinkInfo>,
+}
 
-    fn new(path: &str, entry: &str, line: &str) -> FileItem {
-        let basename = Self::basename(path, entry);
-        let info_name_index = line.find('/').unwrap();
-        let info_cols: Vec<&str> = line[..info_name_index - 1]
-            .split_ascii_whitespace()
-            .collect();
-        let perm = *info_cols.get(0).unwrap();
-        let file_type = String::from(&perm[..1]);
+#[derive(Deserialize, Clone, Debug)]
+pub(crate) struct FileStat {
+    mode: u32,
+    uid: u32,
+    gid: u32,
+    size: u32,
+    atime: f64,
+    ctime: f64,
+    mtime: f64,
+}
 
-        let size = if file_type == "-" {
-            info_cols[4].parse::<usize>().unwrap()
-        } else {
-            0
-        };
-
-        let link: Option<LinkInfo> = if file_type == "l" {
-            let info_name = String::from(&line[info_name_index..]);
-            let basename_n_arrows = basename.matches(" -> ").count();
-            let segs: Vec<&str> = info_name.split(" -> ").collect();
-            Some(LinkInfo {
-                target: segs[basename_n_arrows + 1..].join(" -> "),
-            })
-        } else {
-            None
-        };
+impl From<&FileEntry> for FileItem {
+    fn from(value: &FileEntry) -> FileItem {
+        let mode = format!("{}", Mode::from(value.stat.mode));
         return FileItem {
-            filename: basename,
-            r#type: file_type,
-            mode: String::from(&perm[1..]),
-            user: String::from(*info_cols.get(2).unwrap()),
-            group: String::from(*info_cols.get(3).unwrap()),
-            mtime: format!(
-                "{}T{}{}",
-                info_cols.get(info_cols.len() - 3).unwrap(),
-                info_cols.get(info_cols.len() - 2).unwrap(),
-                info_cols.get(info_cols.len() - 1).unwrap()
-            ),
-            abspath: String::from(entry),
-            size,
-            link,
+            filename: value.name.clone(),
+            r#type: String::from(&mode[..1]),
+            mode: String::from(&mode[1..]),
+            user: format!("{}", value.stat.uid),
+            group: format!("{}", value.stat.gid),
+            size: value.stat.size as usize,
+            mtime: value.stat.mtime,
+            abspath: value.abspath.clone(),
+            link: value.link.clone(),
         };
     }
 }

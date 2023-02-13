@@ -7,7 +7,7 @@ export declare interface FileItem {
   user: string;
   group: string;
   size: number,
-  mtime: string,
+  mtime: number,
   link?: LinkInfo;
   abspath: string;
 }

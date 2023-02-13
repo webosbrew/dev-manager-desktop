@@ -17,7 +17,7 @@ async fn exec(
     command: String,
     stdin: Option<Vec<u8>>,
 ) -> Result<Vec<u8>, Error> {
-    return manager.exec(device, &command, stdin).await;
+    return manager.exec(device, &command, stdin.as_deref()).await;
 }
 
 #[tauri::command]
@@ -41,7 +41,7 @@ async fn proc_worker<R: Runtime>(
     let manager = app.state::<SessionManager>();
     let proc = Arc::new(manager.spawn(device, &command).await?);
     let proc_ev = proc.clone();
-    let handler = app.once_global(format!("cmd-interrupt-{}", token), move |ev| {
+    let handler = app.once_global(format!("cmd-interrupt-{}", token), move |_| {
         log::info!("interrupting proc");
         let proc_ev = proc_ev.clone();
         tokio::spawn(async move {

@@ -1,4 +1,4 @@
-use std::fs::{create_dir_all, File, Metadata, Permissions};
+use std::fs::{create_dir_all, File};
 use std::io::{BufReader, BufWriter, ErrorKind};
 use std::path::PathBuf;
 use std::{env, fs};
