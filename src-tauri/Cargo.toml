@@ -18,10 +18,11 @@ tauri-build = { version = "1.2.1", features = [] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.2.4", features = ["clipboard-all", "dialog-all", "path-all", "protocol-all", "shell-open"] }
+tauri-plugin-single-instance = { git = "https://github.com/tauri-apps/tauri-plugin-single-instance.git", rev = "74c6989" }
 log = "0.4.17"
 env_logger = "0.10.0"
 rand = "0.8.5"
-vt100 = "0.15.1"
+vt100 = "0.15.2"
 openssl = { version = "0.10.45", features = ["vendored"] }
 russh = { version = "0.36.0", features = ["openssl"] }
 russh-keys = { version = "0.24.0", features = ["openssl"] }
@@ -32,6 +33,7 @@ async-trait = "0.1.63"
 sha2 = "0.10.6"
 hex = "0.4.3"
 file-mode = "0.1.2"
+posix-errors = "1.2.1"
 
 [features]
 # by default Tauri runs in production mode

@@ -6,6 +6,7 @@ import {basename} from '@tauri-apps/api/path'
 import moment from 'moment';
 import {RemoteFileService} from "./remote-file.service";
 import {Buffer} from "buffer";
+import {BackendError, IOError} from "./backend-client";
 
 export class FileSessionImpl implements FileSession {
   constructor(private cmd: RemoteCommandService, private file: RemoteFileService, private device: Device) {
@@ -13,15 +14,14 @@ export class FileSessionImpl implements FileSession {
 
   async ls(path: string): Promise<FileItem[]> {
     return this.file.ls(this.device, path).catch(e => {
-      if (ExecutionError.isCompatible(e)) {
-        const stderr = e.details as string;
-        if (stderr.includes('No such file or directory')) {
-          throw new FileError.NotFound(path, stderr);
-        } else if (stderr.includes('Permission denied')) {
-          throw new FileError.Denied(path, stderr);
+      if (IOError.isCompatible(e)) {
+        switch (e.code) {
+          case 'PermissionDenied':
+            throw new FileError.Denied(path, e.message);
+          case 'NotFound':
+            throw new FileError.NotFound(path, e.message);
         }
       }
-      console.log(e.data);
       throw e;
     });
   }

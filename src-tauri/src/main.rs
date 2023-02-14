@@ -12,10 +12,14 @@ mod device_manager;
 mod plugins;
 mod session_manager;
 mod error;
+mod remote_files;
 
 fn main() {
     env_logger::init();
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
+            println!("{}, {argv:?}, {cwd}", app.package_info().name);
+        }))
         .plugin(plugins::device::plugin("device-manager"))
         .plugin(plugins::cmd::plugin("remote-command"))
         .plugin(plugins::shell::plugin("remote-shell"))

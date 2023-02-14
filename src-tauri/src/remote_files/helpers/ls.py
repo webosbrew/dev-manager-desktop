@@ -3,7 +3,7 @@ import os
 import stat
 import sys
 from os import path
-from sys import stdout
+from sys import stdout, stderr
 
 
 class B:
@@ -19,6 +19,8 @@ class S():
         self.value = value
 
     def __repr__(self):
+        if self.value is None:
+            return 'null'
         escaped = "".join(map(lambda i: S.escape_ch(self.value[i]), range(0, len(self.value))))
         return '"' + escaped + '"'
 
@@ -41,9 +43,10 @@ def file_item(parent, name):
         S('abspath'): S(abspath)
     }
     if stat.S_ISLNK(lstat.st_mode):
-        target = os.readlink(abspath)
+        target = None
         broken = False
         try:
+            target = os.readlink(abspath)
             lstat = os.stat(abspath)
         except OSError:
             broken = True
@@ -65,5 +68,10 @@ def file_item(parent, name):
 
 if __name__ == '__main__':
     d = sys.argv[1]
-    entries = list(map(lambda x: file_item(d, x), os.listdir(d)))
-    stdout.write(str(entries))
+    entries = []
+    try:
+        entries = os.listdir(d)
+    except OSError as e:
+        stderr.write(str({S('errno'): e.errno, S('message'): S(e.strerror)}))
+        exit(1)
+    stdout.write(str(list(map(lambda x: file_item(d, x), entries))))

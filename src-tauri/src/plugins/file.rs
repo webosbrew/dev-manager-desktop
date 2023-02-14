@@ -10,10 +10,10 @@ use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::plugins::cmd::escape_path;
+use crate::remote_files::ls;
+use crate::remote_files::path::escape_path;
+use crate::remote_files::FileItem;
 use crate::session_manager::SessionManager;
-
-use file_mode::Mode;
 
 #[tauri::command]
 async fn ls(
@@ -25,15 +25,7 @@ async fn ls(
         return Err(Error::new("Absolute path required"));
     }
     log::info!("ls {}", path);
-    let output = manager
-        .exec(
-            device.clone(),
-            &format!("python - {}", escape_path(&path)),
-            Some(include_bytes!("../../res/scripts/files_ls.py")),
-        )
-        .await?;
-    let entries = serde_json::from_slice::<Vec<FileEntry>>(&output)?;
-    return Ok(entries.iter().map(|e| e.into()).collect());
+    return ls::exec(&manager, &device, &path).await;
 }
 
 #[tauri::command]
@@ -125,59 +117,4 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
             ls, read, write, get, put, get_temp
         ])
         .build()
-}
-
-#[derive(Serialize, Clone, Debug)]
-pub struct FileItem {
-    filename: String,
-    r#type: String,
-    mode: String,
-    user: String,
-    group: String,
-    size: usize,
-    mtime: f64,
-    abspath: String,
-    link: Option<LinkInfo>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct LinkInfo {
-    target: String,
-    broken: Option<bool>,
-}
-
-#[derive(Deserialize, Clone, Debug)]
-pub(crate) struct FileEntry {
-    name: String,
-    stat: FileStat,
-    abspath: String,
-    link: Option<LinkInfo>,
-}
-
-#[derive(Deserialize, Clone, Debug)]
-pub(crate) struct FileStat {
-    mode: u32,
-    uid: u32,
-    gid: u32,
-    size: u32,
-    atime: f64,
-    ctime: f64,
-    mtime: f64,
-}
-
-impl From<&FileEntry> for FileItem {
-    fn from(value: &FileEntry) -> FileItem {
-        let mode = format!("{}", Mode::from(value.stat.mode));
-        return FileItem {
-            filename: value.name.clone(),
-            r#type: String::from(&mode[..1]),
-            mode: String::from(&mode[1..]),
-            user: format!("{}", value.stat.uid),
-            group: format!("{}", value.stat.gid),
-            size: value.stat.size as usize,
-            mtime: value.stat.mtime,
-            abspath: value.abspath.clone(),
-            link: value.link.clone(),
-        };
-    }
 }
