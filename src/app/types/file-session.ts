@@ -13,7 +13,7 @@ export declare interface FileItem {
 }
 
 export declare interface LinkInfo {
-  target: string;
+  target?: string;
   broken?: boolean;
 }
 

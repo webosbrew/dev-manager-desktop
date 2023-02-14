@@ -25,7 +25,7 @@
       <span>{{file.filename}}</span>
       <ng-container *ngIf="file.link as link">
         <i class="bi-arrow-right-short text-secondary px-1"></i>
-        <span class="text-secondary" [class.text-decoration-line-through]="link.broken">{{link.target}}</span>
+        <span class="text-secondary" [class.text-decoration-line-through]="link.broken">{{link.target ?? '?'}}</span>
       </ng-container>
     </td>
     <td class="text-nowrap">{{file.mtime * 1000 | date:'short'}}

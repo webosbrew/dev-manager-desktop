@@ -69,3 +69,11 @@ export type ErrorReason =
   'Timeout' |
   'Unsupported' |
   'UnsupportedKey';
+
+export class IOError extends BackendError {
+  declare code: 'PermissionDenied' | 'NotFound' | string;
+
+  static override isCompatible(e: unknown): e is IOError {
+    return BackendError.isCompatible(e) && e.reason === 'IO';
+  }
+}

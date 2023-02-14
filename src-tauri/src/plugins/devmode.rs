@@ -36,7 +36,7 @@ async fn status(
         .await
     {
         Ok(data) => String::from_utf8(data).map_err(|_| Error::IO {
-            name: format!("Other"),
+            code: format!("Other"),
             message: format!("Can\'t read dev mode token"),
         })?,
         Err(e) => return Err(e),
