@@ -81,11 +81,14 @@
     },
     "windows": [
       {
-        "fullscreen": false,
-        "height": 720,
-        "resizable": true,
+        "label": "main",
         "title": "webOS Dev Manager",
-        "width": 1024
+        "width": 1024,
+        "height": 720,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false
       }
     ]
   }
