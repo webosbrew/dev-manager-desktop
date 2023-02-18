@@ -10,6 +10,9 @@
         <br>
         <strong>webOS version: </strong><span>{{sysInfo.sdkVersion}}</span>
       </p>
+      <div>
+        <button class="btn btn-primary" (click)="takeScreenshot()">Take Screenshot</button>
+      </div>
     </div>
   </div>
   <div class="card mt-4" *ngIf="sysInfo && devModeInfo">
@@ -19,7 +22,7 @@
         <strong *ngIf="devModeRemaining">Remaining duration: </strong><span>{{devModeRemaining | async}}</span><br>
         <small>Remaining time displaying on your TV will only update on boot.</small>
       </p>
-      <div>
+      <div *ngIf="devModeInfo.token">
         <button class="btn btn-primary me-2" (click)="renewDevMode()">Renew session</button>
         <button class="btn btn-primary" (click)="renewScript()">Renew automatically...</button>
       </div>

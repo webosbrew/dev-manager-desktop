@@ -2,9 +2,9 @@ import {Component, Injector} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import * as moment from 'moment';
 import 'moment-duration-format';
-import {Observable, of, timer} from 'rxjs';
+import {noop, Observable, of, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Device, RawPackageInfo} from '../types';
+import {Device, FileSession, RawPackageInfo} from '../types';
 import {
   AppManagerService,
   AppsRepoService,
@@ -16,6 +16,10 @@ import {
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {RenewScriptComponent} from './renew-script/renew-script.component';
 import {HomebrewChannelConfiguration, SystemInfo} from "../types/luna-apis";
+import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
+import {LunaResponseError} from "../core/services/remote-luna.service";
+import {RemoteFileService} from "../core/services/remote-file.service";
+import {open as openPath} from "@tauri-apps/api/shell";
 
 @Component({
   selector: 'app-info',
@@ -36,6 +40,7 @@ export class InfoComponent {
   constructor(
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
+    private files: RemoteFileService,
     private appManager: AppManagerService,
     private appsRepo: AppsRepoService,
     private devMode: DevModeService
@@ -68,6 +73,28 @@ export class InfoComponent {
         providers: [{provide: 'device', useValue: this.device}]
       })
     });
+  }
+
+  async takeScreenshot(): Promise<void> {
+    // TODO: unify root check
+    const device = this.device;
+    if (!device || device.username !== 'root') return;
+    const progress = ProgressDialogComponent.open(this.modalService);
+    try {
+      const imgPath = await this.deviceManager.takeScreenshot(device);
+      const tempPath = await this.files.getTemp(device, imgPath)
+        .finally(() => this.files.rm(device, imgPath, false).catch(noop));
+      await openPath(tempPath);
+    } catch (e) {
+      console.log(JSON.stringify(e));
+      MessageDialogComponent.open(this.modalService, {
+        message: 'Failed to take screenshot',
+        error: e as Error,
+        positive: 'OK'
+      })
+    } finally {
+      progress.dismiss();
+    }
   }
 
   private async loadDeviceInfo(): Promise<void> {

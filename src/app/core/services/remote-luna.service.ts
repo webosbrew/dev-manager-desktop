@@ -3,6 +3,7 @@ import {Injectable} from "@angular/core";
 import {DeviceLike} from "../../types";
 import {catchError, finalize, Observable} from "rxjs";
 import {map} from "rxjs/operators";
+import {omit} from "lodash";
 
 export declare interface LunaResponse extends Record<string, any> {
   returnValue: boolean,
@@ -34,7 +35,7 @@ export class RemoteLunaService {
           throw new Error(`Bad response ${out}`);
         }
         if (!typed.returnValue) {
-          throw new Error(out);
+          throw new LunaResponseError(typed);
         }
         return typed;
       });
@@ -61,4 +62,22 @@ export class LunaUnsupportedError extends Error {
   constructor(message: string) {
     super(message);
   }
+}
+
+export class LunaResponseError extends Error {
+  declare returnValue: false;
+  details: string;
+
+  [values: string]: any;
+
+  constructor(payload: Record<string, any>) {
+    super(`Luna call returned negative response: ${payload['errorText']}`);
+    this.details = payload['errorText'];
+    Object.assign(this, omit(payload, 'message', 'reason', 'details'))
+  }
+
+  static isCompatible(e: any): e is LunaResponseError {
+    return typeof (e.message) === 'string' && e.returnValue === false;
+  }
+
 }
