@@ -4,7 +4,7 @@ use tauri::plugin::{Builder, TauriPlugin};
 use tauri::regex::Regex;
 use tauri::{Runtime, State};
 
-use crate::device_manager::Device;
+use crate::device_manager::{Device, DeviceManager};
 use crate::error::Error;
 use crate::session_manager::SessionManager;
 
@@ -24,6 +24,17 @@ struct DevModeSession {
 }
 
 #[tauri::command]
+async fn token(manager: State<'_, SessionManager>, device: Device) -> Result<String, Error> {
+    if device.username != "prisoner" {
+        return Err(Error::Unsupported);
+    }
+    if let Some(token) = valid_token(&manager, device).await? {
+        return Ok(token);
+    }
+    return Err(Error::Unsupported);
+}
+
+#[tauri::command]
 async fn status(
     manager: State<'_, SessionManager>,
     device: Device,
@@ -31,6 +42,31 @@ async fn status(
     if device.username != "prisoner" {
         return Err(Error::Unsupported);
     }
+    if let Some(token) = valid_token(&manager, device).await? {
+        let url = Url::parse_with_params(
+            "https://developer.lge.com/secure/CheckDevModeSession.dev",
+            &[("sessionToken", token.clone())],
+        )
+        .expect("should be valid url");
+        let session: DevModeSession = reqwest::get(url).await?.json().await?;
+        if session.result == "success" {
+            return Ok(DevModeStatus {
+                token: Some(token),
+                remaining: Some(session.error_msg.unwrap_or(String::from(""))),
+            });
+        }
+        return Ok(DevModeStatus {
+            token: Some(token),
+            remaining: None,
+        });
+    }
+    return Ok(DevModeStatus {
+        token: None,
+        remaining: None,
+    });
+}
+
+async fn valid_token(manager: &SessionManager, device: Device) -> Result<Option<String>, Error> {
     let token = match manager
         .exec(device, "cat /var/luna/preferences/devmode_enabled", None)
         .await
@@ -43,32 +79,14 @@ async fn status(
     };
     let regex = Regex::new("^[0-9a-zA-Z]+$").unwrap();
     if !regex.is_match(&token) {
-        return Ok(DevModeStatus {
-            token: None,
-            remaining: None,
-        });
+        return Ok(None);
     }
-    let url = Url::parse_with_params(
-        "https://developer.lge.com/secure/CheckDevModeSession.dev",
-        &[("sessionToken", token.clone())],
-    )
-    .expect("should be valid url");
-    let session: DevModeSession = reqwest::get(url).await?.json().await?;
-    if session.result == "success" {
-        return Ok(DevModeStatus {
-            token: Some(token),
-            remaining: Some(session.error_msg.unwrap_or(String::from(""))),
-        });
-    }
-    return Ok(DevModeStatus {
-        token: Some(token),
-        remaining: None,
-    });
+    return Ok(Some(token));
 }
 
 /// Initializes the plugin.
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
     Builder::new(name)
-        .invoke_handler(tauri::generate_handler![status,])
+        .invoke_handler(tauri::generate_handler![status, token])
         .build()
 }

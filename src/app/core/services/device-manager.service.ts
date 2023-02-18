@@ -5,10 +5,12 @@ import {BackendClient} from "./backend-client";
 import {FileSessionImpl} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../types/luna-apis";
 import {basename} from "@tauri-apps/api/path";
-import {RemoteLunaService} from "./remote-luna.service";
+import {LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {Buffer} from "buffer";
 import {RemoteFileService} from "./remote-file.service";
+import {app} from "@tauri-apps/api";
+import {DevModeService} from "./dev-mode.service";
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +20,8 @@ export class DeviceManagerService extends BackendClient {
   private devicesSubject: Subject<Device[]>;
   private selectedSubject: Subject<Device | null>;
 
-  constructor(zone: NgZone, private cmd: RemoteCommandService, private file: RemoteFileService, private luna: RemoteLunaService) {
+  constructor(zone: NgZone, private cmd: RemoteCommandService, private file: RemoteFileService,
+              private luna: RemoteLunaService, private devMode: DevModeService) {
     super(zone, 'device-manager');
     this.devicesSubject = new BehaviorSubject<Device[]>([]);
     this.selectedSubject = new BehaviorSubject<Device | null>(null);
@@ -69,14 +72,7 @@ export class DeviceManagerService extends BackendClient {
   }
 
   async devModeToken(device: Device): Promise<string> {
-    return await this.file.read(device, '/var/luna/preferences/devmode_enabled', 'utf-8')
-      .then(()=> 'cf961c5c0c87c79ec42a80762971cb06dccbc1a087c3a31a7e49338881311112')
-      .then(s => {
-        if (!s || !s.match(/^[0-9a-zA-Z]+$/)) {
-          throw new Error('No valid dev mode token');
-        }
-        return s;
-      });
+    return await this.devMode.token(device);
   }
 
   async listCrashReports(device: Device): Promise<CrashReport[]> {
@@ -108,6 +104,25 @@ export class DeviceManagerService extends BackendClient {
     return await this.luna.call(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
       keys: ['firmwareVersion', 'modelName', 'sdkVersion']
     });
+  }
+
+  async takeScreenshot(device: DeviceLike): Promise<string> {
+    const tmpPath = `/tmp/devman_shot_${Date.now()}.png`
+    const param: Record<string, any> = {
+      path: tmpPath,
+      method: "DISPLAY",
+      format: "PNG",
+      width: 1920,
+      height: 1080
+    };
+    await (this.luna.call(device, 'luna://com.webos.service.capture/executeOneShot', param, false)
+      .catch((e) => {
+        if (LunaResponseError.isCompatible(e) && e['errorText']?.includes('Service does not exist')) {
+          return this.luna.call(device, 'luna://com.webos.service.tv.capture/executeOneShot', param, false);
+        }
+        throw e;
+      }));
+    return tmpPath;
   }
 
   async getHbChannelConfig(device: Device): Promise<Partial<HomebrewChannelConfiguration>> {
@@ -156,7 +171,10 @@ export class CrashReport implements CrashReportEntry {
       saveName = summary.replace(/\//g, '_');
     }
     if (appDirIdx < 0) {
-      return {title: `${processName} (${processId})`, summary, saveName};
+      if (processName && processId && summary) {
+        return {title: `${processName} (${processId})`, summary, saveName};
+      }
+      return {title: 'Unknown crash', summary: name, saveName}
     }
     const substr = name.substring(appDirIdx + appDirPrefix.length);
     const firstSlash = substr.indexOf('/'), lastSlash = substr.lastIndexOf('/');

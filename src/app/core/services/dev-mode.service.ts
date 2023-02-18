@@ -14,6 +14,10 @@ export class DevModeService extends BackendClient {
   async status(device: Device): Promise<DevModeStatus> {
     return this.invoke('status', {device});
   }
+
+  async token(device: Device): Promise<string> {
+    return this.invoke('token', {device});
+  }
 }
 
 export interface DevModeStatus {

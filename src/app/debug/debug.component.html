@@ -6,6 +6,12 @@
         <app-crashes [device]="device"></app-crashes>
       </ng-template>
     </li>
+    <li ngbNavItem="messages" *ngIf="false">
+      <a ngbNavLink>System Logs</a>
+      <ng-template ngbNavContent>
+        <app-log-messages [device]="device"></app-log-messages>
+      </ng-template>
+    </li>
   </ul>
 
   <div class="flex-fill overflow-hidden debug-content" [ngbNavOutlet]="nav"></div>
