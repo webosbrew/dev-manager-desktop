@@ -34,6 +34,7 @@ sha2 = "0.10.6"
 hex = "0.4.3"
 file-mode = "0.1.2"
 posix-errors = "1.2.1"
+dialog = "0.3.0"
 
 [features]
 # by default Tauri runs in production mode

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from "../core/services";
 import {Device, FileItem, FileSession} from "../types";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
@@ -17,7 +17,7 @@ class FilesState {
   public breadcrumb: string[];
 
   constructor(public dir: string, public items?: FileItem[], public error?: Error) {
-    this.breadcrumb = dir.split('/');
+    this.breadcrumb = dir === '/' ? [''] : dir.split('/');
   }
 }
 
@@ -29,7 +29,7 @@ class FilesState {
 export class FilesComponent implements OnInit, OnDestroy {
   device: Device | null = null;
   session: FileSession | null = null;
-  pwd: string | null = null;
+  history?: HistoryStack;
   home: string | null = null;
   files$: Observable<FilesState>;
 
@@ -54,7 +54,8 @@ export class FilesComponent implements OnInit, OnDestroy {
       if (selected) {
         this.home = await this.homeDir();
       }
-      await this.cd(this.home ?? '/media/developer', true);
+      this.history = new HistoryStack(this.home ?? '/media/developer');
+      await this.cd(this.home ?? '/media/developer');
     });
   }
 
@@ -66,7 +67,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     return (this.selectedItems?.length ?? 0) > 0;
   }
 
-  async cd(dir: string, showProgress = false): Promise<void> {
+  async cd(dir: string, pushHistory: boolean = false): Promise<void> {
     if (!this.device) return;
     console.log('cd', dir);
     this.filesSubject.next(new FilesState(dir));
@@ -77,9 +78,27 @@ export class FilesComponent implements OnInit, OnDestroy {
       this.filesSubject.next(new FilesState(dir, undefined, e as Error));
       return;
     }
-    this.pwd = dir;
+    if (pushHistory) {
+      this.history?.push(dir);
+    }
     this.filesSubject.next(new FilesState(dir, list.sort(this.compareName), undefined));
     this.selectedItems = null;
+  }
+
+  async navBack(): Promise<void> {
+    const path = this.history?.back();
+    if (!path) {
+      return;
+    }
+    await this.cd(path);
+  }
+
+  async navForward(): Promise<void> {
+    const path = this.history?.forward();
+    if (!path) {
+      return;
+    }
+    await this.cd(path);
   }
 
   async homeDir(): Promise<string> {
@@ -104,10 +123,11 @@ export class FilesComponent implements OnInit, OnDestroy {
   }
 
   async openItem(file: FileItem): Promise<void> {
-    if (!this.pwd) return;
+    const cwd = this.history?.current;
+    if (!cwd) return;
     switch (file.type) {
       case 'd': {
-        await this.cd(path.join(this.pwd, file.filename), true);
+        await this.cd(path.join(cwd, file.filename), true);
         break;
       }
       case '-': {
@@ -121,7 +141,8 @@ export class FilesComponent implements OnInit, OnDestroy {
   }
 
   private async openFile(file: FileItem) {
-    if (!this.pwd || !this.device) return;
+    const cwd = this.history?.current;
+    if (!cwd || !this.device) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     let result = false;
     let tempPath: string | null = null;
@@ -145,7 +166,8 @@ export class FilesComponent implements OnInit, OnDestroy {
   }
 
   async downloadFiles(files: FileItem[] | null): Promise<void> {
-    if (!this.pwd || !this.device) return;
+    const cwd = this.history?.current;
+    if (!cwd || !this.device) return;
     if (!files || !files.length) return;
     if (files.length == 1) {
       return await this.downloadFile(files[0]);
@@ -178,7 +200,8 @@ export class FilesComponent implements OnInit, OnDestroy {
   }
 
   async removeFiles(files: FileItem[] | null): Promise<void> {
-    if (!this.pwd || !this.device) return;
+    const cwd = this.history?.current;
+    if (!cwd || !this.device) return;
     if (!files || !files.length) return;
     const answer = await MessageDialogComponent.open(this.modalService, {
       title: 'Are you sure to delete selected files?',
@@ -209,12 +232,13 @@ export class FilesComponent implements OnInit, OnDestroy {
         break;
       }
     }
-    await this.cd(this.pwd, false);
+    await this.cd(cwd);
     progress.dismiss();
   }
 
   private async downloadFile(file: FileItem): Promise<void> {
-    if (!this.pwd || !this.device) return;
+    const cwd = this.history?.current;
+    if (!cwd || !this.device) return;
     const returnValue = await showSaveDialog({defaultPath: file.filename});
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
@@ -236,12 +260,13 @@ export class FilesComponent implements OnInit, OnDestroy {
   }
 
   async uploadFiles(): Promise<void> {
-    if (!this.pwd || !this.device) return;
+    const cwd = this.history?.current;
+    if (!cwd || !this.device) return;
     const returnValue = await showOpenDialog({multiple: true});
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.session!.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], this.pwd, async (name, e) => {
+      await this.session!.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], cwd, async (name, e) => {
         const result = await MessageDialogComponent.open(this.modalService, {
           title: `Failed to upload file ${name}`,
           message: e.message ?? String(e),
@@ -253,7 +278,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         if (result == null) throw e;
         return result;
       });
-      await this.cd(this.pwd, false);
+      await this.cd(cwd);
     } finally {
       progress.dismiss();
     }
@@ -262,6 +287,56 @@ export class FilesComponent implements OnInit, OnDestroy {
   async breadcrumbNav(segs: string[]): Promise<void> {
     segs[0] = '/';
     await this.cd(path.join(...segs), true);
+  }
+
+}
+
+class HistoryStack {
+  private stack: string[] = [];
+  private cursor: number;
+
+  constructor(initial: string) {
+    this.stack.push(initial);
+    this.cursor = 0;
+  }
+
+  get current(): string {
+    return this.stack[this.cursor];
+  }
+
+  get canForward(): boolean {
+    return this.cursor < this.stack.length - 1;
+  }
+
+  get canBack(): boolean {
+    return this.cursor > 0;
+  }
+
+  push(path: string) {
+    this.stack.splice(this.cursor + 1);
+    this.stack.push(path);
+    if (this.stack.length > 10) {
+      this.stack.splice(0, this.stack.length - 10);
+      this.cursor = 9;
+    } else {
+      this.cursor += 1;
+    }
+  }
+
+  back(): string | null {
+    if (this.cursor == 0) {
+      return null;
+    }
+    this.cursor -= 1;
+    return this.stack[this.cursor] ?? null;
+  }
+
+  forward(): string | null {
+    if (this.cursor >= this.stack.length - 1) {
+      return null;
+    }
+    this.cursor += 1;
+    return this.stack[this.cursor] ?? null;
   }
 
 }

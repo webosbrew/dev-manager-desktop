@@ -1,14 +1,14 @@
-.stat-bar {
-  height: 40px;
-
+.breadcrumb-bar {
   nav {
-    min-width: 100%;
+    width: fit-content;
+    --bs-breadcrumb-divider: '';
   }
+}
+
+.stat-bar {
+  height: 30px;
 
   .breadcrumb {
-    width: max-content;
-    min-width: 100%;
-    padding: 4px 8px;
     flex-wrap: nowrap;
     align-items: center;
   }
@@ -16,12 +16,8 @@
   .breadcrumb-item {
     position: relative;
   }
+}
 
-  .breadcrumb-item + .breadcrumb-item::before {
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-  }
+.loading, .loading * {
+  cursor: progress;
 }
