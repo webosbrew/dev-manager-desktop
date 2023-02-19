@@ -9,6 +9,7 @@ import {DumbComponent} from './dumb/dumb.component';
 import {TextareaAutosizeModule} from "ngx-textarea-autosize";
 import {FormsModule} from "@angular/forms";
 import {SizeCalculatorComponent} from './size-calculator/size-calculator.component';
+import {ITerminalOptions} from "xterm";
 
 
 @NgModule({
@@ -17,6 +18,9 @@ import {SizeCalculatorComponent} from './size-calculator/size-calculator.compone
     PtyComponent,
     DumbComponent,
     SizeCalculatorComponent,
+  ],
+  exports: [
+    SizeCalculatorComponent
   ],
   imports: [
     CommonModule,
@@ -29,3 +33,7 @@ import {SizeCalculatorComponent} from './size-calculator/size-calculator.compone
 })
 export class TerminalModule {
 }
+
+export const TERMINAL_CONFIG: Partial<ITerminalOptions> = {
+  fontFamily: 'var(--bs-font-monospace)',
+};

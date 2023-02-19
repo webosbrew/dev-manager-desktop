@@ -1,0 +1,42 @@
+ul.pmlog {
+  background-color: black;
+  list-style: none;
+  overflow-y: scroll;
+
+  li.log-line {
+    * {
+      color: white;
+    }
+
+    &.warning * {
+      color: orange;
+    }
+
+    &.err * {
+      color: red;
+    }
+
+    &.debug * {
+      color: lightgray;
+    }
+
+    &.notice * {
+      color: limegreen;
+    }
+
+    &.crit {
+      color: white;
+      background-color: red;
+    }
+
+    &.alert {
+      color: orange;
+      background-color: red;
+    }
+
+    &.emerg {
+      color: black;
+      background-color: red;
+    }
+  }
+}

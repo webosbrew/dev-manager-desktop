@@ -2,8 +2,8 @@ import {Injectable, NgZone} from "@angular/core";
 import {BackendClient, BackendError} from "./backend-client";
 import {DeviceLike} from "../../types";
 import {Buffer} from "buffer";
-import {listen, emit, UnlistenFn} from '@tauri-apps/api/event';
-import {ReplaySubject} from "rxjs";
+import {noop, Observer, ReplaySubject, Subscription} from "rxjs";
+import {EventChannel} from "../event-channel";
 
 @Injectable({
   providedIn: 'root'
@@ -56,72 +56,75 @@ export class RemoteCommandService extends BackendClient {
   public async popen<T = Buffer | string>(device: DeviceLike, command: string, outputEncoding?: 'buffer' | 'utf-8'):
     Promise<CommandSubject<T>> {
     const token: string = await this.invoke('spawn', {device, command});
-    return await CommandSubject.fromId(token, outputEncoding ?? 'buffer');
+    return new CommandSubject<T>(this.zone, token, outputEncoding ?? 'buffer');
   }
 
 }
 
 export class CommandSubject<T = Buffer | string> extends ReplaySubject<T> {
-  private readonly encoder = new TextEncoder();
-  protected unlisten: UnlistenFn[] = [];
+  private channel: EventChannel<ProcData, any>;
 
-  private constructor(private id: string, private encoding: 'buffer' | 'utf-8' | undefined) {
+  constructor(zone: NgZone, token: string, private encoding: 'buffer' | 'utf-8' | undefined) {
     super();
+    const subject = this;
+    this.channel = new class extends EventChannel<ProcData, any> {
+      strbuf: string = '';
+
+      constructor(token: string) {
+        super(token);
+      }
+
+      onReceive(payload: ProcData): void {
+        console.log(this.token, 'received', payload);
+        if (encoding == 'utf-8') {
+          this.strbuf = `${this.strbuf}${Buffer.from(payload.data).toString('utf-8')}`;
+          let index: number;
+          while ((index = this.strbuf.indexOf('\n')) >= 0) {
+            zone.run(() => subject.next(this.strbuf.substring(0, index) as any));
+            this.strbuf = this.strbuf.substring(index + 1);
+          }
+        } else {
+          zone.run(() => subject.next(Buffer.from(payload.data) as any));
+        }
+      }
+
+      onClose(payload: any): void {
+        console.log(this.token, 'closed', payload);
+        if (!payload) {
+          zone.run(() => subject.complete());
+        } else if (BackendError.isCompatible(payload)) {
+          const be = new BackendError(payload);
+          if (be.reason === 'ExitStatus') {
+            zone.run(() => subject.error(ExecutionError.fromBackendError(be)));
+          } else {
+            zone.run(() => subject.error(be));
+          }
+        } else {
+          zone.run(() => subject.error(payload));
+        }
+      }
+
+    }(token);
   }
 
   override complete() {
     super.complete();
-    this.unlisten.forEach(fn => fn());
-    this.unlisten = [];
+    this.channel.unlisten().catch(noop);
   }
 
   override error(err: any) {
     super.error(err);
-    this.unlisten.forEach(fn => fn());
-    this.unlisten = [];
+    this.channel.unlisten().catch(noop);
   }
 
   async write(data: string | Uint8Array): Promise<void> {
+    await this.channel.send(data);
   }
 
   async close() {
-    await emit(`cmd-interrupt-${this.id}`);
+    await this.channel.close();
   }
 
-
-  static async fromId<T = Buffer | string>(id: string, outputEncoding: 'buffer' | 'utf-8'): Promise<CommandSubject<T>> {
-    const subject = new CommandSubject<T>(id, outputEncoding);
-    let strbuf: string = '';
-    subject.unlisten.push(await listen(`cmd-read-${id}`, (event) => {
-      const payload = event.payload as ProcData;
-      if (outputEncoding == 'utf-8') {
-        strbuf = `${strbuf}${Buffer.from(payload.data).toString('utf-8')}`;
-        let index: number;
-        while ((index = strbuf.indexOf('\n')) >= 0) {
-          subject.next(strbuf.substring(0, index) as any);
-          strbuf = strbuf.substring(index + 1);
-        }
-      } else {
-        subject.next(Buffer.from(payload.data) as any);
-      }
-    }));
-    subject.unlisten.push(await listen(`cmd-error-${id}`, (event) => {
-      if (BackendError.isCompatible(event.payload)) {
-        const be = new BackendError(event.payload);
-        if (be.reason === 'ExitStatus') {
-          subject.error(ExecutionError.fromBackendError(be));
-        } else {
-          subject.error(be);
-        }
-      } else {
-        subject.error(event.payload);
-      }
-    }));
-    subject.unlisten.push(await listen(`cmd-finish-${id}`, (event) => {
-      subject.complete();
-    }));
-    return subject;
-  }
 }
 
 declare interface ProcData {

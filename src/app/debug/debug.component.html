@@ -1,15 +1,16 @@
-<div class="w-100 h-100 d-flex flex-column">
-  <ul ngbNav class="nav-tabs mt-2 px-2" #nav="ngbNav">
+<div class="w-100 h-100 d-flex flex-column" *ngIf="device as device">
+  <ul ngbNav class="nav-tabs mt-2 px-2" #nav="ngbNav" (navChange)="tabChange($event)" [activeId]="activeTab"
+      [destroyOnHide]="false">
     <li ngbNavItem="crashes">
       <a ngbNavLink>Crash Reports</a>
       <ng-template ngbNavContent>
         <app-crashes [device]="device"></app-crashes>
       </ng-template>
     </li>
-    <li ngbNavItem="messages" *ngIf="false">
-      <a ngbNavLink>System Logs</a>
+    <li ngbNavItem="log-messages" *ngIf="device.username !== 'prisoner'">
+      <a ngbNavLink>PmLog</a>
       <ng-template ngbNavContent>
-        <app-log-messages [device]="device"></app-log-messages>
+        <app-pmlog [device]="device"></app-pmlog>
       </ng-template>
     </li>
   </ul>

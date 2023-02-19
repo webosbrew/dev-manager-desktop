@@ -1,0 +1,22 @@
+
+.terminal-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  .xterm {
+    height: 100% !important;
+    padding: 5px;
+
+    .xterm-viewport {
+      //width: 100% !important;
+      height: 100% !important;
+
+      overflow-y: scroll;
+      overflow-x: hidden;
+    }
+  }
+
+}

@@ -15,6 +15,7 @@ mod error;
 mod plugins;
 mod remote_files;
 mod session_manager;
+mod event_channel;
 
 fn main() {
     env_logger::init();

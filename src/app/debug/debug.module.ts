@@ -5,22 +5,26 @@ import {DebugComponent} from './debug.component';
 import {NgbNavModule, NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
 import {CrashesComponent} from "./crashes/crashes.component";
 import {SharedModule} from "../shared/shared.module";
-import { MessagesComponent } from './messages/messages.component';
+import { PmLogComponent } from './pmlog/pmlog.component';
+import { PmLogReaderComponent } from './pmlog/pmlog-reader/pmlog-reader.component';
+import {TerminalModule} from "../terminal";
 
 
 @NgModule({
   declarations: [
     DebugComponent,
     CrashesComponent,
-    MessagesComponent
+    PmLogComponent,
+    PmLogReaderComponent
   ],
-    imports: [
-        CommonModule,
-        DebugRoutingModule,
-        NgbNavModule,
-        NgbTooltipModule,
-        SharedModule
-    ]
+  imports: [
+    CommonModule,
+    DebugRoutingModule,
+    NgbNavModule,
+    NgbTooltipModule,
+    SharedModule,
+    TerminalModule
+  ]
 })
 export class DebugModule {
 }
