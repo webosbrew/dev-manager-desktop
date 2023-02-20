@@ -78,7 +78,6 @@ export class LogReaderComponent implements OnDestroy, AfterViewInit {
   }
 
   private writeLog(message: LogMessage): void {
-    console.log(message);
     const levelStyle = this.messageStyles[message.level] ?? chalk.white;
     this.term.write(chalk.green(`[${message.datetime.toISOTime({includeOffset: false})}]`));
     this.term.write(levelStyle(`[${message.level.toUpperCase()}]`));
