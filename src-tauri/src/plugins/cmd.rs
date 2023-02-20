@@ -42,9 +42,11 @@ async fn proc_worker<R: Runtime>(
     let manager = app.state::<SessionManager>();
     let proc = Arc::new(manager.spawn(device, &command).await?);
     let proc_ev = proc.clone();
-    let handler = ProcEventHandler { proc: proc.clone() };
+    let handler = ProcEventHandler {
+        proc: proc.clone(),
+        command: command.clone(),
+    };
     channel.listen(handler);
-    log::info!("Wait for {}", command);
     if let Err(e) = proc
         .run(|index, data| {
             channel.send(ProcData {
@@ -65,13 +67,14 @@ async fn proc_worker<R: Runtime>(
 
 struct ProcEventHandler {
     proc: Arc<Proc>,
+    command: String,
 }
 
 impl EventHandler for ProcEventHandler {
     fn recv(&self, payload: Option<&str>) {}
 
     fn close(&self, payload: Option<&str>) {
-        log::info!("interrupting proc");
+        log::debug!("Spawn: interrupting {}", self.command);
         let proc = self.proc.clone();
         tokio::spawn(async move {
             proc.interrupt().await.unwrap_or(());

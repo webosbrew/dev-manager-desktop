@@ -1,5 +1,5 @@
 import {Injectable, NgZone} from "@angular/core";
-import {BackendClient, BackendError} from "./backend-client";
+import {BackendClient, BackendError, BackendErrorBody} from "./backend-client";
 import {DeviceLike} from "../../types";
 import {Buffer} from "buffer";
 import {noop, ReplaySubject} from "rxjs";
@@ -144,7 +144,7 @@ export class ExecutionError extends Error {
     return typeof (p.status) === 'number' && p.details !== null;
   }
 
-  static fromBackendError(e: BackendError): ExecutionError | BackendError {
+  static fromBackendError(e: BackendErrorBody): ExecutionError {
     const stderr = e['stderr'] as number[];
     const data = convertOutput(stderr, 'utf-8');
     const exitCode = e['exit_code'] as number;

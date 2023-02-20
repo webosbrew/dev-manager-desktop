@@ -40,6 +40,7 @@ export class PackageManifest {
   id: string = '';
   version: string = '';
   ipkUrl: string = '';
+  ipkHash?: { sha256: string; };
   sourceUrl?: string;
   appDescription: string = '';
 

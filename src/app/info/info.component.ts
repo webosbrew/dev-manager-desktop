@@ -119,7 +119,6 @@ export class InfoComponent {
         this.devModeRemaining = of("--:--");
       }
     } catch (e) {
-      console.log(e);
       this.devModeInfo = null;
       this.devModeRemaining = null;
     }
@@ -141,7 +140,7 @@ export class InfoComponent {
     if (!item) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.install(this.device, item.manifest!.ipkUrl);
+      await this.appManager.installByManifest(this.device, item.manifest!, this.homebrewAppInfo !== null);
     } catch (e) {
       // Ignore
     } finally {

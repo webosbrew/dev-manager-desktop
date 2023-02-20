@@ -81,6 +81,8 @@ impl Connection {
 
     pub async fn spawn(&self, command: &str) -> Result<Proc, Error> {
         let ch = self.open_cmd_channel().await?;
+        let id = ch.id();
+        log::debug!("{id}: Spawn {{ command: {command} }}");
         return Ok(Proc {
             command: String::from(command),
             ch: AsyncMutex::new(Some(ch)),
