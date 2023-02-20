@@ -5,9 +5,13 @@ import {DebugComponent} from './debug.component';
 import {NgbNavModule, NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
 import {CrashesComponent} from "./crashes/crashes.component";
 import {SharedModule} from "../shared/shared.module";
-import { PmLogComponent } from './pmlog/pmlog.component';
-import { PmLogReaderComponent } from './pmlog/pmlog-reader/pmlog-reader.component';
+import {PmLogComponent} from './pmlog/pmlog.component';
+import {LogReaderComponent} from './log-reader/log-reader.component';
 import {TerminalModule} from "../terminal";
+import {DmesgComponent} from "./dmesg/dmesg.component";
+import {PmLogControlComponent} from './pmlog/control/control.component';
+import {SetContextComponent} from './pmlog/set-context/set-context.component';
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
 
 @NgModule({
@@ -15,7 +19,10 @@ import {TerminalModule} from "../terminal";
     DebugComponent,
     CrashesComponent,
     PmLogComponent,
-    PmLogReaderComponent
+    LogReaderComponent,
+    DmesgComponent,
+    PmLogControlComponent,
+    SetContextComponent,
   ],
   imports: [
     CommonModule,
@@ -23,7 +30,9 @@ import {TerminalModule} from "../terminal";
     NgbNavModule,
     NgbTooltipModule,
     SharedModule,
-    TerminalModule
+    TerminalModule,
+    FormsModule,
+    ReactiveFormsModule
   ]
 })
 export class DebugModule {

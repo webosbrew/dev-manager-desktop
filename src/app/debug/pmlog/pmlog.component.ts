@@ -1,9 +1,12 @@
-import {Component, HostListener, Input, OnDestroy} from '@angular/core';
+import {Component, Injector, Input} from '@angular/core';
 import {Device} from "../../types";
 import {RemoteCommandService} from "../../core/services/remote-command.service";
-import {from, identity, mergeMap, Observable, Subscription} from "rxjs";
-import {PmLogMessage, RemoteLogService} from "../../core/services/remote-log.service";
-import {PmLogReaderComponent} from "./pmlog-reader/pmlog-reader.component";
+import {from, identity, mergeMap, Observable} from "rxjs";
+import {LogMessage, RemoteLogService} from "../../core/services/remote-log.service";
+import {LogReaderComponent} from "../log-reader/log-reader.component";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {PmLogControlComponent} from "./control/control.component";
+import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
 
 @Component({
   selector: 'app-pmlog',
@@ -12,11 +15,11 @@ import {PmLogReaderComponent} from "./pmlog-reader/pmlog-reader.component";
 })
 export class PmLogComponent {
 
-  logs?: Observable<PmLogMessage>;
+  logs?: Observable<LogMessage>;
 
   private deviceField: Device | null = null;
 
-  constructor(private cmd: RemoteCommandService, private log: RemoteLogService) {
+  constructor(private cmd: RemoteCommandService, private log: RemoteLogService, private modals: NgbModal) {
   }
 
 
@@ -34,7 +37,29 @@ export class PmLogComponent {
   }
 
   private reload(device: Device) {
-    this.logs = from(this.log.logread(device, PmLogReaderComponent.retainLogs)).pipe(mergeMap(identity));
+    this.logs = from(this.log.logread(device, LogReaderComponent.retainLogs)).pipe(mergeMap(identity));
+  }
+
+  async openCtrl(): Promise<void> {
+    const device = this.device;
+    if (!device) {
+      return;
+    }
+    const progress = ProgressDialogComponent.open(this.modals);
+    try {
+      const contexts = await this.log.pmLogShow(device);
+      this.modals.open(PmLogControlComponent, {
+        injector: Injector.create({
+          providers: [
+            {provide: 'device', useValue: this.device},
+            {provide: 'contexts', useValue: contexts}
+          ]
+        }),
+        scrollable: true,
+      });
+    } finally {
+      progress.close();
+    }
   }
 
 }

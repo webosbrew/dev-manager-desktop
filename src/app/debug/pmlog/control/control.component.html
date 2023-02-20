@@ -1,0 +1,27 @@
+<div class="modal-body">
+  <table>
+    <thead>
+    <tr>
+      <th>Context</th>
+      <th>Level</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let context of contexts">
+      <td>
+        <label class="form-label" [for]="'log-level-'+context[0]">{{context[0]}}</label>
+      </td>
+      <td>
+        <select class="form-select" [ngModel]="context[1]" (change)="changeLogLevel(context[0], levelSelect.value)"
+                [id]="'log-level-'+context[0]" #levelSelect>
+          <option [value]="item.level" *ngFor="let item of logLevels">{{item.label}}</option>
+        </select>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-secondary" (click)="showSetLevel()">Set level...</button>
+  <button class="btn btn-primary ms-auto" (click)="modal.dismiss()">Close</button>
+</div>

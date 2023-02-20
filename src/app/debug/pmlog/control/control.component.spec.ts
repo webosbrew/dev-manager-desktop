@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PmLogReaderComponent } from './pmlog-reader.component';
+import { PmLogControlComponent } from './control.component';
 
-describe('ReaderComponent', () => {
-  let component: PmLogReaderComponent;
-  let fixture: ComponentFixture<PmLogReaderComponent>;
+describe('ControlComponent', () => {
+  let component: PmLogControlComponent;
+  let fixture: ComponentFixture<PmLogControlComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PmLogReaderComponent ]
+      declarations: [ PmLogControlComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(PmLogReaderComponent);
+    fixture = TestBed.createComponent(PmLogControlComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

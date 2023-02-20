@@ -12,18 +12,7 @@ import {
 import {IDisposable, Terminal} from "xterm";
 
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
-import {
-  debounceTime,
-  defer, delay,
-  firstValueFrom,
-  fromEvent,
-  of,
-  repeat,
-  repeatWhen,
-  retryWhen,
-  Subscription,
-  tap
-} from "rxjs";
+import {debounceTime, defer, delay, firstValueFrom, fromEvent, noop, of, repeat, Subscription, tap} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {isNonNull} from "../../shared/operators";
 import {TERMINAL_CONFIG} from "../terminal.module";
@@ -76,12 +65,16 @@ export class SizeCalculatorComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngAfterViewInit(): void {
     this.term.open(this.termwin.nativeElement);
-    firstValueFrom(defer(() => of(this.fitAddon.proposeDimensions())).pipe(delay(10), repeat({
-      count: 5,
-      delay: 30,
-    }), filter((v: ITerminalDimensions | undefined): v is ITerminalDimensions => isNonNull(v)))).then(v => {
+    firstValueFrom(defer(() => of(this.fitAddon.proposeDimensions())).pipe(
+      delay(10),
+      repeat({
+        count: 10,
+        delay: 30,
+      }),
+      filter((v: ITerminalDimensions | undefined): v is ITerminalDimensions => isNonNull(v)))
+    ).then(v => {
       this.term.resize(v.cols, v.rows);
-    });
+    }).catch(noop);
   }
 
   ngOnDestroy(): void {

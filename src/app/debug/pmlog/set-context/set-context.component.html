@@ -1,0 +1,17 @@
+<form class="modal-body" [formGroup]="formGroup">
+  <div>
+    <label for="log-level-set-context">Context</label>
+    <input class="form-control" placeholder="* for wildcard" id="log-level-set-context" formControlName="context"
+           required>
+  </div>
+  <div>
+    <label for="log-level-set-select">Level</label>
+    <select class="form-select" id="log-level-set-select" formControlName="level" required>
+      <option [value]="item.level" *ngFor="let item of logLevels">{{item.label}}</option>
+    </select>
+  </div>
+</form>
+<div class="modal-footer">
+  <button class="btn btn-secondary-outline" (click)="modal.dismiss()">Cancel</button>
+  <button class="btn btn-primary" [disabled]="formGroup.invalid" (click)="modal.close(formGroup.value)">Save</button>
+</div>

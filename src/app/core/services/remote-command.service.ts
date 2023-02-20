@@ -2,7 +2,7 @@ import {Injectable, NgZone} from "@angular/core";
 import {BackendClient, BackendError} from "./backend-client";
 import {DeviceLike} from "../../types";
 import {Buffer} from "buffer";
-import {noop, Observer, ReplaySubject, Subscription} from "rxjs";
+import {noop, ReplaySubject} from "rxjs";
 import {EventChannel} from "../event-channel";
 
 @Injectable({
@@ -75,7 +75,6 @@ export class CommandSubject<T = Buffer | string> extends ReplaySubject<T> {
       }
 
       onReceive(payload: ProcData): void {
-        console.log(this.token, 'received', payload);
         if (encoding == 'utf-8') {
           this.strbuf = `${this.strbuf}${Buffer.from(payload.data).toString('utf-8')}`;
           let index: number;
