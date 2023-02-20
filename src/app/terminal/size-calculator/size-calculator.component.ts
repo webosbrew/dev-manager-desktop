@@ -3,18 +3,19 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input, NgZone,
+  Input,
   OnDestroy,
   OnInit,
   Output,
-  ViewChild, ViewEncapsulation
+  ViewChild
 } from '@angular/core';
 import {IDisposable, Terminal} from "xterm";
 
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
-import {debounceTime, fromEvent, noop, Subscription, tap} from "rxjs";
+import {debounceTime, defer, delay, firstValueFrom, fromEvent, noop, of, repeat, Subscription, tap} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {isNonNull} from "../../shared/operators";
+import {TERMINAL_CONFIG} from "../terminal.module";
 
 @Component({
   selector: 'app-terminal-size-calculator',
@@ -38,9 +39,11 @@ export class SizeCalculatorComponent implements OnInit, AfterViewInit, OnDestroy
   private resizeSubscription?: Subscription;
   private termResize!: IDisposable;
 
-  constructor(private zone: NgZone) {
+  constructor() {
     this.term = new Terminal({
       scrollback: 1000,
+      disableStdin: true,
+      ...TERMINAL_CONFIG,
     });
     this.fitAddon = new FitAddon();
     this.term.loadAddon(this.fitAddon);
@@ -62,16 +65,21 @@ export class SizeCalculatorComponent implements OnInit, AfterViewInit, OnDestroy
 
   ngAfterViewInit(): void {
     this.term.open(this.termwin.nativeElement);
-    setTimeout(() => {
-      const dimensions = this.fitAddon.proposeDimensions();
-      if (dimensions) {
-        this.term.resize(dimensions.cols, dimensions.rows);
-      }
-    }, 30);
+    firstValueFrom(defer(() => of(this.fitAddon.proposeDimensions())).pipe(
+      delay(10),
+      repeat({
+        count: 10,
+        delay: 30,
+      }),
+      filter((v: ITerminalDimensions | undefined): v is ITerminalDimensions => isNonNull(v)))
+    ).then(v => {
+      this.term.resize(v.cols, v.rows);
+    }).catch(noop);
   }
 
   ngOnDestroy(): void {
     this.termResize.dispose();
+    this.term.dispose();
     this.resizeSubscription?.unsubscribe();
     delete this.resizeSubscription;
   }

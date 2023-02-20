@@ -1,0 +1,12 @@
+<div class="w-100 h-100 d-flex flex-row">
+  <div class="h-100 d-flex flex-column p-2">
+    <button class="btn btn-sm" (click)="openCtrl()"><i class="bi bi-toggles" ngbTooltip="Set log levels"></i></button>
+    <button class="btn btn-sm mt-2" *ngIf="false"><i class="bi bi-funnel" ngbTooltip="Filter"></i></button>
+    <hr>
+    <button class="btn btn-sm" (click)="logReader.scrollToBottom()" [disabled]="logReader.reachedBottom"
+            ngbTooltip="Scroll to bottom">
+      <i class="bi bi-chevron-bar-down"></i>
+    </button>
+  </div>
+  <app-log-reader class="flex-fill" [source]="logs" #logReader></app-log-reader>
+</div>

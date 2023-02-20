@@ -5,22 +5,35 @@ import {DebugComponent} from './debug.component';
 import {NgbNavModule, NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
 import {CrashesComponent} from "./crashes/crashes.component";
 import {SharedModule} from "../shared/shared.module";
-import { MessagesComponent } from './messages/messages.component';
+import {PmLogComponent} from './pmlog/pmlog.component';
+import {LogReaderComponent} from './log-reader/log-reader.component';
+import {TerminalModule} from "../terminal";
+import {DmesgComponent} from "./dmesg/dmesg.component";
+import {PmLogControlComponent} from './pmlog/control/control.component';
+import {SetContextComponent} from './pmlog/set-context/set-context.component';
+import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 
 
 @NgModule({
   declarations: [
     DebugComponent,
     CrashesComponent,
-    MessagesComponent
+    PmLogComponent,
+    LogReaderComponent,
+    DmesgComponent,
+    PmLogControlComponent,
+    SetContextComponent,
   ],
-    imports: [
-        CommonModule,
-        DebugRoutingModule,
-        NgbNavModule,
-        NgbTooltipModule,
-        SharedModule
-    ]
+  imports: [
+    CommonModule,
+    DebugRoutingModule,
+    NgbNavModule,
+    NgbTooltipModule,
+    SharedModule,
+    TerminalModule,
+    FormsModule,
+    ReactiveFormsModule
+  ]
 })
 export class DebugModule {
 }

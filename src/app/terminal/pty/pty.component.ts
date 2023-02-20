@@ -11,6 +11,7 @@ import {
 import {IDisposable, Terminal} from "xterm";
 import {ITerminalDimensions} from "xterm-addon-fit";
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
+import {TERMINAL_CONFIG} from "../terminal.module";
 
 @Component({
   selector: 'app-terminal-pty',
@@ -23,7 +24,7 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
   public token?: ShellToken;
 
   @ViewChild('termwin')
-  public termwin: ElementRef<HTMLElement> | null = null;
+  public termwin!: ElementRef<HTMLElement>;
 
   public term: Terminal;
 
@@ -34,6 +35,7 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(private shells: RemoteShellService) {
     this.term = new Terminal({
       scrollback: 1000,
+      ...TERMINAL_CONFIG,
     });
   }
 
@@ -53,7 +55,7 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.term.open(this.termwin!.nativeElement);
+    this.term.open(this.termwin.nativeElement);
     const token = this.token;
     if (token) {
       this.openDefaultShell(token).catch(e => this.connError(e));

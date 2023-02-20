@@ -8,7 +8,8 @@ use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::session_manager::{ProcData, SessionManager};
+use crate::event_channel::{EventChannel, EventHandler};
+use crate::session_manager::{Proc, ProcData, SessionManager};
 
 #[tauri::command]
 async fn exec(
@@ -26,50 +27,56 @@ async fn spawn<R: Runtime>(
     device: Device,
     command: String,
 ) -> Result<String, Error> {
-    let string = Uuid::new_v4().to_string();
-    let string2 = string.clone();
-    tokio::spawn(proc_worker(app, device, command, string2));
-    return Ok(string);
+    let channel = EventChannel::<R, ProcEventHandler>::new(app.clone(), "shell-proc");
+    let token = channel.token();
+    tokio::spawn(proc_worker(app, device, command, channel));
+    return Ok(token);
 }
 
 async fn proc_worker<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     command: String,
-    token: String,
+    channel: EventChannel<R, ProcEventHandler>,
 ) -> Result<(), Error> {
     let manager = app.state::<SessionManager>();
     let proc = Arc::new(manager.spawn(device, &command).await?);
     let proc_ev = proc.clone();
-    let handler = app.once_global(format!("cmd-interrupt-{}", token), move |_| {
-        log::info!("interrupting proc");
-        let proc_ev = proc_ev.clone();
-        tokio::spawn(async move {
-            proc_ev.interrupt().await.unwrap_or(());
-        });
-    });
+    let handler = ProcEventHandler { proc: proc.clone() };
+    channel.listen(handler);
+    log::info!("Wait for {}", command);
     if let Err(e) = proc
         .run(|index, data| {
-            app.emit_all(
-                &format!("cmd-read-{}", token.clone()),
-                ProcData {
-                    index,
-                    data: Vec::<u8>::from(data),
-                },
-            )
-            .unwrap_or(());
+            channel.send(ProcData {
+                index,
+                data: Vec::<u8>::from(data),
+            });
         })
         .await
     {
-        log::info!("{:?}", e);
-        app.emit_all(&format!("cmd-error-{}", token.clone()), e)
-            .unwrap_or(());
+        log::info!("{} got error {:?}", command, e);
+        channel.close(e);
     } else {
-        app.emit_all(&format!("cmd-finish-{}", token.clone()), ())
-            .unwrap_or(());
+        log::info!("{} closed", command);
+        channel.close(None::<String>);
     }
-    app.unlisten(handler);
     return Ok(());
+}
+
+struct ProcEventHandler {
+    proc: Arc<Proc>,
+}
+
+impl EventHandler for ProcEventHandler {
+    fn recv(&self, payload: Option<&str>) {}
+
+    fn close(&self, payload: Option<&str>) {
+        log::info!("interrupting proc");
+        let proc = self.proc.clone();
+        tokio::spawn(async move {
+            proc.interrupt().await.unwrap_or(());
+        });
+    }
 }
 
 /// Initializes the plugin.

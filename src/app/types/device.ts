@@ -2,7 +2,7 @@ export declare interface Device {
   name: string;
   host: string;
   port: number;
-  username: string;
+  username: 'prisoner' | 'root' | string;
   profile: 'ose';
   privateKey?: { openSsh: string };
   passphrase?: string;
