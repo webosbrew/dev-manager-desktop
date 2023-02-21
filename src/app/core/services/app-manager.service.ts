@@ -1,11 +1,11 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, firstValueFrom, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, firstValueFrom, noop, Observable, Subject} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
 import {RemoteLunaService} from "./remote-luna.service";
 import {escapeSingleQuoteString, RemoteCommandService} from "./remote-command.service";
 import {map} from "rxjs/operators";
 import * as path from "path";
-import {RemoteFileService} from "./remote-file.service";
+import {RemoteFileService, ServeInstance} from "./remote-file.service";
 import {PackageManifest} from "./apps-repo.service";
 
 @Injectable({
@@ -64,15 +64,14 @@ export class AppManagerService {
     try {
       if (withHbChannel) {
         const sha256 = await this.sha256(device, ipkPath);
-        const serve = await this.file.serve(device, path.posix.dirname(ipkPath));
-        try {
-          await this.hbChannelInstall(device, new URL(path.posix.basename(ipkPath), serve.host).toString(), sha256);
-        } finally {
-          serve.close();
-        }
+        const serve: ServeInstance = await this.file.serve(device, ipkPath);
+        await this.hbChannelInstall(device, new URL(serve.host).toString(), sha256)
+          .finally(() => serve.interrupt())
+          .catch(() => this.devInstall(device, ipkPath));
       } else {
         await this.devInstall(device, ipkPath);
       }
+      // this.load(device).catch(noop);
     } finally {
       await this.file.rm(device, ipkPath, false);
     }
@@ -80,10 +79,14 @@ export class AppManagerService {
 
   async installByManifest(device: Device, manifest: PackageManifest, withHbChannel: boolean): Promise<void> {
     if (withHbChannel) {
-      await this.hbChannelInstall(device, manifest.ipkUrl, manifest.ipkHash?.sha256);
+      await this.hbChannelInstall(device, manifest.ipkUrl, manifest.ipkHash?.sha256)
+        // .then(() => this.load(device).catch(noop))
+        .catch(() => this.installByManifest(device, manifest, false));
     } else {
       const path = await this.tempDownloadIpk(device, manifest.ipkUrl);
-      await this.devInstall(device, path).finally(() => this.file.rm(device, path, false));
+      await this.devInstall(device, path)
+        // .then(() => this.load(device).catch(noop))
+        .finally(() => this.file.rm(device, path, false));
     }
   }
 
@@ -185,21 +188,21 @@ export class AppManagerService {
           resolve();
         }
       });
-    }).finally(() => {
-      this.load(device);
     });
   }
 
   private async hbChannelInstall(device: Device, url: string, sha256sum?: string) {
     const observable = await this.luna.subscribe(device, 'luna://org.webosbrew.hbchannel.service/install', {
       ipkUrl: url,
-      ipkHash: sha256sum
+      ipkHash: sha256sum,
+      subscribe: true,
     });
     return new Promise<void>((resolve, reject) => {
       const subscription = observable.subscribe({
         next: (v) => {
           if (v['finished'] === true || v.subscribed === false ||
             v['serviceName'] === 'org.webosbrew.hbchannel.service' && v['errorCode'] === -1) {
+            console.log('install finished', v);
             resolve();
             subscription.unsubscribe();
           }
@@ -212,8 +215,6 @@ export class AppManagerService {
           resolve();
         }
       });
-    }).finally(() => {
-      this.load(device);
     });
   }
 

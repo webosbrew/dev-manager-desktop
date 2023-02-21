@@ -59,13 +59,12 @@ export class RemoteFileService extends BackendClient {
     const subject = new Subject<Record<string, any>>();
     const token = await this.invoke<string>('serve', {device, path});
     const channel = new class extends EventChannel<string, any> {
-
-
       constructor(token: string) {
         super(token);
       }
 
       onClose(payload: any): void {
+        console.log('serve closed', payload);
         if (payload) {
           if (BackendError.isCompatibleBody(payload)) {
             if (payload.reason === 'ExitStatus') {
@@ -82,15 +81,16 @@ export class RemoteFileService extends BackendClient {
       }
 
       onReceive(payload: string): void {
+        console.log('serve received', payload);
         subject.next(JSON.parse(payload));
       }
     }(token);
 
-    return firstValueFrom(subject).then(v => {
+    return firstValueFrom(subject).then((v: Record<string, any>): ServeInstance => {
       return {
         host: v['host'],
         requests: subject.pipe(map(v => v as ServeRequest), finalize(() => channel.unlisten())),
-        close: () => subject.complete(),
+        interrupt: () => channel.send(),
       }
     }).catch(e => {
       channel.unlisten();
@@ -112,7 +112,7 @@ export declare interface ServeInstance {
   host: string;
   requests: Observable<ServeRequest>;
 
-  close(): void;
+  interrupt(): void;
 }
 
 export declare interface ServeRequest {

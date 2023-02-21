@@ -10,7 +10,7 @@ where
     R: Runtime,
     H: EventHandler + Sync + Send + 'static,
 {
-    pub fn send<D>(&self, data: D)
+    pub fn rx<D>(&self, data: D)
     where
         D: Serialize + Clone,
     {
@@ -22,13 +22,13 @@ where
             .unwrap();
     }
 
-    pub fn close<D>(&self, data: D)
+    pub fn closed<D>(&self, data: D)
     where
         D: Serialize + Clone,
     {
         self.app
             .emit_all(
-                &format!("event_channel:{}:{}:close", self.category, self.id),
+                &format!("event_channel:{}:{}:closed", self.category, self.id),
                 data,
             )
             .unwrap();
@@ -49,7 +49,7 @@ where
             self.app.listen_global(
                 format!("event_channel:{}:{}:tx", self.category, self.id),
                 move |e| {
-                    handler3.recv(e.payload());
+                    handler3.tx(e.payload());
                 },
             ),
         ]);

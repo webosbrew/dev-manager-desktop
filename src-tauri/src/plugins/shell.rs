@@ -3,8 +3,9 @@ use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
 use crate::error::Error;
+use crate::session_manager::spawned::{SpawnResult, Spawned};
 use crate::session_manager::{
-    SessionManager, ShellCallback, ShellData, ShellInfo, ShellScreen, ShellToken,
+    SessionManager, ShellCallback, ShellData, ShellInfo, ShellScreen, ShellToken, SpawnedCallback,
 };
 
 #[tauri::command]
@@ -19,12 +20,20 @@ async fn open<R: Runtime>(
     let shell = manager.shell_open(device, cols, rows, dumb).await?;
     app.emit_all("shells-opened", &shell.token).unwrap_or(());
     let run_shell = shell.clone();
+    let run_app = app.clone();
     tokio::spawn(async move {
-        let cb = PluginShellCb::<R> {
+        *run_shell.callback.lock().unwrap() = Some(Box::new(PluginShellCb::<R> {
             token: run_shell.token.clone(),
             app,
-        };
-        run_shell.run(cb).await.unwrap_or(());
+        }));
+        // TODO: process result here
+        let result = run_shell.wait_close().await;
+        log::debug!("shell {:?} closed with {:?}", run_shell.token, result);
+        let manager = run_app.state::<SessionManager>();
+        manager.shell_close(&run_shell.token).unwrap_or(());
+        run_app
+            .emit_all("shells-closed", run_shell.token.clone())
+            .unwrap_or(());
     });
     return Ok(shell.info());
 }
@@ -48,7 +57,7 @@ async fn write(
     data: Vec<u8>,
 ) -> Result<(), Error> {
     let shell = manager.shell_find(&token)?;
-    return shell.write(&data).await;
+    return shell.write(&data);
 }
 
 #[tauri::command]
@@ -59,7 +68,7 @@ async fn resize(
     cols: u16,
 ) -> Result<(), Error> {
     let shell = manager.shell_find(&token)?;
-    return shell.resize(cols, rows).await;
+    return shell.resize(cols, rows);
 }
 
 #[tauri::command]
@@ -69,7 +78,7 @@ async fn screen(
     cols: u16,
 ) -> Result<ShellScreen, Error> {
     let shell = manager.shell_find(&token)?;
-    return shell.screen(cols).await;
+    return shell.screen(cols);
 }
 
 #[tauri::command]
@@ -90,7 +99,7 @@ struct PluginShellCb<R: Runtime> {
     app: AppHandle<R>,
 }
 
-impl<R: Runtime> ShellCallback for PluginShellCb<R> {
+impl<R: Runtime> SpawnedCallback for PluginShellCb<R> {
     fn rx(&self, fd: u32, data: &[u8]) {
         let payload = ShellData {
             token: self.token.clone(),
@@ -100,13 +109,10 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
         self.app.emit_all("shell-rx", payload).unwrap_or(());
     }
 
+}
+
+impl<R: Runtime> ShellCallback for PluginShellCb<R> {
     fn info(&self, info: ShellInfo) {
         self.app.emit_all("shell-info", info).unwrap_or(());
-    }
-
-    fn closed(self) {
-        let manager = self.app.state::<SessionManager>();
-        manager.shell_close(&self.token).unwrap_or(());
-        self.app.emit_all("shells-closed", self.token).unwrap_or(());
     }
 }

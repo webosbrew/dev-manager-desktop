@@ -47,15 +47,16 @@ export class RemoteLunaService {
     const command = `${sendCmd} -i ${uri} ${escapeSingleQuoteString(JSON.stringify(param))}`;
     const subject = await this.commands.popen(device, command, 'utf-8');
     return subject.pipe(map(v => {
-      console.log('luna subscribe', v);
       return JSON.parse(v.trim());
     }), catchError(e => {
-      console.log(e);
       if (ExecutionError.isCompatible(e) && e.status == 127) {
         throw new LunaUnsupportedError(`Failed to find command ${sendCmd}. Is this really a webOS device?`);
       }
       throw e;
-    }), finalize(() => subject.close()));
+    }), finalize(() => {
+      console.log('finalize luna subscribe', uri, param);
+      subject.close();
+    }));
   }
 }
 

@@ -16,7 +16,7 @@ export class AppsRepoService {
   }
 
   async showApp(id: string): Promise<RepositoryItem> {
-    return firstValueFrom(this.http.get<Partial<RepositoryItem>>(`${baseUrl}/apps/${id}.json`)
+    return firstValueFrom(this.http.get<Partial<RepositoryItem>>(`${baseUrl}/apps/${id}/releases/latest.json`)
       .pipe(map((body) => new RepositoryItem(body))));
   }
 

@@ -8,12 +8,14 @@ export abstract class EventChannel<RxPayload, ClosePayload> {
   protected constructor(protected token: string) {
     this.promise = Promise.all([
       event.listen<RxPayload>(`${token}:rx`, (e) => {
+        console.debug('event-channel::rx', this.token, e.payload);
         if (this.isClosed) {
           return;
         }
         this.onReceive(e.payload);
       }),
-      event.once<ClosePayload>(`${token}:close`, (e) => {
+      event.once<ClosePayload>(`${token}:closed`, (e) => {
+        console.debug('event-channel::closed', this.token, e.payload);
         if (this.isClosed) {
           return;
         }
@@ -33,10 +35,12 @@ export abstract class EventChannel<RxPayload, ClosePayload> {
   }
 
   public async send<P>(payload?: P): Promise<void> {
+    console.debug('event-channel::tx', this.token, payload);
     return event.emit(`${this.token}:tx`, payload);
   }
 
   public async close<P>(payload?: P): Promise<void> {
+    console.debug('event-channel::close', this.token, payload);
     return event.emit(`${this.token}:close`, payload);
   }
 

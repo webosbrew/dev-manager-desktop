@@ -74,7 +74,8 @@
       }
     },
     "security": {
-      "csp": null
+      "csp": null,
+      "devCsp": "default-src 'self' localhost"
     },
     "updater": {
       "active": false
