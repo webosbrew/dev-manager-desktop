@@ -18,7 +18,7 @@ async fn open<R: Runtime>(
     dumb: Option<bool>,
 ) -> Result<ShellInfo, Error> {
     let shell = manager.shell_open(device, cols, rows, dumb).await?;
-    app.emit_all("shells-opened", &shell.token).unwrap_or(());
+    app.emit_all("shell-opened", &shell.token).unwrap_or(());
     let run_shell = shell.clone();
     let run_app = app.clone();
     tokio::spawn(async move {
@@ -32,7 +32,7 @@ async fn open<R: Runtime>(
         let manager = run_app.state::<SessionManager>();
         manager.shell_close(&run_shell.token).unwrap_or(());
         run_app
-            .emit_all("shells-closed", run_shell.token.clone())
+            .emit_all("shell-closed", run_shell.token.clone())
             .unwrap_or(());
     });
     return Ok(shell.info());
