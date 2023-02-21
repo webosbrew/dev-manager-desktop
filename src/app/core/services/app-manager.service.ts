@@ -1,12 +1,13 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, firstValueFrom, lastValueFrom, noop, Observable, Subject, tap} from 'rxjs';
+import {BehaviorSubject, catchError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
 import {LunaResponse, RemoteLunaService} from "./remote-luna.service";
 import {escapeSingleQuoteString, RemoteCommandService} from "./remote-command.service";
-import {map} from "rxjs/operators";
+import {filter, map} from "rxjs/operators";
 import * as path from "path";
 import {RemoteFileService, ServeInstance} from "./remote-file.service";
 import {PackageManifest} from "./apps-repo.service";
+import {fromPromise} from "rxjs/internal/observable/innerFrom";
 
 @Injectable({
   providedIn: 'root'
@@ -102,17 +103,24 @@ export class AppManagerService {
     const luna = await this.luna.subscribe(device, 'luna://com.webos.appInstallService/dev/remove', {
       id, subscribe: true,
     });
-    await lastValueFrom(luna.asObservable().pipe(map((v: LunaResponse): boolean => {
-      if (v['statusValue'] === 31) {
-        // statusValue = 31 means uninstallation done
-        return true;
-      } else if (!v.returnValue) {
-        throw new Error(`${v['errorCode']}: ${v['errorText']}`);
-      } else if (v['details']?.reason !== undefined) {
-        throw new Error(`${v['details'].state}: ${v['details'].reason}`);
-      }
-      return false;
-    }), tap(v => v && luna.unsubscribe())));
+    await lastValueFrom(luna.asObservable().pipe(
+      map((v: LunaResponse): boolean => {
+        if (v['statusValue'] === 31) {
+          // statusValue = 31 means uninstallation done
+          return true;
+        } else if (v.returnValue === false) {
+          throw new Error(`${v['errorCode']}: ${v['errorText']}`);
+        } else if (v['details']?.reason !== undefined) {
+          throw new Error(`${v['details'].state}: ${v['details'].reason}`);
+        }
+        return false;
+      }),
+      filter(v => v)/* Only pick finish event */,
+      mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
+      catchError((e) => fromPromise(luna.unsubscribe().then(() => {
+        throw e;
+      })))/* Unsubscribe when failed, and throw the error */)
+    );
     await this.load(device);
   }
 
@@ -121,7 +129,6 @@ export class AppManagerService {
       id: appId, subscribe: false, params
     }, true);
   }
-
 
   private obtainSubject(device: Device): Subject<PackageInfo[] | null> {
     let subject = this.packagesSubjects.get(device.name);
@@ -162,18 +169,25 @@ export class AppManagerService {
       ipkUrl: path,
       subscribe: true,
     });
-    await lastValueFrom(luna.asObservable().pipe(map((v: LunaResponse): boolean => {
-      if (v['statusValue'] === 30) {
-        // statusValue = 30 means installation done
-        return true;
-      } else if (!v.returnValue) {
-        throw new Error(`${v['errorCode']}: ${v['errorText']}`);
-      } else if (v['details']?.errorCode !== undefined) {
-        throw new Error(`${v['details'].errorCode}: ${v['details'].reason}`);
-      }
-      console.debug('install output', v);
-      return false;
-    }), tap((v) => v && luna.unsubscribe())));
+    await lastValueFrom(luna.asObservable().pipe(
+      map((v: LunaResponse): boolean => {
+        if (v['statusValue'] === 30) {
+          // statusValue = 30 means installation done
+          return true;
+        } else if (v.returnValue === false) {
+          throw new Error(`${v['errorCode']}: ${v['errorText']}`);
+        } else if (v['details']?.errorCode !== undefined) {
+          throw new Error(`${v['details'].errorCode}: ${v['details'].reason}`);
+        }
+        console.debug('install output', v);
+        return false;
+      }),
+      filter(v => v)/* Only pick finish event */,
+      mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
+      catchError((e) => fromPromise(luna.unsubscribe().then(() => {
+        throw e;
+      })))/* Unsubscribe when failed, and throw the error */)
+    );
   }
 
   private async hbChannelInstall(device: Device, url: string, sha256sum?: string) {
@@ -182,19 +196,26 @@ export class AppManagerService {
       ipkHash: sha256sum,
       subscribe: true,
     });
-    await lastValueFrom(luna.asObservable().pipe(map((v: LunaResponse): boolean => {
-      if (v.returnValue === false) {
-        // If returnValue is false, then it must be a failure.
-        throw v;
-      } else if (v['finished']) {
-        return true;
-      } else if (v.subscribed === false && v.returnValue) {
-        // We didn't get any positive result, but there was no error either. Treat it as success.
-        return true;
-      }
-      console.debug('install output', v);
-      return false;
-    }), tap((v) => v && luna.unsubscribe())));
+    await lastValueFrom(luna.asObservable().pipe(
+      map((v: LunaResponse): boolean => {
+        if (v.returnValue === false) {
+          // If returnValue is false, then it must be a failure.
+          throw v;
+        } else if (v['finished']) {
+          return true;
+        } else if (v.subscribed === false && v.returnValue) {
+          // We didn't get any positive result, but there was no error either. Treat it as success.
+          return true;
+        }
+        console.debug('install output', v);
+        return false;
+      }),
+      filter(v => v)/* Only pick finish event */,
+      mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
+      catchError((e) => fromPromise(luna.unsubscribe().then(() => {
+        throw e;
+      })))/* Unsubscribe when failed, and throw the error */)
+    );
   }
 
 }

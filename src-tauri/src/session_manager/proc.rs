@@ -22,9 +22,13 @@ impl Proc {
 
     pub fn signal(&self, signal: Sig) -> Result<(), Error> {
         return if let Some(sender) = self.sender.lock().unwrap().as_mut() {
-            return sender
+            sender
                 .send(ChannelMsg::Signal { signal })
-                .map_err(|_| Error::Disconnected);
+                .map_err(|_| Error::Disconnected)?;
+            sender
+                .send(ChannelMsg::Eof)
+                .map_err(|_| Error::Disconnected)?;
+            return Ok(());
         } else {
             log::info!("Failed to send signal{:?}: disconnected", signal);
             Err(Error::Disconnected)
@@ -64,6 +68,7 @@ impl Spawned for Proc {
     async fn send_msg(&self, ch: &mut Channel<Msg>, msg: ChannelMsg) -> Result<(), Error> {
         return match msg {
             ChannelMsg::Signal { signal } => Ok(ch.signal(signal).await?),
+            ChannelMsg::Eof => Ok(ch.eof().await?),
             _ => unimplemented!(),
         };
     }

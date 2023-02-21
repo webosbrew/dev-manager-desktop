@@ -10,6 +10,7 @@ import {TextareaAutosizeModule} from "ngx-textarea-autosize";
 import {FormsModule} from "@angular/forms";
 import {SizeCalculatorComponent} from './size-calculator/size-calculator.component';
 import {ITerminalOptions} from "xterm";
+import {SharedModule} from "../shared/shared.module";
 
 
 @NgModule({
@@ -22,14 +23,15 @@ import {ITerminalOptions} from "xterm";
   exports: [
     SizeCalculatorComponent
   ],
-  imports: [
-    CommonModule,
-    NgbNavModule,
-    TerminalRoutingModule,
-    TextareaAutosizeModule,
-    NgbDropdownModule,
-    FormsModule,
-  ]
+    imports: [
+        CommonModule,
+        NgbNavModule,
+        TerminalRoutingModule,
+        TextareaAutosizeModule,
+        NgbDropdownModule,
+        FormsModule,
+        SharedModule,
+    ]
 })
 export class TerminalModule {
 }

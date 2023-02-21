@@ -143,7 +143,11 @@ export class AppsComponent implements OnInit, OnDestroy {
     try {
       await this.appManager.remove(this.device, pkg.id);
     } catch (e) {
-      // Ignore
+      MessageDialogComponent.open(this.modalService, {
+        message: `Failed to remove ${pkg.title}`,
+        error: e as Error,
+        positive: 'Close'
+      });
     }
     progress.close(true);
   }

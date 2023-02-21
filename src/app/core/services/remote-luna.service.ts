@@ -41,7 +41,7 @@ export class RemoteLunaService {
           console.warn('Invalid luna call response: ', out);
           throw new Error(`Bad response ${out}`);
         }
-        if (!typed.returnValue) {
+        if (typed.returnValue === false) {
           throw new LunaResponseError(typed);
         }
         return typed;
