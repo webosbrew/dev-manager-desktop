@@ -3,7 +3,7 @@
     <li class="list-group-item app-item d-flex flex-row align-items-center" *ngFor="let item of repoPage.packages">
       <ng-container *ngIf="item.manifest as manifest">
         <div class="app-desc flex-fill">
-          <img class="app-icon" [src]="item.iconUri">
+          <img class="app-icon" [src]="item.iconUri" [alt]="item.title">
           <div class="app-headline ms-3">
             <div class="app-title">{{item.title}}</div>
             <div class="app-description">{{manifest.appDescription}}</div>
