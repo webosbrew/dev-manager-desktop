@@ -2,6 +2,9 @@ use crate::error::Error;
 use async_trait::async_trait;
 use russh::client::Msg;
 use russh::{Channel, ChannelId, ChannelMsg, CryptoVec, Sig};
+use serde;
+use serde::Serialize;
+use serde_repr::Serialize_repr;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
 use tokio::sync::MutexGuard;
 
@@ -89,7 +92,7 @@ pub(crate) trait Spawned {
                         Some(ChannelMsg::ExitSignal { signal_name, .. }) => {
                             log::trace!("{}: Received ExitSignal {{ signal_name: {:?} }}", ch_id,
                                 signal_name);
-                            result = Some(SpawnResult::Signal { signal: signal_name });
+                            result = Some(SpawnResult::Signal { signal: signal_name.into() });
                             if eof {
                                 break;
                             }
@@ -112,9 +115,38 @@ pub(crate) trait Spawned {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(tag = "type")]
 pub(crate) enum SpawnResult {
     Exit { status: u32 },
-    Signal { signal: Sig },
+    Signal { signal: ExitSignal },
     Closed,
+}
+
+#[derive(Debug, Serialize_repr)]
+#[repr(i8)]
+pub(crate) enum ExitSignal {
+    SIGINT = 2,
+    SIGQUIT = 3,
+    SIGILL = 4,
+    SIGABRT = 6,
+    SIGKILL = 9,
+    SIGSEGV = 11,
+    SIGTERM = 15,
+    NONE = -1,
+}
+
+impl From<Sig> for ExitSignal {
+    fn from(value: Sig) -> Self {
+        return match value {
+            Sig::ABRT => ExitSignal::SIGABRT,
+            Sig::ILL => ExitSignal::SIGILL,
+            Sig::INT => ExitSignal::SIGINT,
+            Sig::KILL => ExitSignal::SIGKILL,
+            Sig::QUIT => ExitSignal::SIGQUIT,
+            Sig::SEGV => ExitSignal::SIGSEGV,
+            Sig::TERM => ExitSignal::SIGTERM,
+            _ => ExitSignal::NONE,
+        };
+    }
 }

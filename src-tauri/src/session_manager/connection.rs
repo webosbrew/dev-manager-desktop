@@ -158,9 +158,10 @@ impl Connection {
             match ch.wait().await.ok_or_else(|| russh::Error::SendError)? {
                 ChannelMsg::Success => return Ok(true),
                 ChannelMsg::Failure => return Ok(false),
+                ChannelMsg::WindowAdjusted { .. } => continue,
                 e => {
                     log::warn!("unknown message waiting for channel {:?}: {:?}", ch.id(), e);
-                    return Err(Disconnect);
+                    continue;
                 }
             }
         }

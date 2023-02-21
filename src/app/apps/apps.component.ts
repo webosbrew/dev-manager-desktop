@@ -2,7 +2,7 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Observable, Subscription} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../types';
-import {AppManagerService, DeviceManagerService, PackageManifest, RepositoryItem} from '../core/services';
+import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {keyBy} from 'lodash';
@@ -117,6 +117,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     try {
       await this.appManager.installByUri(this.device, path, this.hasHbChannel);
     } catch (e) {
+      console.warn(e);
       this.handleInstallationError(await basename(path), e as Error);
     } finally {
       progress.close(true);

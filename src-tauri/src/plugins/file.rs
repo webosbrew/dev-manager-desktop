@@ -119,7 +119,7 @@ async fn serve<R: Runtime>(
     device: Device,
     path: String,
 ) -> Result<String, Error> {
-    return serve::exec(app, &manager, &device, &path).await;
+    return serve::exec(app, &manager, device, path).await;
 }
 
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {

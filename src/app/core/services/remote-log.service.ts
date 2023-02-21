@@ -17,14 +17,16 @@ export class RemoteLogService {
 
   async logread(device: Device, lastLines: number = 0): Promise<Observable<LogMessage>> {
     const subject = await this.cmd.popen(device, `tail -f -n ${lastLines} /var/log/messages`, 'utf-8');
-    return subject.pipe(map(line => this.parsePmLog(line)), filter((msg): msg is LogMessage => isNonNull(msg)),
-      finalize(() => subject.close()));
+    return subject.pipe(map(output => this.parsePmLog(output.data)),
+      filter((msg): msg is LogMessage => isNonNull(msg)),
+      finalize(() => subject.write()));
   }
 
   async dmesg(device: Device): Promise<Observable<LogMessage>> {
     const subject = await this.cmd.popen(device, `dmesg -w -x`, 'utf-8');
-    return subject.pipe(map(line => this.parseDmesg(line)), filter((msg): msg is LogMessage => isNonNull(msg)),
-      finalize(() => subject.close()));
+    return subject.pipe(map(output => this.parseDmesg(output.data)),
+      filter((msg): msg is LogMessage => isNonNull(msg)),
+      finalize(() => subject.write()));
   }
 
   private parsePmLog(line: string): LogMessage | null {

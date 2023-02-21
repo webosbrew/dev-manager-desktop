@@ -37,7 +37,7 @@ pub struct Proc {
 
 #[derive(Clone, Serialize)]
 pub struct ProcData {
-    pub index: u64,
+    pub fd: u32,
     pub data: Vec<u8>,
 }
 

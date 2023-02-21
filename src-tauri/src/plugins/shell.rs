@@ -28,7 +28,7 @@ async fn open<R: Runtime>(
         }));
         // TODO: process result here
         let result = run_shell.wait_close().await;
-        log::debug!("shell {:?} closed with {:?}", run_shell.token, result);
+        log::debug!("Shell {:?} closed with {:?}", run_shell.token, result);
         let manager = run_app.state::<SessionManager>();
         manager.shell_close(&run_shell.token).unwrap_or(());
         run_app

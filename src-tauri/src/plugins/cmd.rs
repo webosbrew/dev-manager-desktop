@@ -53,11 +53,11 @@ async fn proc_worker<R: Runtime>(
     proc.start().await?;
     match proc.wait_close().await {
         Ok(r) => {
-            log::info!("proc {} closed with {:?}", command, r);
-            channel.closed(None::<String>);
+            log::debug!("Process {} closed with {:?}", command, r);
+            channel.closed(&r);
         }
         Err(e) => {
-            log::info!("proc {} got error {:?}", command, e);
+            log::debug!("Process {} got error {:?}", command, e);
             channel.closed(e);
         }
     }
@@ -76,22 +76,19 @@ struct ProcCallback<R: Runtime> {
 impl<R: Runtime> SpawnedCallback for ProcCallback<R> {
     fn rx(&self, fd: u32, data: &[u8]) {
         self.channel.rx(ProcData {
-            index: 0,
+            fd,
             data: Vec::<u8>::from(data),
         });
     }
-
 }
 
 impl EventHandler for ProcEventHandler {
     fn tx(&self, payload: Option<&str>) {
-        self.proc
-            .data(payload.unwrap_or("").as_bytes())
-            .unwrap_or(());
-    }
-
-    fn close(&self, payload: Option<&str>) {
-        self.proc.signal(Sig::INT).unwrap_or(());
+        if let Some(payload) = payload {
+            self.proc.data(payload.as_bytes()).unwrap_or(());
+        } else {
+            self.proc.signal(Sig::INT).unwrap_or(());
+        }
     }
 }
 

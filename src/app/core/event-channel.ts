@@ -2,7 +2,7 @@ import {event} from '@tauri-apps/api';
 import {UnlistenFn} from "@tauri-apps/api/event";
 
 export abstract class EventChannel<RxPayload, ClosePayload> {
-  private promise: Promise<UnlistenFn[]>;
+  private promise?: Promise<UnlistenFn[]>;
   private isClosed: boolean = false;
 
   protected constructor(protected token: string) {
@@ -30,8 +30,12 @@ export abstract class EventChannel<RxPayload, ClosePayload> {
   }
 
   public async unlisten(): Promise<void> {
+    if (!this.promise) {
+      return;
+    }
     console.log('EventChannel', 'unlisten all');
-    return this.promise.then(list => list.forEach(f => f?.()));
+    await this.promise?.then(list => list.forEach(f => f?.()));
+    this.promise = undefined;
   }
 
   public async send<P>(payload?: P): Promise<void> {

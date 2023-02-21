@@ -2,8 +2,8 @@ import {Injectable, NgZone} from "@angular/core";
 import {BackendClient, BackendError} from "./backend-client";
 import {Device, FileItem} from "../../types";
 import {Buffer} from "buffer";
-import {convertOutput, ExecutionError, RemoteCommandService} from "./remote-command.service";
-import {finalize, firstValueFrom, Observable, Subject} from "rxjs";
+import {ExecutionError, RemoteCommandService} from "./remote-command.service";
+import {finalize, firstValueFrom, lastValueFrom, Observable, Subject} from "rxjs";
 import {EventChannel} from "../event-channel";
 import {map} from "rxjs/operators";
 
@@ -90,7 +90,10 @@ export class RemoteFileService extends BackendClient {
       return {
         host: v['host'],
         requests: subject.pipe(map(v => v as ServeRequest), finalize(() => channel.unlisten())),
-        interrupt: () => channel.send(),
+        async interrupt(): Promise<void> {
+          await channel.send();
+          await lastValueFrom(subject);
+        },
       }
     }).catch(e => {
       channel.unlisten();
@@ -112,7 +115,7 @@ export declare interface ServeInstance {
   host: string;
   requests: Observable<ServeRequest>;
 
-  interrupt(): void;
+  interrupt(): Promise<void>;
 }
 
 export declare interface ServeRequest {
