@@ -7,6 +7,9 @@ import {isNonNull} from "../shared/operators";
 import {RemoteShellService, ShellInfo, ShellToken} from "../core/services/remote-shell.service";
 import {ITerminalDimensions} from "xterm-addon-fit";
 import {listen, UnlistenFn} from "@tauri-apps/api/event";
+import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 
 
 @Component({
@@ -29,7 +32,8 @@ export class TerminalComponent implements OnInit, OnDestroy {
   public pendingResize?: ITerminalDimensions;
   private unlistenFns: UnlistenFn[] = [];
 
-  constructor(public deviceManager: DeviceManagerService, private shell: RemoteShellService, private zone: NgZone) {
+  constructor(public deviceManager: DeviceManagerService, private shell: RemoteShellService,
+              private zone: NgZone, private modals: NgbModal) {
   }
 
   async ngOnInit(): Promise<void> {
@@ -78,9 +82,22 @@ export class TerminalComponent implements OnInit, OnDestroy {
       return;
     }
     const startWith = device ?? await firstValueFrom(this.deviceManager.selected$.pipe<Device>(filter(isNonNull)));
-    const shellInfo = await this.shell.open(startWith, size.rows, size.cols, this.preferDumbShell);
-    this.shells.push(shellInfo);
-    this.currentShell = shellInfo.token;
+    const progress = ProgressDialogComponent.open(this.modals);
+    try {
+      const shellInfo = await this.shell.open(startWith, size.rows, size.cols, this.preferDumbShell);
+      this.shells.push(shellInfo);
+      this.currentShell = shellInfo.token;
+    } catch (e) {
+      console.log(e);
+      MessageDialogComponent.open(this.modals, {
+        title: 'Failed to open terminal',
+        message: 'Please make sure the TV was turned on. For some cases, you will need to wait one minute or two for SSH to be available.',
+        error: e as Error,
+        positive: 'Close'
+      })
+    } finally {
+      progress.close();
+    }
   }
 
   shellTracker(index: number, value: ShellInfo): string {

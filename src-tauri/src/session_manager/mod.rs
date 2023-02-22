@@ -6,7 +6,7 @@ use russh::{Channel, ChannelMsg};
 use serde::Serialize;
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc::UnboundedSender;
-use tokio::sync::Mutex as AsyncMutex;
+use tokio::sync::{Mutex as AsyncMutex, Semaphore};
 use uuid::Uuid;
 use vt100::Parser;
 use crate::error::Error;
@@ -32,6 +32,7 @@ pub struct Proc {
     pub(crate) command: String,
     pub(crate) ch: AsyncMutex<Option<Channel<Msg>>>,
     pub(crate) sender: Mutex<Option<UnboundedSender<ChannelMsg>>>,
+    pub(crate) semaphore: Semaphore,
     pub(crate) callback: Mutex<Option<Box<dyn SpawnedCallback + Send>>>,
 }
 

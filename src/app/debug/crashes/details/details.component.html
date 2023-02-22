@@ -1,0 +1,15 @@
+<div class="modal-header">
+  <h4 class="modal-title">Crash details</h4>
+  <button type="button" class="btn btn-primary btn-sm ms-auto" (click)="copyReport(report)"
+          ngbTooltip="Copy to clipboard" container="body">
+    <i class="bi bi-clipboard"></i>
+  </button>
+  <button type="button" class="btn btn-primary btn-sm ms-2" (click)="saveReport(report)" ngbTooltip="Save crash log"
+          container="body">
+    <i class="bi bi-save"></i>
+  </button>
+</div>
+<pre class="modal-body m-0">{{report.content | async}}</pre>
+<div class="modal-footer">
+  <button type="button" class="btn btn-primary" (click)="modal.close()">Close</button>
+</div>

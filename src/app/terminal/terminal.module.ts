@@ -8,8 +8,6 @@ import {PtyComponent} from "./pty/pty.component";
 import {DumbComponent} from './dumb/dumb.component';
 import {TextareaAutosizeModule} from "ngx-textarea-autosize";
 import {FormsModule} from "@angular/forms";
-import {SizeCalculatorComponent} from './size-calculator/size-calculator.component';
-import {ITerminalOptions} from "xterm";
 import {SharedModule} from "../shared/shared.module";
 
 
@@ -18,24 +16,16 @@ import {SharedModule} from "../shared/shared.module";
     TerminalComponent,
     PtyComponent,
     DumbComponent,
-    SizeCalculatorComponent,
   ],
-  exports: [
-    SizeCalculatorComponent
-  ],
-    imports: [
-        CommonModule,
-        NgbNavModule,
-        TerminalRoutingModule,
-        TextareaAutosizeModule,
-        NgbDropdownModule,
-        FormsModule,
-        SharedModule,
-    ]
+  imports: [
+    CommonModule,
+    NgbNavModule,
+    TerminalRoutingModule,
+    TextareaAutosizeModule,
+    NgbDropdownModule,
+    FormsModule,
+    SharedModule,
+  ]
 })
 export class TerminalModule {
 }
-
-export const TERMINAL_CONFIG: Partial<ITerminalOptions> = {
-  fontFamily: 'var(--bs-font-monospace)',
-};

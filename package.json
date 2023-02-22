@@ -1,6 +1,6 @@
 {
   "name": "dev-manager-desktop",
-  "version": "1.9.11",
+  "version": "1.10.0",
   "description": "Device Manager for webOS",
   "homepage": "https://github.com/webosbrew/dev-manager-desktop",
   "author": {
@@ -60,6 +60,7 @@
     "tslib": "^2.3.0",
     "xterm": "5.1.0",
     "xterm-addon-fit": "0.7.0",
+    "xterm-addon-web-links": "0.8.0",
     "zone.js": "~0.11.4"
   },
   "devDependencies": {

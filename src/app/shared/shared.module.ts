@@ -9,6 +9,7 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {MessageTraceComponent} from './components/message-dialog/message-trace/message-trace.component';
 import {ErrorCardComponent} from './components/error-card/error-card.component';
 import {ExternalLinkDirective} from "./directives";
+import {SizeCalculatorComponent} from "./components/term-size-calculator/size-calculator.component";
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import {ExternalLinkDirective} from "./directives";
     MessageTraceComponent,
     ErrorCardComponent,
     ExternalLinkDirective,
+    SizeCalculatorComponent,
   ],
   imports: [CommonModule, FormsModule, NgbModule],
   exports: [
@@ -28,7 +30,8 @@ import {ExternalLinkDirective} from "./directives";
     ProgressDialogComponent,
     MessageTraceComponent,
     ErrorCardComponent,
-    ExternalLinkDirective
+    ExternalLinkDirective,
+    SizeCalculatorComponent
   ]
 })
 export class SharedModule {

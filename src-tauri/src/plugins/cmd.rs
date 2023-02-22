@@ -1,6 +1,6 @@
-use russh::Sig;
 use std::sync::Arc;
 
+use russh::{ChannelMsg, Sig};
 use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Manager, Runtime, State,
@@ -11,6 +11,7 @@ use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
 use crate::session_manager::spawned::{SpawnResult, Spawned};
 use crate::session_manager::{Proc, ProcData, SessionManager, SpawnedCallback};
+use crate::spawn_manager::SpawnManager;
 
 #[tauri::command]
 async fn exec(
@@ -27,10 +28,17 @@ async fn spawn<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     command: String,
+    managed: Option<bool>,
 ) -> Result<String, Error> {
     let channel = EventChannel::<R, ProcEventHandler>::new(app.clone(), "shell-proc");
     let token = channel.token();
-    tokio::spawn(proc_worker(app, device, command, channel));
+    tokio::spawn(proc_worker(
+        app,
+        device,
+        command,
+        channel,
+        managed.unwrap_or(true),
+    ));
     return Ok(token);
 }
 
@@ -39,19 +47,30 @@ async fn proc_worker<R: Runtime>(
     device: Device,
     command: String,
     channel: EventChannel<R, ProcEventHandler>,
+    managed: bool,
 ) -> Result<(), Error> {
-    let manager = app.state::<SessionManager>();
-    let proc = Arc::new(manager.spawn(device, &command).await?);
+    let sessions = app.state::<SessionManager>();
+    let spawns = app.state::<SpawnManager>();
+    let proc = Arc::new(sessions.spawn(device, &command).await?);
     let channel = Arc::new(channel);
     channel.listen(ProcEventHandler {
         proc: proc.clone(),
         command: command.clone(),
     });
+    if managed {
+        spawns.add_proc(proc.clone());
+    }
     *proc.callback.lock().unwrap() = Some(Box::new(ProcCallback {
         channel: channel.clone(),
     }));
+    let _ = proc.semaphore.acquire().await.unwrap();
+    proc.semaphore.close();
     proc.start().await?;
     match proc.wait_close().await {
+        Ok(SpawnResult::Closed) => {
+            log::warn!("Process {command} was not gracefully closed. It has been leaked.");
+            channel.closed(&SpawnResult::Closed);
+        }
         Ok(r) => {
             log::debug!("Process {} closed with {:?}", command, r);
             channel.closed(&r);
@@ -61,6 +80,7 @@ async fn proc_worker<R: Runtime>(
             channel.closed(e);
         }
     }
+    proc.callback.lock().unwrap().take();
     return Ok(());
 }
 
@@ -86,8 +106,10 @@ impl EventHandler for ProcEventHandler {
     fn tx(&self, payload: Option<&str>) {
         if let Some(payload) = payload {
             self.proc.data(payload.as_bytes()).unwrap_or(());
+        } else if !self.proc.semaphore.is_closed() {
+            self.proc.semaphore.add_permits(1);
         } else {
-            self.proc.signal(Sig::INT).unwrap_or(());
+            self.proc.interrupt().unwrap_or(());
         }
     }
 }

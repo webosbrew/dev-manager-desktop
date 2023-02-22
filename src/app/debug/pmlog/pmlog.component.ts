@@ -1,7 +1,7 @@
 import {Component, Injector, Input} from '@angular/core';
 import {Device} from "../../types";
 import {RemoteCommandService} from "../../core/services/remote-command.service";
-import {from, identity, mergeMap, Observable} from "rxjs";
+import {catchError, from, identity, mergeMap, Observable, of, tap} from "rxjs";
 import {LogMessage, RemoteLogService} from "../../core/services/remote-log.service";
 import {LogReaderComponent} from "../log-reader/log-reader.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
@@ -16,6 +16,8 @@ import {ProgressDialogComponent} from "../../shared/components/progress-dialog/p
 export class PmLogComponent {
 
   logs?: Observable<LogMessage>;
+  logError?: Error;
+  hasData?: boolean;
 
   private deviceField: Device | null = null;
 
@@ -37,7 +39,19 @@ export class PmLogComponent {
   }
 
   private reload(device: Device) {
-    this.logs = from(this.log.logread(device, LogReaderComponent.retainLogs)).pipe(mergeMap(identity));
+    this.logError = undefined;
+    this.hasData = undefined;
+    this.logs = from(this.log.logread(device, LogReaderComponent.retainLogs)).pipe(mergeMap(identity), tap(message => {
+      if (this.hasData === undefined) {
+        this.hasData = true;
+      }
+    }), catchError(err => {
+      this.logError = err;
+      if (this.hasData === undefined) {
+        this.hasData = false;
+      }
+      throw err;
+    }));
   }
 
   async openCtrl(): Promise<void> {

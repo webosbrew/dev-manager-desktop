@@ -4,7 +4,8 @@ import {LogLevel, LogMessage} from '../../core/services/remote-log.service';
 import {Terminal} from "xterm";
 import {ITerminalDimensions} from "xterm-addon-fit";
 import chalk, {ChalkInstance} from 'chalk';
-import {TERMINAL_CONFIG} from "../../terminal/terminal.module";
+import {TERMINAL_CONFIG} from "../../shared/xterm/config";
+import {AppWebLinksAddon} from "../../shared/xterm/web-links";
 
 @Component({
   selector: 'app-log-reader',
@@ -39,6 +40,7 @@ export class LogReaderComponent implements OnDestroy, AfterViewInit {
       disableStdin: true,
       ...TERMINAL_CONFIG,
     });
+    this.term.loadAddon(new AppWebLinksAddon());
   }
 
   ngOnDestroy(): void {

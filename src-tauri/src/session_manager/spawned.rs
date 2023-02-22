@@ -25,9 +25,7 @@ pub(crate) trait Spawned {
         };
     }
 
-    async fn send_msg(&self, _ch: &mut Channel<Msg>, _msg: ChannelMsg) -> Result<(), Error> {
-        unimplemented!();
-    }
+    async fn send_msg(&self, _ch: &mut Channel<Msg>, _msg: ChannelMsg) -> Result<(), Error>;
 
     async fn wait_close(&self) -> Result<SpawnResult, Error> {
         let (sender, mut receiver) = unbounded_channel::<ChannelMsg>();
@@ -49,13 +47,13 @@ pub(crate) trait Spawned {
                             }
                         },
                         Some(ChannelMsg::Close) => {
-                            log::trace!("Send Close, break");
+                            log::debug!("Send Close, break");
                             receiver.close();
                             break;
                         },
                         Some(msg) => {
                             if let Some(ch) = self.lock_channel().await.as_mut() {
-                                log::trace!("{}: Send {:?}", ch.id(), msg);
+                                log::debug!("{}: Send {:?}", ch.id(), msg);
                                 self.send_msg(ch, msg).await?;
                             } else {
                                 log::info!("Failed to send {:?}: disconnected", msg);
@@ -63,7 +61,7 @@ pub(crate) trait Spawned {
                             }
                         },
                         None => {
-                            log::trace!("Send None, break");
+                            log::debug!("Send None, break");
                             break;
                         }
                     }
@@ -82,7 +80,7 @@ pub(crate) trait Spawned {
                             self.on_rx(data, ext);
                         }
                         Some(ChannelMsg::ExitStatus { exit_status }) => {
-                            log::trace!("{}: Received ExitStatus {{ exit_status: {} }}", ch_id,
+                            log::debug!("{}: Received ExitStatus {{ exit_status: {} }}", ch_id,
                                 exit_status);
                             result = Some(SpawnResult::Exit { status: exit_status });
                             if eof {
@@ -90,7 +88,7 @@ pub(crate) trait Spawned {
                             }
                         }
                         Some(ChannelMsg::ExitSignal { signal_name, .. }) => {
-                            log::trace!("{}: Received ExitSignal {{ signal_name: {:?} }}", ch_id,
+                            log::debug!("{}: Received ExitSignal {{ signal_name: {:?} }}", ch_id,
                                 signal_name);
                             result = Some(SpawnResult::Signal { signal: signal_name.into() });
                             if eof {
@@ -98,20 +96,26 @@ pub(crate) trait Spawned {
                             }
                         }
                         Some(ChannelMsg::Eof) => {
-                            log::trace!("{}: Received Eof", ch_id);
+                            log::debug!("{}: Received Eof", ch_id);
                             eof = true;
                             if result.is_some() {
                                 break;
                             }
                         }
-                        Some(ChannelMsg::Close) => log::trace!("{}: Received Close", ch_id),
+                        Some(ChannelMsg::Close) => log::debug!("{}: Received Close", ch_id),
                         None => break,
-                        Some(msg) => log::trace!("{}: Received {:?}", ch_id, msg)
+                        Some(msg) => log::debug!("{}: Received {:?}", ch_id, msg)
                     }
                 }
             }
         }
-        return Ok(result.unwrap_or(SpawnResult::Closed));
+        if let Some(ch) = self.lock_channel().await.take() {
+            ch.close().await.unwrap_or(());
+        }
+        if let Some(result) = result {
+            return Ok(result);
+        }
+        return Ok(SpawnResult::Closed);
     }
 }
 

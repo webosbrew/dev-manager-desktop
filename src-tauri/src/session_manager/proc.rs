@@ -1,13 +1,13 @@
 use async_trait::async_trait;
-use russh::client::Msg;
 use russh::{Channel, ChannelMsg, CryptoVec, Sig};
+use russh::client::Msg;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
 use tokio::sync::MutexGuard;
 
 use crate::error::Error;
 use crate::session_manager::connection::Connection;
-use crate::session_manager::spawned::Spawned;
 use crate::session_manager::Proc;
+use crate::session_manager::spawned::Spawned;
 
 impl Proc {
     pub async fn start(&self) -> Result<(), Error> {
@@ -20,19 +20,23 @@ impl Proc {
         return Ok(());
     }
 
-    pub fn signal(&self, signal: Sig) -> Result<(), Error> {
+    pub fn msg_seq(&self, seq: Vec<ChannelMsg>) -> Result<(), Error> {
         return if let Some(sender) = self.sender.lock().unwrap().as_mut() {
-            sender
-                .send(ChannelMsg::Signal { signal })
-                .map_err(|_| Error::Disconnected)?;
-            sender
-                .send(ChannelMsg::Eof)
-                .map_err(|_| Error::Disconnected)?;
+            for msg in seq {
+                sender.send(msg).map_err(|_| Error::Disconnected)?;
+            }
             return Ok(());
         } else {
-            log::info!("Failed to send signal{:?}: disconnected", signal);
+            log::info!("Failed to send message sequence {:?}: disconnected", seq);
             Err(Error::Disconnected)
         };
+    }
+
+    pub fn interrupt(&self) -> Result<(), Error> {
+        return self.msg_seq(vec![
+            ChannelMsg::Eof,
+            ChannelMsg::Signal { signal: Sig::INT },
+        ]);
     }
 
     pub fn data(&self, data: &[u8]) -> Result<(), Error> {
