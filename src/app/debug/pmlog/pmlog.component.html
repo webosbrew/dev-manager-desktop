@@ -12,6 +12,7 @@
 </div>
 <ng-template #hasError>
   <div class="p-3">
-    <app-error-card *ngIf="!hasData && logError" [error]="logError"></app-error-card>
+    <app-error-card title="Failed to fetch system logs" [error]="logError"
+                    *ngIf="!hasData && logError"></app-error-card>
   </div>
 </ng-template>
