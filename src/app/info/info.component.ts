@@ -1,7 +1,5 @@
 import {Component, Injector} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import * as moment from 'moment';
-import 'moment-duration-format';
 import {noop, Observable, of, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {Device, RawPackageInfo} from '../types';
@@ -19,6 +17,7 @@ import {HomebrewChannelConfiguration, SystemInfo} from "../types/luna-apis";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {RemoteFileService} from "../core/services/remote-file.service";
 import {open as openPath} from "@tauri-apps/api/shell";
+import {DateTime, Duration} from "luxon";
 
 @Component({
   selector: 'app-info',
@@ -112,8 +111,9 @@ export class InfoComponent {
       const devModeInfo = await this.devMode.status(this.device);
       this.devModeInfo = devModeInfo;
       if (devModeInfo.remaining) {
-        const expireDate = moment().add(devModeInfo.remaining, 'h');
-        this.devModeRemaining = timer(0, 1000).pipe(map(() => moment.duration(expireDate.diff(moment())).format('hh:mm:ss')));
+        const expireDate = DateTime.now().plus(Duration.fromISOTime(devModeInfo.remaining));
+        this.devModeRemaining = timer(0, 1000).pipe(map(() => expireDate
+          .diffNow('seconds').toFormat('hh:mm:ss')));
       } else {
         this.devModeRemaining = of("--:--");
       }
