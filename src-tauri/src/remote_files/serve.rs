@@ -46,10 +46,6 @@ pub(crate) async fn exec<R: Runtime>(
         },
     );
     spawns.add_proc(proc.clone());
-    *proc.callback.lock().unwrap() = Some(Box::new(ProcCallback {
-        channel: channel.clone(),
-    }));
-    channel.listen(ServeEventHandler { proc: proc.clone() });
 
     let token = channel.token();
     tokio::spawn(serve_worker(proc, channel, path));
@@ -61,19 +57,23 @@ async fn serve_worker<R: Runtime>(
     channel: Arc<EventChannel<R, ServeEventHandler>>,
     path: String,
 ) {
+    *proc.callback.lock().unwrap() = Some(Box::new(ProcCallback {
+        channel: channel.clone(),
+    }));
+    channel.listen(ServeEventHandler { proc: proc.clone() });
     if let Err(e) = proc.start().await {
         log::warn!("serve {} failed to start: {:?}", path, e);
         channel.closed(e);
-        return;
-    }
-    match proc.wait_close().await {
-        Ok(r) => {
-            log::debug!("File serving {} closed with {:?}", path, r);
-            channel.closed(&r);
-        }
-        Err(e) => {
-            log::debug!("File serving {} got error {:?}", path, e);
-            channel.closed(e);
+    } else {
+        match proc.wait_close().await {
+            Ok(r) => {
+                log::debug!("File serving {} closed with {:?}", path, r);
+                channel.closed(&r);
+            }
+            Err(e) => {
+                log::debug!("File serving {} got error {:?}", path, e);
+                channel.closed(e);
+            }
         }
     }
     proc.callback.lock().unwrap().take();
