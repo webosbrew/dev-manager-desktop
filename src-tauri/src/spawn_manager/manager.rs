@@ -14,9 +14,9 @@ impl SpawnManager {
         drop(guard);
         for x in old_items {
             if let Some(proc) = x.upgrade() {
-                log::debug!("Interrupting {:?}", proc.command);
-                proc.interrupt().unwrap_or(());
-                proc.msg_seq(vec![ChannelMsg::Close]).unwrap_or(());
+                log::debug!("Terminating {:?}", proc.command);
+                proc.msg_seq(vec![ChannelMsg::Signal { signal: Sig::TERM }])
+                    .unwrap_or(());
             }
         }
     }
