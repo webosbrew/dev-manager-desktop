@@ -1,5 +1,5 @@
 <div class="w-100 h-100 d-flex flex-column" *ngIf="device as device">
-  <ul ngbNav class="nav-tabs mt-2 px-2" #nav="ngbNav" (navChange)="tabChange($event)" [activeId]="activeTab"
+  <ul ngbNav class="nav-tabs pt-2 px-2 bg-panel" #nav="ngbNav" (navChange)="tabChange($event)" [activeId]="activeTab"
       [destroyOnHide]="true">
     <li ngbNavItem="crashes">
       <a ngbNavLink>Crash Reports</a>

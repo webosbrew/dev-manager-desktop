@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  Input,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-  ViewEncapsulation
-} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {IDisposable, Terminal} from "xterm";
 import {ITerminalDimensions} from "xterm-addon-fit";
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";

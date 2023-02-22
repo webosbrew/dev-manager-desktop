@@ -12,6 +12,7 @@ import {DmesgComponent} from "./dmesg/dmesg.component";
 import {PmLogControlComponent} from './pmlog/control/control.component';
 import {SetContextComponent} from './pmlog/set-context/set-context.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
+import { DetailsComponent } from './crashes/details/details.component';
 
 
 @NgModule({
@@ -23,6 +24,7 @@ import {FormsModule, ReactiveFormsModule} from "@angular/forms";
     DmesgComponent,
     PmLogControlComponent,
     SetContextComponent,
+    DetailsComponent,
   ],
   imports: [
     CommonModule,

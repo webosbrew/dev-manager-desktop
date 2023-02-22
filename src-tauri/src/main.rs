@@ -31,6 +31,7 @@ fn main() {
         .plugin(plugins::shell::plugin("remote-shell"))
         .plugin(plugins::file::plugin("remote-file"))
         .plugin(plugins::devmode::plugin("dev-mode"))
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(DeviceManager::default())
         .manage(SessionManager::default())
         .run(tauri::generate_context!());
