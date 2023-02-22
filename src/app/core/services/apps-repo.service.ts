@@ -16,7 +16,7 @@ export class AppsRepoService {
   }
 
   async showApp(id: string): Promise<RepositoryItem> {
-    return firstValueFrom(this.http.get<Partial<RepositoryItem>>(`${baseUrl}/apps/${id}.json`)
+    return firstValueFrom(this.http.get<Partial<RepositoryItem>>(`${baseUrl}/apps/${id}/releases/latest.json`)
       .pipe(map((body) => new RepositoryItem(body))));
   }
 
@@ -40,6 +40,7 @@ export class PackageManifest {
   id: string = '';
   version: string = '';
   ipkUrl: string = '';
+  ipkHash?: { sha256: string; };
   sourceUrl?: string;
   appDescription: string = '';
 

@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, EventHandler as TauriEventHandler, Runtime};
 use uuid::Uuid;
@@ -13,6 +14,8 @@ pub struct EventChannel<R: Runtime, H: EventHandler + Send + 'static> {
 }
 
 pub trait EventHandler: Sized {
-    fn recv(&self, payload: Option<&str>) {}
-    fn close(&self, payload: Option<&str>) {}
+    fn tx(&self, payload: Option<&str>);
+    fn close(&self, payload: Option<&str>) {
+        unimplemented!();
+    }
 }

@@ -3,41 +3,54 @@ use std::fmt;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use russh::ChannelMsg;
+use async_trait::async_trait;
+use russh::client::Msg;
+use russh::{Channel, ChannelMsg, CryptoVec};
 use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tokio::sync::mpsc::unbounded_channel;
+use tauri::Runtime;
+use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
+use tokio::sync::{MappedMutexGuard, MutexGuard};
 use uuid::Uuid;
 
 use crate::error::Error;
+use crate::session_manager::spawned::Spawned;
 use crate::session_manager::{Shell, ShellCallback, ShellInfo, ShellScreen, ShellToken};
 
 pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
 
 impl Shell {
-    pub async fn write(&self, data: &[u8]) -> Result<(), Error> {
-        if let Some(sender) = self.sender.lock().await.as_mut() {
-            sender.send(Vec::<u8>::from(data)).unwrap();
-        } else {
-            return Err(Error::Disconnected);
+    pub fn write(&self, data: &[u8]) -> Result<(), Error> {
+        if let Some(sender) = self.sender.lock().unwrap().as_mut() {
+            return sender
+                .send(ChannelMsg::Data {
+                    data: CryptoVec::from_slice(data),
+                })
+                .map_err(|_| Error::Disconnected);
         }
-        return Ok(());
+        return Err(Error::Disconnected);
     }
 
-    pub async fn resize(&self, cols: u16, rows: u16) -> Result<(), Error> {
+    pub fn resize(&self, cols: u16, rows: u16) -> Result<(), Error> {
         if !self.has_pty {
             return Err(Error::Unsupported);
         }
-        if let Some(ch) = self.channel.lock().await.as_mut() {
-            ch.window_change(cols as u32, rows as u32, 0, 0).await?;
-        } else {
-            return Err(Error::Disconnected);
+        if let Some(sender) = self.sender.lock().unwrap().as_mut() {
+            sender
+                .send(ChannelMsg::WindowChange {
+                    col_width: cols as u32,
+                    row_height: rows as u32,
+                    pix_width: 0,
+                    pix_height: 0,
+                })
+                .map_err(|_| Error::Disconnected)?;
+            self.parser.lock().unwrap().set_size(rows, cols);
+            return Ok(());
         }
-        self.parser.lock().unwrap().set_size(rows, cols);
-        return Ok(());
+        return Err(Error::Disconnected);
     }
 
-    pub async fn screen(&self, cols: u16) -> Result<ShellScreen, Error> {
+    pub fn screen(&self, cols: u16) -> Result<ShellScreen, Error> {
         if !self.has_pty {
             return Err(Error::Unsupported);
         }
@@ -67,69 +80,8 @@ impl Shell {
         });
     }
 
-    pub async fn close(&self) -> Result<(), Error> {
-        if let Some(ch) = self.channel.lock().await.take() {
-            ch.close().await?;
-        }
-        return Ok(());
-    }
-
-    pub(crate) async fn run<CB>(&self, cb: CB) -> Result<(), Error>
-    where
-        CB: ShellCallback + Send + 'static,
-    {
-        let (sender, mut receiver) = unbounded_channel::<Vec<u8>>();
-        *self.sender.lock().await = Some(sender);
-        let mut status: Option<u32> = None;
-        let mut eof: bool = false;
-        loop {
-            tokio::select! {
-                data = receiver.recv() => {
-                    log::info!("Write {{ data: {:?} }}", data);
-                    match data {
-                        Some(data) => self.send(&data[..]).await?,
-                        None => {
-                            self.close().await?;
-                            break;
-                        }
-                    }
-                }
-                result = self.wait() => {
-                    match result? {
-                        ChannelMsg::Data { data } => {
-                            let sh_changed = self.process(data.as_ref());
-                            cb.rx(0, data.as_ref());
-                            if sh_changed {
-                                cb.info(self.info());
-                            }
-                        }
-                        ChannelMsg::ExtendedData { data, ext } => {
-                            log::info!("ExtendedData {{ data: {:?}, ext: {} }}", data, ext);
-                            if ext == 1 {
-                                self.process(data.as_ref());
-                                cb.rx(1, data.as_ref());
-                            }
-                        }
-                        ChannelMsg::ExitStatus { exit_status } => {
-                            status = Some(exit_status);
-                            if eof {
-                                break;
-                            }
-                        }
-                        ChannelMsg::Eof => {
-                            eof = true;
-                            if status.is_some() {
-                                break;
-                            }
-                        }
-                        ChannelMsg::Close => log::info!("Channel:Close"),
-                        e => log::info!("Channel:{:?}", e)
-                    }
-                }
-            }
-        }
-        self.channel.lock().await.take();
-        cb.closed();
+    pub fn close(&self) -> Result<(), Error> {
+        if let Some(ch) = self.sender.lock().unwrap().take() {}
         return Ok(());
     }
 
@@ -139,23 +91,6 @@ impl Shell {
             title: self.title(),
             has_pty: self.has_pty,
             created_at: self.created_at,
-        };
-    }
-
-    async fn wait(&self) -> Result<ChannelMsg, Error> {
-        return if let Some(ch) = self.channel.lock().await.as_mut() {
-            let msg = ch.wait().await;
-            msg.ok_or_else(|| Error::Disconnected)
-        } else {
-            Err(Error::Disconnected)
-        };
-    }
-
-    async fn send(&self, data: &[u8]) -> Result<(), Error> {
-        return if let Some(ch) = self.channel.lock().await.as_mut() {
-            return Ok(ch.data(data).await?);
-        } else {
-            Err(Error::Disconnected)
         };
     }
 
@@ -176,6 +111,44 @@ impl Shell {
             return self.def_title.clone();
         }
         return String::from(title);
+    }
+}
+
+#[async_trait]
+impl Spawned for Shell {
+    async fn lock_channel(&self) -> MutexGuard<'_, Option<Channel<Msg>>> {
+        return self.channel.lock().await;
+    }
+
+    fn tx_ready(&self, sender: UnboundedSender<ChannelMsg>) {
+        *self.sender.lock().unwrap() = Some(sender);
+    }
+
+    fn on_rx(&self, data: CryptoVec, ext: u32) {
+        if let Some(cb) = self.callback.lock().unwrap().as_deref() {
+            if ext > 1 {
+                return;
+            }
+            let sh_changed = self.process(data.as_ref());
+            cb.rx(ext, data.as_ref());
+            if ext == 0 && sh_changed {
+                cb.info(self.info());
+            }
+        }
+    }
+
+    async fn send_msg(&self, ch: &mut Channel<Msg>, msg: ChannelMsg) -> Result<(), Error> {
+        return match msg {
+            ChannelMsg::WindowChange {
+                col_width,
+                row_height,
+                pix_width,
+                pix_height,
+            } => Ok(ch
+                .window_change(col_width, row_height, pix_width, pix_height)
+                .await?),
+            _ => unimplemented!(),
+        };
     }
 }
 

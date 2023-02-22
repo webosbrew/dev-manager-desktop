@@ -1,9 +1,10 @@
 import {Injectable, NgZone} from "@angular/core";
-import {BackendClient, BackendError} from "./backend-client";
+import {BackendClient, BackendError, BackendErrorBody} from "./backend-client";
 import {DeviceLike} from "../../types";
 import {Buffer} from "buffer";
 import {noop, ReplaySubject} from "rxjs";
 import {EventChannel} from "../event-channel";
+import {isNil} from "lodash";
 
 @Injectable({
   providedIn: 'root'
@@ -61,46 +62,78 @@ export class RemoteCommandService extends BackendClient {
 
 }
 
-export class CommandSubject<T = Buffer | string> extends ReplaySubject<T> {
+export declare class CommandData<T = Buffer | string> {
+  fd: number;
+  data: T;
+}
+
+export class CommandSubject<T = Buffer | string> extends ReplaySubject<CommandData<T>> {
   private channel: EventChannel<ProcData, any>;
 
   constructor(zone: NgZone, token: string, private encoding: 'buffer' | 'utf-8' | undefined) {
     super();
     const subject = this;
     this.channel = new class extends EventChannel<ProcData, any> {
-      strbuf: string = '';
+      stdout: string = '';
+      stderr: string = '';
+      interrupted = false;
 
       constructor(token: string) {
         super(token);
       }
 
       onReceive(payload: ProcData): void {
+        if (payload.fd !== 0) {
+          this.stderr += Buffer.from(payload.data).toString('utf-8');
+          return;
+        }
         if (encoding == 'utf-8') {
-          this.strbuf = `${this.strbuf}${Buffer.from(payload.data).toString('utf-8')}`;
+          this.stdout = `${this.stdout}${Buffer.from(payload.data).toString('utf-8')}`;
           let index: number;
-          while ((index = this.strbuf.indexOf('\n')) >= 0) {
-            zone.run(() => subject.next(this.strbuf.substring(0, index) as any));
-            this.strbuf = this.strbuf.substring(index + 1);
+          while ((index = this.stdout.indexOf('\n')) >= 0) {
+            zone.run(() => subject.next({
+              fd: payload.fd,
+              data: this.stdout.substring(0, index) as any,
+            }));
+            this.stdout = this.stdout.substring(index + 1);
           }
         } else {
-          zone.run(() => subject.next(Buffer.from(payload.data) as any));
+          zone.run(() => subject.next({
+            fd: payload.fd,
+            data: Buffer.from(payload.data) as any,
+          }));
         }
       }
 
-      onClose(payload: any): void {
+      onClose(payload: SpawnResult): void {
         console.log(this.token, 'closed', payload);
         if (!payload) {
           zone.run(() => subject.complete());
-        } else if (BackendError.isCompatible(payload)) {
-          const be = new BackendError(payload);
-          if (be.reason === 'ExitStatus') {
-            zone.run(() => subject.error(ExecutionError.fromBackendError(be)));
+        } else if (payload.type === 'Exit') {
+          if (payload.status === 0) {
+            zone.run(() => subject.complete());
           } else {
-            zone.run(() => subject.error(be));
+            zone.run(() => subject.error(new ExecutionError(`Process exited with status ${payload.status}`,
+              payload.status, this.stderr)));
+          }
+        } else if (payload.type === 'Signal') {
+          // Treat user initiated SIGINT as success
+          if (this.interrupted && payload.signal === 2) {
+            zone.run(() => subject.complete());
+          } else {
+            zone.run(() => subject.error(new ExecutionError(`Process exited with signal ${payload.signal}`,
+              128 + payload.signal, this.stderr)));
           }
         } else {
-          zone.run(() => subject.error(payload));
+          zone.run(() => subject.error(new Error('Process closed')));
         }
+      }
+
+      override async send<P>(payload?: P): Promise<void> {
+        if (isNil(payload)) {
+          this.interrupted = true;
+        }
+        return super.send(payload);
       }
 
     }(token);
@@ -116,20 +149,32 @@ export class CommandSubject<T = Buffer | string> extends ReplaySubject<T> {
     this.channel.unlisten().catch(noop);
   }
 
-  async write(data: string | Uint8Array): Promise<void> {
+  async write(data?: string | Uint8Array): Promise<void> {
     await this.channel.send(data);
-  }
-
-  async close() {
-    await this.channel.close();
   }
 
 }
 
 declare interface ProcData {
-  index: number;
+  fd: number;
   data: number[];
 }
+
+declare interface SpawnExited {
+  type: 'Exit';
+  status: number;
+}
+
+declare interface SpawnSignaled {
+  type: 'Signal';
+  signal: number;
+}
+
+declare interface SpawnClosed {
+  type: 'Closed';
+}
+
+type SpawnResult = SpawnExited | SpawnSignaled | SpawnClosed;
 
 export class ExecutionError extends Error {
   constructor(message: string, public status: number, public details: string) {
@@ -144,7 +189,7 @@ export class ExecutionError extends Error {
     return typeof (p.status) === 'number' && p.details !== null;
   }
 
-  static fromBackendError(e: BackendError): ExecutionError | BackendError {
+  static fromBackendError(e: BackendErrorBody): ExecutionError {
     const stderr = e['stderr'] as number[];
     const data = convertOutput(stderr, 'utf-8');
     const exitCode = e['exit_code'] as number;

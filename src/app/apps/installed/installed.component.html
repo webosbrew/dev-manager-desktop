@@ -5,7 +5,7 @@
       <li class="list-group-item app-item d-flex flex-row align-items-center"
           *ngFor="let pkg of (installed$ | async)">
         <div class="app-desc flex-fill">
-          <img class="app-icon" [src]="pkg.iconUri | trustUri">
+          <img class="app-icon" [src]="pkg.iconUri | trustUri" [alt]="pkg.title">
           <div class="app-headline ms-3">
             <div class="app-title">{{pkg.title}}</div>
             <div class="app-description">{{pkg.appDescription}}</div>
@@ -35,7 +35,7 @@
                   <i class="bi bi-download me-3"></i>Install Beta
                 </li>
                 <li ngbDropdownItem *ngIf="rpkg?.manifest?.sourceUrl as url">
-                  <a class="text-decoration-none" [href]="url">
+                  <a class="text-decoration-none" [href]="url" appExternalLink>
                     <i class="bi bi-globe2 me-3"></i>Website
                   </a>
                 </li>

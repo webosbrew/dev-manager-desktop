@@ -3,8 +3,7 @@ import {open} from "@tauri-apps/api/shell";
 import {noop} from "rxjs";
 
 @Directive({
-  // eslint-disable-next-line @angular-eslint/directive-selector
-  selector: 'a[href]'
+  selector: 'a[href][appExternalLink]'
 })
 export class ExternalLinkDirective {
   @Input()

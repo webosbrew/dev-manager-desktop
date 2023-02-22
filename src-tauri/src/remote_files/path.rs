@@ -1,4 +1,4 @@
-pub(crate) fn escape_path(path: &String) -> String {
+pub(crate) fn escape_path(path: &str) -> String {
     let mut escaped = String::new();
     let mut first = true;
     for seg in path.split('\'') {

@@ -1,6 +1,9 @@
 <div class="p-2 pb-3 w-100 h-100 container" #container>
-  <small class="ms-3 text-warning">Can't allocate PTY due to system restrictions. Terminal will have limited
-    features.</small>
+  <div class="w-100 text-warning fw-bold small">
+    Interactive terminal is not supported for this connection. Check <a
+    href="https://github.com/webosbrew/dev-manager-desktop/wiki/About-Dumb-Shell" appExternalLink>here</a> for
+    more info.
+  </div>
   <div *ngFor="let item of logs">
     <div class="d-flex flex-row align-items-baseline">
       <label class="mx-1 text-secondary">&gt;</label>
@@ -14,7 +17,7 @@
   </div>
   <div class="d-flex flex-row align-items-baseline prompt">
     <label class="mx-1 text-secondary">&gt;</label>
-    <textarea class="flex-fill text-light" wrap="soft" autosize autofocus [disabled]="working"
+    <textarea class="flex-fill text-light" wrap="soft" autosize autofocus spellcheck="false" [disabled]="working"
               [placeholder]="working ? 'Please wait for the command to finish' : 'Input command here'"
               (keydown.enter)="$event.preventDefault(); send(input.value); input.value=''" #input></textarea>
     <div class="spinner-border spinner-border-sm align-self-center" role="status" *ngIf="working">

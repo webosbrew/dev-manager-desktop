@@ -1,76 +1,75 @@
-use russh::ChannelMsg;
+use async_trait::async_trait;
+use russh::client::Msg;
+use russh::{Channel, ChannelMsg, CryptoVec, Sig};
+use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
+use tokio::sync::MutexGuard;
 
 use crate::error::Error;
 use crate::session_manager::connection::Connection;
+use crate::session_manager::spawned::Spawned;
 use crate::session_manager::Proc;
 
 impl Proc {
-    pub async fn run<F>(&self, stdout: F) -> Result<(), Error>
-    where
-        F: Fn(u64, &[u8]) -> (),
-    {
+    pub async fn start(&self) -> Result<(), Error> {
         if let Some(ch) = self.ch.lock().await.as_mut() {
             ch.exec(true, self.command.as_bytes()).await?;
             if !Connection::wait_reply(ch).await? {
                 return Err(Error::NegativeReply);
             }
         }
-        let mut stderr: Vec<u8> = Vec::new();
-        let mut status: Option<u32> = None;
-        let mut eof: bool = false;
-        let mut index: u64 = 0;
-        loop {
-            if let Some(ch) = self.ch.lock().await.as_mut() {
-                match ch.wait().await.ok_or(Error::new("empty message"))? {
-                    ChannelMsg::Data { data } => {
-                        stdout(index, data.as_ref());
-                        index += 1;
-                    }
-                    ChannelMsg::ExtendedData { data, ext } => {
-                        log::info!(
-                            "Channel: ExtendedData {}: {}",
-                            ext,
-                            String::from_utf8_lossy(&data.to_vec())
-                        );
-                        if ext == 1 {
-                            stderr.append(&mut data.to_vec());
-                        }
-                    }
-                    ChannelMsg::ExitStatus { exit_status } => {
-                        status = Some(exit_status);
-                        if eof {
-                            break;
-                        }
-                    }
-                    ChannelMsg::Eof => {
-                        eof = true;
-                        if status.is_some() {
-                            break;
-                        }
-                    }
-                    ChannelMsg::Close => log::info!("Channel:Close"),
-                    _ => {}
-                }
-            } else {
-                break;
-            }
-        }
-        let status = status.unwrap_or(0);
-        if status != 0 {
-            return Err(Error::ExitStatus {
-                message: format!("Command `{}` exited with status {}", self.command, status),
-                exit_code: status,
-                stderr,
-            });
-        }
         return Ok(());
     }
 
-    pub async fn interrupt(&self) -> Result<(), Error> {
-        let mut guard = self.ch.lock().await;
-        if let Some(ch) = guard.take() {
-            ch.close().await?;
+    pub fn signal(&self, signal: Sig) -> Result<(), Error> {
+        return if let Some(sender) = self.sender.lock().unwrap().as_mut() {
+            sender
+                .send(ChannelMsg::Signal { signal })
+                .map_err(|_| Error::Disconnected)?;
+            sender
+                .send(ChannelMsg::Eof)
+                .map_err(|_| Error::Disconnected)?;
+            return Ok(());
+        } else {
+            log::info!("Failed to send signal{:?}: disconnected", signal);
+            Err(Error::Disconnected)
+        };
+    }
+
+    pub fn data(&self, data: &[u8]) -> Result<(), Error> {
+        return if let Some(sender) = self.sender.lock().unwrap().as_mut() {
+            return sender
+                .send(ChannelMsg::Data {
+                    data: CryptoVec::from_slice(data),
+                })
+                .map_err(|_| Error::Disconnected);
+        } else {
+            log::info!("Failed to send data {:?}: disconnected", data);
+            Err(Error::Disconnected)
+        };
+    }
+}
+
+#[async_trait]
+impl Spawned for Proc {
+    async fn lock_channel(&self) -> MutexGuard<'_, Option<Channel<Msg>>> {
+        return self.ch.lock().await;
+    }
+
+    fn tx_ready(&self, sender: UnboundedSender<ChannelMsg>) {
+        *self.sender.lock().unwrap() = Some(sender);
+    }
+
+    fn on_rx(&self, data: CryptoVec, ext: u32) {
+        if let Some(cb) = self.callback.lock().unwrap().as_deref() {
+            cb.rx(ext, data.as_ref());
         }
-        return Ok(());
+    }
+
+    async fn send_msg(&self, ch: &mut Channel<Msg>, msg: ChannelMsg) -> Result<(), Error> {
+        return match msg {
+            ChannelMsg::Signal { signal } => Ok(ch.signal(signal).await?),
+            ChannelMsg::Eof => Ok(ch.eof().await?),
+            _ => unimplemented!(),
+        };
     }
 }

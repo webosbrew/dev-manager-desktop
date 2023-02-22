@@ -2,12 +2,14 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use russh::client::Msg;
-use russh::Channel;
+use russh::{Channel, ChannelMsg};
 use serde::Serialize;
+use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::Mutex as AsyncMutex;
 use uuid::Uuid;
 use vt100::Parser;
+use crate::error::Error;
 
 use crate::session_manager::connection::ConnectionsMap;
 use crate::session_manager::shell::ShellsMap;
@@ -17,6 +19,7 @@ mod handler;
 mod manager;
 mod proc;
 mod shell;
+pub(crate) mod spawned;
 
 #[derive(Default)]
 pub struct SessionManager {
@@ -28,11 +31,13 @@ pub struct SessionManager {
 pub struct Proc {
     pub(crate) command: String,
     pub(crate) ch: AsyncMutex<Option<Channel<Msg>>>,
+    pub(crate) sender: Mutex<Option<UnboundedSender<ChannelMsg>>>,
+    pub(crate) callback: Mutex<Option<Box<dyn SpawnedCallback + Send>>>,
 }
 
 #[derive(Clone, Serialize)]
 pub struct ProcData {
-    pub index: u64,
+    pub fd: u32,
     pub data: Vec<u8>,
 }
 
@@ -42,16 +47,18 @@ pub struct Shell {
     def_title: String,
     has_pty: bool,
     pub(crate) channel: AsyncMutex<Option<Channel<Msg>>>,
-    pub(crate) sender: AsyncMutex<Option<UnboundedSender<Vec<u8>>>>,
+    pub(crate) sender: Mutex<Option<UnboundedSender<ChannelMsg>>>,
+    pub(crate) callback: Mutex<Option<Box<dyn ShellCallback + Send + Sync>>>,
     pub(crate) parser: Mutex<Parser>,
 }
 
-pub trait ShellCallback: Sized + Sync {
+pub trait SpawnedCallback {
     fn rx(&self, fd: u32, data: &[u8]);
 
-    fn info(&self, info: ShellInfo);
+}
 
-    fn closed(self);
+pub trait ShellCallback: SpawnedCallback {
+    fn info(&self, info: ShellInfo);
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]

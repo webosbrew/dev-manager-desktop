@@ -68,10 +68,7 @@ impl SessionManager {
     pub fn shell_close(&self, token: &ShellToken) -> Result<(), Error> {
         let shell = self.shells.lock().unwrap().remove(&token).clone();
         if let Some(shell) = shell {
-            let shell = shell.clone();
-            tokio::spawn(async move {
-                shell.close().await.unwrap_or(());
-            });
+            shell.close().unwrap_or(());
         }
         return Ok(());
     }

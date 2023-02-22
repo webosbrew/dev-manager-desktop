@@ -1,15 +1,16 @@
+use russh::Sig;
 use std::sync::Arc;
 
 use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Manager, Runtime, State,
 };
-use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
-use crate::session_manager::{Proc, ProcData, SessionManager};
+use crate::session_manager::spawned::{SpawnResult, Spawned};
+use crate::session_manager::{Proc, ProcData, SessionManager, SpawnedCallback};
 
 #[tauri::command]
 async fn exec(
@@ -41,41 +42,53 @@ async fn proc_worker<R: Runtime>(
 ) -> Result<(), Error> {
     let manager = app.state::<SessionManager>();
     let proc = Arc::new(manager.spawn(device, &command).await?);
-    let proc_ev = proc.clone();
-    let handler = ProcEventHandler { proc: proc.clone() };
-    channel.listen(handler);
-    log::info!("Wait for {}", command);
-    if let Err(e) = proc
-        .run(|index, data| {
-            channel.send(ProcData {
-                index,
-                data: Vec::<u8>::from(data),
-            });
-        })
-        .await
-    {
-        log::info!("{} got error {:?}", command, e);
-        channel.close(e);
-    } else {
-        log::info!("{} closed", command);
-        channel.close(None::<String>);
+    let channel = Arc::new(channel);
+    channel.listen(ProcEventHandler {
+        proc: proc.clone(),
+        command: command.clone(),
+    });
+    *proc.callback.lock().unwrap() = Some(Box::new(ProcCallback {
+        channel: channel.clone(),
+    }));
+    proc.start().await?;
+    match proc.wait_close().await {
+        Ok(r) => {
+            log::debug!("Process {} closed with {:?}", command, r);
+            channel.closed(&r);
+        }
+        Err(e) => {
+            log::debug!("Process {} got error {:?}", command, e);
+            channel.closed(e);
+        }
     }
     return Ok(());
 }
 
 struct ProcEventHandler {
     proc: Arc<Proc>,
+    command: String,
+}
+
+struct ProcCallback<R: Runtime> {
+    channel: Arc<EventChannel<R, ProcEventHandler>>,
+}
+
+impl<R: Runtime> SpawnedCallback for ProcCallback<R> {
+    fn rx(&self, fd: u32, data: &[u8]) {
+        self.channel.rx(ProcData {
+            fd,
+            data: Vec::<u8>::from(data),
+        });
+    }
 }
 
 impl EventHandler for ProcEventHandler {
-    fn recv(&self, payload: Option<&str>) {}
-
-    fn close(&self, payload: Option<&str>) {
-        log::info!("interrupting proc");
-        let proc = self.proc.clone();
-        tokio::spawn(async move {
-            proc.interrupt().await.unwrap_or(());
-        });
+    fn tx(&self, payload: Option<&str>) {
+        if let Some(payload) = payload {
+            self.proc.data(payload.as_bytes()).unwrap_or(());
+        } else {
+            self.proc.signal(Sig::INT).unwrap_or(());
+        }
     }
 }
 

@@ -3,7 +3,7 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 use tauri::plugin::{Builder, TauriPlugin};
-use tauri::{Runtime, State};
+use tauri::{AppHandle, Runtime, State};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use uuid::Uuid;
@@ -12,6 +12,7 @@ use crate::device_manager::Device;
 use crate::error::Error;
 use crate::remote_files::ls;
 use crate::remote_files::path::escape_path;
+use crate::remote_files::serve;
 use crate::remote_files::FileItem;
 use crate::session_manager::SessionManager;
 
@@ -111,10 +112,20 @@ async fn get_temp(
     return Ok(String::from(target.to_str().unwrap()));
 }
 
+#[tauri::command]
+async fn serve<R: Runtime>(
+    app: AppHandle<R>,
+    manager: State<'_, SessionManager>,
+    device: Device,
+    path: String,
+) -> Result<String, Error> {
+    return serve::exec(app, &manager, device, path).await;
+}
+
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
     Builder::new(name)
         .invoke_handler(tauri::generate_handler![
-            ls, read, write, get, put, get_temp
+            ls, read, write, get, put, get_temp, serve
         ])
         .build()
 }

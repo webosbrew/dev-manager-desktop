@@ -3,7 +3,9 @@ use std::sync::{Arc, Mutex, Weak};
 use std::time::Instant;
 
 use russh::client::{Handle, Msg};
+use russh::Error::Disconnect;
 use russh::{Channel, ChannelMsg};
+use tauri::{AppHandle, Runtime};
 use tokio::sync::Mutex as AsyncMutex;
 use uuid::Uuid;
 use vt100::Parser;
@@ -81,9 +83,13 @@ impl Connection {
 
     pub async fn spawn(&self, command: &str) -> Result<Proc, Error> {
         let ch = self.open_cmd_channel().await?;
+        let id = ch.id();
+        log::debug!("{id}: Spawn {{ command: {command} }}");
         return Ok(Proc {
             command: String::from(command),
             ch: AsyncMutex::new(Some(ch)),
+            sender: Mutex::default(),
+            callback: Mutex::default(),
         });
     }
 
@@ -108,7 +114,8 @@ impl Connection {
             def_title: format!("{}@{}", self.device.username, self.device.name),
             has_pty: got_pty,
             channel: AsyncMutex::new(Some(ch)),
-            sender: AsyncMutex::default(),
+            sender: Mutex::default(),
+            callback: Mutex::default(),
             parser: Mutex::new(Parser::new(rows, cols, 1000)),
         });
     }
@@ -151,7 +158,11 @@ impl Connection {
             match ch.wait().await.ok_or_else(|| russh::Error::SendError)? {
                 ChannelMsg::Success => return Ok(true),
                 ChannelMsg::Failure => return Ok(false),
-                _ => continue,
+                ChannelMsg::WindowAdjusted { .. } => continue,
+                e => {
+                    log::warn!("unknown message waiting for channel {:?}: {:?}", ch.id(), e);
+                    continue;
+                }
             }
         }
     }

@@ -9,14 +9,14 @@ export abstract class BackendClient {
   protected invoke<T>(method: string, args?: Record<string, unknown>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const cmd = `plugin:${(this.category)}|${method}`;
-      console.info(`invoke ${this.category}/${method}`, args);
+      console.debug('invoke', `${this.category}/${method}`, args);
       tauri.invoke(cmd, args)
         .then(result => {
-          console.info('invoke result', result);
+          console.debug('invoke', `${this.category}/${method}`, 'result', result);
           return result;
         })
         .catch(reason => {
-          console.warn('invoke error', reason);
+          console.warn('invoke', `${this.category}/${method}`, 'error', reason);
           throw new BackendError(reason);
         })
         .then(result => this.zone.run(() => resolve(result as any)))
@@ -32,7 +32,7 @@ export abstract class BackendClient {
 
 }
 
-interface BackendErrorBody {
+export interface BackendErrorBody {
   reason: ErrorReason,
   message?: string,
 
@@ -52,6 +52,10 @@ export class BackendError extends Error {
 
   static isCompatible(e: unknown): e is BackendError {
     return e instanceof Error && (typeof (e as any).reason === 'string');
+  }
+
+  static isCompatibleBody(e: unknown): e is BackendErrorBody {
+    return (typeof (e as any).reason === 'string');
   }
 }
 

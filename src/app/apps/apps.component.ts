@@ -8,6 +8,7 @@ import {ProgressDialogComponent} from '../shared/components/progress-dialog/prog
 import {keyBy} from 'lodash';
 import {open as showOpenDialog} from '@tauri-apps/api/dialog';
 import {basename} from "@tauri-apps/api/path";
+import {isNonNull} from "../shared/operators";
 
 @Component({
   selector: 'app-apps',
@@ -95,7 +96,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     const file: File = files[0];
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.install(this.device, file.webkitRelativePath);
+      await this.appManager.installByUri(this.device, file.webkitRelativePath, this.hasHbChannel);
     } catch (e) {
       this.handleInstallationError(file.name, e as Error);
     } finally {
@@ -114,8 +115,9 @@ export class AppsComponent implements OnInit, OnDestroy {
     const path = Array.isArray(open) ? open[0] : open;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.install(this.device, path);
+      await this.appManager.installByUri(this.device, path, this.hasHbChannel);
     } catch (e) {
+      console.warn(e);
       this.handleInstallationError(await basename(path), e as Error);
     } finally {
       progress.close(true);
@@ -141,7 +143,11 @@ export class AppsComponent implements OnInit, OnDestroy {
     try {
       await this.appManager.remove(this.device, pkg.id);
     } catch (e) {
-      // Ignore
+      MessageDialogComponent.open(this.modalService, {
+        message: `Failed to remove ${pkg.title}`,
+        error: e as Error,
+        positive: 'Close'
+      });
     }
     progress.close(true);
   }
@@ -150,7 +156,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     if (!this.device) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.install(this.device, item.manifest!.ipkUrl);
+      await this.appManager.installByManifest(this.device, item.manifest!, this.hasHbChannel);
     } catch (e: any) {
       this.handleInstallationError(item.title, e as Error);
     } finally {
@@ -162,12 +168,16 @@ export class AppsComponent implements OnInit, OnDestroy {
     if (!this.device) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.install(this.device, item.manifestBeta!.ipkUrl);
+      await this.appManager.installByManifest(this.device, item.manifestBeta!, this.hasHbChannel);
     } catch (e) {
       this.handleInstallationError(item.title, e as Error);
     } finally {
       progress.close(true);
     }
+  }
+
+  private get hasHbChannel(): boolean {
+    return isNonNull(this.instPackages?.['org.webosbrew.hbchannel']);
   }
 
   private handleInstallationError(name: string, e: Error) {

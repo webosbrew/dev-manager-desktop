@@ -9,7 +9,7 @@
         <a class="text-nowrap" ngbNavLink>IFTTT Applet</a>
         <ng-template ngbNavContent>
           <ul>
-            <li>Create an applet in <a href="https://ifttt.com/create">ifttt.com/create</a>.</li>
+            <li>Create an applet in <a href="https://ifttt.com/create" appExternalLink>ifttt.com/create</a>.</li>
             <li>Select <strong>Date & Time</strong> as trigger.</li>
             <li>Choose <strong>Every day at</strong> or <strong>Every hour at</strong>, and pick any option you
               like.
@@ -38,14 +38,14 @@
             <pre class="pre-scrollable bg-panel p-3" #renewScript><![CDATA[#!/bin/sh]]>
 <ng-container><![CDATA[
 cat > /tmp/webos_privkey_{{device.name}} << END_OF_PRIVKEY
-{{privKeyContent}}
-END_OF_PRIVKEY
+  {{privKeyContent}}
+  END_OF_PRIVKEY
 
 chmod 600 /tmp/webos_privkey_{{device.name}}
-]]></ng-container>
+  ]]></ng-container>
 <ng-container *ngIf="device.passphrase"><![CDATA[
 ssh-keygen -p -P '{{device.passphrase}}' -N '' -f /tmp/webos_privkey_{{device.name}}
-]]></ng-container>
+  ]]></ng-container>
 <![CDATA[sessionToken=$(ssh -i /tmp/webos_privkey_{{device.name}} \
  -o ConnectTimeout=3 -o StrictHostKeyChecking=no \
  -o HostKeyAlgorithms=+ssh-rsa \

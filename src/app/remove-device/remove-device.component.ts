@@ -1,5 +1,5 @@
-import {Component, Inject, Injector, OnInit} from '@angular/core';
-import {NgbActiveModal, NgbModal, NgbModalRef} from "@ng-bootstrap/ng-bootstrap";
+import {Component, Inject, Injector} from '@angular/core';
+import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {Device} from "../types";
 
 @Component({

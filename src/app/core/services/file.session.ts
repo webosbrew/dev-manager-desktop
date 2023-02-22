@@ -1,12 +1,9 @@
-import {Device, FileItem, FileSession, FileType} from '../../types';
-import {escapeSingleQuoteString, ExecutionError, RemoteCommandService} from './remote-command.service';
-import {zip} from 'lodash';
+import {Device, FileItem, FileSession} from '../../types';
+import {RemoteCommandService} from './remote-command.service';
 import * as path from 'path';
 import {basename} from '@tauri-apps/api/path'
-import moment from 'moment';
 import {RemoteFileService} from "./remote-file.service";
-import {Buffer} from "buffer";
-import {BackendError, IOError} from "./backend-client";
+import {IOError} from "./backend-client";
 
 export class FileSessionImpl implements FileSession {
   constructor(private cmd: RemoteCommandService, private file: RemoteFileService, private device: Device) {

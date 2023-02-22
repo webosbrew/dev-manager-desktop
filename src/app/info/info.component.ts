@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import 'moment-duration-format';
 import {noop, Observable, of, timer} from 'rxjs';
 import {map} from 'rxjs/operators';
-import {Device, FileSession, RawPackageInfo} from '../types';
+import {Device, RawPackageInfo} from '../types';
 import {
   AppManagerService,
   AppsRepoService,
@@ -17,7 +17,6 @@ import {ProgressDialogComponent} from '../shared/components/progress-dialog/prog
 import {RenewScriptComponent} from './renew-script/renew-script.component';
 import {HomebrewChannelConfiguration, SystemInfo} from "../types/luna-apis";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
-import {LunaResponseError} from "../core/services/remote-luna.service";
 import {RemoteFileService} from "../core/services/remote-file.service";
 import {open as openPath} from "@tauri-apps/api/shell";
 
@@ -119,7 +118,6 @@ export class InfoComponent {
         this.devModeRemaining = of("--:--");
       }
     } catch (e) {
-      console.log(e);
       this.devModeInfo = null;
       this.devModeRemaining = null;
     }
@@ -141,7 +139,7 @@ export class InfoComponent {
     if (!item) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.install(this.device, item.manifest!.ipkUrl);
+      await this.appManager.installByManifest(this.device, item.manifest!, this.homebrewAppInfo !== null);
     } catch (e) {
       // Ignore
     } finally {
