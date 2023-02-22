@@ -137,6 +137,8 @@ export class CommandSubject<T = Buffer | string> extends ReplaySubject<CommandDa
       }
 
     }(token);
+    // After creation, notify the process to start
+    this.channel.send().catch(noop);
   }
 
   override complete() {

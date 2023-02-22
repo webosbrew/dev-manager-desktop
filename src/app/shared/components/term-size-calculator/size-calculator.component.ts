@@ -14,8 +14,8 @@ import {IDisposable, Terminal} from "xterm";
 import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
 import {debounceTime, defer, delay, firstValueFrom, fromEvent, noop, of, repeat, Subscription, tap} from "rxjs";
 import {filter, map} from "rxjs/operators";
-import {isNonNull} from "../../shared/operators";
-import {TERMINAL_CONFIG} from "../terminal.module";
+import {isNonNull} from "../../operators";
+import {TERMINAL_CONFIG} from "../../xterm/config";
 
 @Component({
   selector: 'app-terminal-size-calculator',

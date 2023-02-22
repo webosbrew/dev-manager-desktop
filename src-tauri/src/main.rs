@@ -7,15 +7,18 @@ extern crate core;
 
 use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
+use crate::spawn_manager::SpawnManager;
 use dialog::DialogBox;
+use log::log;
 use tauri::Manager;
 
 mod device_manager;
 mod error;
+mod event_channel;
 mod plugins;
 mod remote_files;
 mod session_manager;
-mod event_channel;
+mod spawn_manager;
 
 fn main() {
     env_logger::init();
@@ -34,6 +37,11 @@ fn main() {
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(DeviceManager::default())
         .manage(SessionManager::default())
+        .manage(SpawnManager::default())
+        .on_page_load(|wnd, payload| {
+            let spawns = wnd.state::<SpawnManager>();
+            spawns.clear();
+        })
         .run(tauri::generate_context!());
     if let Err(e) = result {
         dialog::Message::new("Unexpected error occurred")

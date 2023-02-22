@@ -1,4 +1,4 @@
-<div class="w-100 h-100 d-flex flex-row">
+<div class="w-100 h-100 d-flex flex-row" *ngIf="hasData || !logError; else hasError">
   <div class="h-100 d-flex flex-column p-2">
     <button class="btn btn-sm" (click)="openCtrl()"><i class="bi bi-toggles" ngbTooltip="Set log levels"></i></button>
     <button class="btn btn-sm mt-2" *ngIf="false"><i class="bi bi-funnel" ngbTooltip="Filter"></i></button>
@@ -10,3 +10,8 @@
   </div>
   <app-log-reader class="flex-fill" [source]="logs" #logReader></app-log-reader>
 </div>
+<ng-template #hasError>
+  <div class="p-3">
+    <app-error-card *ngIf="!hasData && logError" [error]="logError"></app-error-card>
+  </div>
+</ng-template>

@@ -15,6 +15,7 @@ use crate::remote_files::path::escape_path;
 use crate::remote_files::serve;
 use crate::remote_files::FileItem;
 use crate::session_manager::SessionManager;
+use crate::spawn_manager::SpawnManager;
 
 #[tauri::command]
 async fn ls(
@@ -115,11 +116,12 @@ async fn get_temp(
 #[tauri::command]
 async fn serve<R: Runtime>(
     app: AppHandle<R>,
-    manager: State<'_, SessionManager>,
+    sessions: State<'_, SessionManager>,
+    spawns: State<'_, SpawnManager>,
     device: Device,
     path: String,
 ) -> Result<String, Error> {
-    return serve::exec(app, &manager, device, path).await;
+    return serve::exec(app, &sessions, &spawns, device, path).await;
 }
 
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {

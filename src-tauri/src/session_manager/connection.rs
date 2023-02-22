@@ -6,7 +6,7 @@ use russh::client::{Handle, Msg};
 use russh::Error::Disconnect;
 use russh::{Channel, ChannelMsg};
 use tauri::{AppHandle, Runtime};
-use tokio::sync::Mutex as AsyncMutex;
+use tokio::sync::{Mutex as AsyncMutex, Semaphore};
 use uuid::Uuid;
 use vt100::Parser;
 
@@ -44,11 +44,11 @@ impl Connection {
         loop {
             match ch.wait().await.ok_or(Error::new("empty message"))? {
                 ChannelMsg::Data { data } => {
-                    log::debug!("{id}: Data {{ data: {data:?} }}");
+                    log::trace!("{id}: Data {{ data: {data:?} }}");
                     stdout.append(&mut data.to_vec());
                 }
                 ChannelMsg::ExtendedData { data, ext } => {
-                    log::debug!("{id}: ExtendedData {{ data: {data:?}, ext: {ext} }}");
+                    log::trace!("{id}: ExtendedData {{ data: {data:?}, ext: {ext} }}");
                     if ext == 1 {
                         stderr.append(&mut data.to_vec());
                     }
@@ -89,6 +89,7 @@ impl Connection {
             command: String::from(command),
             ch: AsyncMutex::new(Some(ch)),
             sender: Mutex::default(),
+            semaphore: Semaphore::new(0),
             callback: Mutex::default(),
         });
     }

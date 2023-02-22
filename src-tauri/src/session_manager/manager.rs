@@ -6,14 +6,14 @@ use std::time::Duration;
 use russh::client;
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
-use russh_keys::key::{ED25519, KeyPair, RSA_SHA2_256, RSA_SHA2_512, SignatureHash, SSH_RSA};
+use russh_keys::key::{KeyPair, SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
 use uuid::Uuid;
 
 use crate::device_manager::{Device, PrivateKey};
 use crate::error::Error;
-use crate::session_manager::{Proc, SessionManager, Shell, ShellInfo, ShellToken};
 use crate::session_manager::connection::Connection;
 use crate::session_manager::handler::ClientHandler;
+use crate::session_manager::{Proc, SessionManager, Shell, ShellInfo, ShellToken};
 
 impl SessionManager {
     pub async fn exec(

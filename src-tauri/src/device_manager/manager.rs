@@ -28,7 +28,7 @@ impl DeviceManager {
                 device.default = None;
             }
         }
-        log::info!("{:?}", devices);
+        log::trace!("{:?}", devices);
         write(devices).await?;
         return Ok(result);
     }
