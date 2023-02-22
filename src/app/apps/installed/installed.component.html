@@ -15,20 +15,19 @@
           <span>{{pkg.version}}</span>
           <span class="text-primary"
                 *ngIf="rpkg && rpkg.manifest?.hasUpdate(pkg.version)">&rsaquo;{{rpkg.manifest?.version}}</span>
-          <div class="d-flex justify-content-end">
-            <button class="btn btn-primary ms-2 text-nowrap" (click)="parent.installPackage(rpkg)"
+          <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
+            <button class="btn btn-primary" (click)="parent.installPackage(rpkg)"
                     *ngIf="rpkg && rpkg.manifest?.hasUpdate(pkg.version) else noUpdate">
               <i class="bi bi-download me-2"></i>Update
             </button>
             <ng-template #noUpdate>
-              <button class="btn btn-primary ms-2 text-nowrap" (click)="parent.launchApp(pkg.id)">
+              <button class="btn btn-primary" (click)="parent.launchApp(pkg.id)">
                 <i class="bi bi-play-fill me-2"></i>Launch
               </button>
             </ng-template>
-            <div class="btn-group text-nowrap" ngbDropdown container="body" display="dynamic" role="group"
-                 aria-label="Button group with nested dropdown">
-              <button class="btn ms-2" ngbDropdownToggle>
-                Options <span class="caret"></span>
+            <div class="btn-group" role="group" ngbDropdown container="body" display="dynamic">
+              <button class="btn btn-primary" ngbDropdownToggle>
+                <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" ngbDropdownMenu>
                 <ng-container *ngIf="rpkg">

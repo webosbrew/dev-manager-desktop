@@ -8,12 +8,14 @@ import {InstalledComponent} from "./installed/installed.component";
 import {NgbDropdownModule, NgbNavModule, NgbPaginationModule} from "@ng-bootstrap/ng-bootstrap";
 import {SharedModule} from "../shared/shared.module";
 import {NgLetModule} from "ng-let";
+import { HbchannelRemoveComponent } from './hbchannel-remove/hbchannel-remove.component';
 
 @NgModule({
   declarations: [
     AppsComponent,
     InstalledComponent,
     ChannelComponent,
+    HbchannelRemoveComponent,
   ],
   imports: [
     CommonModule,

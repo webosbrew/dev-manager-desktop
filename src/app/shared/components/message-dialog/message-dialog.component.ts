@@ -22,6 +22,7 @@ export class MessageDialogComponent implements AfterViewInit, MessageDialogConfi
   positive: string = '';
   negative?: string;
   alternative?: string;
+  autofocus?: 'positive' | 'negative' | 'alternative';
   positiveStyle?: ButtonStyle = 'primary';
   messageExtras?: Record<string, any>;
   error?: Error;
@@ -80,9 +81,10 @@ type ButtonStyle = 'danger' | 'primary';
 export interface MessageDialogConfig {
   title?: string;
   message: string | Type<any>;
-  positive: string | null;
-  negative?: string | null;
-  alternative?: string | null;
+  positive: string;
+  negative?: string;
+  alternative?: string;
+  autofocus?: 'positive' | 'negative' | 'alternative';
   positiveStyle?: ButtonStyle;
   error?: Error;
   messageExtras?: { [keys: string]: any };
