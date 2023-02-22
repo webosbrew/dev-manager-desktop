@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from "../core/services";
 import {Device, FileItem, FileSession} from "../types";
 import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
@@ -8,7 +8,6 @@ import {ProgressDialogComponent} from "../shared/components/progress-dialog/prog
 import {open as openPath} from '@tauri-apps/api/shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/api/dialog';
 import * as path from "path";
-import moment from "moment";
 import {RemoteCommandService} from "../core/services/remote-command.service";
 import {trimEnd} from "lodash";
 
