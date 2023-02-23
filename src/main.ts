@@ -15,11 +15,9 @@ platformBrowserDynamic()
   })
   .catch(err => console.error(err));
 
-function isDarkTheme(): boolean {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
+const darkTheme = window.matchMedia('(prefers-color-scheme: dark)');
 
-document.documentElement.setAttribute('data-bs-theme', isDarkTheme() ? 'dark' : 'light');
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-  document.documentElement.setAttribute('data-bs-theme', isDarkTheme() ? 'dark' : 'light');
+document.documentElement.setAttribute('data-bs-theme', darkTheme.matches ? 'dark' : 'light');
+darkTheme.addEventListener('change', (media) => {
+  document.documentElement.setAttribute('data-bs-theme', media.matches ? 'dark' : 'light');
 });
