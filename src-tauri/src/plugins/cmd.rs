@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use russh::{ChannelMsg, Sig};
 use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Manager, Runtime, State,

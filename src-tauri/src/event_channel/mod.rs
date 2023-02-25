@@ -1,4 +1,3 @@
-use serde::Serialize;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, EventHandler as TauriEventHandler, Runtime};
 use uuid::Uuid;

@@ -1,7 +1,6 @@
 use std::env::temp_dir;
 use std::path::Path;
 
-use serde::{Deserialize, Serialize};
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Runtime, State};
 use tokio::fs;
