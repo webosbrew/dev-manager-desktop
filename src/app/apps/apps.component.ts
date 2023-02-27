@@ -5,10 +5,9 @@ import {Device, PackageInfo, RawPackageInfo} from '../types';
 import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
-import {keyBy} from 'lodash';
+import {has, keyBy} from 'lodash';
 import {open as showOpenDialog} from '@tauri-apps/api/dialog';
 import {basename} from "@tauri-apps/api/path";
-import {isNonNull} from "../shared/operators";
 
 @Component({
   selector: 'app-apps',
@@ -177,7 +176,7 @@ export class AppsComponent implements OnInit, OnDestroy {
   }
 
   private get hasHbChannel(): boolean {
-    return isNonNull(this.instPackages?.['org.webosbrew.hbchannel']);
+    return has(this.instPackages, 'org.webosbrew.hbchannel');
   }
 
   private handleInstallationError(name: string, e: Error) {

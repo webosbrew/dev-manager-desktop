@@ -25,15 +25,21 @@ async fn exec(
 #[tauri::command]
 async fn spawn<R: Runtime>(
     app: AppHandle<R>,
+    sessions:State<'_, SessionManager>,
     device: Device,
     command: String,
     managed: Option<bool>,
 ) -> Result<String, Error> {
     let channel = EventChannel::<R, ProcEventHandler>::new(app.clone(), "shell-proc");
     let token = channel.token();
+    let proc = Arc::new(sessions.spawn(device, &command).await?);
+    channel.listen(ProcEventHandler {
+        proc: proc.clone(),
+        command: command.clone(),
+    });
     tokio::spawn(proc_worker(
         app,
-        device,
+        proc,
         command,
         channel,
         managed.unwrap_or(true),
@@ -43,19 +49,13 @@ async fn spawn<R: Runtime>(
 
 async fn proc_worker<R: Runtime>(
     app: AppHandle<R>,
-    device: Device,
+    proc: Arc<Proc>,
     command: String,
     channel: EventChannel<R, ProcEventHandler>,
     managed: bool,
 ) -> Result<(), Error> {
-    let sessions = app.state::<SessionManager>();
     let spawns = app.state::<SpawnManager>();
-    let proc = Arc::new(sessions.spawn(device, &command).await?);
     let channel = Arc::new(channel);
-    channel.listen(ProcEventHandler {
-        proc: proc.clone(),
-        command: command.clone(),
-    });
     if managed {
         spawns.add_proc(proc.clone());
     }
