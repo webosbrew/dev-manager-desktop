@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 mod io;
 mod manager;
 mod privkey;
+mod device;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct DeviceSessionToken {

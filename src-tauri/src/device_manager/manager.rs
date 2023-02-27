@@ -2,12 +2,11 @@ use std::fs;
 
 use russh_keys::{decode_secret_key, load_secret_key};
 use russh_keys::{Error as SshKeyError, PublicKeyBase64};
-use russh_keys::encoding::Bytes;
-use tokio::fs::{File, remove_file};
+use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 
-use crate::device_manager::{Device, DeviceManager, PrivateKey};
 use crate::device_manager::io::{ensure_ssh_dir, read, ssh_dir, write};
+use crate::device_manager::{Device, DeviceManager, PrivateKey};
 use crate::error::Error;
 
 impl DeviceManager {
@@ -37,16 +36,10 @@ impl DeviceManager {
         let mut device = device.clone();
         if let Some(key) = &device.private_key {
             if let PrivateKey::Data { data } = key {
-                let pubkey = key
-                    .key_pair(device.passphrase.as_deref())?
-                    .clone_public_key()?;
-                use sha2::{Digest, Sha256};
-                let mut hasher = Sha256::new();
-                hasher.update(&pubkey.public_key_bytes());
-                let name = format!("webos_{}", &hex::encode(&hasher.finalize())[..10]);
-                let key_path = ensure_ssh_dir()?.join(name.clone());
+                let name = key.name()?;
+                let key_path = ensure_ssh_dir()?.join(&name);
                 let mut file = File::create(key_path).await?;
-                file.write(data.bytes()).await?;
+                file.write(data.as_bytes()).await?;
                 device.private_key = Some(PrivateKey::Path { name });
             }
         }

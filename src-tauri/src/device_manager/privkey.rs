@@ -1,10 +1,8 @@
 use std::io::Read;
 
-use russh_keys::{decode_secret_key, Error};
-use russh_keys::key::KeyPair;
-
 use crate::device_manager::io::ssh_dir;
 use crate::device_manager::PrivateKey;
+use crate::error::Error;
 
 impl PrivateKey {
     pub fn content(&self) -> Result<String, Error> {
@@ -19,9 +17,15 @@ impl PrivateKey {
         };
     }
 
-    pub fn key_pair(&self, passphrase: Option<&str>) -> Result<KeyPair, Error> {
-        let passphrase = passphrase.filter(|s| !s.is_empty());
-        let content = self.content()?;
-        return Ok(decode_secret_key(&content, passphrase.clone())?);
+    pub fn name(&self) -> Result<String, Error> {
+        return match self {
+            PrivateKey::Path { name } => Ok(name.clone()),
+            PrivateKey::Data { data } => {
+                use sha2::{Digest, Sha256};
+                let mut hasher = Sha256::new();
+                hasher.update(data);
+                Ok(format!("webos_{}", &hex::encode(&hasher.finalize())[..10]))
+            }
+        };
     }
 }

@@ -9,7 +9,6 @@ use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
 use crate::spawn_manager::SpawnManager;
 use dialog::DialogBox;
-use log::log;
 use tauri::Manager;
 
 mod device_manager;

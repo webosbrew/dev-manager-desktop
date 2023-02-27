@@ -1,4 +1,3 @@
-use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
 use serde::Serialize;
 use std::sync::{Arc, Mutex};

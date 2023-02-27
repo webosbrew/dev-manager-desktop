@@ -6,6 +6,7 @@ use std::time::Duration;
 use russh::client;
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
+use russh_keys::decode_secret_key;
 use russh_keys::key::{KeyPair, SignatureHash, ED25519, RSA_SHA2_256, RSA_SHA2_512, SSH_RSA};
 use uuid::Uuid;
 
@@ -133,7 +134,7 @@ impl SessionManager {
                     &mut handle,
                     &device.username,
                     key,
-                    &device.passphrase,
+                    device.valid_passphrase().as_deref(),
                     sig_alg,
                 )
                 .await?
@@ -204,10 +205,11 @@ impl SessionManager {
         handle: &mut Handle<ClientHandler>,
         username: &str,
         key: &PrivateKey,
-        passphrase: &Option<String>,
+        passphrase: Option<&str>,
         sig_alg: Option<SignatureHash>,
     ) -> Result<bool, russh::Error> {
-        match key.key_pair(passphrase.as_deref())? {
+        let content = key.content().map_err(|_| russh::Error::CouldNotReadKey)?;
+        match decode_secret_key(&content, passphrase)? {
             kp @ KeyPair::RSA { .. } => {
                 if let Some(alg) = sig_alg {
                     log::debug!("Authenticate with key algorithm: {:?}", alg.name());
