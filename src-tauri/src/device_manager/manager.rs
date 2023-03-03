@@ -1,7 +1,7 @@
 use std::fs;
 
 use russh_keys::{decode_secret_key, load_secret_key};
-use russh_keys::{Error as SshKeyError, PublicKeyBase64};
+use russh_keys::{Error as SshKeyError};
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 

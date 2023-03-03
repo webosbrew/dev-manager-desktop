@@ -95,7 +95,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     const file: File = files[0];
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.installByUri(this.device, file.webkitRelativePath, this.hasHbChannel);
+      await this.appManager.installByPath(this.device, file.webkitRelativePath, this.hasHbChannel);
     } catch (e) {
       this.handleInstallationError(file.name, e as Error);
     } finally {
@@ -114,7 +114,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     const path = Array.isArray(open) ? open[0] : open;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.appManager.installByUri(this.device, path, this.hasHbChannel);
+      await this.appManager.installByPath(this.device, path, this.hasHbChannel);
     } catch (e) {
       console.warn(e);
       this.handleInstallationError(await basename(path), e as Error);

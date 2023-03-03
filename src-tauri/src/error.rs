@@ -1,9 +1,9 @@
 use std::error::Error as ErrorTrait;
 use std::fmt::{Display, Formatter};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(tag = "reason")]
 pub enum Error {
     Authorization {
@@ -86,7 +86,17 @@ impl From<russh::Error> for Error {
 
 impl From<russh_keys::Error> for Error {
     fn from(value: russh_keys::Error) -> Self {
-        return Error::new(format!("SSH Key Error: {:?}", value));
+        return Error::new(format!(
+            "russh_keys::Error::{:?}: {}",
+            value,
+            value.to_string()
+        ));
+    }
+}
+
+impl From<ssh2::Error> for Error {
+    fn from(value: ssh2::Error) -> Self {
+        return Error::new(format!("SSH Error: {:?}", value));
     }
 }
 

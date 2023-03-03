@@ -3,6 +3,7 @@ use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use crate::conn_pool::DeviceConnectionPool;
 use russh::client;
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
@@ -17,6 +18,17 @@ use crate::session_manager::handler::ClientHandler;
 use crate::session_manager::{Proc, SessionManager, Shell, ShellInfo, ShellToken};
 
 impl SessionManager {
+
+    pub fn pool(&self, device: Device) -> DeviceConnectionPool {
+        if let Some(p) = self.pools.lock().unwrap().get(&device.name) {
+            return p.clone();
+        }
+        let key = device.name.clone();
+        let pool = DeviceConnectionPool::new(device);
+        self.pools.lock().unwrap().insert(key, pool.clone());
+        return pool;
+    }
+
     pub async fn exec(
         &self,
         device: Device,

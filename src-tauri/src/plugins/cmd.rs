@@ -1,3 +1,4 @@
+use std::io::{Read, Write};
 use std::sync::Arc;
 
 use tauri::{
@@ -13,19 +14,34 @@ use crate::session_manager::{Proc, ProcData, SessionManager, SpawnedCallback};
 use crate::spawn_manager::SpawnManager;
 
 #[tauri::command]
-async fn exec(
-    manager: State<'_, SessionManager>,
+async fn exec<R: Runtime>(
+    app: AppHandle<R>,
     device: Device,
     command: String,
     stdin: Option<Vec<u8>>,
 ) -> Result<Vec<u8>, Error> {
-    return manager.exec(device, &command, stdin.as_deref()).await;
+    return tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let pool = sessions.pool(device);
+        let session = pool.get()?;
+        let mut ch = session.channel_session()?;
+        ch.exec(&command)?;
+        if let Some(stdin) = stdin {
+            ch.write_all(&stdin)?;
+            ch.send_eof()?;
+        }
+        let mut buf = Vec::<u8>::new();
+        ch.read_to_end(&mut buf)?;
+        return Ok(buf);
+    })
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
 async fn spawn<R: Runtime>(
     app: AppHandle<R>,
-    sessions:State<'_, SessionManager>,
+    sessions: State<'_, SessionManager>,
     device: Device,
     command: String,
     managed: Option<bool>,

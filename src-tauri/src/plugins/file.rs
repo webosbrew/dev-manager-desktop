@@ -1,8 +1,9 @@
 use std::env::temp_dir;
+use std::io::Read;
 use std::path::Path;
 
 use tauri::plugin::{Builder, TauriPlugin};
-use tauri::{AppHandle, Runtime, State};
+use tauri::{AppHandle, Manager, Runtime, State};
 use tokio::fs;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use uuid::Uuid;
@@ -17,7 +18,8 @@ use crate::session_manager::SessionManager;
 use crate::spawn_manager::SpawnManager;
 
 #[tauri::command]
-async fn ls(
+async fn ls<R: Runtime>(
+    app: AppHandle<R>,
     manager: State<'_, SessionManager>,
     device: Device,
     path: String,
@@ -26,18 +28,35 @@ async fn ls(
         return Err(Error::new("Absolute path required"));
     }
     log::info!("ls {}", path);
-    return ls::exec(&manager, &device, &path).await;
+    return tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let pool = sessions.pool(device);
+        let session = pool.get()?;
+        let sftp = session.sftp()?;
+        let entries = sftp.readdir(Path::new(&path))?;
+        return Ok(entries.iter().map(|entry| entry.into()).collect());
+    })
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
-async fn read(
-    manager: State<'_, SessionManager>,
+async fn read<R: Runtime>(
+    app: AppHandle<R>,
     device: Device,
     path: String,
 ) -> Result<Vec<u8>, Error> {
-    return manager
-        .exec(device, &format!("cat {}", escape_path(&path)), None)
-        .await;
+    return tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let pool = sessions.pool(device);
+        let session = pool.get()?;
+        let (mut ch, stat) = session.scp_recv(Path::new(&path))?;
+        let mut buf = Vec::<u8>::new();
+        ch.read_to_end(&mut buf)?;
+        return Ok(buf);
+    })
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
@@ -115,12 +134,10 @@ async fn get_temp(
 #[tauri::command]
 async fn serve<R: Runtime>(
     app: AppHandle<R>,
-    sessions: State<'_, SessionManager>,
-    spawns: State<'_, SpawnManager>,
     device: Device,
     path: String,
 ) -> Result<String, Error> {
-    return serve::exec(app, &sessions, &spawns, device, path).await;
+    return serve::exec(app, device, path).await;
 }
 
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {

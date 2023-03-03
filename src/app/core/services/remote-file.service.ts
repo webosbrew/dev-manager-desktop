@@ -3,7 +3,7 @@ import {BackendClient, BackendError} from "./backend-client";
 import {Device, FileItem} from "../../types";
 import {Buffer} from "buffer";
 import {ExecutionError, RemoteCommandService} from "./remote-command.service";
-import {finalize, firstValueFrom, lastValueFrom, Observable, Subject} from "rxjs";
+import {finalize, firstValueFrom, lastValueFrom, Observable, ReplaySubject, Subject} from "rxjs";
 import {EventChannel} from "../event-channel";
 import {map} from "rxjs/operators";
 
@@ -55,10 +55,10 @@ export class RemoteFileService extends BackendClient {
     return await this.invoke<string>('get_temp', {device, path}).catch(RemoteFileService.handleExecError);
   }
 
-  public async serve(device: Device, path: string): Promise<ServeInstance> {
+  public async serveLocal(device: Device, localPath: string): Promise<ServeInstance> {
     const subject = new Subject<Record<string, any>>();
-    const token = await this.invoke<string>('serve', {device, path});
-    const channel = new class extends EventChannel<string, any> {
+    const token = await this.invoke<string>('serve', {device, path: localPath});
+    const channel = new class extends EventChannel<Record<string, any>, any> {
       constructor(token: string) {
         super(token);
       }
@@ -80,18 +80,17 @@ export class RemoteFileService extends BackendClient {
         }
       }
 
-      onReceive(payload: string): void {
-        console.log('serve received', payload);
-        subject.next(JSON.parse(payload));
+      onReceive(payload: Record<string, any>): void {
+        subject.next(payload);
       }
     }(token);
-
+    await channel.send();
     return firstValueFrom(subject).then((v: Record<string, any>): ServeInstance => {
       return {
         host: v['host'],
         requests: subject.pipe(map(v => v as ServeRequest), finalize(() => channel.unlisten())),
         async interrupt(): Promise<void> {
-          await channel.send();
+          await channel.close();
           await lastValueFrom(subject);
         },
       }

@@ -8,7 +8,7 @@ pub struct EventChannel<R: Runtime, H: EventHandler + Send + 'static> {
     app: AppHandle<R>,
     category: String,
     id: Uuid,
-    handler: Mutex<Option<Arc<H>>>,
+    pub handler: Mutex<Option<Arc<H>>>,
     listeners: Mutex<Vec<TauriEventHandler>>,
 }
 

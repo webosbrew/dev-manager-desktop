@@ -8,6 +8,7 @@ import * as path from "path";
 import {RemoteFileService, ServeInstance} from "./remote-file.service";
 import {PackageManifest} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
+import {LocalFileService} from "./local-file.service";
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,8 @@ export class AppManagerService {
 
   private packagesSubjects: Map<string, Subject<PackageInfo[] | null>>;
 
-  constructor(private luna: RemoteLunaService, private cmd: RemoteCommandService, private file: RemoteFileService) {
+  constructor(private luna: RemoteLunaService, private cmd: RemoteCommandService, private file: RemoteFileService,
+              private localFile: LocalFileService) {
     this.packagesSubjects = new Map();
   }
 
@@ -60,24 +62,25 @@ export class AppManagerService {
       .then(l => l.find(p => p.id === id) ?? null);
   }
 
-  async installByUri(device: Device, location: string, withHbChannel: boolean): Promise<void> {
-    const ipkPath = await this.tempDownloadIpk(device, location);
-    try {
-      if (withHbChannel) {
-        const sha256 = await this.sha256(device, ipkPath);
-        const serve: ServeInstance = await this.file.serve(device, ipkPath);
-        try {
-          await this.hbChannelInstall(device, new URL(serve.host).toString(), sha256);
-        } finally {
-          await serve.interrupt();
-        }
-      } else {
-        await this.devInstall(device, ipkPath);
+  async installByPath(device: Device, localPath: string, withHbChannel: boolean): Promise<void> {
+    if (withHbChannel) {
+      const sha256 = await this.localFile.checksum(localPath, 'sha256');
+      const serve: ServeInstance = await this.file.serveLocal(device, localPath);
+      console.log('Installing', serve.host);
+      try {
+        await this.hbChannelInstall(device, new URL(serve.host).toString(), sha256);
+      } finally {
+        await serve.interrupt();
       }
-      this.load(device).catch(noop);
-    } finally {
-      await this.file.rm(device, ipkPath, false);
+    } else {
+      const ipkPath = await this.tempDownloadIpk(device, localPath);
+      try {
+        await this.devInstall(device, ipkPath);
+      } finally {
+        await this.file.rm(device, ipkPath, false);
+      }
     }
+    this.load(device).catch(noop);
   }
 
   async installByManifest(device: Device, manifest: PackageManifest, withHbChannel: boolean): Promise<void> {

@@ -35,11 +35,9 @@
                 <li ngbDropdownItem *ngIf="item.manifestBeta" (click)="parent.installBetaPackage(item)">
                   <i class="bi bi-download me-3"></i>Install Beta
                 </li>
-                <li ngbDropdownItem *ngIf="manifest?.sourceUrl as url">
-                  <a class="text-decoration-none" [href]="url" appExternalLink>
-                    <i class="bi bi-globe2 me-3"></i>Website
-                  </a>
-                </li>
+                <a ngbDropdownItem *ngIf="manifest?.sourceUrl as url" [href]="url" appExternalLink>
+                  <i class="bi bi-globe2 me-3"></i>Website
+                </a>
                 <ng-container *ngIf="pkg">
                   <li class="divider dropdown-divider"></li>
                   <li ngbDropdownItem class="text-danger" (click)="parent.removePackage(pkg)">

@@ -4,11 +4,14 @@ use crate::remote_files::path::escape_path;
 use crate::remote_files::{FileItem, LinkInfo};
 use crate::session_manager::SessionManager;
 use file_mode::Mode;
+use path_slash::PathBufExt;
 use posix_errors;
 use serde::Deserialize;
 use serde_json::{Map, Value};
+use ssh2::FileType;
 use std::io::Error as IoError;
 use std::io::ErrorKind;
+use std::path::PathBuf;
 
 pub(crate) async fn exec(
     manager: &SessionManager,
@@ -70,6 +73,23 @@ struct FileStat {
     mtime: f64,
 }
 
+impl From<&(PathBuf, ssh2::FileStat)> for FileItem {
+    fn from((path, stat): &(PathBuf, ssh2::FileStat)) -> Self {
+        let posix_path = path.to_slash().unwrap();
+        return FileItem {
+            filename: String::from(path.file_name().unwrap().to_str().unwrap()),
+            r#type: format!("{}", abbrev_type(stat.file_type())),
+            mode: unix_mode::to_string(stat.perm.unwrap_or(0)),
+            user: format!("{}", stat.uid.unwrap_or(0)),
+            group: format!("{}", stat.gid.unwrap_or(0)),
+            size: stat.size.unwrap_or(0) as usize,
+            mtime: stat.mtime.unwrap_or(0) as f64,
+            abspath: String::from(posix_path),
+            link: None,
+        };
+    }
+}
+
 impl From<&FileEntry> for FileItem {
     fn from(value: &FileEntry) -> FileItem {
         let mode = format!("{}", Mode::from(value.stat.mode));
@@ -85,6 +105,19 @@ impl From<&FileEntry> for FileItem {
             link: value.link.clone(),
         };
     }
+}
+
+fn abbrev_type(value: FileType) -> char {
+    return match value {
+        FileType::NamedPipe => 'p',
+        FileType::CharDevice => 'c',
+        FileType::BlockDevice => 'b',
+        FileType::Directory => 'd',
+        FileType::RegularFile => '-',
+        FileType::Symlink => 'l',
+        FileType::Socket => 's',
+        FileType::Other(_) => ' ',
+    };
 }
 
 fn error_from_posix(value: i32) -> IoError {

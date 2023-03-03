@@ -1,6 +1,9 @@
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
+use crate::conn_pool::DeviceConnectionPool;
+use crate::error::Error;
 use russh::client::Msg;
 use russh::{Channel, ChannelMsg};
 use serde::Serialize;
@@ -9,7 +12,6 @@ use tokio::sync::mpsc::UnboundedSender;
 use tokio::sync::{Mutex as AsyncMutex, Semaphore};
 use uuid::Uuid;
 use vt100::Parser;
-use crate::error::Error;
 
 use crate::session_manager::connection::ConnectionsMap;
 use crate::session_manager::shell::ShellsMap;
@@ -25,6 +27,7 @@ pub(crate) mod spawned;
 pub struct SessionManager {
     lock: AsyncMutex<()>,
     pub(crate) shells: Arc<Mutex<ShellsMap>>,
+    pools: Mutex<HashMap<String, DeviceConnectionPool>>,
     connections: Arc<Mutex<ConnectionsMap>>,
 }
 
@@ -55,7 +58,6 @@ pub struct Shell {
 
 pub trait SpawnedCallback {
     fn rx(&self, fd: u32, data: &[u8]);
-
 }
 
 pub trait ShellCallback: SpawnedCallback {

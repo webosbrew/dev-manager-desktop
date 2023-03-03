@@ -18,6 +18,7 @@ mod plugins;
 mod remote_files;
 mod session_manager;
 mod spawn_manager;
+mod conn_pool;
 
 fn main() {
     env_logger::init();
@@ -33,6 +34,7 @@ fn main() {
         .plugin(plugins::shell::plugin("remote-shell"))
         .plugin(plugins::file::plugin("remote-file"))
         .plugin(plugins::devmode::plugin("dev-mode"))
+        .plugin(plugins::local_file::plugin("local-file"))
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(DeviceManager::default())
         .manage(SessionManager::default())
