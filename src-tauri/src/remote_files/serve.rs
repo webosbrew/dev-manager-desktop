@@ -1,24 +1,25 @@
+use crossbeam_channel::{select, unbounded, Receiver, Sender};
 use std::ffi::OsStr;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, Read, Seek, Write};
+use std::io::{BufRead, BufReader, BufWriter, ErrorKind, Read, Seek, Write};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, Condvar, Mutex};
+use std::thread;
+use std::time::Duration;
 
-use crate::conn_pool::DeviceConnectionPool;
-use crossbeam_channel::{select, unbounded, Receiver};
 use dialog::Choice::No;
 use httparse::Status;
 use path_slash::PathBufExt;
-use russh::{ChannelMsg, Sig};
 use serde::Serialize;
-use ssh2::{Channel, Session};
+use ssh2::{Channel, ErrorCode, Session};
 use tauri::{AppHandle, Manager, Runtime, State};
 use tokio::net::TcpListener;
 
+use crate::conn_pool::DeviceConnectionPool;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
@@ -57,8 +58,8 @@ fn serve_worker<R: Runtime>(
     if let Some(h) = channel.handler.lock().unwrap().as_ref() {
         h.wait();
     }
-    let session = app.state::<SessionManager>();
-    let pool = session.pool(device);
+    let sessions = app.state::<SessionManager>();
+    let pool = sessions.pool(device);
     let mut conn = pool.get()?;
     let (mut listener, remote_port) = conn.channel_forward_listen(0, Some("127.0.0.1"), None)?;
     log::debug!("Serve is available on http://127.0.0.1:{remote_port}/, hosting {path}");
@@ -66,21 +67,39 @@ fn serve_worker<R: Runtime>(
         host: format!("http://127.0.0.1:{remote_port}/"),
     });
 
+    conn.set_blocking(false);
+
+    let mut result: Result<(), Error> = Ok(());
     loop {
         if let Some(h) = channel.handler.lock().unwrap().as_ref() {
             if h.closed() {
                 break;
             }
         }
-        // blocks until the next request is received
-        let mut ch = listener.accept()?;
+        let ch = match listener.accept() {
+            Ok(ch) => ch,
+            Err(e) => {
+                if let ErrorCode::Session(-37) = e.code() {
+                    if let Some(h) = channel.handler.lock().unwrap().as_ref() {
+                        if h.closed() {
+                            break;
+                        }
+                    }
+                    thread::sleep(Duration::from_millis(10));
+                    continue;
+                } else {
+                    result = Err(e.into());
+                    break;
+                }
+            }
+        };
+        conn.set_blocking(true);
         serve_handler(&path, ch)?;
-        if let Some(h) = channel.handler.lock().unwrap().as_ref() {
-            *h.closed_lock.lock().unwrap() = true;
-        }
+        conn.set_blocking(false);
     }
+
     channel.closed(None::<String>);
-    return Ok(());
+    return result;
 }
 
 fn serve_handler(path: &String, mut ch: Channel) -> Result<(), Error> {
@@ -162,6 +181,7 @@ impl EventHandler for ServeChannelHandler {
 
     fn close(&self, _payload: Option<&str>) {
         *self.closed_lock.lock().unwrap() = true;
+        log::debug!("Serve requested to stop");
     }
 }
 
@@ -178,6 +198,7 @@ impl ServeChannelHandler {
         *lock.lock().unwrap() = true;
         cvar.notify_one();
     }
+
     fn closed(&self) -> bool {
         return self.closed_lock.lock().unwrap().clone();
     }

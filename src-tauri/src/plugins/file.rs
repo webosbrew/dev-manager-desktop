@@ -10,7 +10,6 @@ use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::remote_files::ls;
 use crate::remote_files::path::escape_path;
 use crate::remote_files::serve;
 use crate::remote_files::FileItem;
