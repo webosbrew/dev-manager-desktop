@@ -91,7 +91,13 @@ export class RemoteFileService extends BackendClient {
         requests: subject.pipe(map(v => v as ServeRequest), finalize(() => channel.unlisten())),
         async interrupt(): Promise<void> {
           await channel.close();
-          await lastValueFrom(subject);
+          await lastValueFrom(subject).catch(e => {
+            if (e.name === 'EmptyError') {
+              return null;
+            } else {
+              throw e
+            }
+          });
         },
       }
     }).catch(e => {

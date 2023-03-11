@@ -9,6 +9,7 @@ import {RemoteFileService, ServeInstance} from "./remote-file.service";
 import {PackageManifest} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {LocalFileService} from "./local-file.service";
+import _ from "lodash";
 
 @Injectable({
   providedIn: 'root'
@@ -107,17 +108,7 @@ export class AppManagerService {
       id, subscribe: true,
     });
     await lastValueFrom(luna.asObservable().pipe(
-      map((v: LunaResponse): boolean => {
-        if (v['statusValue'] === 31) {
-          // statusValue = 31 means uninstallation done
-          return true;
-        } else if (v.returnValue === false) {
-          throw new Error(`${v['errorCode']}: ${v['errorText']}`);
-        } else if (v['details']?.reason !== undefined) {
-          throw new Error(`${v['details'].state}: ${v['details'].reason}`);
-        }
-        return false;
-      }),
+      map(v => mapAppinstalldResponse(v, /removed/i)),
       filter(v => v)/* Only pick finish event */,
       mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
       catchError((e) => fromPromise(luna.unsubscribe().then(() => {
@@ -156,16 +147,6 @@ export class AppManagerService {
     return path;
   }
 
-  private async sha256(device: Device, path: string): Promise<string> {
-    return this.cmd.exec(device, `sha256sum ${escapeSingleQuoteString(path)}`, 'utf-8').then(output => {
-      const match = output.match(/^(\w+)\s+/);
-      if (!match) {
-        throw new Error('Unable to generate checksum');
-      }
-      return match[1];
-    });
-  }
-
   private async devInstall(device: Device, path: string): Promise<void> {
     const luna = await this.luna.subscribe(device, 'luna://com.webos.appInstallService/dev/install', {
       id: 'com.ares.defaultName',
@@ -173,18 +154,7 @@ export class AppManagerService {
       subscribe: true,
     });
     await lastValueFrom(luna.asObservable().pipe(
-      map((v: LunaResponse): boolean => {
-        if (v['statusValue'] === 30) {
-          // statusValue = 30 means installation done
-          return true;
-        } else if (v.returnValue === false) {
-          throw new Error(`${v['errorCode']}: ${v['errorText']}`);
-        } else if (v['details']?.errorCode !== undefined) {
-          throw new Error(`${v['details'].errorCode}: ${v['details'].reason}`);
-        }
-        console.debug('install output', v);
-        return false;
-      }),
+      map(v => mapAppinstalldResponse(v, /installed/i)),
       filter(v => v)/* Only pick finish event */,
       mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
       catchError((e) => fromPromise(luna.unsubscribe().then(() => {
@@ -221,4 +191,19 @@ export class AppManagerService {
     );
   }
 
+}
+
+function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp): boolean {
+  const resultValue: string = _.get(v, ['details', 'state']) || '';
+  if (resultValue.match(/FAILED/i)) {
+    let details = v['details'];
+    if (details && details.reason) {
+      throw new Error(`${details.errorCode}: ${details.reason}`);
+    }
+    throw new Error(resultValue);
+  } else if (resultValue.match(/^SUCCESS/i) || resultValue.match(expectResult)) {
+    return true;
+  }
+  console.debug('appinstalld output', v);
+  return false;
 }
