@@ -1,10 +1,14 @@
 use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
 use crate::device_manager::Device;
 use crate::error::Error;
-use r2d2::{HandleError, LoggingErrorHandler, ManageConnection, Pool, PooledConnection};
-use ssh2::Session;
+use r2d2::{
+    CustomizeConnection, HandleError, LoggingErrorHandler, ManageConnection,
+    NopConnectionCustomizer, Pool, PooledConnection,
+};
+use ssh2::{BlockDirections, Session, TraceFlags};
 use std::fmt::{Debug, Formatter};
 use std::net::TcpStream;
+use std::ops::BitXor;
 use std::sync::{Arc, Mutex};
 
 impl DeviceConnectionPool {
@@ -21,7 +25,10 @@ impl DeviceConnectionPool {
 
     pub fn get(&self) -> Result<PooledConnection<DeviceConnectionManager>, Error> {
         return match self.inner.get() {
-            Ok(c) => Ok(c),
+            Ok(c) => {
+                c.set_blocking(true);
+                Ok(c)
+            }
             Err(_) => Err(self
                 .last_error
                 .lock()
@@ -39,6 +46,7 @@ impl ManageConnection for DeviceConnectionManager {
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         let mut session = Session::new()?;
         let tcp = TcpStream::connect(format!("{}:{}", self.device.host, self.device.port))?;
+        session.trace(TraceFlags::all().bitxor(TraceFlags::TRANS));
         session.set_tcp_stream(tcp);
         session.handshake()?;
 
@@ -59,6 +67,8 @@ impl ManageConnection for DeviceConnectionManager {
     }
 
     fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
+        conn.set_blocking(true);
+        conn.keepalive_send()?;
         return Ok(());
     }
 

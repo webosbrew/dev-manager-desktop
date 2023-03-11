@@ -3,7 +3,7 @@ use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::session_manager::spawned::{SpawnResult, Spawned};
+use crate::session_manager::spawned::Spawned;
 use crate::session_manager::{
     SessionManager, ShellCallback, ShellData, ShellInfo, ShellScreen, ShellToken, SpawnedCallback,
 };
@@ -108,7 +108,6 @@ impl<R: Runtime> SpawnedCallback for PluginShellCb<R> {
         };
         self.app.emit_all("shell-rx", payload).unwrap_or(());
     }
-
 }
 
 impl<R: Runtime> ShellCallback for PluginShellCb<R> {
