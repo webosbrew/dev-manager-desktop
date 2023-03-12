@@ -1,4 +1,8 @@
 <div class="modal-body">
-  <div>Please wait</div>
-  <ngb-progressbar type="info" [value]="100" [striped]="true" [animated]="true"></ngb-progressbar>
+  <div *ngIf="message else defaultMessage">{{message}}</div>
+  <ng-template #defaultMessage>
+    <div>Please wait</div>
+  </ng-template>
+  <ngb-progressbar type="info" [value]="progress ?? 100" [max]="100" [striped]="progress === undefined"
+                   [animated]="true"></ngb-progressbar>
 </div>

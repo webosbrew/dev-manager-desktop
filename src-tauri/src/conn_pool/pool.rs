@@ -46,7 +46,6 @@ impl ManageConnection for DeviceConnectionManager {
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         let mut session = Session::new()?;
         let tcp = TcpStream::connect(format!("{}:{}", self.device.host, self.device.port))?;
-        session.trace(TraceFlags::all().bitxor(TraceFlags::TRANS));
         session.set_tcp_stream(tcp);
         session.handshake()?;
 

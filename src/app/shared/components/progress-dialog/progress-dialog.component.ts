@@ -8,6 +8,9 @@ import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 })
 export class ProgressDialogComponent {
 
+  message?: string;
+  progress?: number;
+
   constructor() {
   }
 

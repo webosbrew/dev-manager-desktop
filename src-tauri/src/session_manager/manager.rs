@@ -29,21 +29,6 @@ impl SessionManager {
         return pool;
     }
 
-    pub async fn exec(
-        &self,
-        device: Device,
-        command: &str,
-        stdin: Option<&[u8]>,
-    ) -> Result<Vec<u8>, Error> {
-        loop {
-            let conn = self.conn_obtain(device.clone()).await?;
-            match conn.exec(command, stdin).await {
-                Err(Error::NeedsReconnect) => continue,
-                e => return e,
-            };
-        }
-    }
-
     pub async fn spawn(&self, device: Device, command: &str) -> Result<Proc, Error> {
         loop {
             let conn = self.conn_obtain(device.clone()).await?;

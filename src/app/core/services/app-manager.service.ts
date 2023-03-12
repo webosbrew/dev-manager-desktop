@@ -63,13 +63,13 @@ export class AppManagerService {
       .then(l => l.find(p => p.id === id) ?? null);
   }
 
-  async installByPath(device: Device, localPath: string, withHbChannel: boolean): Promise<void> {
+  async installByPath(device: Device, localPath: string, withHbChannel: boolean, progress?: InstallProgressHandler): Promise<void> {
     if (withHbChannel) {
       const sha256 = await this.localFile.checksum(localPath, 'sha256');
       const serve: ServeInstance = await this.file.serveLocal(device, localPath);
       console.log('Installing', serve.host);
       try {
-        await this.hbChannelInstall(device, new URL(serve.host).toString(), sha256);
+        await this.hbChannelInstall(device, new URL(serve.host).toString(), sha256, progress);
       } finally {
         await serve.interrupt();
       }
@@ -84,16 +84,16 @@ export class AppManagerService {
     this.load(device).catch(noop);
   }
 
-  async installByManifest(device: Device, manifest: PackageManifest, withHbChannel: boolean): Promise<void> {
+  async installByManifest(device: Device, manifest: PackageManifest, withHbChannel: boolean, progress?: InstallProgressHandler): Promise<void> {
     if (withHbChannel) {
-      await this.hbChannelInstall(device, manifest.ipkUrl, manifest.ipkHash?.sha256)
+      await this.hbChannelInstall(device, manifest.ipkUrl, manifest.ipkHash?.sha256, progress)
         .then(() => this.load(device).catch(noop))
         .catch((e) => {
           // Never attempt to do default install, if we are reinstalling hbchannel
           if (manifest.id === 'org.webosbrew.hbchannel') {
             throw e;
           }
-          return this.installByManifest(device, manifest, false);
+          return this.installByManifest(device, manifest, false, progress);
         });
     } else {
       const path = await this.tempDownloadIpk(device, manifest.ipkUrl);
@@ -163,7 +163,7 @@ export class AppManagerService {
     );
   }
 
-  private async hbChannelInstall(device: Device, url: string, sha256sum?: string) {
+  private async hbChannelInstall(device: Device, url: string, sha256sum?: string, progress?: InstallProgressHandler) {
     const luna = await this.luna.subscribe(device, 'luna://org.webosbrew.hbchannel.service/install', {
       ipkUrl: url,
       ipkHash: sha256sum,
@@ -180,6 +180,7 @@ export class AppManagerService {
           // We didn't get any positive result, but there was no error either. Treat it as success.
           return true;
         }
+        progress?.(v['progress'], v['statusText']);
         console.debug('install output', v);
         return false;
       }),
@@ -206,4 +207,8 @@ function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp):
   }
   console.debug('appinstalld output', v);
   return false;
+}
+
+export interface InstallProgressHandler {
+  (progress?: number, statusText?: string): void;
 }
