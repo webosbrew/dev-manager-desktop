@@ -5,7 +5,7 @@ TV - [Download Now](https://github.com/webosbrew/dev-manager-desktop/releases/la
 
 ## Features
 
-- No need to install LG SDK or IDE
+- Mo need to install LG SDK or IDE
 - Add device without need to use command line
 - Install apps on TV with a few clicks
 - Configuration compatible with [ares-cli](https://github.com/webosose/ares-cli)
