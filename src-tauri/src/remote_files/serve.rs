@@ -43,7 +43,8 @@ pub(crate) async fn exec<R: Runtime>(
     tokio::spawn(async move {
         tokio::task::spawn_blocking(move || serve_worker(app, device, channel, path))
             .await
-            .unwrap();
+            .unwrap()
+            .unwrap_or(());
     });
     return Ok(token);
 }

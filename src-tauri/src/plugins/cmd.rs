@@ -22,8 +22,7 @@ async fn exec<R: Runtime>(
 ) -> Result<Vec<u8>, Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let pool = sessions.pool(device);
-        let session = pool.get()?;
+        let session = sessions.session(device)?;
         let mut ch = session.channel_session()?;
         ch.exec(&command)?;
         if let Some(stdin) = stdin {

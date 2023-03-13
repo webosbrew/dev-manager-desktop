@@ -1,8 +1,8 @@
+use tauri::State;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Runtime,
 };
-use tauri::State;
 
 use crate::device_manager::{Device, DeviceManager};
 use crate::error::Error;
@@ -38,9 +38,8 @@ async fn remove(
 async fn novacom_getkey(
     manager: State<'_, DeviceManager>,
     address: String,
-    passphrase: String,
 ) -> Result<String, Error> {
-    return manager.novacom_getkey(&address, &passphrase).await;
+    return manager.novacom_getkey(&address).await;
 }
 
 #[tauri::command]

@@ -1,9 +1,10 @@
+use r2d2::PooledConnection;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use crate::conn_pool::DeviceConnectionPool;
+use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
 use russh::client;
 use russh::client::{Config, Handle};
 use russh::kex::{CURVE25519, DH_G14_SHA1, DH_G14_SHA256, DH_G1_SHA1};
@@ -18,7 +19,6 @@ use crate::session_manager::handler::ClientHandler;
 use crate::session_manager::{Proc, SessionManager, Shell, ShellInfo, ShellToken};
 
 impl SessionManager {
-
     pub fn pool(&self, device: Device) -> DeviceConnectionPool {
         if let Some(p) = self.pools.lock().unwrap().get(&device.name) {
             return p.clone();
@@ -27,6 +27,13 @@ impl SessionManager {
         let pool = DeviceConnectionPool::new(device);
         self.pools.lock().unwrap().insert(key, pool.clone());
         return pool;
+    }
+
+    pub fn session(
+        &self,
+        device: Device,
+    ) -> Result<PooledConnection<DeviceConnectionManager>, Error> {
+        return self.pool(device).get();
     }
 
     pub async fn spawn(&self, device: Device, command: &str) -> Result<Proc, Error> {

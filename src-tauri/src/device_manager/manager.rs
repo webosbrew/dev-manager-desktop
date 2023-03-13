@@ -1,7 +1,5 @@
 use std::fs;
 
-use russh_keys::{decode_secret_key, load_secret_key};
-use russh_keys::{Error as SshKeyError};
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 
@@ -80,30 +78,17 @@ impl DeviceManager {
     }
 
     //noinspection HttpUrlsUsage
-    pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
+    pub async fn novacom_getkey(&self, address: &str) -> Result<String, Error> {
         let response = reqwest::get(format!("http://{}:9991/webos_rsa", address)).await?;
-        let content = response.text().await?;
-        let passphrase = Some(passphrase).filter(|s| !s.is_empty());
-        decode_secret_key(&content, passphrase).map_err(DeviceManager::map_loadkey_err)?;
-        return Ok(content);
+        return Ok(response.text().await?);
     }
 
     pub async fn localkey_verify(&self, name: &str, passphrase: Option<&str>) -> Result<(), Error> {
         let ssh_dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
         let key_file = fs::canonicalize(ssh_dir.join(name))?;
         let passphrase = passphrase.filter(|s| !s.is_empty());
-        load_secret_key(key_file.clone(), passphrase).map_err(DeviceManager::map_loadkey_err)?;
+        let mut file = File::open(key_file).await?;
         return Ok(());
     }
 
-    fn map_loadkey_err(e: SshKeyError) -> Error {
-        return match e {
-            SshKeyError::UnsupportedKeyType(t) => Error::UnsupportedKey {
-                type_name: String::from(String::from_utf8_lossy(&t)),
-            },
-            SshKeyError::KeyIsEncrypted => Error::PassphraseRequired,
-            SshKeyError::IndexOutOfBounds => Error::BadPassphrase,
-            e => e.into(),
-        };
-    }
 }
