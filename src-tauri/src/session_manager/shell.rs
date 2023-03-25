@@ -4,8 +4,6 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use russh::client::Msg;
-use russh::{Channel, ChannelMsg, CryptoVec};
 use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tauri::Runtime;
@@ -21,33 +19,14 @@ pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
 
 impl Shell {
     pub fn write(&self, data: &[u8]) -> Result<(), Error> {
-        if let Some(sender) = self.sender.lock().unwrap().as_mut() {
-            return sender
-                .send(ChannelMsg::Data {
-                    data: CryptoVec::from_slice(data),
-                })
-                .map_err(|_| Error::Disconnected);
-        }
-        return Err(Error::Disconnected);
+        todo!();
     }
 
     pub fn resize(&self, cols: u16, rows: u16) -> Result<(), Error> {
         if !self.has_pty {
             return Err(Error::Unsupported);
         }
-        if let Some(sender) = self.sender.lock().unwrap().as_mut() {
-            sender
-                .send(ChannelMsg::WindowChange {
-                    col_width: cols as u32,
-                    row_height: rows as u32,
-                    pix_width: 0,
-                    pix_height: 0,
-                })
-                .map_err(|_| Error::Disconnected)?;
-            self.parser.lock().unwrap().set_size(rows, cols);
-            return Ok(());
-        }
-        return Err(Error::Disconnected);
+        todo!();
     }
 
     pub fn screen(&self, cols: u16) -> Result<ShellScreen, Error> {
@@ -81,8 +60,7 @@ impl Shell {
     }
 
     pub fn close(&self) -> Result<(), Error> {
-        if let Some(ch) = self.sender.lock().unwrap().take() {}
-        return Ok(());
+        todo!();
     }
 
     pub fn info(&self) -> ShellInfo {
@@ -115,42 +93,7 @@ impl Shell {
 }
 
 #[async_trait]
-impl Spawned for Shell {
-    async fn lock_channel(&self) -> MutexGuard<'_, Option<Channel<Msg>>> {
-        return self.channel.lock().await;
-    }
-
-    fn tx_ready(&self, sender: UnboundedSender<ChannelMsg>) {
-        *self.sender.lock().unwrap() = Some(sender);
-    }
-
-    fn on_rx(&self, data: CryptoVec, ext: u32) {
-        if let Some(cb) = self.callback.lock().unwrap().as_deref() {
-            if ext > 1 {
-                return;
-            }
-            let sh_changed = self.process(data.as_ref());
-            cb.rx(ext, data.as_ref());
-            if ext == 0 && sh_changed {
-                cb.info(self.info());
-            }
-        }
-    }
-
-    async fn send_msg(&self, ch: &mut Channel<Msg>, msg: ChannelMsg) -> Result<(), Error> {
-        return match msg {
-            ChannelMsg::WindowChange {
-                col_width,
-                row_height,
-                pix_width,
-                pix_height,
-            } => Ok(ch
-                .window_change(col_width, row_height, pix_width, pix_height)
-                .await?),
-            _ => unimplemented!(),
-        };
-    }
-}
+impl Spawned for Shell {}
 
 impl Serialize for ShellToken {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

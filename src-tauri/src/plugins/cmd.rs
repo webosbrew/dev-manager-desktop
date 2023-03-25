@@ -23,14 +23,14 @@ async fn exec<R: Runtime>(
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         let session = sessions.session(device)?;
-        let mut ch = session.channel_session()?;
-        ch.exec(&command)?;
+        let mut ch = session.new_channel()?;
+        ch.request_exec(&command)?;
         if let Some(stdin) = stdin {
-            ch.write_all(&stdin)?;
+            ch.stdin().write_all(&stdin)?;
             ch.send_eof()?;
         }
         let mut buf = Vec::<u8>::new();
-        ch.read_to_end(&mut buf)?;
+        ch.stdout().read_to_end(&mut buf)?;
         return Ok(buf);
     })
     .await

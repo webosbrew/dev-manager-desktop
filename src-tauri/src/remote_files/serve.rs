@@ -13,9 +13,9 @@ use std::time::Duration;
 
 use dialog::Choice::No;
 use httparse::Status;
+use libssh_rs::Channel;
 use path_slash::PathBufExt;
 use serde::Serialize;
-use ssh2::{Channel, ErrorCode, Session};
 use tauri::{AppHandle, Manager, Runtime, State};
 use tokio::net::TcpListener;
 
@@ -62,7 +62,7 @@ fn serve_worker<R: Runtime>(
     let sessions = app.state::<SessionManager>();
     let pool = sessions.pool(device);
     let mut conn = pool.get()?;
-    let (mut listener, remote_port) = conn.channel_forward_listen(0, Some("127.0.0.1"), None)?;
+    let remote_port = conn.listen_forward(Some("127.0.0.1"), 0)?;
     log::debug!("Serve is available on http://127.0.0.1:{remote_port}/, hosting {path}");
     channel.rx(&ServeReady {
         host: format!("http://127.0.0.1:{remote_port}/"),
@@ -77,26 +77,11 @@ fn serve_worker<R: Runtime>(
                 break;
             }
         }
-        let ch = match listener.accept() {
-            Ok(ch) => ch,
-            Err(e) => {
-                if let ErrorCode::Session(-37) = e.code() {
-                    if let Some(h) = channel.handler.lock().unwrap().as_ref() {
-                        if h.closed() {
-                            break;
-                        }
-                    }
-                    thread::sleep(Duration::from_millis(10));
-                    continue;
-                } else {
-                    result = Err(e.into());
-                    break;
-                }
-            }
+        let (_, ch) = match conn.accept_forward(Duration::from_millis(100)) {
+            Ok(res) => res,
+            Err(e) => continue,
         };
-        conn.set_blocking(true);
         serve_handler(&path, ch)?;
-        conn.set_blocking(false);
     }
 
     channel.closed(None::<String>);
@@ -107,11 +92,12 @@ fn serve_handler(path: &String, mut ch: Channel) -> Result<(), Error> {
     let mut req_data = Vec::<u8>::new();
     let mut method: String;
     let mut url: String;
+    let mut out = ch.stdin();
     loop {
         let mut buf: [u8; 8192] = [0; 8192];
         let mut headers_buf = [httparse::EMPTY_HEADER; 64];
         let mut req = httparse::Request::new(&mut headers_buf);
-        let buf_len = ch.read(&mut buf)?;
+        let buf_len = ch.stdout().read(&mut buf)?;
         req_data.extend_from_slice(&buf[..buf_len]);
         match req.parse(&req_data) {
             Ok(Status::Partial) => {
@@ -130,7 +116,7 @@ fn serve_handler(path: &String, mut ch: Channel) -> Result<(), Error> {
     match method.as_str() {
         "GET" | "HEAD" => {}
         _ => {
-            ch.write_all(b"HTTP/1.1 405\r\nAllow: GET,HEAD\r\n\r\nMethod not supported\n")?;
+            out.write_all(b"HTTP/1.1 405\r\nAllow: GET,HEAD\r\n\r\nMethod not supported\n")?;
             return Ok(());
         }
     }
@@ -142,24 +128,24 @@ fn serve_handler(path: &String, mut ch: Channel) -> Result<(), Error> {
     let mut file = match File::open(path) {
         Ok(file) => file,
         Err(e) => {
-            ch.write_all(b"HTTP/1.1 404\r\n\r\nFile not found\n")?;
+            out.write_all(b"HTTP/1.1 404\r\n\r\nFile not found\n")?;
             return Ok(());
         }
     };
     let meta = file.metadata().unwrap();
     let file_len = meta.len();
-    ch.write(b"HTTP/1.1 200\r\n")?;
-    ch.write(b"Content-Type: application/octet-stream\r\n")?;
-    ch.write(format!("Content-Length: {}\r\n", file_len).as_bytes())?;
+    out.write(b"HTTP/1.1 200\r\n")?;
+    out.write(b"Content-Type: application/octet-stream\r\n")?;
+    out.write(format!("Content-Length: {}\r\n", file_len).as_bytes())?;
     if &method == "GET" {
-        ch.write(b"\r\n")?;
+        out.write(b"\r\n")?;
         let mut buf: [u8; 8192] = [0; 8192];
         loop {
             let buf_length = file.read(&mut buf)?;
             if buf_length == 0 {
                 break;
             }
-            ch.write_all(&buf[..buf_length])?;
+            out.write_all(&buf[..buf_length])?;
         }
     }
     return Ok(());

@@ -78,24 +78,8 @@ impl From<reqwest::Error> for Error {
     }
 }
 
-impl From<russh::Error> for Error {
-    fn from(value: russh::Error) -> Self {
-        return Error::new(format!("russh::Error::{:?}: {}", value, value.to_string()));
-    }
-}
-
-impl From<russh_keys::Error> for Error {
-    fn from(value: russh_keys::Error) -> Self {
-        return Error::new(format!(
-            "russh_keys::Error::{:?}: {}",
-            value,
-            value.to_string()
-        ));
-    }
-}
-
-impl From<ssh2::Error> for Error {
-    fn from(value: ssh2::Error) -> Self {
+impl From<libssh_rs::Error> for Error {
+    fn from(value: libssh_rs::Error) -> Self {
         return Error::new(format!("SSH Error: {:?}", value));
     }
 }

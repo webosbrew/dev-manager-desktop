@@ -1,4 +1,3 @@
-use openssl::sha::sha256;
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Runtime, State};
 use tokio::fs::File;
@@ -15,7 +14,7 @@ async fn checksum(path: String, algorithm: String) -> Result<String, Error> {
     let mut contents: Vec<u8> = vec![];
     file.read_to_end(&mut contents).await?;
     return match algorithm.as_str() {
-        "sha256" => Ok(hex::encode(sha256(&contents))),
+        "sha256" => Ok(hex::encode(sha256::digest(&contents[..]))),
         _ => Err(Error::Unsupported),
     };
 }

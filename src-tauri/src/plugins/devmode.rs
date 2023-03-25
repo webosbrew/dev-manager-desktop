@@ -70,7 +70,8 @@ async fn valid_token<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         let pool = sessions.pool(device);
         let session = pool.get()?;
-        let (mut ch, _) = session.scp_recv(Path::new("/var/luna/preferences/devmode_enabled"))?;
+        let sftp = session.sftp()?;
+        let mut ch = sftp.open("/var/luna/preferences/devmode_enabled", 0, 0)?;
         let mut data = Vec::<u8>::new();
         ch.read_to_end(&mut data)?;
         return Ok::<Vec<u8>, Error>(data);

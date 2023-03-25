@@ -1,4 +1,7 @@
+use libssh_rs_sys::{ssh_key_free, ssh_key_new, ssh_pki_import_privkey_file, SSH_EOF, SSH_OK};
+use std::ffi::CString;
 use std::fs;
+use std::ptr::{null, null_mut};
 
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
@@ -85,10 +88,38 @@ impl DeviceManager {
 
     pub async fn localkey_verify(&self, name: &str, passphrase: Option<&str>) -> Result<(), Error> {
         let ssh_dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
-        let key_file = fs::canonicalize(ssh_dir.join(name))?;
-        let passphrase = passphrase.filter(|s| !s.is_empty());
-        let mut file = File::open(key_file).await?;
-        return Ok(());
+        let key_file =
+            CString::new(fs::canonicalize(ssh_dir.join(name))?.to_str().unwrap()).unwrap();
+        let mut ret_code: i32 = SSH_OK as i32;
+        unsafe {
+            let mut key = ssh_key_new();
+            if let Some(passphrase) = passphrase {
+                let passphrase = CString::new(passphrase).unwrap();
+                ret_code = ssh_pki_import_privkey_file(
+                    key_file.as_ptr(),
+                    passphrase.as_ptr(),
+                    None,
+                    null_mut(),
+                    &mut key,
+                ) as i32;
+            } else {
+                ret_code = ssh_pki_import_privkey_file(
+                    key_file.as_ptr(),
+                    null(),
+                    None,
+                    null_mut(),
+                    &mut key,
+                ) as i32;
+            }
+            ssh_key_free(key);
+        }
+        return match ret_code {
+            0 => Ok(()),
+            SSH_EOF => Err(Error::IO {
+                code: String::from("Other"),
+                message: String::from("Bad private key"),
+            }),
+            _ => Err(Error::BadPassphrase),
+        };
     }
-
 }

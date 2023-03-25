@@ -25,9 +25,6 @@ log = "0.4.17"
 env_logger = "0.10.0"
 rand = "0.8.5"
 vt100 = "0.15.2"
-russh = { version = "0.36.1", features = ["openssl"] }
-russh-keys = { version = "0.24.1", features = ["openssl"] }
-openssl = { version = "0.10.45", features = ["vendored"] }
 tokio = "1.25.0"
 uuid = { version = "1.2.2", features = ["v1"] }
 reqwest = { version = "0.11.14", features = ["json"] }
@@ -37,11 +34,13 @@ file-mode = "0.1.2"
 posix-errors = "1.2.1"
 dialog = "0.3.0"
 path-slash = "0.2.1"
-ssh2 = { version = "0.9.4", features = ["vendored-openssl"] }
 httparse = "1.8.0"
 crossbeam-channel = "0.5.7"
 r2d2 = "0.8.10"
 unix_mode = "0.1.3"
+libssh-rs = { version = "0.1.7", features = ["vendored", "vendored-openssl"] }
+libssh-rs-sys = { version = "0.1.3", features = ["libz-sys"] }
+sha256 = "1.1.2"
 
 [features]
 # by default Tauri runs in production mode

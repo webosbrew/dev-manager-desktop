@@ -4,8 +4,6 @@ use std::time::Instant;
 
 use crate::conn_pool::DeviceConnectionPool;
 use crate::error::Error;
-use russh::client::Msg;
-use russh::{Channel, ChannelMsg};
 use serde::Serialize;
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc::UnboundedSender;
@@ -13,11 +11,8 @@ use tokio::sync::{Mutex as AsyncMutex, Semaphore};
 use uuid::Uuid;
 use vt100::Parser;
 
-use crate::session_manager::connection::ConnectionsMap;
 use crate::session_manager::shell::ShellsMap;
 
-mod connection;
-mod handler;
 mod manager;
 mod proc;
 mod shell;
@@ -28,13 +23,10 @@ pub struct SessionManager {
     lock: AsyncMutex<()>,
     pub(crate) shells: Arc<Mutex<ShellsMap>>,
     pools: Mutex<HashMap<String, DeviceConnectionPool>>,
-    connections: Arc<Mutex<ConnectionsMap>>,
 }
 
 pub struct Proc {
     pub(crate) command: String,
-    pub(crate) ch: AsyncMutex<Option<Channel<Msg>>>,
-    pub(crate) sender: Mutex<Option<UnboundedSender<ChannelMsg>>>,
     pub(crate) semaphore: Semaphore,
     pub(crate) callback: Mutex<Option<Box<dyn SpawnedCallback + Send>>>,
 }
@@ -50,8 +42,6 @@ pub struct Shell {
     created_at: Instant,
     def_title: String,
     has_pty: bool,
-    pub(crate) channel: AsyncMutex<Option<Channel<Msg>>>,
-    pub(crate) sender: Mutex<Option<UnboundedSender<ChannelMsg>>>,
     pub(crate) callback: Mutex<Option<Box<dyn ShellCallback + Send + Sync>>>,
     pub(crate) parser: Mutex<Parser>,
 }

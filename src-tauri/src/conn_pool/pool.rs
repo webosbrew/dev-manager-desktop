@@ -1,11 +1,12 @@
 use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
 use crate::device_manager::Device;
 use crate::error::Error;
+use libssh_rs;
+use libssh_rs::{Session, SshOption};
 use r2d2::{
     CustomizeConnection, HandleError, LoggingErrorHandler, ManageConnection,
     NopConnectionCustomizer, Pool, PooledConnection,
 };
-use ssh2::{BlockDirections, Session, TraceFlags};
 use std::fmt::{Debug, Formatter};
 use std::net::TcpStream;
 use std::ops::BitXor;
@@ -45,9 +46,9 @@ impl ManageConnection for DeviceConnectionManager {
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
         let mut session = Session::new()?;
-        let tcp = TcpStream::connect(format!("{}:{}", self.device.host, self.device.port))?;
-        session.set_tcp_stream(tcp);
-        session.handshake()?;
+        session.set_option(SshOption::Hostname(self.device.host.clone()))?;
+        session.set_option(SshOption::Port(self.device.port.clone()))?;
+        session.connect()?;
 
         let passphrase = self.device.valid_passphrase();
         let priv_key = self
@@ -56,18 +57,14 @@ impl ManageConnection for DeviceConnectionManager {
             .clone()
             .map(|k| k.content().unwrap())
             .unwrap();
-        session.userauth_pubkey_memory(
-            &self.device.username,
-            None,
-            &priv_key,
-            passphrase.as_ref().map(|x| &**x),
-        )?;
+        session.userauth_public_key_auto(None, passphrase.as_ref().map(|x| &**x))?;
         return Ok(session);
     }
 
     fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
-        conn.set_blocking(true);
-        conn.keepalive_send()?;
+        if !(conn.is_connected()) {
+            return Err(Error::Disconnected);
+        }
         return Ok(());
     }
 

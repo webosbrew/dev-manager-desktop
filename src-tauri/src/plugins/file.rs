@@ -28,7 +28,7 @@ async fn ls<R: Runtime>(
         let pool = sessions.pool(device);
         let session = pool.get()?;
         let sftp = session.sftp()?;
-        let entries = sftp.readdir(Path::new(&path))?;
+        let entries = sftp.read_dir(&path)?;
         return Ok(entries.iter().map(|entry| entry.into()).collect());
     })
     .await
@@ -45,9 +45,10 @@ async fn read<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         let pool = sessions.pool(device);
         let session = pool.get()?;
-        let (mut ch, _) = session.scp_recv(Path::new(&path))?;
+        let sftp = session.sftp()?;
+        let mut file = sftp.open(&path, 0 /*O_RDONLY*/, 0)?;
         let mut buf = Vec::<u8>::new();
-        ch.read_to_end(&mut buf)?;
+        file.read_to_end(&mut buf)?;
         return Ok(buf);
     })
     .await
@@ -65,8 +66,9 @@ async fn write<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         let pool = sessions.pool(device);
         let session = pool.get()?;
-        let mut ch = session.scp_send(Path::new(&path), 0o644, content.len() as u64, None)?;
-        ch.write_all(&content)?;
+        let sftp = session.sftp()?;
+        let mut file = sftp.open(&path, 1 /*O_WRONLY*/, 0o644)?;
+        file.write_all(&content)?;
         return Ok(());
     })
     .await
@@ -84,11 +86,12 @@ async fn get<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         let pool = sessions.pool(device);
         let session = pool.get()?;
-        let (mut ch, _) = session.scp_recv(Path::new(&path))?;
+        let sftp = session.sftp()?;
+        let mut sfile = sftp.open(&path, 0, 0)?;
         let mut file = File::create(target)?;
         let mut buf = [0; 8192];
         loop {
-            let u = ch.read(&mut buf)?;
+            let u = sfile.read(&mut buf)?;
             if u == 0 {
                 break;
             }
@@ -111,15 +114,16 @@ async fn put<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         let pool = sessions.pool(device);
         let session = pool.get()?;
+        let sftp = session.sftp()?;
         let mut file = File::open(source)?;
-        let mut ch = session.scp_send(Path::new(&path), 0o644, file.metadata()?.len(), None)?;
+        let mut sfile = sftp.open(&path, 1, 0o644)?;
         let mut buf = [0; 8192];
         loop {
             let u = file.read(&mut buf)?;
             if u == 0 {
                 break;
             }
-            ch.write_all(&buf[u..])?;
+            sfile.write_all(&buf[u..])?;
         }
         return Ok(());
     })

@@ -1,7 +1,5 @@
 use std::io::Read;
 
-use openssl::sha::sha256;
-
 use crate::device_manager::io::ssh_dir;
 use crate::device_manager::PrivateKey;
 use crate::error::Error;
@@ -24,7 +22,7 @@ impl PrivateKey {
             PrivateKey::Path { name } => Ok(name.clone()),
             PrivateKey::Data { data } => Ok(format!(
                 "webos_{}",
-                &hex::encode(&sha256(data.as_bytes())[..10])
+                &hex::encode(&sha256::digest(data.as_bytes())[..10])
             )),
         };
     }
