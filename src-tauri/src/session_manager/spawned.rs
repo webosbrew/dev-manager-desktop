@@ -6,11 +6,9 @@ use serde_repr::Serialize_repr;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
 use tokio::sync::MutexGuard;
 
-#[async_trait]
 pub(crate) trait Spawned {
-
-    async fn wait_close(&self) -> Result<SpawnResult, Error> {
-        todo!();
+    fn wait_close(&self) -> Result<SpawnResult, Error> {
+        return Err(Error::Unsupported);
     }
 }
 

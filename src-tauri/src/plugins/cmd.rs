@@ -32,6 +32,8 @@ async fn exec<R: Runtime>(
         }
         let mut buf = Vec::<u8>::new();
         ch.stdout().read_to_end(&mut buf)?;
+        ch.close()?;
+        session.mark_last_ok();
         return Ok(buf);
     })
     .await
@@ -46,28 +48,25 @@ async fn spawn<R: Runtime>(
     command: String,
     managed: Option<bool>,
 ) -> Result<String, Error> {
-    let channel = EventChannel::<R, ProcEventHandler>::new(app.clone(), "shell-proc");
+    let channel = EventChannel::<R, ProcEventHandler<R>>::new(app.clone(), "shell-proc");
     let token = channel.token();
-    let proc = Arc::new(sessions.spawn(device, &command).await?);
+    let proc = Arc::new(sessions.spawn(device, &command));
     channel.listen(ProcEventHandler {
+        app: app.clone(),
         proc: proc.clone(),
         command: command.clone(),
     });
-    tokio::spawn(proc_worker(
-        app,
-        proc,
-        command,
-        channel,
-        managed.unwrap_or(true),
-    ));
+    tokio::task::spawn_blocking(move || {
+        proc_worker(app, proc, command, channel, managed.unwrap_or(true))
+    });
     return Ok(token);
 }
 
-async fn proc_worker<R: Runtime>(
+fn proc_worker<R: Runtime>(
     app: AppHandle<R>,
     proc: Arc<Proc>,
     command: String,
-    channel: EventChannel<R, ProcEventHandler>,
+    channel: EventChannel<R, ProcEventHandler<R>>,
     managed: bool,
 ) -> Result<(), Error> {
     let spawns = app.state::<SpawnManager>();
@@ -78,10 +77,8 @@ async fn proc_worker<R: Runtime>(
     *proc.callback.lock().unwrap() = Some(Box::new(ProcCallback {
         channel: channel.clone(),
     }));
-    let _ = proc.semaphore.acquire().await.unwrap();
-    proc.semaphore.close();
-    proc.start().await?;
-    match proc.wait_close().await {
+    proc.start()?;
+    match proc.wait_close() {
         Ok(SpawnResult::Closed) => {
             log::warn!("Process {command} was not gracefully closed. It has been leaked.");
             channel.closed(&SpawnResult::Closed);
@@ -99,13 +96,14 @@ async fn proc_worker<R: Runtime>(
     return Ok(());
 }
 
-struct ProcEventHandler {
+struct ProcEventHandler<R: Runtime> {
+    app: AppHandle<R>,
     proc: Arc<Proc>,
     command: String,
 }
 
 struct ProcCallback<R: Runtime> {
-    channel: Arc<EventChannel<R, ProcEventHandler>>,
+    channel: Arc<EventChannel<R, ProcEventHandler<R>>>,
 }
 
 impl<R: Runtime> SpawnedCallback for ProcCallback<R> {
@@ -117,12 +115,12 @@ impl<R: Runtime> SpawnedCallback for ProcCallback<R> {
     }
 }
 
-impl EventHandler for ProcEventHandler {
+impl<R: Runtime> EventHandler for ProcEventHandler<R> {
     fn tx(&self, payload: Option<&str>) {
         if let Some(payload) = payload {
             self.proc.data(payload.as_bytes()).unwrap_or(());
-        } else if !self.proc.semaphore.is_closed() {
-            self.proc.semaphore.add_permits(1);
+        } else if !self.proc.is_ready() {
+            self.proc.notify_ready();
         } else {
             self.proc.interrupt().unwrap_or(());
         }

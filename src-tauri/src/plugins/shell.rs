@@ -21,13 +21,13 @@ async fn open<R: Runtime>(
     app.emit_all("shell-opened", &shell.token).unwrap_or(());
     let run_shell = shell.clone();
     let run_app = app.clone();
-    tokio::spawn(async move {
+    tokio::task::spawn_blocking(move || {
         *run_shell.callback.lock().unwrap() = Some(Box::new(PluginShellCb::<R> {
             token: run_shell.token.clone(),
             app,
         }));
         // TODO: process result here
-        let result = run_shell.wait_close().await;
+        let result = run_shell.wait_close();
         log::debug!("Shell {:?} exited with {:?}", run_shell.token, result);
         let manager = run_app.state::<SessionManager>();
         manager.shell_close(&run_shell.token).unwrap_or(());

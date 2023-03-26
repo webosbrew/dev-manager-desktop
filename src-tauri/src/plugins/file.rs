@@ -29,7 +29,12 @@ async fn ls<R: Runtime>(
         let session = pool.get()?;
         let sftp = session.sftp()?;
         let entries = sftp.read_dir(&path)?;
-        return Ok(entries.iter().map(|entry| entry.into()).collect());
+        session.mark_last_ok();
+        return Ok(entries
+            .iter()
+            .filter(|entry| entry.name() != Some(".") && entry.name() != Some(".."))
+            .map(|entry| entry.into())
+            .collect());
     })
     .await
     .unwrap();
@@ -49,6 +54,7 @@ async fn read<R: Runtime>(
         let mut file = sftp.open(&path, 0 /*O_RDONLY*/, 0)?;
         let mut buf = Vec::<u8>::new();
         file.read_to_end(&mut buf)?;
+        session.mark_last_ok();
         return Ok(buf);
     })
     .await
@@ -69,6 +75,7 @@ async fn write<R: Runtime>(
         let sftp = session.sftp()?;
         let mut file = sftp.open(&path, 1 /*O_WRONLY*/, 0o644)?;
         file.write_all(&content)?;
+        session.mark_last_ok();
         return Ok(());
     })
     .await
@@ -97,6 +104,7 @@ async fn get<R: Runtime>(
             }
             file.write_all(&buf[u..])?;
         }
+        session.mark_last_ok();
         return Ok(());
     })
     .await
@@ -125,6 +133,7 @@ async fn put<R: Runtime>(
             }
             sfile.write_all(&buf[u..])?;
         }
+        session.mark_last_ok();
         return Ok(());
     })
     .await

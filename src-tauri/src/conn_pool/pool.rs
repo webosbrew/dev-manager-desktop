@@ -1,22 +1,23 @@
-use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
-use crate::device_manager::Device;
-use crate::error::Error;
-use libssh_rs;
-use libssh_rs::{AuthStatus, LogLevel, Session, SshOption};
-use r2d2::{
-    CustomizeConnection, HandleError, LoggingErrorHandler, ManageConnection,
-    NopConnectionCustomizer, Pool, PooledConnection,
-};
 use std::fmt::{Debug, Formatter};
 use std::net::TcpStream;
-use std::ops::BitXor;
+use std::ops::{BitXor, Deref, DerefMut};
 use std::sync::{Arc, Mutex};
+
+use libssh_rs;
+use libssh_rs::{AuthStatus, LogLevel, Session, SshOption};
+use r2d2::{HandleError, LoggingErrorHandler, ManageConnection, Pool, PooledConnection};
+use uuid::Uuid;
+
+use crate::conn_pool::{DeviceConnection, DeviceConnectionManager, DeviceConnectionPool};
+use crate::device_manager::Device;
+use crate::error::Error;
 
 impl DeviceConnectionPool {
     pub fn new(device: Device) -> DeviceConnectionPool {
         let last_error = Arc::<Mutex<Option<Error>>>::default();
         let inner = Pool::<DeviceConnectionManager>::builder()
-            .max_size(5)
+            .min_idle(Some(0))
+            .max_size(3)
             .error_handler(Box::new(DeviceConnectionErrorHandler {
                 last_error: last_error.clone(),
             }))
@@ -27,6 +28,7 @@ impl DeviceConnectionPool {
     pub fn get(&self) -> Result<PooledConnection<DeviceConnectionManager>, Error> {
         return match self.inner.get() {
             Ok(c) => {
+                c.reset_last_ok();
                 Ok(c)
             }
             Err(_) => Err(self
@@ -40,7 +42,7 @@ impl DeviceConnectionPool {
 }
 
 impl ManageConnection for DeviceConnectionManager {
-    type Connection = Session;
+    type Connection = DeviceConnection;
     type Error = Error;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
@@ -58,7 +60,7 @@ impl ManageConnection for DeviceConnectionManager {
             .map(|k| k.content().unwrap())
             .unwrap();
         return match session.userauth_public_key_auto(None, passphrase.as_ref().map(|x| &**x))? {
-            AuthStatus::Success => Ok(session),
+            AuthStatus::Success => Ok(DeviceConnection::new(session)),
             _ => return Err(Error::BadPassphrase),
         };
     }
@@ -71,7 +73,10 @@ impl ManageConnection for DeviceConnectionManager {
     }
 
     fn has_broken(&self, conn: &mut Self::Connection) -> bool {
-        return false;
+        if !conn.is_connected() {
+            return true;
+        }
+        return conn.last_ok.lock().unwrap().eq(&false);
     }
 }
 
@@ -85,6 +90,9 @@ impl HandleError<Error> for DeviceConnectionErrorHandler {
         *self.last_error.lock().unwrap() = Some(error);
     }
 }
+
+#[derive(Debug)]
+struct DeviceConnectionCustomizer {}
 
 impl Clone for DeviceConnectionPool {
     fn clone(&self) -> Self {

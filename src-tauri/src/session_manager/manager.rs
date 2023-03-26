@@ -1,7 +1,7 @@
 use r2d2::PooledConnection;
 use std::net::SocketAddr;
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
 
 use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
@@ -29,8 +29,13 @@ impl SessionManager {
         return self.pool(device).get();
     }
 
-    pub async fn spawn(&self, device: Device, command: &str) -> Result<Proc, Error> {
-        todo!();
+    pub fn spawn(&self, device: Device, command: &str) -> Proc {
+        return Proc {
+            device,
+            command: String::from(command),
+            callback: Mutex::default(),
+            ready: Arc::new((Mutex::default(), Condvar::new())),
+        };
     }
 
     pub async fn shell_open(
