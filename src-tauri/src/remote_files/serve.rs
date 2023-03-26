@@ -68,8 +68,6 @@ fn serve_worker<R: Runtime>(
         host: format!("http://127.0.0.1:{remote_port}/"),
     });
 
-    conn.set_blocking(false);
-
     let mut result: Result<(), Error> = Ok(());
     loop {
         if let Some(h) = channel.handler.lock().unwrap().as_ref() {

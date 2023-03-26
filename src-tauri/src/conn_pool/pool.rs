@@ -2,7 +2,7 @@ use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
 use crate::device_manager::Device;
 use crate::error::Error;
 use libssh_rs;
-use libssh_rs::{Session, SshOption};
+use libssh_rs::{AuthStatus, LogLevel, Session, SshOption};
 use r2d2::{
     CustomizeConnection, HandleError, LoggingErrorHandler, ManageConnection,
     NopConnectionCustomizer, Pool, PooledConnection,
@@ -27,7 +27,6 @@ impl DeviceConnectionPool {
     pub fn get(&self) -> Result<PooledConnection<DeviceConnectionManager>, Error> {
         return match self.inner.get() {
             Ok(c) => {
-                c.set_blocking(true);
                 Ok(c)
             }
             Err(_) => Err(self
@@ -48,6 +47,7 @@ impl ManageConnection for DeviceConnectionManager {
         let mut session = Session::new()?;
         session.set_option(SshOption::Hostname(self.device.host.clone()))?;
         session.set_option(SshOption::Port(self.device.port.clone()))?;
+        session.set_option(SshOption::User(Some(self.device.username.clone())))?;
         session.connect()?;
 
         let passphrase = self.device.valid_passphrase();
@@ -57,8 +57,10 @@ impl ManageConnection for DeviceConnectionManager {
             .clone()
             .map(|k| k.content().unwrap())
             .unwrap();
-        session.userauth_public_key_auto(None, passphrase.as_ref().map(|x| &**x))?;
-        return Ok(session);
+        return match session.userauth_public_key_auto(None, passphrase.as_ref().map(|x| &**x))? {
+            AuthStatus::Success => Ok(session),
+            _ => return Err(Error::BadPassphrase),
+        };
     }
 
     fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
