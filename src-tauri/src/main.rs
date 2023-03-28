@@ -11,6 +11,7 @@ use crate::spawn_manager::SpawnManager;
 use dialog::DialogBox;
 use tauri::Manager;
 
+mod conn_pool;
 mod device_manager;
 mod error;
 mod event_channel;
@@ -18,10 +19,10 @@ mod plugins;
 mod remote_files;
 mod session_manager;
 mod spawn_manager;
-mod conn_pool;
 
 fn main() {
     env_logger::init();
+    curl::init();
     let result = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             if let Some(wnd) = app.get_window("main") {

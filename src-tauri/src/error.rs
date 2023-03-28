@@ -72,8 +72,8 @@ impl From<serde_json::Error> for Error {
     }
 }
 
-impl From<reqwest::Error> for Error {
-    fn from(value: reqwest::Error) -> Self {
+impl From<curl::Error> for Error {
+    fn from(value: curl::Error) -> Self {
         return Error::new(format!("HTTP Error: {:?}", value));
     }
 }

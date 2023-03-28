@@ -1,10 +1,8 @@
-use std::fmt::{Debug, Formatter};
-use std::net::TcpStream;
-use std::ops::{BitXor, Deref, DerefMut};
+use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 
 use libssh_rs;
-use libssh_rs::{AuthStatus, LogLevel, Session, SshOption};
+use libssh_rs::{AuthStatus, LogLevel, Session, SshKey, SshOption};
 use r2d2::{HandleError, LoggingErrorHandler, ManageConnection, Pool, PooledConnection};
 use uuid::Uuid;
 
@@ -50,16 +48,19 @@ impl ManageConnection for DeviceConnectionManager {
         session.set_option(SshOption::Hostname(self.device.host.clone()))?;
         session.set_option(SshOption::Port(self.device.port.clone()))?;
         session.set_option(SshOption::User(Some(self.device.username.clone())))?;
+
         session.connect()?;
 
         let passphrase = self.device.valid_passphrase();
-        let priv_key = self
+        let priv_key_content = self
             .device
             .private_key
             .clone()
             .map(|k| k.content().unwrap())
             .unwrap();
-        return match session.userauth_public_key_auto(None, passphrase.as_ref().map(|x| &**x))? {
+        let priv_key = SshKey::from_privkey_base64(&priv_key_content, passphrase.as_deref())?;
+
+        return match session.userauth_publickey(None, &priv_key)? {
             AuthStatus::Success => Ok(DeviceConnection::new(session)),
             _ => return Err(Error::BadPassphrase),
         };

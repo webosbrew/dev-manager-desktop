@@ -17,7 +17,6 @@ use libssh_rs::Channel;
 use path_slash::PathBufExt;
 use serde::Serialize;
 use tauri::{AppHandle, Manager, Runtime, State};
-use tokio::net::TcpListener;
 
 use crate::conn_pool::DeviceConnectionPool;
 use crate::device_manager::Device;
@@ -60,8 +59,7 @@ fn serve_worker<R: Runtime>(
         h.wait();
     }
     let sessions = app.state::<SessionManager>();
-    let pool = sessions.pool(device);
-    let mut conn = pool.get()?;
+    let mut conn = sessions.session(device)?;
     let remote_port = conn.listen_forward(Some("127.0.0.1"), 0)?;
     log::debug!("Serve is available on http://127.0.0.1:{remote_port}/, hosting {path}");
     channel.rx(&ServeReady {

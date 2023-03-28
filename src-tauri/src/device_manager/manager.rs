@@ -1,4 +1,5 @@
-use libssh_rs_sys::{ssh_key_free, ssh_key_new, ssh_pki_import_privkey_file, SSH_EOF, SSH_OK};
+use curl::easy::Easy;
+use libssh_rs::SshKey;
 use std::ffi::CString;
 use std::fs;
 use std::ptr::{null, null_mut};
@@ -82,43 +83,31 @@ impl DeviceManager {
 
     //noinspection HttpUrlsUsage
     pub async fn novacom_getkey(&self, address: &str) -> Result<String, Error> {
-        let response = reqwest::get(format!("http://{}:9991/webos_rsa", address)).await?;
-        return Ok(response.text().await?);
+        let mut easy = Easy::new();
+        let mut data = Vec::<u8>::new();
+        let url = format!("http://{}:9991/webos_rsa", address);
+        easy.url(&url).unwrap();
+        let mut xfer = easy.transfer();
+        xfer.write_function(|new_data| {
+            data.extend_from_slice(new_data);
+            Ok(new_data.len())
+        })
+        .unwrap();
+        xfer.perform()?;
+        drop(xfer);
+        if easy.response_code()? == 200 {
+            return Ok(String::from_utf8(data).unwrap());
+        }
+        return Err(Error::Message {
+            message: format!("Failed to fetch private key from {}", address),
+        });
     }
 
     pub async fn localkey_verify(&self, name: &str, passphrase: Option<&str>) -> Result<(), Error> {
         let ssh_dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
-        let key_file =
-            CString::new(fs::canonicalize(ssh_dir.join(name))?.to_str().unwrap()).unwrap();
-        let mut ret_code: i32 = SSH_OK as i32;
-        unsafe {
-            let mut key = ssh_key_new();
-            if let Some(passphrase) = passphrase {
-                let passphrase = CString::new(passphrase).unwrap();
-                ret_code = ssh_pki_import_privkey_file(
-                    key_file.as_ptr(),
-                    passphrase.as_ptr(),
-                    None,
-                    null_mut(),
-                    &mut key,
-                ) as i32;
-            } else {
-                ret_code = ssh_pki_import_privkey_file(
-                    key_file.as_ptr(),
-                    null(),
-                    None,
-                    null_mut(),
-                    &mut key,
-                ) as i32;
-            }
-            ssh_key_free(key);
-        }
-        return match ret_code {
-            0 => Ok(()),
-            SSH_EOF => Err(Error::IO {
-                code: String::from("Other"),
-                message: String::from("Bad private key"),
-            }),
+        let ssh_key_path = fs::canonicalize(ssh_dir.join(name))?;
+        return match SshKey::from_privkey_file(ssh_key_path.to_str().unwrap(), passphrase) {
+            Ok(_) => Ok(()),
             _ => Err(Error::BadPassphrase),
         };
     }

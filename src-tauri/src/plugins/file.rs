@@ -25,8 +25,7 @@ async fn ls<R: Runtime>(
     log::info!("ls {}", path);
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let pool = sessions.pool(device);
-        let session = pool.get()?;
+        let session = sessions.session(device)?;
         let sftp = session.sftp()?;
         let entries = sftp.read_dir(&path)?;
         session.mark_last_ok();
@@ -48,8 +47,7 @@ async fn read<R: Runtime>(
 ) -> Result<Vec<u8>, Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let pool = sessions.pool(device);
-        let session = pool.get()?;
+        let session = sessions.session(device)?;
         let sftp = session.sftp()?;
         let mut file = sftp.open(&path, 0 /*O_RDONLY*/, 0)?;
         let mut buf = Vec::<u8>::new();
@@ -70,8 +68,7 @@ async fn write<R: Runtime>(
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let pool = sessions.pool(device);
-        let session = pool.get()?;
+        let session = sessions.session(device)?;
         let sftp = session.sftp()?;
         let mut file = sftp.open(&path, 1 /*O_WRONLY*/, 0o644)?;
         file.write_all(&content)?;
@@ -91,8 +88,7 @@ async fn get<R: Runtime>(
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let pool = sessions.pool(device);
-        let session = pool.get()?;
+        let session = sessions.session(device)?;
         let sftp = session.sftp()?;
         let mut sfile = sftp.open(&path, 0, 0)?;
         let mut file = File::create(target)?;
@@ -120,8 +116,7 @@ async fn put<R: Runtime>(
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let pool = sessions.pool(device);
-        let session = pool.get()?;
+        let session = sessions.session(device)?;
         let sftp = session.sftp()?;
         let mut file = File::open(source)?;
         let mut sfile = sftp.open(&path, 1, 0o644)?;

@@ -12,16 +12,6 @@ use crate::error::Error;
 use crate::session_manager::{Proc, SessionManager, Shell, ShellInfo, ShellToken};
 
 impl SessionManager {
-    pub fn pool(&self, device: Device) -> DeviceConnectionPool {
-        if let Some(p) = self.pools.lock().unwrap().get(&device.name) {
-            return p.clone();
-        }
-        let key = device.name.clone();
-        let pool = DeviceConnectionPool::new(device);
-        self.pools.lock().unwrap().insert(key, pool.clone());
-        return pool;
-    }
-
     pub fn session(
         &self,
         device: Device,
@@ -35,6 +25,8 @@ impl SessionManager {
             command: String::from(command),
             callback: Mutex::default(),
             ready: Arc::new((Mutex::default(), Condvar::new())),
+            interrupted: Mutex::new(false),
+            session: Mutex::default(),
         };
     }
 
@@ -76,5 +68,15 @@ impl SessionManager {
             .collect();
         list.sort_by_key(|v| v.created_at);
         return list;
+    }
+
+    fn pool(&self, device: Device) -> DeviceConnectionPool {
+        if let Some(p) = self.pools.lock().unwrap().get(&device.name) {
+            return p.clone();
+        }
+        let key = device.name.clone();
+        let pool = DeviceConnectionPool::new(device);
+        self.pools.lock().unwrap().insert(key, pool.clone());
+        return pool;
     }
 }

@@ -77,7 +77,7 @@ fn proc_worker<R: Runtime>(
     *proc.callback.lock().unwrap() = Some(Box::new(ProcCallback {
         channel: channel.clone(),
     }));
-    proc.start()?;
+    proc.start(&app.state::<SessionManager>())?;
     match proc.wait_close() {
         Ok(SpawnResult::Closed) => {
             log::warn!("Process {command} was not gracefully closed. It has been leaked.");
@@ -122,7 +122,7 @@ impl<R: Runtime> EventHandler for ProcEventHandler<R> {
         } else if !self.proc.is_ready() {
             self.proc.notify_ready();
         } else {
-            self.proc.interrupt().unwrap_or(());
+            self.proc.interrupt();
         }
     }
 }

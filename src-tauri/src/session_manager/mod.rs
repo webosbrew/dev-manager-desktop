@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Instant;
 
-use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
+use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool, ManagedDeviceConnection};
 use crate::device_manager::Device;
 use crate::error::Error;
 use serde::Serialize;
@@ -32,6 +32,8 @@ pub struct Proc {
     pub(crate) command: String,
     pub(crate) callback: Mutex<Option<Box<dyn SpawnedCallback + Send>>>,
     pub(crate) ready: Arc<(Mutex<bool>, Condvar)>,
+    pub(crate) interrupted: Mutex<bool>,
+    pub(crate) session: Mutex<Option<ManagedDeviceConnection>>,
 }
 
 #[derive(Clone, Serialize)]

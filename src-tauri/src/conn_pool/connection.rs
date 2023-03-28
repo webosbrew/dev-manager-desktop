@@ -2,7 +2,6 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Mutex;
 
 use libssh_rs::Session;
-use log::log;
 use uuid::Uuid;
 
 use crate::conn_pool::DeviceConnection;
