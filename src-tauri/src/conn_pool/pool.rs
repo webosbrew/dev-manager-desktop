@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use libssh_rs;
 use libssh_rs::{AuthStatus, LogLevel, Session, SshKey, SshOption};
@@ -16,6 +17,7 @@ impl DeviceConnectionPool {
         let inner = Pool::<DeviceConnectionManager>::builder()
             .min_idle(Some(0))
             .max_size(3)
+            .idle_timeout(Some(Duration::from_secs(900)))
             .error_handler(Box::new(DeviceConnectionErrorHandler {
                 last_error: last_error.clone(),
             }))

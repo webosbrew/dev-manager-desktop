@@ -59,7 +59,7 @@ impl Spawned for Proc {
         let mut buf_size: usize = 0;
         while !channel.is_closed() {
             if self.interrupted.lock().unwrap().eq(&true) {
-                channel.request_send_signal("INT")?;
+                channel.request_send_signal("TERM")?;
                 channel.close()?;
                 break;
             }
@@ -75,6 +75,7 @@ impl Spawned for Proc {
             }
         }
         log::info!("Proc channel closed");
+        session.mark_last_ok();
         return Ok(SpawnResult::Exit {
             status: channel.get_exit_status().unwrap_or(0) as u32,
         });
