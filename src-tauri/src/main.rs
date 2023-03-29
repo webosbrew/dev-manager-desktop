@@ -5,12 +5,14 @@
 
 extern crate core;
 
+use tauri::Manager;
+
+use native_dialog::{MessageDialog, MessageType};
+
 use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
-use crate::spawn_manager::SpawnManager;
-use dialog::DialogBox;
-use tauri::Manager;
 use crate::shell_manager::ShellManager;
+use crate::spawn_manager::SpawnManager;
 
 mod conn_pool;
 mod device_manager;
@@ -19,8 +21,8 @@ mod event_channel;
 mod plugins;
 mod remote_files;
 mod session_manager;
-mod spawn_manager;
 mod shell_manager;
+mod spawn_manager;
 
 fn main() {
     env_logger::init();
@@ -49,9 +51,11 @@ fn main() {
         })
         .run(tauri::generate_context!());
     if let Err(e) = result {
-        dialog::Message::new("Unexpected error occurred")
-            .title("webOS Dev Manager")
-            .show()
+        MessageDialog::new()
+            .set_type(MessageType::Error)
+            .set_title("webOS Dev Manager")
+            .set_text("Unexpected error occurred")
+            .show_alert()
             .expect("Unexpected error occurred while processing unexpected error :(");
     }
 }
