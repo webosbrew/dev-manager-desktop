@@ -2,10 +2,7 @@ use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use libssh_rs;
-use libssh_rs::{AuthStatus, LogLevel, Session, SshKey, SshOption};
-use r2d2::{HandleError, LoggingErrorHandler, ManageConnection, Pool, PooledConnection};
-use uuid::Uuid;
+use r2d2::{HandleError, ManageConnection, Pool, PooledConnection};
 
 use crate::conn_pool::{DeviceConnection, DeviceConnectionManager, DeviceConnectionPool};
 use crate::device_manager::Device;
@@ -46,26 +43,7 @@ impl ManageConnection for DeviceConnectionManager {
     type Error = Error;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        let mut session = Session::new()?;
-        session.set_option(SshOption::Hostname(self.device.host.clone()))?;
-        session.set_option(SshOption::Port(self.device.port.clone()))?;
-        session.set_option(SshOption::User(Some(self.device.username.clone())))?;
-
-        session.connect()?;
-
-        let passphrase = self.device.valid_passphrase();
-        let priv_key_content = self
-            .device
-            .private_key
-            .clone()
-            .map(|k| k.content().unwrap())
-            .unwrap();
-        let priv_key = SshKey::from_privkey_base64(&priv_key_content, passphrase.as_deref())?;
-
-        return match session.userauth_publickey(None, &priv_key)? {
-            AuthStatus::Success => Ok(DeviceConnection::new(session)),
-            _ => return Err(Error::BadPassphrase),
-        };
+        return DeviceConnection::new(self.device.clone());
     }
 
     fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {

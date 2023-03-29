@@ -6,7 +6,6 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::ops::Deref;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use std::sync::mpsc::channel;
 use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 use std::time::Duration;

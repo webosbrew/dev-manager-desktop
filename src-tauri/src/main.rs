@@ -10,6 +10,7 @@ use crate::session_manager::SessionManager;
 use crate::spawn_manager::SpawnManager;
 use dialog::DialogBox;
 use tauri::Manager;
+use crate::shell_manager::ShellManager;
 
 mod conn_pool;
 mod device_manager;
@@ -19,6 +20,7 @@ mod plugins;
 mod remote_files;
 mod session_manager;
 mod spawn_manager;
+mod shell_manager;
 
 fn main() {
     env_logger::init();
@@ -40,6 +42,7 @@ fn main() {
         .manage(DeviceManager::default())
         .manage(SessionManager::default())
         .manage(SpawnManager::default())
+        .manage(ShellManager::default())
         .on_page_load(|wnd, payload| {
             let spawns = wnd.state::<SpawnManager>();
             spawns.clear();
