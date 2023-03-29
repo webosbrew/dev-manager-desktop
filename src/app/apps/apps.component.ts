@@ -94,8 +94,12 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
     const file: File = files[0];
     const progress = ProgressDialogComponent.open(this.modalService);
+    const component = progress.componentInstance as ProgressDialogComponent;
     try {
-      await this.appManager.installByUri(this.device, file.webkitRelativePath, this.hasHbChannel);
+      await this.appManager.installByPath(this.device, file.webkitRelativePath, this.hasHbChannel, (progress, statusText) => {
+        component.progress = progress;
+        component.message = statusText;
+      });
     } catch (e) {
       this.handleInstallationError(file.name, e as Error);
     } finally {
@@ -113,8 +117,12 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
     const path = Array.isArray(open) ? open[0] : open;
     const progress = ProgressDialogComponent.open(this.modalService);
+    const component = progress.componentInstance as ProgressDialogComponent;
     try {
-      await this.appManager.installByUri(this.device, path, this.hasHbChannel);
+      await this.appManager.installByPath(this.device, path, this.hasHbChannel, (progress, statusText) => {
+        component.progress = progress;
+        component.message = statusText;
+      });
     } catch (e) {
       console.warn(e);
       this.handleInstallationError(await basename(path), e as Error);
@@ -154,8 +162,12 @@ export class AppsComponent implements OnInit, OnDestroy {
   async installPackage(item: RepositoryItem): Promise<void> {
     if (!this.device) return;
     const progress = ProgressDialogComponent.open(this.modalService);
+    const component = progress.componentInstance as ProgressDialogComponent;
     try {
-      await this.appManager.installByManifest(this.device, item.manifest!, this.hasHbChannel);
+      await this.appManager.installByManifest(this.device, item.manifest!, this.hasHbChannel, (progress, statusText) => {
+        component.progress = progress;
+        component.message = statusText;
+      });
     } catch (e: any) {
       this.handleInstallationError(item.title, e as Error);
     } finally {
@@ -166,8 +178,12 @@ export class AppsComponent implements OnInit, OnDestroy {
   async installBetaPackage(item: RepositoryItem): Promise<void> {
     if (!this.device) return;
     const progress = ProgressDialogComponent.open(this.modalService);
+    const component = progress.componentInstance as ProgressDialogComponent;
     try {
-      await this.appManager.installByManifest(this.device, item.manifestBeta!, this.hasHbChannel);
+      await this.appManager.installByManifest(this.device, item.manifestBeta!, this.hasHbChannel, (progress, statusText) => {
+        component.progress = progress;
+        component.message = statusText;
+      });
     } catch (e) {
       this.handleInstallationError(item.title, e as Error);
     } finally {

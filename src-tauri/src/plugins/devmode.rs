@@ -1,10 +1,12 @@
-use reqwest::Url;
+use std::io::Read;
+
+use curl::easy::Easy;
 use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Manager, Runtime};
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::regex::Regex;
-use tauri::{Runtime, State};
 
-use crate::device_manager::{Device, DeviceManager};
+use crate::device_manager::Device;
 use crate::error::Error;
 use crate::session_manager::SessionManager;
 
@@ -24,36 +26,42 @@ struct DevModeSession {
 }
 
 #[tauri::command]
-async fn token(manager: State<'_, SessionManager>, device: Device) -> Result<String, Error> {
+async fn token<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<String, Error> {
     if device.username != "prisoner" {
         return Err(Error::Unsupported);
     }
-    if let Some(token) = valid_token(&manager, device).await? {
+    if let Some(token) = valid_token(app, device).await? {
         return Ok(token);
     }
     return Err(Error::Unsupported);
 }
 
 #[tauri::command]
-async fn status(
-    manager: State<'_, SessionManager>,
-    device: Device,
-) -> Result<DevModeStatus, Error> {
-    if device.username != "prisoner" {
-        return Err(Error::Unsupported);
-    }
-    if let Some(token) = valid_token(&manager, device).await? {
-        let url = Url::parse_with_params(
-            "https://developer.lge.com/secure/CheckDevModeSession.dev",
-            &[("sessionToken", token.clone())],
-        )
-        .expect("should be valid url");
-        let session: DevModeSession = reqwest::get(url).await?.json().await?;
-        if session.result == "success" {
-            return Ok(DevModeStatus {
-                token: Some(token),
-                remaining: Some(session.error_msg.unwrap_or(String::from(""))),
-            });
+async fn status<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<DevModeStatus, Error> {
+    if let Some(token) = valid_token(app, device).await? {
+        let mut data = Vec::<u8>::new();
+        let mut easy = Easy::new();
+        let url = format!(
+            "https://developer.lge.com/secure/CheckDevModeSession.dev?sessionToken={}",
+            easy.url_encode(token.as_bytes()),
+        );
+        easy.url(&url).unwrap();
+        let mut xfer = easy.transfer();
+        xfer.write_function(|new_data| {
+            data.extend_from_slice(new_data);
+            Ok(new_data.len())
+        })
+        .unwrap();
+        xfer.perform()?;
+        drop(xfer);
+        if easy.response_code()? == 200 {
+            let session = serde_json::from_slice::<DevModeSession>(&data)?;
+            if session.result == "success" {
+                return Ok(DevModeStatus {
+                    token: Some(token),
+                    remaining: Some(session.error_msg.unwrap_or(String::from(""))),
+                });
+            }
         }
         return Ok(DevModeStatus {
             token: Some(token),
@@ -66,19 +74,28 @@ async fn status(
     });
 }
 
-async fn valid_token(manager: &SessionManager, device: Device) -> Result<Option<String>, Error> {
-    let token = match manager
-        .exec(device, "cat /var/luna/preferences/devmode_enabled", None)
-        .await
-    {
-        Ok(data) => String::from_utf8(data).map_err(|_| Error::IO {
-            code: format!("Other"),
-            message: format!("Can\'t read dev mode token"),
-        })?,
-        Err(e) => return Err(e),
-    };
+async fn valid_token<R: Runtime>(
+    app: AppHandle<R>,
+    device: Device,
+) -> Result<Option<String>, Error> {
+    let data = tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let session = sessions.session(device)?;
+        let sftp = session.sftp()?;
+        let mut ch = sftp.open("/var/luna/preferences/devmode_enabled", 0, 0)?;
+        let mut data = Vec::<u8>::new();
+        ch.read_to_end(&mut data)?;
+        return Ok::<Vec<u8>, Error>(data);
+    })
+    .await
+    .unwrap()?;
+    let token = String::from_utf8(data).map_err(|_| Error::IO {
+        code: format!("Other"),
+        message: format!("Can\'t read dev mode token"),
+    })?;
     let regex = Regex::new("^[0-9a-zA-Z]+$").unwrap();
     if !regex.is_match(&token) {
+        log::debug!("Token {} doesn't look like a valid devmode token", token);
         return Ok(None);
     }
     return Ok(Some(token));

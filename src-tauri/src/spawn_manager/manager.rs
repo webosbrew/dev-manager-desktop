@@ -1,6 +1,5 @@
 use crate::session_manager::Proc;
 use crate::spawn_manager::SpawnManager;
-use russh::{ChannelMsg, Sig};
 use std::sync::Arc;
 
 impl SpawnManager {
@@ -15,8 +14,6 @@ impl SpawnManager {
         for x in old_items {
             if let Some(proc) = x.upgrade() {
                 log::debug!("Terminating {:?}", proc.command);
-                proc.msg_seq(vec![ChannelMsg::Signal { signal: Sig::TERM }])
-                    .unwrap_or(());
             }
         }
     }

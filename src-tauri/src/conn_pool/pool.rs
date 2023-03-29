@@ -1,0 +1,85 @@
+use std::fmt::Debug;
+use std::sync::{Arc, Mutex};
+use std::time::Duration;
+
+use r2d2::{HandleError, ManageConnection, Pool, PooledConnection};
+
+use crate::conn_pool::{DeviceConnection, DeviceConnectionManager, DeviceConnectionPool};
+use crate::device_manager::Device;
+use crate::error::Error;
+
+impl DeviceConnectionPool {
+    pub fn new(device: Device) -> DeviceConnectionPool {
+        let last_error = Arc::<Mutex<Option<Error>>>::default();
+        let inner = Pool::<DeviceConnectionManager>::builder()
+            .min_idle(Some(0))
+            .max_size(3)
+            .idle_timeout(Some(Duration::from_secs(900)))
+            .error_handler(Box::new(DeviceConnectionErrorHandler {
+                last_error: last_error.clone(),
+            }))
+            .build_unchecked(DeviceConnectionManager { device });
+        return DeviceConnectionPool { inner, last_error };
+    }
+
+    pub fn get(&self) -> Result<PooledConnection<DeviceConnectionManager>, Error> {
+        return match self.inner.get() {
+            Ok(c) => {
+                c.reset_last_ok();
+                Ok(c)
+            }
+            Err(_) => Err(self
+                .last_error
+                .lock()
+                .unwrap()
+                .take()
+                .unwrap_or(Error::Timeout)),
+        };
+    }
+}
+
+impl ManageConnection for DeviceConnectionManager {
+    type Connection = DeviceConnection;
+    type Error = Error;
+
+    fn connect(&self) -> Result<Self::Connection, Self::Error> {
+        return DeviceConnection::new(self.device.clone());
+    }
+
+    fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
+        if !(conn.is_connected()) {
+            return Err(Error::Disconnected);
+        }
+        return Ok(());
+    }
+
+    fn has_broken(&self, conn: &mut Self::Connection) -> bool {
+        if !conn.is_connected() {
+            return true;
+        }
+        return conn.last_ok.lock().unwrap().eq(&false);
+    }
+}
+
+#[derive(Debug)]
+struct DeviceConnectionErrorHandler {
+    last_error: Arc<Mutex<Option<Error>>>,
+}
+
+impl HandleError<Error> for DeviceConnectionErrorHandler {
+    fn handle_error(&self, error: Error) {
+        *self.last_error.lock().unwrap() = Some(error);
+    }
+}
+
+#[derive(Debug)]
+struct DeviceConnectionCustomizer {}
+
+impl Clone for DeviceConnectionPool {
+    fn clone(&self) -> Self {
+        return DeviceConnectionPool {
+            inner: self.inner.clone(),
+            last_error: self.last_error.clone(),
+        };
+    }
+}

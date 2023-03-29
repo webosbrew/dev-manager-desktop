@@ -25,18 +25,31 @@ log = "0.4.17"
 env_logger = "0.10.0"
 rand = "0.8.5"
 vt100 = "0.15.2"
-russh = { version = "0.36.1", features = ["openssl"] }
-russh-keys = { version = "0.24.1", features = ["openssl"] }
-openssl = { version = "0.10.45", features = ["vendored"] }
 tokio = "1.25.0"
 uuid = { version = "1.2.2", features = ["v1"] }
-reqwest = { version = "0.11.14", features = ["json"] }
-async-trait = "0.1.64"
-sha2 = "0.10.6"
 hex = "0.4.3"
 file-mode = "0.1.2"
 posix-errors = "1.2.1"
-dialog = "0.3.0"
+path-slash = "0.2.1"
+httparse = "1.8.0"
+r2d2 = "0.8.10"
+unix_mode = "0.1.3"
+sha256 = "1.1.2"
+curl = "0.4.44"
+
+[dependencies.libssh-rs]
+#version = "0.1.7"
+git = "https://github.com/mariotaku/libssh-rs.git"
+features = ["vendored"]
+
+[dependencies.libssh-rs-sys]
+#version = "0.1.3"
+git = "https://github.com/mariotaku/libssh-rs.git"
+features = ["libz-sys"]
+
+[dependencies.native-dialog]
+version = "0.6.3"
+features = ["windows_dpi_awareness", "windows_visual_styles"]
 
 [features]
 # by default Tauri runs in production mode

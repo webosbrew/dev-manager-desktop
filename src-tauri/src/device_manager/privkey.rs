@@ -20,12 +20,10 @@ impl PrivateKey {
     pub fn name(&self) -> Result<String, Error> {
         return match self {
             PrivateKey::Path { name } => Ok(name.clone()),
-            PrivateKey::Data { data } => {
-                use sha2::{Digest, Sha256};
-                let mut hasher = Sha256::new();
-                hasher.update(data);
-                Ok(format!("webos_{}", &hex::encode(&hasher.finalize())[..10]))
-            }
+            PrivateKey::Data { data } => Ok(format!(
+                "webos_{}",
+                &hex::encode(&sha256::digest(data.as_bytes())[..10])
+            )),
         };
     }
 }

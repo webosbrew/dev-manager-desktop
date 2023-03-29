@@ -1,79 +1,78 @@
-use async_trait::async_trait;
-use russh::{Channel, ChannelMsg, CryptoVec, Sig};
-use russh::client::Msg;
-use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
-use tokio::sync::MutexGuard;
+use std::time::Duration;
 
 use crate::error::Error;
-use crate::session_manager::connection::Connection;
-use crate::session_manager::Proc;
-use crate::session_manager::spawned::Spawned;
+use crate::session_manager::spawned::{SpawnResult, Spawned};
+use crate::session_manager::{Proc, SessionManager};
 
 impl Proc {
-    pub async fn start(&self) -> Result<(), Error> {
-        if let Some(ch) = self.ch.lock().await.as_mut() {
-            ch.exec(true, self.command.as_bytes()).await?;
-            if !Connection::wait_reply(ch).await? {
-                return Err(Error::NegativeReply);
-            }
+    pub fn is_ready(&self) -> bool {
+        let (lock, _cvar) = &*self.ready;
+        return lock.lock().unwrap().clone();
+    }
+
+    pub fn notify_ready(&self) {
+        let (lock, cvar) = &*self.ready;
+        let mut ready = lock.lock().unwrap();
+        *ready = true;
+        cvar.notify_one();
+    }
+
+    pub fn start(&self, sessions: &SessionManager) -> Result<(), Error> {
+        let (lock, cvar) = &*self.ready;
+        let mut ready = lock.lock().unwrap();
+        while !*ready {
+            ready = cvar.wait(ready).unwrap();
         }
+        *self.session.lock().unwrap() = Some(sessions.session(self.device.clone())?);
         return Ok(());
     }
 
-    pub fn msg_seq(&self, seq: Vec<ChannelMsg>) -> Result<(), Error> {
-        return if let Some(sender) = self.sender.lock().unwrap().as_mut() {
-            for msg in seq {
-                sender.send(msg).map_err(|_| Error::Disconnected)?;
-            }
-            return Ok(());
-        } else {
-            log::info!("Failed to send message sequence {:?}: disconnected", seq);
-            Err(Error::Disconnected)
-        };
-    }
-
-    pub fn interrupt(&self) -> Result<(), Error> {
-        return self.msg_seq(vec![
-            ChannelMsg::Eof,
-            ChannelMsg::Signal { signal: Sig::INT },
-        ]);
+    pub fn interrupt(&self) {
+        *self.interrupted.lock().unwrap() = true;
     }
 
     pub fn data(&self, data: &[u8]) -> Result<(), Error> {
-        return if let Some(sender) = self.sender.lock().unwrap().as_mut() {
-            return sender
-                .send(ChannelMsg::Data {
-                    data: CryptoVec::from_slice(data),
-                })
-                .map_err(|_| Error::Disconnected);
-        } else {
-            log::info!("Failed to send data {:?}: disconnected", data);
-            Err(Error::Disconnected)
-        };
+        if let Some(cb) = self.callback.lock().unwrap().as_ref() {
+            cb.rx(0, data);
+            return Ok(());
+        }
+        return Err(Error::Disconnected);
     }
 }
 
-#[async_trait]
 impl Spawned for Proc {
-    async fn lock_channel(&self) -> MutexGuard<'_, Option<Channel<Msg>>> {
-        return self.ch.lock().await;
-    }
-
-    fn tx_ready(&self, sender: UnboundedSender<ChannelMsg>) {
-        *self.sender.lock().unwrap() = Some(sender);
-    }
-
-    fn on_rx(&self, data: CryptoVec, ext: u32) {
-        if let Some(cb) = self.callback.lock().unwrap().as_deref() {
-            cb.rx(ext, data.as_ref());
+    fn wait_close(&self) -> Result<SpawnResult, Error> {
+        let mut guard = self.session.lock().unwrap();
+        if guard.is_none() {
+            return Err(Error::Disconnected);
         }
-    }
-
-    async fn send_msg(&self, ch: &mut Channel<Msg>, msg: ChannelMsg) -> Result<(), Error> {
-        return match msg {
-            ChannelMsg::Signal { signal } => Ok(ch.signal(signal).await?),
-            ChannelMsg::Eof => Ok(ch.eof().await?),
-            _ => unimplemented!(),
-        };
+        let mut session = guard.as_mut().unwrap();
+        let mut channel = session.new_channel()?;
+        channel.open_session()?;
+        channel.request_exec(&self.command)?;
+        let mut buf = [0; 8192];
+        while !channel.is_closed() {
+            if self.interrupted.lock().unwrap().eq(&true) {
+                channel.request_send_signal("TERM")?;
+                channel.close()?;
+                break;
+            }
+            let buf_size =
+                match channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10))) {
+                    Ok(len) => len,
+                    Err(e) => {
+                        log::error!("Proc error {:?}", e);
+                        break;
+                    }
+                };
+            if buf_size > 0 {
+                self.data(&buf[..buf_size])?;
+            }
+        }
+        log::info!("Proc channel closed");
+        session.mark_last_ok();
+        return Ok(SpawnResult::Exit {
+            status: channel.get_exit_status().unwrap_or(0) as u32,
+        });
     }
 }

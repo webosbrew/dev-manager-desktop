@@ -8,6 +8,8 @@ import * as path from "path";
 import {RemoteFileService, ServeInstance} from "./remote-file.service";
 import {PackageManifest} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
+import {LocalFileService} from "./local-file.service";
+import _ from "lodash";
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +18,8 @@ export class AppManagerService {
 
   private packagesSubjects: Map<string, Subject<PackageInfo[] | null>>;
 
-  constructor(private luna: RemoteLunaService, private cmd: RemoteCommandService, private file: RemoteFileService) {
+  constructor(private luna: RemoteLunaService, private cmd: RemoteCommandService, private file: RemoteFileService,
+              private localFile: LocalFileService) {
     this.packagesSubjects = new Map();
   }
 
@@ -60,36 +63,37 @@ export class AppManagerService {
       .then(l => l.find(p => p.id === id) ?? null);
   }
 
-  async installByUri(device: Device, location: string, withHbChannel: boolean): Promise<void> {
-    const ipkPath = await this.tempDownloadIpk(device, location);
-    try {
-      if (withHbChannel) {
-        const sha256 = await this.sha256(device, ipkPath);
-        const serve: ServeInstance = await this.file.serve(device, ipkPath);
-        try {
-          await this.hbChannelInstall(device, new URL(serve.host).toString(), sha256);
-        } finally {
-          await serve.interrupt();
-        }
-      } else {
-        await this.devInstall(device, ipkPath);
+  async installByPath(device: Device, localPath: string, withHbChannel: boolean, progress?: InstallProgressHandler): Promise<void> {
+    if (withHbChannel) {
+      const sha256 = await this.localFile.checksum(localPath, 'sha256');
+      const serve: ServeInstance = await this.file.serveLocal(device, localPath);
+      console.log('Installing', serve.host);
+      try {
+        await this.hbChannelInstall(device, new URL(serve.host).toString(), sha256, progress);
+      } finally {
+        await serve.interrupt();
       }
-      this.load(device).catch(noop);
-    } finally {
-      await this.file.rm(device, ipkPath, false);
+    } else {
+      const ipkPath = await this.tempDownloadIpk(device, localPath);
+      try {
+        await this.devInstall(device, ipkPath);
+      } finally {
+        await this.file.rm(device, ipkPath, false);
+      }
     }
+    this.load(device).catch(noop);
   }
 
-  async installByManifest(device: Device, manifest: PackageManifest, withHbChannel: boolean): Promise<void> {
+  async installByManifest(device: Device, manifest: PackageManifest, withHbChannel: boolean, progress?: InstallProgressHandler): Promise<void> {
     if (withHbChannel) {
-      await this.hbChannelInstall(device, manifest.ipkUrl, manifest.ipkHash?.sha256)
+      await this.hbChannelInstall(device, manifest.ipkUrl, manifest.ipkHash?.sha256, progress)
         .then(() => this.load(device).catch(noop))
         .catch((e) => {
           // Never attempt to do default install, if we are reinstalling hbchannel
           if (manifest.id === 'org.webosbrew.hbchannel') {
             throw e;
           }
-          return this.installByManifest(device, manifest, false);
+          return this.installByManifest(device, manifest, false, progress);
         });
     } else {
       const path = await this.tempDownloadIpk(device, manifest.ipkUrl);
@@ -104,17 +108,7 @@ export class AppManagerService {
       id, subscribe: true,
     });
     await lastValueFrom(luna.asObservable().pipe(
-      map((v: LunaResponse): boolean => {
-        if (v['statusValue'] === 31) {
-          // statusValue = 31 means uninstallation done
-          return true;
-        } else if (v.returnValue === false) {
-          throw new Error(`${v['errorCode']}: ${v['errorText']}`);
-        } else if (v['details']?.reason !== undefined) {
-          throw new Error(`${v['details'].state}: ${v['details'].reason}`);
-        }
-        return false;
-      }),
+      map(v => mapAppinstalldResponse(v, /removed/i)),
       filter(v => v)/* Only pick finish event */,
       mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
       catchError((e) => fromPromise(luna.unsubscribe().then(() => {
@@ -153,16 +147,6 @@ export class AppManagerService {
     return path;
   }
 
-  private async sha256(device: Device, path: string): Promise<string> {
-    return this.cmd.exec(device, `sha256sum ${escapeSingleQuoteString(path)}`, 'utf-8').then(output => {
-      const match = output.match(/^(\w+)\s+/);
-      if (!match) {
-        throw new Error('Unable to generate checksum');
-      }
-      return match[1];
-    });
-  }
-
   private async devInstall(device: Device, path: string): Promise<void> {
     const luna = await this.luna.subscribe(device, 'luna://com.webos.appInstallService/dev/install', {
       id: 'com.ares.defaultName',
@@ -170,18 +154,7 @@ export class AppManagerService {
       subscribe: true,
     });
     await lastValueFrom(luna.asObservable().pipe(
-      map((v: LunaResponse): boolean => {
-        if (v['statusValue'] === 30) {
-          // statusValue = 30 means installation done
-          return true;
-        } else if (v.returnValue === false) {
-          throw new Error(`${v['errorCode']}: ${v['errorText']}`);
-        } else if (v['details']?.errorCode !== undefined) {
-          throw new Error(`${v['details'].errorCode}: ${v['details'].reason}`);
-        }
-        console.debug('install output', v);
-        return false;
-      }),
+      map(v => mapAppinstalldResponse(v, /installed/i)),
       filter(v => v)/* Only pick finish event */,
       mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
       catchError((e) => fromPromise(luna.unsubscribe().then(() => {
@@ -190,7 +163,7 @@ export class AppManagerService {
     );
   }
 
-  private async hbChannelInstall(device: Device, url: string, sha256sum?: string) {
+  private async hbChannelInstall(device: Device, url: string, sha256sum?: string, progress?: InstallProgressHandler) {
     const luna = await this.luna.subscribe(device, 'luna://org.webosbrew.hbchannel.service/install', {
       ipkUrl: url,
       ipkHash: sha256sum,
@@ -207,6 +180,7 @@ export class AppManagerService {
           // We didn't get any positive result, but there was no error either. Treat it as success.
           return true;
         }
+        progress?.(v['progress'], v['statusText']);
         console.debug('install output', v);
         return false;
       }),
@@ -218,4 +192,23 @@ export class AppManagerService {
     );
   }
 
+}
+
+function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp): boolean {
+  const resultValue: string = _.get(v, ['details', 'state']) || '';
+  if (resultValue.match(/FAILED/i)) {
+    let details = v['details'];
+    if (details && details.reason) {
+      throw new Error(`${details.errorCode}: ${details.reason}`);
+    }
+    throw new Error(resultValue);
+  } else if (resultValue.match(/^SUCCESS/i) || resultValue.match(expectResult)) {
+    return true;
+  }
+  console.debug('appinstalld output', v);
+  return false;
+}
+
+export interface InstallProgressHandler {
+  (progress?: number, statusText?: string): void;
 }

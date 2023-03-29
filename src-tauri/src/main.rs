@@ -5,22 +5,28 @@
 
 extern crate core;
 
-use crate::device_manager::DeviceManager;
-use crate::session_manager::SessionManager;
-use crate::spawn_manager::SpawnManager;
-use dialog::DialogBox;
 use tauri::Manager;
 
+use native_dialog::{MessageDialog, MessageType};
+
+use crate::device_manager::DeviceManager;
+use crate::session_manager::SessionManager;
+use crate::shell_manager::ShellManager;
+use crate::spawn_manager::SpawnManager;
+
+mod conn_pool;
 mod device_manager;
 mod error;
 mod event_channel;
 mod plugins;
 mod remote_files;
 mod session_manager;
+mod shell_manager;
 mod spawn_manager;
 
 fn main() {
     env_logger::init();
+    curl::init();
     let result = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             if let Some(wnd) = app.get_window("main") {
@@ -33,19 +39,23 @@ fn main() {
         .plugin(plugins::shell::plugin("remote-shell"))
         .plugin(plugins::file::plugin("remote-file"))
         .plugin(plugins::devmode::plugin("dev-mode"))
+        .plugin(plugins::local_file::plugin("local-file"))
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(DeviceManager::default())
         .manage(SessionManager::default())
         .manage(SpawnManager::default())
+        .manage(ShellManager::default())
         .on_page_load(|wnd, payload| {
             let spawns = wnd.state::<SpawnManager>();
             spawns.clear();
         })
         .run(tauri::generate_context!());
     if let Err(e) = result {
-        dialog::Message::new("Unexpected error occurred")
-            .title("webOS Dev Manager")
-            .show()
+        MessageDialog::new()
+            .set_type(MessageType::Error)
+            .set_title("webOS Dev Manager")
+            .set_text("Unexpected error occurred")
+            .show_alert()
             .expect("Unexpected error occurred while processing unexpected error :(");
     }
 }

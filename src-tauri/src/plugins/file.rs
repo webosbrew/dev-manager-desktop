@@ -1,24 +1,21 @@
 use std::env::temp_dir;
+use std::fs::File;
+use std::io::{Read, Write};
 use std::path::Path;
 
 use tauri::plugin::{Builder, TauriPlugin};
-use tauri::{AppHandle, Runtime, State};
-use tokio::fs;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tauri::{AppHandle, Manager, Runtime};
 use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::remote_files::ls;
-use crate::remote_files::path::escape_path;
 use crate::remote_files::serve;
 use crate::remote_files::FileItem;
 use crate::session_manager::SessionManager;
-use crate::spawn_manager::SpawnManager;
 
 #[tauri::command]
-async fn ls(
-    manager: State<'_, SessionManager>,
+async fn ls<R: Runtime>(
+    app: AppHandle<R>,
     device: Device,
     path: String,
 ) -> Result<Vec<FileItem>, Error> {
@@ -26,75 +23,121 @@ async fn ls(
         return Err(Error::new("Absolute path required"));
     }
     log::info!("ls {}", path);
-    return ls::exec(&manager, &device, &path).await;
+    return tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let session = sessions.session(device)?;
+        let sftp = session.sftp()?;
+        let entries = sftp.read_dir(&path)?;
+        session.mark_last_ok();
+        return Ok(entries
+            .iter()
+            .filter(|entry| entry.name() != Some(".") && entry.name() != Some(".."))
+            .map(|entry| entry.into())
+            .collect());
+    })
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
-async fn read(
-    manager: State<'_, SessionManager>,
+async fn read<R: Runtime>(
+    app: AppHandle<R>,
     device: Device,
     path: String,
 ) -> Result<Vec<u8>, Error> {
-    return manager
-        .exec(device, &format!("cat {}", escape_path(&path)), None)
-        .await;
+    return tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let session = sessions.session(device)?;
+        let sftp = session.sftp()?;
+        let mut file = sftp.open(&path, 0 /*O_RDONLY*/, 0)?;
+        let mut buf = Vec::<u8>::new();
+        file.read_to_end(&mut buf)?;
+        session.mark_last_ok();
+        return Ok(buf);
+    })
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
-async fn write(
-    manager: State<'_, SessionManager>,
+async fn write<R: Runtime>(
+    app: AppHandle<R>,
     device: Device,
     path: String,
     content: Vec<u8>,
 ) -> Result<(), Error> {
-    manager
-        .exec(
-            device,
-            &format!("dd of={}", escape_path(&path)),
-            Some(content.as_slice()),
-        )
-        .await?;
-    return Ok(());
+    return tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let session = sessions.session(device)?;
+        let sftp = session.sftp()?;
+        let mut file = sftp.open(&path, 1 /*O_WRONLY*/, 0o644)?;
+        file.write_all(&content)?;
+        session.mark_last_ok();
+        return Ok(());
+    })
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
-async fn get(
-    manager: State<'_, SessionManager>,
+async fn get<R: Runtime>(
+    app: AppHandle<R>,
     device: Device,
     path: String,
     target: String,
 ) -> Result<(), Error> {
-    let buf = manager
-        .exec(device, &format!("cat {}", escape_path(&path)), None)
-        .await?;
-    let mut file = fs::File::create(&target).await?;
-    file.write_all(&buf).await?;
-    return Ok(());
+    return tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let session = sessions.session(device)?;
+        let sftp = session.sftp()?;
+        let mut sfile = sftp.open(&path, 0, 0)?;
+        let mut file = File::create(target)?;
+        let mut buf = [0; 8192];
+        loop {
+            let u = sfile.read(&mut buf)?;
+            if u == 0 {
+                break;
+            }
+            file.write_all(&buf[u..])?;
+        }
+        session.mark_last_ok();
+        return Ok(());
+    })
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
-async fn put(
-    manager: State<'_, SessionManager>,
+async fn put<R: Runtime>(
+    app: AppHandle<R>,
     device: Device,
     path: String,
     source: String,
 ) -> Result<(), Error> {
-    let mut file = fs::File::open(&source).await?;
-    let mut buf = Vec::<u8>::new();
-    file.read_to_end(&mut buf).await?;
-    manager
-        .exec(
-            device,
-            &format!("dd of={}", escape_path(&path)),
-            Some(buf.as_slice()),
-        )
-        .await?;
-    return Ok(());
+    return tokio::task::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        let session = sessions.session(device)?;
+        let sftp = session.sftp()?;
+        let mut file = File::open(source)?;
+        let mut sfile = sftp.open(&path, 1, 0o644)?;
+        let mut buf = [0; 8192];
+        loop {
+            let u = file.read(&mut buf)?;
+            if u == 0 {
+                break;
+            }
+            sfile.write_all(&buf[u..])?;
+        }
+        session.mark_last_ok();
+        return Ok(());
+    })
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
-async fn get_temp(
-    manager: State<'_, SessionManager>,
+async fn get_temp<R: Runtime>(
+    app: AppHandle<R>,
     device: Device,
     path: String,
 ) -> Result<String, Error> {
@@ -102,25 +145,23 @@ async fn get_temp(
     let extension = source
         .extension()
         .map_or(String::new(), |s| format!(".{}", s.to_string_lossy()));
-    let target = temp_dir().join(format!("webos-dev-tmp-{}{}", Uuid::new_v4(), extension));
-    let buf = manager
-        .exec(device, &format!("cat {}", escape_path(&path)), None)
-        .await?;
-    log::info!("Downloading {:?} to {:?}", &source, &target);
-    let mut file = fs::File::create(target.clone()).await?;
-    file.write_all(&buf).await?;
-    return Ok(String::from(target.to_str().unwrap()));
+    let target = String::from(
+        temp_dir()
+            .join(format!("webos-dev-tmp-{}{}", Uuid::new_v4(), extension))
+            .to_str()
+            .unwrap(),
+    );
+    get(app, device, path, target.clone()).await?;
+    return Ok(target);
 }
 
 #[tauri::command]
 async fn serve<R: Runtime>(
     app: AppHandle<R>,
-    sessions: State<'_, SessionManager>,
-    spawns: State<'_, SpawnManager>,
     device: Device,
     path: String,
 ) -> Result<String, Error> {
-    return serve::exec(app, &sessions, &spawns, device, path).await;
+    return serve::exec(app, device, path).await;
 }
 
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
