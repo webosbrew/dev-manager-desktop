@@ -23,7 +23,7 @@ async fn exec<R: Runtime>(
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         let session = sessions.session(device)?;
-        let mut ch = session.new_channel()?;
+        let ch = session.new_channel()?;
         ch.open_session()?;
         ch.request_exec(&command)?;
         if let Some(stdin) = stdin {

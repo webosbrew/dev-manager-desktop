@@ -1,9 +1,7 @@
+use std::fs;
+
 use curl::easy::Easy;
 use libssh_rs::SshKey;
-use std::ffi::CString;
-use std::fs;
-use std::ptr::{null, null_mut};
-
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 

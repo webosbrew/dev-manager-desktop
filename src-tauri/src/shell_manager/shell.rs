@@ -1,24 +1,12 @@
 use std::collections::HashMap;
-use std::fmt;
 use std::io::Write;
-use std::ops::Deref;
-use std::str::FromStr;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::thread::JoinHandle;
 use std::time::Duration;
 
 use crate::conn_pool::DeviceConnection;
-use async_trait::async_trait;
-use serde::de::Visitor;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use tauri::Runtime;
-use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
-use tokio::sync::{MappedMutexGuard, MutexGuard};
-use uuid::Uuid;
-
 use crate::error::Error;
-use crate::session_manager::spawned::Spawned;
 use crate::shell_manager::{Shell, ShellInfo, ShellMessage, ShellScreen, ShellToken};
 
 pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;

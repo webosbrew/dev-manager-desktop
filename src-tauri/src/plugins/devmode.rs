@@ -1,13 +1,12 @@
 use std::io::Read;
-use std::path::Path;
 
 use curl::easy::Easy;
 use serde::{Deserialize, Serialize};
+use tauri::{AppHandle, Manager, Runtime};
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::regex::Regex;
-use tauri::{AppHandle, Manager, Runtime, State};
 
-use crate::device_manager::{Device, DeviceManager};
+use crate::device_manager::Device;
 use crate::error::Error;
 use crate::session_manager::SessionManager;
 

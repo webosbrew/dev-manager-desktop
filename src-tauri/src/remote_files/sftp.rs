@@ -1,8 +1,8 @@
-use crate::remote_files::FileItem;
+use std::time::UNIX_EPOCH;
+
 use libssh_rs::{FileType, Metadata};
-use path_slash::PathBufExt;
-use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
+
+use crate::remote_files::FileItem;
 
 impl From<&Metadata> for FileItem {
     fn from(stat: &Metadata) -> Self {

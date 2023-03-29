@@ -1,10 +1,8 @@
-use crate::error::Error;
-use async_trait::async_trait;
 use serde;
 use serde::Serialize;
 use serde_repr::Serialize_repr;
-use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
-use tokio::sync::MutexGuard;
+
+use crate::error::Error;
 
 pub(crate) trait Spawned {
     fn wait_close(&self) -> Result<SpawnResult, Error> {

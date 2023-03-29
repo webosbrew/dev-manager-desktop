@@ -1,10 +1,11 @@
-use crate::device_manager::Device;
-use crate::error::Error;
-use crate::shell_manager::{Shell, ShellInfo, ShellManager, ShellMessage, ShellToken};
-use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
+
 use vt100::Parser;
+
+use crate::device_manager::Device;
+use crate::error::Error;
+use crate::shell_manager::{Shell, ShellInfo, ShellManager, ShellToken};
 
 impl ShellManager {
     pub fn open(&self, device: Device, cols: u16, rows: u16, dumb: bool) -> Arc<Shell> {

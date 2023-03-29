@@ -1,9 +1,4 @@
-use async_trait::async_trait;
-use libssh_rs::SshResult;
-use std::ops::{Deref, DerefMut};
 use std::time::Duration;
-use tokio::sync::mpsc::{unbounded_channel, UnboundedSender};
-use tokio::sync::MutexGuard;
 
 use crate::error::Error;
 use crate::session_manager::spawned::{SpawnResult, Spawned};
@@ -56,20 +51,20 @@ impl Spawned for Proc {
         channel.open_session()?;
         channel.request_exec(&self.command)?;
         let mut buf = [0; 8192];
-        let mut buf_size: usize = 0;
         while !channel.is_closed() {
             if self.interrupted.lock().unwrap().eq(&true) {
                 channel.request_send_signal("TERM")?;
                 channel.close()?;
                 break;
             }
-            match channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10))) {
-                Ok(len) => buf_size = len,
-                Err(e) => {
-                    log::error!("Proc error {:?}", e);
-                    break;
-                }
-            }
+            let buf_size =
+                match channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10))) {
+                    Ok(len) => len,
+                    Err(e) => {
+                        log::error!("Proc error {:?}", e);
+                        break;
+                    }
+                };
             if buf_size > 0 {
                 self.data(&buf[..buf_size])?;
             }

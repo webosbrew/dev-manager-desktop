@@ -1,30 +1,19 @@
-use crossbeam_channel::{select, unbounded, Receiver, Sender};
-use std::ffi::OsStr;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter, ErrorKind, Read, Seek, Write};
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
-use std::ops::Deref;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
+use std::io::{Read, Write};
+use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex};
-use std::thread;
 use std::time::Duration;
 
-use dialog::Choice::No;
 use httparse::Status;
 use libssh_rs::Channel;
 use path_slash::PathBufExt;
 use serde::Serialize;
-use tauri::{AppHandle, Manager, Runtime, State};
+use tauri::{AppHandle, Manager, Runtime};
 
-use crate::conn_pool::DeviceConnectionPool;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
-use crate::remote_files::path::escape_path;
-use crate::session_manager::spawned::Spawned;
-use crate::session_manager::{Proc, SessionManager, SpawnedCallback};
-use crate::spawn_manager::SpawnManager;
+use crate::session_manager::SessionManager;
 
 pub(crate) async fn exec<R: Runtime>(
     app: AppHandle<R>,

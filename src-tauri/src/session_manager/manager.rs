@@ -1,13 +1,9 @@
-use std::net::SocketAddr;
-use std::str::FromStr;
 use std::sync::{Arc, Condvar, Mutex};
-use std::time::Duration;
 
 use r2d2::PooledConnection;
-use uuid::Uuid;
 
 use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
-use crate::device_manager::{Device, PrivateKey};
+use crate::device_manager::Device;
 use crate::error::Error;
 use crate::session_manager::{Proc, SessionManager};
 

@@ -1,19 +1,10 @@
-use r2d2::{ManageConnection, PooledConnection};
 use std::collections::HashMap;
 use std::sync::{Arc, Condvar, Mutex};
-use std::time::Instant;
 
-use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool, ManagedDeviceConnection};
-use crate::device_manager::Device;
-use crate::error::Error;
 use serde::Serialize;
-use tauri::{AppHandle, Runtime};
-use tokio::sync::mpsc::UnboundedSender;
-use tokio::sync::Mutex as AsyncMutex;
-use uuid::Uuid;
-use vt100::Parser;
 
-use crate::shell_manager::shell::ShellsMap;
+use crate::conn_pool::{DeviceConnectionPool, ManagedDeviceConnection};
+use crate::device_manager::Device;
 
 mod manager;
 mod proc;
@@ -21,7 +12,6 @@ pub(crate) mod spawned;
 
 #[derive(Default)]
 pub struct SessionManager {
-    lock: AsyncMutex<()>,
     pools: Mutex<HashMap<String, DeviceConnectionPool>>,
 }
 

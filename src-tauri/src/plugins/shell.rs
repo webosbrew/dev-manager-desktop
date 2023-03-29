@@ -3,10 +3,8 @@ use tauri::{AppHandle, Manager, Runtime, State};
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::session_manager::spawned::Spawned;
-use crate::session_manager::{SessionManager, SpawnedCallback};
 use crate::shell_manager::{
-    Shell, ShellCallback, ShellData, ShellInfo, ShellManager, ShellMessage, ShellScreen, ShellToken,
+    ShellCallback, ShellData, ShellInfo, ShellManager, ShellScreen, ShellToken,
 };
 
 #[tauri::command]

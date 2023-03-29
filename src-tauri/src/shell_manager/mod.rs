@@ -1,12 +1,12 @@
-use std::sync::mpsc::{Receiver, Sender};
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::Sender;
 use std::time::Instant;
 
-use crate::device_manager::Device;
 use serde::Serialize;
 use uuid::Uuid;
 use vt100::Parser;
 
+use crate::device_manager::Device;
 use crate::shell_manager::shell::ShellsMap;
 
 pub(crate) mod manager;
