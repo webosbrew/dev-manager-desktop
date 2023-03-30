@@ -1,6 +1,6 @@
 <div class="position-relative w-100 h-100">
   <div class="w-100 h-100 position-absolute d-flex flex-column" [class.opacity-0]="shells.length === 0">
-    <div class="d-flex flex-row overflow-hidden mt-2 w-100 flex-nowrap border-bottom">
+    <div class="d-flex flex-row overflow-hidden pt-2 w-100 flex-nowrap border-bottom bg-panel">
       <ul ngbNav #nav="ngbNav" class="terminal-tabs nav-tabs flex-shrink-1 flex-nowrap border-bottom-0 px-2"
           [animation]="false" [(activeId)]="currentShell">
         <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.token" [destroyOnHide]="false">

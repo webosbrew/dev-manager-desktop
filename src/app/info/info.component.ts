@@ -18,6 +18,7 @@ import {MessageDialogComponent} from "../shared/components/message-dialog/messag
 import {RemoteFileService} from "../core/services/remote-file.service";
 import {open as openPath} from "@tauri-apps/api/shell";
 import {DateTime, Duration} from "luxon";
+import {APP_ID_HBCHANNEL} from "../shared/constants";
 
 @Component({
   selector: 'app-info',
@@ -125,8 +126,8 @@ export class InfoComponent {
 
   private async loadHomebrewInfo(): Promise<void> {
     if (!this.device) return;
-    this.homebrewAppInfo = await this.appManager.info(this.device, 'org.webosbrew.hbchannel');
-    this.homebrewRepoManifest = await this.appsRepo.showApp('org.webosbrew.hbchannel');
+    this.homebrewAppInfo = await this.appManager.info(this.device, APP_ID_HBCHANNEL);
+    this.homebrewRepoManifest = await this.appsRepo.showApp(APP_ID_HBCHANNEL);
     this.homebrewAppConfig = await this.deviceManager.getHbChannelConfig(this.device).catch(() => null);
     if (this.homebrewRepoManifest && this.homebrewAppInfo) {
       this.homebrewRepoHasUpdate = this.homebrewRepoManifest.manifest?.hasUpdate(this.homebrewAppInfo.version) === true;

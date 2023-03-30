@@ -1,7 +1,7 @@
 <ng-container *ngIf="device && history">
   <div class="w-100 h-100 d-flex flex-column overflow-hidden" [class.loading]="!state.items && !state.error"
        *ngIf="files$ | async as state">
-    <div class="manager-toolbar navbar navbar-light bg-panel border-bottom d-flex flex-row flex-nowrap px-2">
+    <div class="manager-toolbar navbar bg-panel border-bottom d-flex flex-row flex-nowrap px-2">
       <div class="btn-group">
         <button class="btn btn-sm btn-outline-primary" (click)="navBack()" [disabled]="!history.canBack">
           <i class="bi bi-chevron-left"></i>

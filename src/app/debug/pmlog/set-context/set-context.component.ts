@@ -1,6 +1,6 @@
 import {Component} from '@angular/core';
 import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {UntypedFormBuilder, UntypedFormGroup} from "@angular/forms";
 import {LOG_LEVELS} from "../control/control.component";
 import {PrefLogLevel} from "../../../core/services/remote-log.service";
 
@@ -10,10 +10,10 @@ import {PrefLogLevel} from "../../../core/services/remote-log.service";
   styleUrls: ['./set-context.component.scss']
 })
 export class SetContextComponent {
-  public formGroup: FormGroup;
+  public formGroup: UntypedFormGroup;
   public logLevels = LOG_LEVELS;
 
-  constructor(public modal: NgbActiveModal, fb: FormBuilder) {
+  constructor(public modal: NgbActiveModal, fb: UntypedFormBuilder) {
     this.formGroup = fb.group({
       context: [''],
       level: ['none'],

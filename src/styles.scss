@@ -1,4 +1,3 @@
-@use 'bootstrap-darkmode/scss/darktheme';
 @use 'bootstrap/scss/bootstrap' as bs;
 @use 'bootstrap-icons/font/bootstrap-icons';
 @use 'xterm/css/xterm.css';
@@ -26,11 +25,5 @@
 }
 
 .bg-panel {
-  background-color: bs.$light;
-}
-
-@media (prefers-color-scheme: dark) {
-  .bg-panel {
-    background-color: bs.$dark !important;
-  }
+  @extend .bg-dark-subtle;
 }

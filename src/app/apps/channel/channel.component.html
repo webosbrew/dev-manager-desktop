@@ -12,7 +12,7 @@
         <ng-container *ngLet="installed && installed[item.id] as pkg">
           <span class="text-secondary" *ngIf="pkg && manifest.hasUpdate(pkg.version)">{{pkg.version}}&rsaquo;</span>
           <span>{{manifest.version}}</span>
-          <div class="d-flex justify-content-end">
+          <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
             <ng-container [ngSwitch]="pkg && manifest.hasUpdate(pkg.version)">
               <button class="btn btn-primary ms-2 text-nowrap" (click)="parent.launchApp(item.id)"
                       *ngSwitchCase="false">
@@ -27,9 +27,9 @@
               </button>
             </ng-container>
             <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
-                 aria-label="Button group with nested dropdown">
-              <button class="btn ms-2 text-nowrap" ngbDropdownToggle>
-                Options <span class="caret"></span>
+                 aria-label="More options">
+              <button class="btn btn-primary" ngbDropdownToggle>
+                <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" ngbDropdownMenu>
                 <li ngbDropdownItem *ngIf="item.manifestBeta" (click)="parent.installBetaPackage(item)">

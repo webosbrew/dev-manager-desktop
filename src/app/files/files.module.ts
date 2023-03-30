@@ -7,7 +7,7 @@ import {FilesComponent} from "./files.component";
 import {AttrsPermissionsPipe} from "./attrs-permissions.pipe";
 import {NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
 import {NgLetModule} from "ng-let";
-import { FilesTableComponent } from './files-table/files-table.component';
+import {FilesTableComponent} from './files-table/files-table.component';
 import {SharedModule} from "../shared/shared.module";
 
 
@@ -17,14 +17,14 @@ import {SharedModule} from "../shared/shared.module";
     AttrsPermissionsPipe,
     FilesTableComponent,
   ],
-    imports: [
-        CommonModule,
-        FilesRoutingModule,
-        NgxFilesizeModule,
-        NgbTooltipModule,
-        NgLetModule,
-        SharedModule,
-    ]
+  imports: [
+    CommonModule,
+    FilesRoutingModule,
+    NgxFilesizeModule,
+    NgbTooltipModule,
+    NgLetModule,
+    SharedModule,
+  ]
 })
 export class FilesModule {
 }

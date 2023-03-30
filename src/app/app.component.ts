@@ -6,7 +6,6 @@ import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {MessageDialogComponent} from './shared/components/message-dialog/message-dialog.component';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {open} from "@tauri-apps/api/shell";
-import {ThemeService} from "ng-bootstrap-darkmode";
 
 @Component({
   selector: 'app-root',
@@ -18,8 +17,7 @@ export class AppComponent {
   constructor(
     private update: UpdateService,
     private modalService: NgbModal,
-    private deviceManager: DeviceManagerService,
-    private themeService: ThemeService
+    private deviceManager: DeviceManagerService
   ) {
     update.getRecentRelease().then(async info => {
       let curVer = new SemVer(PackageInfo.version, true);
@@ -33,7 +31,6 @@ export class AppComponent {
       }
     });
     deviceManager.load();
-    themeService.theme = 'auto';
   }
 
   private async notifyUpdate(info: Release, version: SemVer): Promise<void> {

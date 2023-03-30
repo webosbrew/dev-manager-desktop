@@ -10,6 +10,7 @@ import {PackageManifest} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {LocalFileService} from "./local-file.service";
 import _ from "lodash";
+import {APP_ID_HBCHANNEL} from "../../shared/constants";
 
 @Injectable({
   providedIn: 'root'
@@ -90,7 +91,7 @@ export class AppManagerService {
         .then(() => this.load(device).catch(noop))
         .catch((e) => {
           // Never attempt to do default install, if we are reinstalling hbchannel
-          if (manifest.id === 'org.webosbrew.hbchannel') {
+          if (manifest.id === APP_ID_HBCHANNEL) {
             throw e;
           }
           return this.installByManifest(device, manifest, false, progress);

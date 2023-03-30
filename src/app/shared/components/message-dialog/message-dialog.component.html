@@ -11,8 +11,9 @@
 </div>
 <div class="modal-footer">
   <button type="button" class="btn btn-secondary me-auto" (click)="modal.close(null)"
-          *ngIf="alternative">{{alternative}}</button>
-  <button type="button" class="btn btn-secondary" (click)="modal.close(false)" *ngIf="negative">{{negative}}</button>
-  <button type="button" class="btn" (click)="modal.close(true)" autofocus *ngIf="positive"
-          [ngClass]="['btn-' + positiveStyle]">{{positive}}</button>
+          [autofocus]="autofocus === 'alternative'" *ngIf="alternative">{{alternative}}</button>
+  <button type="button" class="btn btn-secondary" (click)="modal.close(false)"
+          [autofocus]="autofocus === 'negative'" *ngIf="negative">{{negative}}</button>
+  <button type="button" class="btn" (click)="modal.close(true)" [autofocus]="autofocus === 'positive'"
+          *ngIf="positive" [ngClass]="['btn-' + positiveStyle]">{{positive}}</button>
 </div>

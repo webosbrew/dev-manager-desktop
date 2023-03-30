@@ -1,5 +1,5 @@
 import {Component} from '@angular/core';
-import {AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validators} from '@angular/forms';
 import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {DeviceManagerService} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
@@ -16,13 +16,13 @@ import {fromPromise} from "rxjs/internal/observable/innerFrom";
 })
 export class AddDeviceComponent {
 
-  formGroup: FormGroup;
+  formGroup: UntypedFormGroup;
 
   constructor(
     public modal: NgbActiveModal,
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
-    fb: FormBuilder,
+    fb: UntypedFormBuilder,
   ) {
     this.formGroup = fb.group({
       name: ['tv', Validators.pattern(/^[_a-zA-Z][a-zA-Z0-9#_-]*/)],
