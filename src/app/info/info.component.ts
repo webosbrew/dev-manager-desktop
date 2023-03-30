@@ -114,7 +114,7 @@ export class InfoComponent {
       if (devModeInfo.remaining) {
         const expireDate = DateTime.now().plus(Duration.fromISOTime(devModeInfo.remaining));
         this.devModeRemaining = timer(0, 1000).pipe(map(() => expireDate
-          .diffNow('seconds').toFormat('hh:mm:ss')));
+          .diffNow('seconds').toFormat('hh:mm')));
       } else {
         this.devModeRemaining = of("--:--");
       }
@@ -139,8 +139,13 @@ export class InfoComponent {
     const item = this.homebrewRepoManifest;
     if (!item) return;
     const progress = ProgressDialogComponent.open(this.modalService);
+    const component = progress.componentInstance as ProgressDialogComponent;
     try {
-      await this.appManager.installByManifest(this.device, item.manifest!, this.homebrewAppInfo !== null);
+      await this.appManager.installByManifest(this.device, item.manifest!, this.homebrewAppInfo !== null,
+        (progress, statusText) => {
+          component.progress = progress;
+          component.message = statusText;
+        });
     } catch (e) {
       // Ignore
     } finally {

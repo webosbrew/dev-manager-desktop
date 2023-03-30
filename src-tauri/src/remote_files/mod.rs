@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-pub(crate) mod ls;
 pub(crate) mod path;
 pub(crate) mod serve;
+mod sftp;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct FileItem {

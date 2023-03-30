@@ -6,6 +6,7 @@ import {AddDeviceComponent} from '../add-device/add-device.component';
 import {DeviceManagerService} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove-device.component";
+import packageInfo from '../../../package.json';
 
 @Component({
   selector: 'app-home',
@@ -16,6 +17,7 @@ export class HomeComponent {
 
   selectedDevice?: Device;
   activeItem: string = 'apps';
+  appVersion: string;
 
   constructor(
     public deviceManager: DeviceManagerService,
@@ -25,6 +27,7 @@ export class HomeComponent {
     deviceManager.devices$.subscribe((devices) => {
       this.selectedDevice = devices.find((device) => device.default) || devices[0];
     });
+    this.appVersion = packageInfo.version;
   }
 
   async removeDevice(device: Device): Promise<void> {

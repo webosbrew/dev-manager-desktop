@@ -1,79 +1,79 @@
 <div class="container-fluid">
   <div class="row">
-    <nav class="col-3 col-xl-2 d-none d-md-block bg-panel sidebar border-right">
-      <div class="sidebar-sticky">
-        <ng-container *ngIf="(deviceManager.devices$ | async) as devices">
-          <select class="form-select" (change)="markDefault(devices[deviceSelect.selectedIndex])"
-                  [(ngModel)]="selectedDevice" *ngIf="devices.length > 0; else noDevice" #deviceSelect>
-            <option *ngFor="let device of devices" [selected]="device.default"
-                    [ngValue]="device">
-              {{device.name}}
-            </option>
+    <nav class="col-3 col-xl-2 d-flex flex-column bg-panel">
+      <ng-container *ngIf="(deviceManager.devices$ | async) as devices">
+        <select class="form-select mt-2" (change)="markDefault(devices[deviceSelect.selectedIndex])"
+                [(ngModel)]="selectedDevice" *ngIf="devices.length > 0; else noDevice" #deviceSelect>
+          <option *ngFor="let device of devices" [selected]="device.default"
+                  [ngValue]="device">
+            {{device.name}}
+          </option>
+        </select>
+        <ng-template #noDevice>
+          <select class="form-select mt-2" disabled>
+            <option>No device</option>
           </select>
-          <ng-template #noDevice>
-            <select class="form-select" disabled>
-              <option>No device</option>
-            </select>
-          </ng-template>
-        </ng-container>
+        </ng-template>
+      </ng-container>
 
-        <ul class="nav nav-pills flex-column mt-2">
-          <li class="nav-item">
-            <a class="nav-link" routerLink="apps" routerLinkActive="active">
-              <i class="bi bi-tv-fill me-1"></i>
-              Apps
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="files" routerLinkActive="active">
-              <i class="bi bi-folder-fill me-1"></i>
-              Files
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="terminal" routerLinkActive="active">
-              <i class="bi bi-terminal-fill me-1"></i>
-              Terminal
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="info" routerLinkActive="active">
-              <i class="bi bi-info-circle-fill me-1"></i>
-              Info
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" routerLink="debug" routerLinkActive="active">
-              <i class="bi bi-bug-fill me-1"></i>
-              Debug
-            </a>
-          </li>
-        </ul>
+      <ul class="nav nav-pills flex-column mt-2 mb-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="apps" routerLinkActive="active">
+            <i class="bi bi-tv-fill me-1"></i>
+            Apps
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="files" routerLinkActive="active">
+            <i class="bi bi-folder-fill me-1"></i>
+            Files
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="terminal" routerLinkActive="active">
+            <i class="bi bi-terminal-fill me-1"></i>
+            Terminal
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="info" routerLinkActive="active">
+            <i class="bi bi-info-circle-fill me-1"></i>
+            Info
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="debug" routerLinkActive="active">
+            <i class="bi bi-bug-fill me-1"></i>
+            Debug
+          </a>
+        </li>
+      </ul>
 
-        <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-          <span>More</span>
-        </h6>
-        <ul class="nav flex-column mb-2">
-          <li class="nav-item">
-            <a class="nav-link" (click)="openSetupDevice()">
-              <i class="bi bi-plus-lg me-1"></i>
-              Add Device
-            </a>
-          </li>
-          <li class="nav-item" *ngIf="selectedDevice">
-            <a class="nav-link text-danger" (click)="removeDevice(selectedDevice)">
-              <i class="bi bi-trash me-1"></i>
-              Remove Device
-            </a>
-          </li>
-          <!-- <li class="nav-item">
-            <a class="nav-link" href="#">
-              <i class="bi bi-gear-fill me-1"></i>
-              Settings
-            </a>
-          </li> -->
-        </ul>
-      </div>
+      <h6 class="d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+        <span>More</span>
+      </h6>
+      <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+          <a class="nav-link" (click)="openSetupDevice()">
+            <i class="bi bi-plus-lg me-1"></i>
+            Add Device
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="selectedDevice">
+          <a class="nav-link text-danger" (click)="removeDevice(selectedDevice)">
+            <i class="bi bi-trash me-1"></i>
+            Remove Device
+          </a>
+        </li>
+        <!-- <li class="nav-item">
+          <a class="nav-link" href="#">
+            <i class="bi bi-gear-fill me-1"></i>
+            Settings
+          </a>
+        </li> -->
+      </ul>
+      <hr>
+      <small class="text-secondary mb-3">Version: {{appVersion}}</small>
     </nav>
 
     <main role="main" class="col-9 col-xl-10 ms-sm-auto p-0">
