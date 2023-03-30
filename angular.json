@@ -46,7 +46,13 @@
             "allowedCommonJsDependencies": [
               "rxjs",
               "semver",
-              "buffer"
+              "buffer",
+              "path",
+              "lodash",
+              "xterm",
+              "xterm-addon-fit",
+              "filesize",
+              "find-matching-bracket"
             ]
           },
           "configurations": {
