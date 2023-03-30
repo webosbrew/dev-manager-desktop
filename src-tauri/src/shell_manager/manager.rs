@@ -1,24 +1,12 @@
-use std::sync::{Arc, Mutex};
-use std::time::Instant;
-
-use vt100::Parser;
+use std::sync::Arc;
 
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::shell_manager::{Shell, ShellInfo, ShellManager, ShellToken};
 
 impl ShellManager {
-    pub fn open(&self, device: Device, cols: u16, rows: u16, dumb: bool) -> Arc<Shell> {
-        let shell = Arc::new(Shell {
-            token: ShellToken::new(),
-            created_at: Instant::now(),
-            device,
-            has_pty: !dumb,
-            sender: Mutex::default(),
-            callback: Mutex::new(None),
-            parser: Mutex::new(Parser::new(rows, cols, 1000)),
-            shells: self.shells.clone(),
-        });
+    pub fn open(&self, device: Device, rows: u16, cols: u16, dumb: bool) -> Arc<Shell> {
+        let shell = Arc::new(Shell::new(device, !dumb, rows, cols, self.shells.clone()));
         self.shells
             .lock()
             .unwrap()

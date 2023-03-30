@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc::Sender;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use serde::Serialize;
@@ -64,6 +64,6 @@ pub struct ShellScreen {
 
 pub(crate) enum ShellMessage {
     Data(Vec<u8>),
-    Resize { cols: u16, rows: u16 },
+    Resize { rows: u16, cols: u16 },
     Close,
 }

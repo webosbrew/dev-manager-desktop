@@ -16,7 +16,7 @@ fn open<R: Runtime>(
     rows: u16,
     dumb: Option<bool>,
 ) -> Result<ShellInfo, Error> {
-    let shell = manager.open(device, cols, rows, dumb.unwrap_or(false));
+    let shell = manager.open(device, rows, cols, dumb.unwrap_or(false));
     *shell.callback.lock().unwrap() = Some(Box::new(PluginShellCb::<R> {
         token: shell.token.clone(),
         app: app.clone(),
@@ -50,7 +50,7 @@ async fn resize(
     cols: u16,
 ) -> Result<(), Error> {
     let shell = manager.find(&token).ok_or(Error::NotFound)?;
-    return shell.resize(cols, rows);
+    return shell.resize(rows, cols);
 }
 
 #[tauri::command]

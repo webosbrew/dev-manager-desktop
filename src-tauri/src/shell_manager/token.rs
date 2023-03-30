@@ -1,4 +1,5 @@
 use std::fmt;
+use std::fmt::{Display, Formatter, Write};
 use std::str::FromStr;
 
 use serde::de::Visitor;
@@ -45,5 +46,11 @@ impl<'de> Visitor<'de> for ShellTokenVisitor {
         E: std::error::Error,
     {
         return Ok(ShellToken(Uuid::from_str(value).unwrap()));
+    }
+}
+
+impl Display for ShellToken {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        return f.write_str(&self.0.to_string());
     }
 }

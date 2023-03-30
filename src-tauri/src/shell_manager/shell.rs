@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 use std::io::Write;
 use std::sync::mpsc::channel;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
-use std::time::Duration;
+use std::time::{Duration, Instant};
+use vt100::Parser;
 
 use crate::conn_pool::DeviceConnection;
+use crate::device_manager::Device;
 use crate::error::Error;
 use crate::shell_manager::{Shell, ShellInfo, ShellMessage, ShellScreen, ShellToken};
 
@@ -16,12 +18,18 @@ impl Shell {
         return self.queue_message(ShellMessage::Data(Vec::from(data)));
     }
 
-    pub fn resize(&self, cols: u16, rows: u16) -> Result<(), Error> {
+    pub fn resize(&self, rows: u16, cols: u16) -> Result<(), Error> {
         if !self.has_pty {
             return Err(Error::Unsupported);
         }
         self.parser.lock().unwrap().set_size(rows, cols);
-        return self.queue_message(ShellMessage::Resize { cols, rows });
+        log::info!(
+            "Shell {:?} resized. rows = {}, cols = {}",
+            self.token,
+            rows,
+            cols
+        );
+        return self.queue_message(ShellMessage::Resize { rows, cols });
     }
 
     pub fn screen(&self, cols: u16) -> Result<ShellScreen, Error> {
@@ -69,6 +77,27 @@ impl Shell {
         };
     }
 
+    pub(crate) fn new(
+        device: Device,
+        has_pty: bool,
+        rows: u16,
+        cols: u16,
+        shells: Arc<Mutex<ShellsMap>>,
+    ) -> Self {
+        let shell = Self {
+            token: ShellToken::new(),
+            created_at: Instant::now(),
+            device,
+            has_pty,
+            sender: Mutex::default(),
+            callback: Mutex::new(None),
+            parser: Mutex::new(Parser::new(rows, cols, 1000)),
+            shells,
+        };
+        log::info!("Create shell {}: rows={}, cols={}", shell.token, rows, cols);
+        return shell;
+    }
+
     fn process(&self, data: &[u8]) -> bool {
         if !self.has_pty {
             return false;
@@ -104,7 +133,7 @@ impl Shell {
         let channel = connection.new_channel()?;
         channel.open_session()?;
         let (rows, cols) = self.parser.lock().unwrap().screen().size();
-        channel.request_pty("xterm", rows as u32, cols as u32)?;
+        channel.request_pty("xterm", cols as u32, rows as u32)?;
         channel.request_shell()?;
         let mut buf = [0; 8192];
         while !channel.is_closed() {
@@ -113,7 +142,7 @@ impl Shell {
                     ShellMessage::Data(d) => {
                         channel.stdin().write(&d)?;
                     }
-                    ShellMessage::Resize { cols, rows } => {
+                    ShellMessage::Resize { rows, cols } => {
                         channel.change_pty_size(cols as u32, rows as u32)?;
                     }
                     ShellMessage::Close => {
