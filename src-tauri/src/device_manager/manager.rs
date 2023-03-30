@@ -36,7 +36,7 @@ impl DeviceManager {
         let mut device = device.clone();
         if let Some(key) = &device.private_key {
             if let PrivateKey::Data { data } = key {
-                let name = key.name()?;
+                let name = key.name(device.valid_passphrase())?;
                 let key_path = ensure_ssh_dir()?.join(&name);
                 let mut file = File::create(key_path).await?;
                 file.write(data.as_bytes()).await?;
@@ -106,7 +106,11 @@ impl DeviceManager {
         let ssh_key_path = fs::canonicalize(ssh_dir.join(name))?;
         return match SshKey::from_privkey_file(ssh_key_path.to_str().unwrap(), passphrase) {
             Ok(_) => Ok(()),
-            _ => Err(Error::BadPassphrase),
+            _ => Err(if passphrase.is_none() {
+                Error::PassphraseRequired
+            } else {
+                Error::BadPassphrase
+            }),
         };
     }
 }

@@ -1,3 +1,4 @@
+use libssh_rs::{PublicKeyHashType, SshKey};
 use std::io::Read;
 
 use crate::device_manager::io::ssh_dir;
@@ -17,12 +18,12 @@ impl PrivateKey {
         };
     }
 
-    pub fn name(&self) -> Result<String, Error> {
+    pub fn name(&self, passphrase: Option<String>) -> Result<String, Error> {
         return match self {
             PrivateKey::Path { name } => Ok(name.clone()),
-            PrivateKey::Data { data } => Ok(format!(
-                "webos_{}",
-                &hex::encode(&sha256::digest(data.as_bytes())[..10])
+            PrivateKey::Data { data } => Ok(String::from(
+                &SshKey::from_privkey_base64(data, passphrase.as_deref())?
+                    .get_public_key_hash_hexa(PublicKeyHashType::Sha256)?[..10],
             )),
         };
     }

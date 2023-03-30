@@ -85,6 +85,7 @@ async fn valid_token<R: Runtime>(
         let mut ch = sftp.open("/var/luna/preferences/devmode_enabled", 0, 0)?;
         let mut data = Vec::<u8>::new();
         ch.read_to_end(&mut data)?;
+        session.mark_last_ok();
         return Ok::<Vec<u8>, Error>(data);
     })
     .await
