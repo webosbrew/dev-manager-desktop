@@ -18,6 +18,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         node-version: [ 16.x, 18.x ]
 

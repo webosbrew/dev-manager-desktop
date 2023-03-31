@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [ windows-latest, ubuntu-20.04, macos-latest ]
 
