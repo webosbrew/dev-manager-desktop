@@ -62,7 +62,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           rustup target add aarch64-apple-darwin
-          npm run build -- --target universal-apple-darwin
+          npm run build -- --features=vendored-openssl --target universal-apple-darwin
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
