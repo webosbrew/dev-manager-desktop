@@ -22,8 +22,10 @@ impl PrivateKey {
         return match self {
             PrivateKey::Path { name } => Ok(name.clone()),
             PrivateKey::Data { data } => Ok(String::from(
-                &SshKey::from_privkey_base64(data, passphrase.as_deref())?
-                    .get_public_key_hash_hexa(PublicKeyHashType::Sha256)?[..10],
+                &hex::encode(
+                    SshKey::from_privkey_base64(data, passphrase.as_deref())?
+                        .get_public_key_hash(PublicKeyHashType::Sha256)?,
+                )[..10],
             )),
         };
     }

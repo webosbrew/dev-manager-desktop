@@ -10,7 +10,7 @@ import {Device} from "../../types";
   styleUrls: ['./wizard.component.scss']
 })
 export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {
-  connectionMode: DeviceConnectionMode = DeviceConnectionMode.Rooted;
+  connectionMode: DeviceConnectionMode = DeviceConnectionMode.DevMode;
   activateId: string = 'mode-select';
 
   @ViewChild('nav', {static: true})

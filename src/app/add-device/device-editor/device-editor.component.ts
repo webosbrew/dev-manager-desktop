@@ -7,6 +7,11 @@ import {KeyserverHintComponent} from '../keyserver-hint/keyserver-hint.component
 import {NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../../types";
 import {Observable, of} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
+import {open as showOpenDialog} from '@tauri-apps/api/dialog';
+import {homeDir} from '@tauri-apps/api/path';
+import {path} from "@tauri-apps/api";
+import {BackendError} from "../../core/services/backend-client";
+import {KeyPassphrasePromptComponent} from "./key-passphrase-prompt/key-passphrase-prompt.component";
 
 @Component({
   selector: 'app-device-editor',
@@ -71,7 +76,7 @@ export class DeviceEditorComponent implements OnInit {
         type: new FormControl<NewDeviceAuthentication>(this.auth ?? NewDeviceAuthentication.LocalKey, {
           nonNullable: true
         }),
-        value: new FormControl<string | SetupAuthInfoLocalKey['value'] | null>(''),
+        value: new FormControl<string | SetupAuthInfoLocalKey['value'] | null>(null),
       }, {
         asyncValidators: (c) => this.validateAuthInfo(c.value),
       }),
@@ -82,6 +87,12 @@ export class DeviceEditorComponent implements OnInit {
     if (this.port) {
       this.formGroup.controls.port.disable();
     }
+    if (this.auth) {
+      this.formGroup.controls.sshAuth.controls.type.disable();
+    }
+    this.formGroup.controls.sshAuth.controls.type.valueChanges.subscribe((type) => {
+      this.formGroup.controls.sshAuth.controls.value.reset(null);
+    });
   }
 
   async submit(): Promise<NewDevice> {
@@ -172,7 +183,7 @@ export class DeviceEditorComponent implements OnInit {
         return {
           ...base,
           privateKey: {
-            openSsh: value.sshAuth.value.name,
+            openSsh: value.sshAuth.value.path,
           },
           passphrase: value.sshAuth.value.passphrase
         };
@@ -192,29 +203,55 @@ export class DeviceEditorComponent implements OnInit {
       .then(device => device ? {nameExists: true} : null));
   }
 
-  private validateAuthInfo(auth: SetupAuthInfoUnion): Observable<null | ValidationErrors> {
+  private async validateAuthInfo(auth: SetupAuthInfoUnion): Promise<null | ValidationErrors> {
     switch (auth.type) {
       case NewDeviceAuthentication.Password:
-        return of(auth.value ? null : {PasswordRequired: true});
+        return auth.value ? null : {PasswordRequired: true};
       case NewDeviceAuthentication.LocalKey:
         if (!auth.value) {
-          return of({PrivKeyRequired: true});
+          return {PrivKeyRequired: true};
         }
-        return fromPromise(this.deviceManager.verifyLocalPrivateKey(auth.value.name, auth.value.passphrase)
+        return this.deviceManager.verifyLocalPrivateKey(auth.value.path, auth.value.passphrase)
           .then(() => null).catch(e => {
-            switch (e.reason) {
-              case 'PassphraseRequired':
-              case 'BadPassphrase':
-              case 'UnsupportedKey':
-              case 'IO':
-                return {[e.reason]: true};
+            if (BackendError.isCompatibleBody(e)) {
+              return {[e.reason]: true};
             }
-            return null;
-          }));
+            console.error(e);
+            throw e;
+          });
       case NewDeviceAuthentication.DevKey:
-        return of(auth.value ? null : {PassphraseRequired: true});
+        return auth.value ? null : {PassphraseRequired: true};
 
     }
+  }
+
+  async chooseSshPrivKey(): Promise<void> {
+    const sshDir = await path.join(await homeDir(), '.ssh');
+    const file = await showOpenDialog({
+      defaultPath: sshDir,
+    });
+    if (typeof (file) !== 'string' || !file) {
+      return;
+    }
+    let passphrase: string | undefined = undefined;
+    try {
+      await this.deviceManager.verifyLocalPrivateKey(file);
+    } catch (e) {
+      console.log(e);
+      if (BackendError.isCompatibleBody(e)) {
+        if (e.reason === 'PassphraseRequired') {
+          passphrase = await KeyPassphrasePromptComponent.prompt(this.modalService, file);
+        } else {
+          MessageDialogComponent.open(this.modalService, {
+            message: 'Failed to open private key',
+            positive: 'OK'
+          });
+        }
+      }
+    }
+    this.formGroup.controls.sshAuth.controls.value.setValue({
+      path: file, passphrase
+    });
   }
 }
 
@@ -249,8 +286,8 @@ export interface SetupAuthInfoPassword extends SetupAuthInfoBase {
 export interface SetupAuthInfoLocalKey extends SetupAuthInfoBase {
   type: NewDeviceAuthentication.LocalKey;
   value: {
-    name: string;
-    passphrase: string;
+    path: string;
+    passphrase?: string;
   };
 }
 

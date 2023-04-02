@@ -10,6 +10,8 @@ import {DevmodeSetupComponent} from './wizard/devmode-setup/devmode-setup.compon
 import {StepHeaderComponent} from './wizard/devmode-setup/step-header/step-header.component';
 import {AddDeviceComponent} from "./wizard/add-device/add-device.component";
 import {DevmodeComponent} from './wizard/add-device/devmode/devmode.component';
+import { SshAuthValueDirective } from './device-editor/ssh-auth-value.directive';
+import { KeyPassphrasePromptComponent } from './device-editor/key-passphrase-prompt/key-passphrase-prompt.component';
 
 
 @NgModule({
@@ -21,6 +23,8 @@ import {DevmodeComponent} from './wizard/add-device/devmode/devmode.component';
     DevmodeSetupComponent,
     StepHeaderComponent,
     DevmodeComponent,
+    SshAuthValueDirective,
+    KeyPassphrasePromptComponent,
   ],
   imports: [
     CommonModule,

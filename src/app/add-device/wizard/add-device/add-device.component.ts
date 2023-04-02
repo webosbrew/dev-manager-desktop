@@ -39,7 +39,6 @@ export class AddDeviceComponent implements OnInit {
       case DeviceConnectionMode.Rooted: {
         this.username = 'root';
         this.port = 22;
-        this.auth = NewDeviceAuthentication.LocalKey;
         break;
       }
     }
@@ -49,8 +48,7 @@ export class AddDeviceComponent implements OnInit {
     const progress = ProgressDialogComponent.open(this.modals);
     try {
       const newDevice = await this.deviceEditor.submit();
-      // await this.deviceManager.addDevice(newDevice);
-      this.deviceAdded.emit(newDevice as Device);
+      this.deviceAdded.emit(await this.deviceManager.addDevice(newDevice));
     } finally {
       progress.close();
     }

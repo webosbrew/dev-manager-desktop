@@ -2,7 +2,7 @@
   <div class="row">
     <div class="col-12">
       <label for="deviceAddress">Device Name</label>
-      <input type="text" class="form-control" id="deviceName" formControlName="name" required>
+      <input type="text" class="form-control" id="deviceName" formControlName="name" autocomplete="off" required>
       <ng-container *ngIf="formGroup.controls.name.errors as errors">
         <div class="invalid-feedback" *ngIf="errors['nameExists']">
           Device with this name already exists
@@ -13,13 +13,13 @@
       <label>Address</label>
       <div class="input-group address-input">
         <input type="text" class="form-control username" id="sshUsername" formControlName="sshUsername"
-               placeholder="username">
+               autocomplete="off" placeholder="username">
         <span class="input-group-text">@</span>
         <input type="text" class="form-control flex-fill" id="deviceAddress" formControlName="address"
-               placeholder="address">
+               autocomplete="off" placeholder="address">
         <span class="input-group-text">:</span>
-        <input type="number" class="form-control port" id="devicePort" formControlName="port" placeholder="port"
-               step="1" min="0" max="65535" maxlength="5">
+        <input type="number" class="form-control port" id="devicePort" formControlName="port" step="1" min="0"
+               max="65535" maxlength="5" autocomplete="off" placeholder="port">
       </div>
     </div>
     <div class="col-12">
@@ -31,7 +31,12 @@
           <option value="password">Password</option>
           <option value="devKey" [hidden]="hideDevModeAuth" [disabled]="hideDevModeAuth">Dev Mode</option>
         </select>
-        <input type="text" class="form-control" id="authValue" formControlName="value" required>
+        <input type="text" class="form-control" id="authValue" formControlName="value"
+               [appSshAuthValue]="formGroup.value.sshAuth?.type" autocomplete="off" required>
+        <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()"
+                *ngIf="formGroup.value.sshAuth?.type === 'localKey'">
+          Choose...
+        </button>
       </div>
 
       <ng-container *ngIf="formGroup.errors as errors">
