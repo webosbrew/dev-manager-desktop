@@ -40,7 +40,6 @@ fn main() {
         .plugin(plugins::file::plugin("remote-file"))
         .plugin(plugins::devmode::plugin("dev-mode"))
         .plugin(plugins::local_file::plugin("local-file"))
-        .plugin(tauri_plugin_window_state::Builder::default().build())
         .manage(DeviceManager::default())
         .manage(SessionManager::default())
         .manage(SpawnManager::default())
