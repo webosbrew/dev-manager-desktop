@@ -3,7 +3,6 @@ import {NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {AddDeviceComponent} from './add-device/add-device.component';
 import {ConnHintComponent} from './add-device/conn-hint/conn-hint.component';
 import {KeyserverHintComponent} from './add-device/keyserver-hint/keyserver-hint.component';
 import {AppRoutingModule} from './app-routing.module';
@@ -15,12 +14,12 @@ import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {NgbAccordionModule, NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
 import {RemoveDeviceComponent} from './remove-device/remove-device.component';
+import {AddDeviceModule} from "./add-device/add-device.module";
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    AddDeviceComponent,
     KeyserverHintComponent,
     ConnHintComponent,
     RenewScriptComponent,
@@ -37,7 +36,8 @@ import {RemoveDeviceComponent} from './remove-device/remove-device.component';
     ReactiveFormsModule,
     AppRoutingModule,
     NgbNavModule,
-    NgbAccordionModule
+    NgbAccordionModule,
+    AddDeviceModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

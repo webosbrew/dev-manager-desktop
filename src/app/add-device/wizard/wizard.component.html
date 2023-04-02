@@ -1,0 +1,27 @@
+<ul ngbNav #nav="ngbNav" class="nav-pills d-none" orientation="horizontal" [activeId]="activateId">
+  <li ngbNavItem="mode-select">
+    <a ngbNavLink>Connection Mode</a>
+    <ng-template ngbNavContent>
+      <app-wizard-mode-select [(mode)]="connectionMode" (proceed)="finishConnectionModeSelection()">
+      </app-wizard-mode-select>
+    </ng-template>
+  </li>
+  <li ngbNavItem="devmode-setup" *ngIf="connectionMode === 'devMode'">
+    <a ngbNavLink>Setup Developer Mode</a>
+    <ng-template ngbNavContent>
+      <app-wizard-devmode-setup (proceed)="editDevice()"></app-wizard-devmode-setup>
+    </ng-template>
+  </li>
+  <li ngbNavItem="device-info">
+    <a ngbNavLink>Setup Device</a>
+    <ng-template ngbNavContent>
+      <app-wizard-add-device [mode]="connectionMode"></app-wizard-add-device>
+    </ng-template>
+  </li>
+</ul>
+<div class="modal-header">
+  <h4 class="modal-title">{{navTitle}}</h4>
+  <button class="btn btn-close me-1"></button>
+</div>
+<div class="modal-body" [ngbNavOutlet]="nav">
+</div>

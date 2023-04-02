@@ -1,0 +1,8 @@
+<div class="card-header d-flex align-items-baseline">
+  <h5 class="card-title my-0 py-0">{{title}}</h5>
+  <div class="ms-auto border rounded px-2 py-1">
+    <input [id]="id + '-input'" type="checkbox" class="form-check-input" [(ngModel)]="done"
+           [ngModelOptions]="{standalone:true}">
+    <label [for]="id + '-input'" class="form-check-label ps-2">Done</label>
+  </div>
+</div>

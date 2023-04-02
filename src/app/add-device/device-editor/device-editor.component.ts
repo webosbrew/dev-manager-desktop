@@ -1,37 +1,45 @@
-import {Component} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validators} from '@angular/forms';
-import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {DeviceManagerService} from '../core/services';
-import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
-import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
-import {KeyserverHintComponent} from './keyserver-hint/keyserver-hint.component';
-import {Device, NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../types";
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {DeviceManagerService} from '../../core/services';
+import {MessageDialogComponent} from '../../shared/components/message-dialog/message-dialog.component';
+import {KeyserverHintComponent} from '../keyserver-hint/keyserver-hint.component';
+import {NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../../types";
 import {Observable, of} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 
 @Component({
-  selector: 'app-info',
-  templateUrl: './add-device.component.html',
-  styleUrls: ['./add-device.component.scss']
+  selector: 'app-device-editor',
+  templateUrl: './device-editor.component.html',
+  styleUrls: ['./device-editor.component.scss']
 })
-export class AddDeviceComponent {
+export class DeviceEditorComponent implements OnInit {
 
-  formGroup: UntypedFormGroup;
+  formGroup!: UntypedFormGroup;
+
+  @Input()
+  port?: number;
+  @Input()
+  username?: string;
+  @Input()
+  auth?: NewDeviceAuthentication;
 
   constructor(
-    public modal: NgbActiveModal,
     private modalService: NgbModal,
     private deviceManager: DeviceManagerService,
-    fb: UntypedFormBuilder,
+    private fb: UntypedFormBuilder,
   ) {
-    this.formGroup = fb.group({
+  }
+
+  ngOnInit(): void {
+    this.formGroup = this.fb.group({
       name: ['tv', Validators.pattern(/^[_a-zA-Z][a-zA-Z0-9#_-]*/)],
       address: ['', Validators.pattern(/^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/)],
-      port: [9922],
+      port: [this.port ?? 9922, [Validators.min(0), Validators.max(65535)]],
       description: [undefined],
       // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
-      sshUsername: ['prisoner', Validators.pattern(/^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$/)],
-      sshAuth: ['devKey'],
+      sshUsername: [this.username ?? 'prisoner', Validators.pattern(/^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$/)],
+      sshAuth: [this.auth ?? 'devKey'],
       sshPassword: [''],
       sshPrivateKey: ['', [], [(c: AbstractControl) => this.validatePrivateKeyName(c)]],
       sshPrivateKeyPassphrase: ['', [], [(c: AbstractControl) => this.validatePrivateKeyPassphrase(c)]],
@@ -42,7 +50,7 @@ export class AddDeviceComponent {
     sshPrivateKeyPassphrase.valueChanges.subscribe(() => sshPrivateKey.markAsDirty());
   }
 
-  get sshAuth(): string | null {
+  get sshAuth(): NewDeviceAuthentication | null {
     return this.formGroup.get('sshAuth')!.value;
   }
 
@@ -50,29 +58,7 @@ export class AddDeviceComponent {
     return this.formGroup.value as SetupInfo;
   }
 
-  addDevice(): void {
-    const progress = ProgressDialogComponent.open(this.modalService);
-    this.doAddDevice().then(device => {
-      if (device) {
-        // Close setup wizard
-        this.modal.close(device);
-      }
-    }).catch(error => {
-      if (error.positive) {
-        MessageDialogComponent.open(this.modalService, error);
-      } else {
-        MessageDialogComponent.open(this.modalService, {
-          title: 'Failed to add device',
-          message: error.message || 'Unknown error',
-          positive: 'OK',
-        });
-      }
-    }).finally(() => {
-      progress.close(true);
-    });
-  }
-
-  private async doAddDevice(): Promise<Device | null> {
+  async submit(): Promise<NewDevice> {
     const value = this.setupInfo;
     const newDevice = await this.toNewDevice(value);
     try {
@@ -83,10 +69,10 @@ export class AddDeviceComponent {
       console.log('Failed to get device info:', e);
       // Something wrong happened. Abort adding by default
       if (!await this.confirmVerificationFailure(newDevice, e as Error)) {
-        return null;
+        throw e;
       }
     }
-    return await this.deviceManager.addDevice(newDevice);
+    return newDevice;
   }
 
   private async fetchPrivKey(address: string, passphrase: string): Promise<string> {

@@ -1,19 +1,18 @@
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../types';
-import {AddDeviceComponent} from '../add-device/add-device.component';
 import {DeviceManagerService} from '../core/services';
-import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove-device.component";
 import packageInfo from '../../../package.json';
+import {WizardComponent} from "../add-device/wizard/wizard.component";
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
 
   selectedDevice?: Device;
   activeItem: string = 'apps';
@@ -28,6 +27,10 @@ export class HomeComponent {
       this.selectedDevice = devices.find((device) => device.default) || devices[0];
     });
     this.appVersion = packageInfo.version;
+  }
+
+  ngOnInit(): void {
+    this.openSetupDevice();
   }
 
   async removeDevice(device: Device): Promise<void> {
@@ -51,7 +54,9 @@ export class HomeComponent {
   }
 
   openSetupDevice(): void {
-    const ref = this.modalService.open(AddDeviceComponent, {size: 'lg', centered: true, scrollable: true});
+    const ref = this.modalService.open(WizardComponent, {
+      size: 'xl', centered: true, scrollable: true, backdrop: 'static', keyboard: false,
+    });
     ref.result.then((device) => this.deviceManager.setDefault(device.name));
   }
 }

@@ -1,0 +1,9 @@
+.devmode-setup-steps {
+  .accordion-button {
+    background: none !important;
+
+    &::after {
+      background-image: none;
+    }
+  }
+}
