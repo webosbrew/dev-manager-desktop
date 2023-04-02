@@ -62,7 +62,6 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-single-instance",
- "tauri-plugin-window-state",
  "tokio",
  "unix_mode",
  "uuid 1.3.0",
@@ -235,15 +234,6 @@ name = "base64"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a4a4ddaa51a5bc52a6948f74c06d20aaaddb71924eab79b8c97a8c556e942d6a"
-
-[[package]]
-name = "bincode"
-version = "1.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "bitflags"
@@ -3149,18 +3139,6 @@ dependencies = [
  "thiserror",
  "windows-sys 0.45.0",
  "zbus",
-]
-
-[[package]]
-name = "tauri-plugin-window-state"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f15dab0be2ce3ce8a57d0d2de17d201d0c2f3230d68981ff3f0942684de03eb"
-dependencies = [
- "bincode",
- "serde",
- "tauri",
- "thiserror",
 ]
 
 [[package]]
