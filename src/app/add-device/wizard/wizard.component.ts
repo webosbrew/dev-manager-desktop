@@ -1,18 +1,8 @@
-import {
-  AfterContentChecked,
-  AfterContentInit,
-  AfterViewInit,
-  Component,
-  ElementRef, NgZone,
-  OnDestroy,
-  OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren
-} from '@angular/core';
+import {AfterContentChecked, Component, Inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {DeviceConnectionMode} from "./mode-select/mode-select.component";
-import {NgbNav, NgbNavLink} from "@ng-bootstrap/ng-bootstrap";
+import {NgbActiveModal, NgbNav} from "@ng-bootstrap/ng-bootstrap";
 import {Subscription} from "rxjs";
+import {Device} from "../../types";
 
 @Component({
   selector: 'app-wizard',
@@ -29,6 +19,9 @@ export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {
 
 
   private subscriptions = new Subscription();
+
+  constructor(@Inject('cancellable') public cancellable: boolean, public modal: NgbActiveModal) {
+  }
 
   ngOnInit(): void {
     this.subscriptions.add(this.ngbNav.navItemChange$.subscribe((item) => {
@@ -68,5 +61,9 @@ export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {
 
   editDevice(): void {
     this.activateId = 'device-info';
+  }
+
+  deviceAdded(newDevice: Device): void {
+    this.modal.close(newDevice);
   }
 }

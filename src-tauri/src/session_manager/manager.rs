@@ -27,6 +27,9 @@ impl SessionManager {
     }
 
     fn pool(&self, device: Device) -> DeviceConnectionPool {
+        if device.new {
+            return DeviceConnectionPool::new(device);
+        }
         if let Some(p) = self.pools.lock().unwrap().get(&device.name) {
             return p.clone();
         }

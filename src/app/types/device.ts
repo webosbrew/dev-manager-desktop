@@ -13,7 +13,11 @@ export declare interface Device {
   files?: string;
 }
 
-export type NewDeviceAuthentication = 'password' | 'localKey' | 'devKey';
+export enum NewDeviceAuthentication {
+  Password = 'password',
+  LocalKey = 'localKey',
+  DevKey = 'devKey'
+};
 
 export declare interface NewDeviceBase extends Omit<Device, 'privateKey' | 'passphrase' | 'password'> {
   new: true;

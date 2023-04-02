@@ -1,56 +1,57 @@
 <form [formGroup]="formGroup">
   <div class="row">
-    <div class="col-md-12">
-      <label for="deviceName">Name</label>
+    <div class="col-12">
+      <label for="deviceAddress">Device Name</label>
       <input type="text" class="form-control" id="deviceName" formControlName="name" required>
+      <ng-container *ngIf="formGroup.controls.name.errors as errors">
+        <div class="invalid-feedback" *ngIf="errors['nameExists']">
+          Device with this name already exists
+        </div>
+      </ng-container>
     </div>
-    <div class="col-md-8">
-      <label for="deviceAddress">Host Address</label>
-      <input type="text" class="form-control" id="deviceAddress" formControlName="address" required>
-    </div>
-    <div class="col-md-4">
-      <label for="devicePort">Port Number</label>
-      <input type="number" class="form-control" id="devicePort" formControlName="port" step="1" min="0" max="65535"
-             required>
-    </div>
-    <div class="col-md-6">
-      <label for="sshUsername">SSH Username</label>
-      <input type="text" class="form-control" id="sshUsername" formControlName="sshUsername" required>
-    </div>
-    <div class="col-md-6">
-      <label for="authMethod">Authentication Method</label>
-      <select class="form-select" id="authMethod" formControlName="sshAuth" required>
-        <option value="localKey">Local Private Key</option>
-        <option value="password">Password</option>
-        <option value="devKey">Dev Mode Key</option>
-      </select>
-    </div>
-    <div class="col-md-12" [hidden]="sshAuth !== 'password'">
-      <label for="sshPassword">SSH Password</label>
-      <input type="password" class="form-control" id="sshPassword" formControlName="sshPassword"
-             [required]="sshAuth === 'password'">
-    </div>
-    <div class="col-md-6" [hidden]="sshAuth !== 'localKey'">
-      <label for="sshPrivateKey">Private Key Name</label>
-      <input type="text" class="form-control" id="sshPrivateKey" formControlName="sshPrivateKey"
-             [required]="sshAuth === 'localKey'">
-      <div class="invalid-feedback" *ngIf="formGroup.get('sshPrivateKey')?.hasError('UnsupportedKey')">
-        Unsupported private key. Please use RSA or Ed25519 based key.
-      </div>
-      <div class="invalid-feedback" *ngIf="formGroup.get('sshPrivateKey')?.hasError('IO')">
-        Can't find private key
-      </div>
-      <div class="invalid-feedback" *ngIf="formGroup.get('sshPrivateKey')?.hasError('PassphraseRequired')">
-        This private key requires passphrase
+    <div class="col-12">
+      <label>Address</label>
+      <div class="input-group address-input">
+        <input type="text" class="form-control username" id="sshUsername" formControlName="sshUsername"
+               placeholder="username">
+        <span class="input-group-text">@</span>
+        <input type="text" class="form-control flex-fill" id="deviceAddress" formControlName="address"
+               placeholder="address">
+        <span class="input-group-text">:</span>
+        <input type="number" class="form-control port" id="devicePort" formControlName="port" placeholder="port"
+               step="1" min="0" max="65535" maxlength="5">
       </div>
     </div>
-    <div class="col-md-6" [hidden]="sshAuth !== 'devKey' && sshAuth !== 'localKey'">
-      <label for="sshPrivateKeyPassphrase">Passphrase</label>
-      <input type="text" class="form-control" id="sshPrivateKeyPassphrase" formControlName="sshPrivateKeyPassphrase"
-             [required]="sshAuth === 'devKey'">
-      <div class="invalid-feedback" *ngIf="formGroup.get('sshPrivateKeyPassphrase')?.hasError('BadPassphrase')">
-        Wrong passphrase
+    <div class="col-12">
+      <label>Authentication</label>
+      <div class="input-group auth-input" [formGroup]="formGroup.controls.sshAuth"
+           [ngSwitch]="formGroup.value.sshAuth?.type">
+        <select class="form-select" id="authMethod" formControlName="type" required>
+          <option value="localKey">Private Key</option>
+          <option value="password">Password</option>
+          <option value="devKey" [hidden]="hideDevModeAuth" [disabled]="hideDevModeAuth">Dev Mode</option>
+        </select>
+        <input type="text" class="form-control" id="authValue" formControlName="value" required>
       </div>
+
+      <ng-container *ngIf="formGroup.errors as errors">
+        <div class="ng-invalid"></div>
+        <div class="invalid-feedback" *ngIf="errors['UnsupportedKey']">
+          Unsupported private key.
+        </div>
+        <div class="invalid-feedback" *ngIf="errors['IO']">
+          Can't find private key
+        </div>
+        <div class="invalid-feedback" *ngIf="errors['PassphraseRequired']">
+          This private key requires passphrase
+        </div>
+        <div class="invalid-feedback" *ngIf="errors['BadPassphrase']">
+          Wrong passphrase
+        </div>
+        <div class="invalid-feedback" *ngIf="errors['PassphraseRequired']">
+          Please input passphrase
+        </div>
+      </ng-container>
     </div>
     <div class="col-md-12">
       <label for="deviceDescription">Description</label>

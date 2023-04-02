@@ -1,7 +1,10 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {DeviceConnectionMode} from "../mode-select/mode-select.component";
-import {NewDevice, NewDeviceAuthentication} from "../../../types";
+import {Device, NewDevice, NewDeviceAuthentication} from "../../../types";
 import {DeviceEditorComponent} from "../../device-editor/device-editor.component";
+import {ProgressDialogComponent} from "../../../shared/components/progress-dialog/progress-dialog.component";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {DeviceManagerService} from "../../../core/services";
 
 @Component({
   selector: 'app-wizard-add-device',
@@ -19,24 +22,37 @@ export class AddDeviceComponent implements OnInit {
   port?: number;
   auth?: NewDeviceAuthentication;
 
+  @Output()
+  deviceAdded: EventEmitter<Device> = new EventEmitter();
+
+  constructor(private modals: NgbModal, private deviceManager: DeviceManagerService) {
+  }
+
   ngOnInit(): void {
     switch (this.mode) {
       case DeviceConnectionMode.DevMode: {
         this.username = 'prisoner';
         this.port = 9922;
-        this.auth = 'devKey';
+        this.auth = NewDeviceAuthentication.DevKey;
         break;
       }
       case DeviceConnectionMode.Rooted: {
         this.username = 'root';
         this.port = 22;
-        this.auth = 'localKey';
+        this.auth = NewDeviceAuthentication.LocalKey;
         break;
       }
     }
   }
 
-  addDevice(): Promise<NewDevice> {
-    return this.deviceEditor.submit();
+  async submit(): Promise<void> {
+    const progress = ProgressDialogComponent.open(this.modals);
+    try {
+      const newDevice = await this.deviceEditor.submit();
+      // await this.deviceManager.addDevice(newDevice);
+      this.deviceAdded.emit(newDevice as Device);
+    } finally {
+      progress.close();
+    }
   }
 }

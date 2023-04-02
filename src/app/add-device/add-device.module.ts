@@ -9,7 +9,7 @@ import {ModeSelectComponent} from './wizard/mode-select/mode-select.component';
 import {DevmodeSetupComponent} from './wizard/devmode-setup/devmode-setup.component';
 import {StepHeaderComponent} from './wizard/devmode-setup/step-header/step-header.component';
 import {AddDeviceComponent} from "./wizard/add-device/add-device.component";
-import { DevmodeComponent } from './wizard/add-device/devmode/devmode.component';
+import {DevmodeComponent} from './wizard/add-device/devmode/devmode.component';
 
 
 @NgModule({

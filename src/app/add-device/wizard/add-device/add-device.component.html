@@ -1,5 +1,7 @@
-<app-device-editor [username]="username" [port]="port" [auth]="auth" #deviceEditor></app-device-editor>
+<app-device-editor [username]="username" [port]="port" [auth]="auth" [hideDevModeAuth]="mode === 'rooted'"
+                   [checkName]="true"
+                   #deviceEditor></app-device-editor>
 <hr>
 <div class="d-flex">
-  <button class="btn btn-primary ms-auto">Finish</button>
+  <button class="btn btn-primary ms-auto" (click)="submit()" [disabled]="!deviceEditor.valid">Finish</button>
 </div>

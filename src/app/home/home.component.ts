@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Injector, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../types';
@@ -12,7 +12,7 @@ import {WizardComponent} from "../add-device/wizard/wizard.component";
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent {
 
   selectedDevice?: Device;
   activeItem: string = 'apps';
@@ -25,12 +25,11 @@ export class HomeComponent implements OnInit {
   ) {
     deviceManager.devices$.subscribe((devices) => {
       this.selectedDevice = devices.find((device) => device.default) || devices[0];
+      if (!this.selectedDevice) {
+        this.openSetupDevice(false);
+      }
     });
     this.appVersion = packageInfo.version;
-  }
-
-  ngOnInit(): void {
-    this.openSetupDevice();
   }
 
   async removeDevice(device: Device): Promise<void> {
@@ -53,9 +52,15 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  openSetupDevice(): void {
+  openSetupDevice(cancellable: boolean): void {
     const ref = this.modalService.open(WizardComponent, {
-      size: 'xl', centered: true, scrollable: true, backdrop: 'static', keyboard: false,
+      size: 'xl', centered: true, scrollable: true,
+      injector: Injector.create({
+        providers: [
+          {provide: 'cancellable', useValue: cancellable}
+        ]
+      }),
+      beforeDismiss: () => cancellable,
     });
     ref.result.then((device) => this.deviceManager.setDefault(device.name));
   }
