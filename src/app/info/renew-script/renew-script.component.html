@@ -52,9 +52,12 @@ ssh-keygen -p -P '{{device.passphrase}}' -N '' -f /tmp/webos_privkey_{{device.na
  -o PubkeyAcceptedKeyTypes=+ssh-rsa \
  -p {{device.port}} {{device.username}}@{{device.host}} \
  cat /var/luna/preferences/devmode_enabled)
+
 if [ -z "$sessionToken" ]; then
+  echo "ssh into TV failed, loading previous sessionToken from /tmp/webos_devmode_token_{{device.name}}.txt" >&2
   sessionToken=$(cat /tmp/webos_devmode_token_{{device.name}}.txt)
 else
+  echo "Got sessionToken from TV - writing to /tmp/webos_devmode_token_{{device.name}}.txt" >&2
   echo $sessionToken > /tmp/webos_devmode_token_{{device.name}}.txt
 fi
 
