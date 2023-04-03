@@ -50,6 +50,18 @@ fn main() {
         })
         .run(tauri::generate_context!());
     if let Err(e) = result {
+        #[cfg(windows)]
+        if let tauri::Error::Runtime(ref e) = e {
+            if format!("{:?}", e).starts_with("CreateWebview(") {
+                MessageDialog::new()
+                    .set_type(MessageType::Error)
+                    .set_title("webOS Dev Manager")
+                    .set_text(&format!("Unexpected error occurred: {:?}\nThis may be due to broken installation of WebView2 Runtime. You may need to reinstall WebView2 Runtime as administrator.", e))
+                    .show_alert()
+                    .expect("Unexpected error occurred while processing unexpected error :(");
+                return;
+            }
+        }
         MessageDialog::new()
             .set_type(MessageType::Error)
             .set_title("webOS Dev Manager")
