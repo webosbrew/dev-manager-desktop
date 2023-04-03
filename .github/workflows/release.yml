@@ -51,7 +51,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           rustup target add i686-pc-windows-msvc
-          npm run build
+          npm run build -- --features=vendored-openssl --target x86_64-pc-windows-msvc
           npm run build -- --features=vendored-openssl --target i686-pc-windows-msvc
 
       - name: Build the app (Linux)
