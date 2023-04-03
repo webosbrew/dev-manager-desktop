@@ -2,10 +2,10 @@ use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 
+mod device;
 mod io;
 mod manager;
 mod privkey;
-mod device;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct DeviceSessionToken {

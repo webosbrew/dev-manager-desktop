@@ -1,6 +1,6 @@
 pub mod cmd;
 pub mod device;
-pub mod file;
-pub mod shell;
 pub mod devmode;
+pub mod file;
 pub mod local_file;
+pub mod shell;

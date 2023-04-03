@@ -10,7 +10,7 @@ impl PrivateKey {
         return match self {
             PrivateKey::Path { name } => {
                 let mut secret_file =
-                    std::fs::File::open(ssh_dir().ok_or(Error::bad_config()).join(name))?;
+                    std::fs::File::open(ssh_dir().ok_or(Error::bad_config())?.join(name))?;
                 let mut secret = String::new();
                 secret_file.read_to_string(&mut secret)?;
                 Ok(secret)

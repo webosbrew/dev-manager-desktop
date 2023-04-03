@@ -2,9 +2,9 @@ use std::io::Read;
 
 use curl::easy::Easy;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, Runtime};
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::regex::Regex;
+use tauri::{AppHandle, Manager, Runtime};
 
 use crate::device_manager::Device;
 use crate::error::Error;
