@@ -1,11 +1,7 @@
 import {Component, Injector, Input} from '@angular/core';
 import {CrashReport, DeviceManagerService} from '../../core/services';
 import {Device} from "../../types";
-import {firstValueFrom} from "rxjs";
-import {save} from '@tauri-apps/api/dialog';
-import {writeTextFile} from '@tauri-apps/api/fs';
-import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
-import {NgbModal, NgbOffcanvas} from "@ng-bootstrap/ng-bootstrap";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {DetailsComponent} from "./details/details.component";
 
 @Component({

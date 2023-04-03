@@ -112,7 +112,8 @@ export class AppsComponent implements OnInit, OnDestroy {
   async openInstallChooser(): Promise<void> {
     if (!this.device) return;
     const open = await showOpenDialog({
-      filters: [{name: 'IPK package', extensions: ['ipk']}]
+      filters: [{name: 'IPK package', extensions: ['ipk']}],
+      defaultPath: ''
     });
     if (!open) {
       return;

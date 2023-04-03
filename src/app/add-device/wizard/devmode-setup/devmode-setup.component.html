@@ -1,0 +1,49 @@
+<p>Do following steps to get ready for setting up connection to your TV.</p>
+<div class="card mt-3">
+  <app-devmode-setup-step-header id="prepare-devmode-account" title="Prepare Developer Account"
+                                 [(done)]="prepareAccountDone">
+  </app-devmode-setup-step-header>
+  <div class="card-body" [ngbCollapse]="prepareAccountDone">
+    <p>
+      You'll need a developer account to use Developer Mode.
+      Please read <a href="https://webostv.developer.lge.com/develop/getting-started/preparing-lg-account"
+                     appExternalLink>
+      Preparing LG Account</a> for creating one.
+    </p>
+  </div>
+</div>
+<div class="card mt-3">
+  <app-devmode-setup-step-header id="install-devmode" title="Install Developer Mode app" [(done)]="installAppDone">
+  </app-devmode-setup-step-header>
+  <div class="card-body" [ngbCollapse]="installAppDone">
+    <ol>
+      <li>Open LG Content Store</li>
+      <li>Search for "Developer Mode"</li>
+      <li>Select "Install"</li>
+    </ol>
+  </div>
+</div>
+<div class="card mt-3">
+  <app-devmode-setup-step-header id="enable-devmode" title="Enable Developer Mode" [(done)]="enableDevModeDone">
+  </app-devmode-setup-step-header>
+  <div class="card-body" [ngbCollapse]="enableDevModeDone">
+    <ol>
+      <li>Launch Developer Mode app</li>
+      <li>Login to Developer Mode app with developer account</li>
+      <li>Enable Developer Mode and wait for TV to restart</li>
+    </ol>
+  </div>
+</div>
+<div class="card mt-3">
+  <app-devmode-setup-step-header id="devmode-setup" title="Prepare for Device Setup" [(done)]="prepareSetupDone">
+  </app-devmode-setup-step-header>
+  <div class="card-body" [ngbCollapse]="prepareSetupDone">
+    <ol>
+      <li>Launch Developer Mode app again</li>
+      <li>Ensure "Dev Mode Status" is ON</li>
+      <li>Enable Key Server
+        <i class="bi bi-question-circle-fill" ngbTooltip="Key Server is used when you add TV to your computer"></i>
+      </li>
+    </ol>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 use std::env::temp_dir;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{copy, BufWriter, Read, Write};
 use std::path::Path;
 
 use tauri::plugin::{Builder, TauriPlugin};
@@ -70,7 +70,7 @@ async fn write<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         let session = sessions.session(device)?;
         let sftp = session.sftp()?;
-        let mut file = sftp.open(&path, 1 /*O_WRONLY*/, 0o644)?;
+        let mut file = sftp.open(&path, 0x0301 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)?;
         file.write_all(&content)?;
         session.mark_last_ok();
         return Ok(());
@@ -92,14 +92,7 @@ async fn get<R: Runtime>(
         let sftp = session.sftp()?;
         let mut sfile = sftp.open(&path, 0, 0)?;
         let mut file = File::create(target)?;
-        let mut buf = [0; 8192];
-        loop {
-            let u = sfile.read(&mut buf)?;
-            if u == 0 {
-                break;
-            }
-            file.write_all(&buf[u..])?;
-        }
+        copy(&mut sfile, &mut file)?;
         session.mark_last_ok();
         return Ok(());
     })
@@ -117,17 +110,15 @@ async fn put<R: Runtime>(
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         let session = sessions.session(device)?;
+        log::info!("session.sftp()");
         let sftp = session.sftp()?;
+        log::info!(
+            "sftp.open({}, 0o1101 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)",
+            path
+        );
+        let mut sfile = sftp.open(&path, 0x0301 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)?;
         let mut file = File::open(source)?;
-        let mut sfile = sftp.open(&path, 1, 0o644)?;
-        let mut buf = [0; 8192];
-        loop {
-            let u = file.read(&mut buf)?;
-            if u == 0 {
-                break;
-            }
-            sfile.write_all(&buf[u..])?;
-        }
+        copy(&mut file, &mut sfile)?;
         session.mark_last_ok();
         return Ok(());
     })

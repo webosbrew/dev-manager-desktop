@@ -48,7 +48,7 @@ async fn localkey_verify(
     name: String,
     passphrase: Option<String>,
 ) -> Result<(), Error> {
-    return manager.localkey_verify(&name, passphrase.as_deref()).await;
+    return manager.localkey_verify(&name, passphrase.as_deref().unwrap_or("")).await;
 }
 
 #[tauri::command]

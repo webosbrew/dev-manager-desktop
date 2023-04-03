@@ -63,7 +63,7 @@ export class DeviceManagerService extends BackendClient {
     return await this.invoke('privkey_read', {device});
   }
 
-  async novacomGetKey(address: string, passphrase: string): Promise<string> {
+  async novacomGetKey(address: string, passphrase?: string): Promise<string> {
     return await this.invoke('novacom_getkey', {address, passphrase});
   }
 

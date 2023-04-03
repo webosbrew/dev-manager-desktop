@@ -1,7 +1,7 @@
 import {Component} from '@angular/core';
 import {CrashReport} from "../../../core/services";
 import {firstValueFrom} from "rxjs";
-import {save} from "@tauri-apps/api/dialog";
+import {save as showSaveDialog} from "@tauri-apps/api/dialog";
 import {ProgressDialogComponent} from "../../../shared/components/progress-dialog/progress-dialog.component";
 import {writeTextFile} from "@tauri-apps/api/fs";
 import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
@@ -23,8 +23,8 @@ export class DetailsComponent {
   async saveReport(report: CrashReport): Promise<void> {
     let target: string | null;
     try {
-      target = await save({
-        defaultPath: `${report.saveName}.txt`
+      target = await showSaveDialog({
+        defaultPath: `${report.saveName}.txt`,
       });
     } catch (e) {
       return;

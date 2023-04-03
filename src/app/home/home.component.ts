@@ -1,12 +1,12 @@
-import {Component} from '@angular/core';
+import {Component, Injector, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../types';
-import {AddDeviceComponent} from '../add-device/add-device.component';
 import {DeviceManagerService} from '../core/services';
-import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove-device.component";
 import packageInfo from '../../../package.json';
+import {WizardComponent} from "../add-device/wizard/wizard.component";
+import {noop} from "rxjs";
 
 @Component({
   selector: 'app-home',
@@ -26,6 +26,9 @@ export class HomeComponent {
   ) {
     deviceManager.devices$.subscribe((devices) => {
       this.selectedDevice = devices.find((device) => device.default) || devices[0];
+      if (!this.selectedDevice) {
+        this.openSetupDevice(false);
+      }
     });
     this.appVersion = packageInfo.version;
   }
@@ -50,8 +53,16 @@ export class HomeComponent {
     });
   }
 
-  openSetupDevice(): void {
-    const ref = this.modalService.open(AddDeviceComponent, {size: 'lg', centered: true, scrollable: true});
-    ref.result.then((device) => this.deviceManager.setDefault(device.name));
+  openSetupDevice(cancellable: boolean): void {
+    const ref = this.modalService.open(WizardComponent, {
+      size: 'xl', centered: true, scrollable: true,
+      injector: Injector.create({
+        providers: [
+          {provide: 'cancellable', useValue: cancellable}
+        ]
+      }),
+      beforeDismiss: () => cancellable,
+    });
+    ref.result.then((device) => this.deviceManager.setDefault(device.name)).catch(noop);
   }
 }

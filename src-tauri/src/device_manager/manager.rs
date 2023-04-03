@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::Path;
 
 use curl::easy::Easy;
 use libssh_rs::SshKey;
@@ -35,12 +36,25 @@ impl DeviceManager {
     pub async fn add(&self, device: &Device) -> Result<Device, Error> {
         let mut device = device.clone();
         if let Some(key) = &device.private_key {
-            if let PrivateKey::Data { data } = key {
-                let name = key.name(device.valid_passphrase())?;
-                let key_path = ensure_ssh_dir()?.join(&name);
-                let mut file = File::create(key_path).await?;
-                file.write(data.as_bytes()).await?;
-                device.private_key = Some(PrivateKey::Path { name });
+            match key {
+                PrivateKey::Path { name } => {
+                    let path = Path::new(name);
+                    if path.is_absolute() {
+                        let name = String::from(
+                            pathdiff::diff_paths(path, ensure_ssh_dir()?)
+                                .ok_or(Error::NotFound)?
+                                .to_string_lossy(),
+                        );
+                        device.private_key = Some(PrivateKey::Path { name });
+                    }
+                }
+                PrivateKey::Data { data } => {
+                    let name = key.name(device.valid_passphrase())?;
+                    let key_path = ensure_ssh_dir()?.join(&name);
+                    let mut file = File::create(key_path).await?;
+                    file.write(data.as_bytes()).await?;
+                    device.private_key = Some(PrivateKey::Path { name });
+                }
             }
         }
         log::info!("Save device {}", device.name);
@@ -101,12 +115,17 @@ impl DeviceManager {
         });
     }
 
-    pub async fn localkey_verify(&self, name: &str, passphrase: Option<&str>) -> Result<(), Error> {
-        let ssh_dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
-        let ssh_key_path = fs::canonicalize(ssh_dir.join(name))?;
-        return match SshKey::from_privkey_file(ssh_key_path.to_str().unwrap(), passphrase) {
+    pub async fn localkey_verify(&self, name: &str, passphrase: &str) -> Result<(), Error> {
+        let name_path = Path::new(name);
+        let ssh_key_path = if name_path.is_absolute() {
+            name_path.to_path_buf()
+        } else {
+            let ssh_dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
+            fs::canonicalize(ssh_dir.join(name))?
+        };
+        return match SshKey::from_privkey_file(ssh_key_path.to_str().unwrap(), Some(passphrase)) {
             Ok(_) => Ok(()),
-            _ => Err(if passphrase.is_none() {
+            _ => Err(if passphrase.is_empty() {
                 Error::PassphraseRequired
             } else {
                 Error::BadPassphrase

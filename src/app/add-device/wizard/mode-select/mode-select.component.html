@@ -1,0 +1,23 @@
+<p>If your TV is not rooted, or not sure what to choose, you can leave Developer Mode unchanged.</p>
+
+<div class="form-check">
+  <input class="form-check-input" type="radio" id="connectionModeDevMode" value="devMode" [(ngModel)]="mode"
+         [ngModelOptions]="{standalone:true}">
+  <label class="form-check-label" for="connectionModeDevMode">
+    Use Developer Mode
+  </label>
+</div>
+<div class="form-check">
+  <input class="form-check-input" type="radio" id="connectionModeRooted" value="rooted" [(ngModel)]="mode"
+         [ngModelOptions]="{standalone:true}">
+  <label class="form-check-label" for="connectionModeRooted">
+    TV has Rooted with Homebrew Channel
+  </label>
+</div>
+<div class="form-check">
+  <input class="form-check-input" type="radio" id="connectionModeManual" value="manual" [(ngModel)]="mode"
+         [ngModelOptions]="{standalone:true}">
+  <label class="form-check-label" for="connectionModeManual">
+    Setup manually
+  </label>
+</div>

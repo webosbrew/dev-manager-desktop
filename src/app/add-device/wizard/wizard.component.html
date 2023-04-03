@@ -1,0 +1,49 @@
+<!--suppress JSUnusedGlobalSymbols -->
+<ul ngbNav #nav="ngbNav" class="nav-pills d-none" orientation="horizontal" [activeId]="activateId">
+  <li ngbNavItem="mode-select">
+    <a ngbNavLink>Connection Mode</a>
+    <ng-template ngbNavContent>
+      <app-wizard-mode-select [(mode)]="connectionMode" (proceed)="finishConnectionModeSelection()">
+      </app-wizard-mode-select>
+      <ng-template #footerTemplate>
+        <button class="btn btn-primary ms-auto" [disabled]="!connectionMode" [ngSwitch]="connectionMode"
+                (click)="finishConnectionModeSelection()">Next
+        </button>
+      </ng-template>
+    </ng-template>
+  </li>
+  <li ngbNavItem="devmode-setup" *ngIf="connectionMode === 'devMode'">
+    <a ngbNavLink>Setup Developer Mode</a>
+    <ng-template ngbNavContent>
+      <app-wizard-devmode-setup #devModeSetup></app-wizard-devmode-setup>
+      <ng-template #footerTemplate>
+        <button class="btn btn-outline-secondary" (click)="prevStep()">Back</button>
+        <ng-container [ngSwitch]="devModeSetup.allDone">
+          <button class="btn btn-primary ms-auto" *ngSwitchCase="true" (click)="editDevice()">Next</button>
+          <button class="btn btn-primary ms-auto" *ngSwitchCase="false" (click)="editDevice()">Skip</button>
+        </ng-container>
+      </ng-template>
+    </ng-template>
+  </li>
+  <li ngbNavItem="device-info">
+    <a ngbNavLink>Setup Device</a>
+    <ng-template ngbNavContent>
+      <app-wizard-add-device [mode]="connectionMode" (deviceAdded)="deviceAdded($event)" #addDevice>
+      </app-wizard-add-device>
+      <ng-template #footerTemplate>
+        <button class="btn btn-outline-secondary" (click)="prevStep()">Back</button>
+        <button class="btn btn-primary ms-auto" (click)="addDevice.submit()" [disabled]="!addDevice.valid">Finish
+        </button>
+      </ng-template>
+    </ng-template>
+  </li>
+</ul>
+<div class="modal-header">
+  <h4 class="modal-title">{{navTitle}}</h4>
+  <button class="btn btn-close me-1" *ngIf="cancellable" (click)="modal.dismiss()"></button>
+</div>
+<div class="modal-body" [ngbNavOutlet]="nav">
+</div>
+<div class="modal-footer">
+  <ng-container *ngTemplateOutlet="footerTemplate"></ng-container>
+</div>

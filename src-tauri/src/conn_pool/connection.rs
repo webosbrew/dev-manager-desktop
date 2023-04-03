@@ -14,6 +14,8 @@ impl DeviceConnection {
         session.set_option(SshOption::Hostname(device.host.clone()))?;
         session.set_option(SshOption::Port(device.port.clone()))?;
         session.set_option(SshOption::User(Some(device.username.clone())))?;
+        session.set_option(SshOption::HostKeys(format!("ssh-ed25519,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256,ssh-rsa")))?;
+        session.set_option(SshOption::PublicKeyAcceptedTypes(format!("ssh-ed25519,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256,ssh-rsa")))?;
 
         session.connect()?;
 
