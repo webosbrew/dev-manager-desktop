@@ -52,6 +52,7 @@ dependencies = [
  "log",
  "native-dialog",
  "path-slash",
+ "pathdiff",
  "posix-errors",
  "r2d2",
  "rand 0.8.5",

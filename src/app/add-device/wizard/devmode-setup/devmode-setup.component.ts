@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Output, ViewEncapsulation} from '@angular/core';
+import {Component, ViewEncapsulation} from '@angular/core';
 
 @Component({
   selector: 'app-wizard-devmode-setup',
@@ -13,7 +13,7 @@ export class DevmodeSetupComponent {
   enableDevModeDone: boolean = false;
   prepareSetupDone: boolean = false;
 
-  @Output()
-  proceed: EventEmitter<void> = new EventEmitter();
-
+  get allDone(): boolean {
+    return this.prepareAccountDone && this.installAppDone && this.enableDevModeDone && this.prepareSetupDone;
+  }
 }

@@ -1,6 +1,6 @@
-import {Component, EventEmitter, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {DeviceConnectionMode} from "../mode-select/mode-select.component";
-import {Device, NewDevice, NewDeviceAuthentication} from "../../../types";
+import {Device, NewDeviceAuthentication} from "../../../types";
 import {DeviceEditorComponent} from "../../device-editor/device-editor.component";
 import {ProgressDialogComponent} from "../../../shared/components/progress-dialog/progress-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
@@ -42,6 +42,10 @@ export class AddDeviceComponent implements OnInit {
         break;
       }
     }
+  }
+
+  get valid(): boolean {
+    return this.deviceEditor.valid;
   }
 
   async submit(): Promise<void> {

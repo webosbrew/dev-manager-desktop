@@ -47,7 +47,3 @@
     </ol>
   </div>
 </div>
-<div class="d-flex mt-4" [ngSwitch]="prepareAccountDone && installAppDone && enableDevModeDone && prepareAccountDone">
-  <button class="btn btn-primary ms-auto" *ngSwitchCase="true" (click)="proceed.emit()">Next</button>
-  <button class="btn btn-primary ms-auto" *ngSwitchCase="false" (click)="proceed.emit()">Skip</button>
-</div>

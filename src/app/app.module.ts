@@ -15,6 +15,7 @@ import {UpdateDetailsComponent} from './update-details/update-details.component'
 import {NgbAccordionModule, NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
 import {RemoveDeviceComponent} from './remove-device/remove-device.component';
 import {AddDeviceModule} from "./add-device/add-device.module";
+import {NgOptimizedImage} from "@angular/common";
 
 @NgModule({
   declarations: [
@@ -26,19 +27,20 @@ import {AddDeviceModule} from "./add-device/add-device.module";
     UpdateDetailsComponent,
     RemoveDeviceComponent,
   ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    FormsModule,
-    HttpClientModule,
-    CoreModule,
-    SharedModule,
-    ReactiveFormsModule,
-    AppRoutingModule,
-    NgbNavModule,
-    NgbAccordionModule,
-    AddDeviceModule,
-  ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        FormsModule,
+        HttpClientModule,
+        CoreModule,
+        SharedModule,
+        ReactiveFormsModule,
+        AppRoutingModule,
+        NgbNavModule,
+        NgbAccordionModule,
+        AddDeviceModule,
+        NgOptimizedImage,
+    ],
   providers: [],
   bootstrap: [AppComponent]
 })

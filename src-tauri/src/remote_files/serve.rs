@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{copy, Read, Write};
 use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
@@ -123,14 +123,7 @@ fn serve_handler(path: &String, mut ch: Channel) -> Result<(), Error> {
     out.write(format!("Content-Length: {}\r\n", file_len).as_bytes())?;
     if &method == "GET" {
         out.write(b"\r\n")?;
-        let mut buf: [u8; 8192] = [0; 8192];
-        loop {
-            let buf_length = file.read(&mut buf)?;
-            if buf_length == 0 {
-                break;
-            }
-            out.write_all(&buf[..buf_length])?;
-        }
+        copy(&mut file, &mut out)?;
     }
     return Ok(());
 }

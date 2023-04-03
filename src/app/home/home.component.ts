@@ -6,6 +6,7 @@ import {DeviceManagerService} from '../core/services';
 import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove-device.component";
 import packageInfo from '../../../package.json';
 import {WizardComponent} from "../add-device/wizard/wizard.component";
+import {noop} from "rxjs";
 
 @Component({
   selector: 'app-home',
@@ -62,6 +63,6 @@ export class HomeComponent {
       }),
       beforeDismiss: () => cancellable,
     });
-    ref.result.then((device) => this.deviceManager.setDefault(device.name));
+    ref.result.then((device) => this.deviceManager.setDefault(device.name)).catch(noop);
   }
 }

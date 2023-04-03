@@ -31,12 +31,17 @@
           <option value="password">Password</option>
           <option value="devKey" [hidden]="hideDevModeAuth" [disabled]="hideDevModeAuth">Dev Mode</option>
         </select>
-        <input type="text" class="form-control" id="authValue" formControlName="value"
-               [appSshAuthValue]="formGroup.value.sshAuth?.type" autocomplete="off" required>
-        <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()"
-                *ngIf="formGroup.value.sshAuth?.type === 'localKey'">
-          Choose...
-        </button>
+        <ng-container *ngIf="formGroup.controls.sshAuth.controls.type.getRawValue() as authType" [ngSwitch]="authType">
+          <input type="text" class="form-control" id="authValue" formControlName="value" [appSshAuthValue]="authType"
+                 autocomplete="off" required>
+          <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()"
+                  *ngSwitchCase="'localKey'">
+            Choose...
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="authInfoHelp()">
+            <i class="bi bi-question-circle-fill"></i>
+          </button>
+        </ng-container>
       </div>
 
       <ng-container *ngIf="formGroup.errors as errors">

@@ -36,12 +36,25 @@ impl DeviceManager {
     pub async fn add(&self, device: &Device) -> Result<Device, Error> {
         let mut device = device.clone();
         if let Some(key) = &device.private_key {
-            if let PrivateKey::Data { data } = key {
-                let name = key.name(device.valid_passphrase())?;
-                let key_path = ensure_ssh_dir()?.join(&name);
-                let mut file = File::create(key_path).await?;
-                file.write(data.as_bytes()).await?;
-                device.private_key = Some(PrivateKey::Path { name });
+            match key {
+                PrivateKey::Path { name } => {
+                    let path = Path::new(name);
+                    if path.is_absolute() {
+                        let name = String::from(
+                            pathdiff::diff_paths(path, ensure_ssh_dir()?)
+                                .ok_or(Error::NotFound)?
+                                .to_string_lossy(),
+                        );
+                        device.private_key = Some(PrivateKey::Path { name });
+                    }
+                }
+                PrivateKey::Data { data } => {
+                    let name = key.name(device.valid_passphrase())?;
+                    let key_path = ensure_ssh_dir()?.join(&name);
+                    let mut file = File::create(key_path).await?;
+                    file.write(data.as_bytes()).await?;
+                    device.private_key = Some(PrivateKey::Path { name });
+                }
             }
         }
         log::info!("Save device {}", device.name);

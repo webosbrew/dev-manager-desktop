@@ -12,6 +12,9 @@ import {homeDir} from '@tauri-apps/api/path';
 import {path} from "@tauri-apps/api";
 import {BackendError} from "../../core/services/backend-client";
 import {KeyPassphrasePromptComponent} from "./key-passphrase-prompt/key-passphrase-prompt.component";
+import {SshPrivkeyHintComponent} from "./ssh-privkey-hint/ssh-privkey-hint.component";
+import {DevmodePassphraseHintComponent} from "./devmode-passphrase-hint/devmode-passphrase-hint.component";
+import {SshPasswordHintComponent} from "./ssh-password-hint/ssh-password-hint.component";
 
 @Component({
   selector: 'app-device-editor',
@@ -53,8 +56,8 @@ export class DeviceEditorComponent implements OnInit {
           Validators.pattern(/^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/)
         ]
       }),
-      port: new FormControl<number>(this.port ?? 9922, {
-        nonNullable: true,
+      port: new FormControl<number | null>(this.port ?? null, {
+        nonNullable: false,
         validators: [
           Validators.required,
           Validators.min(0),
@@ -65,7 +68,7 @@ export class DeviceEditorComponent implements OnInit {
         nonNullable: true
       }),
       // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
-      sshUsername: new FormControl<string>(this.username ?? 'prisoner', {
+      sshUsername: new FormControl<string>(this.username ?? '', {
         nonNullable: true,
         validators: [
           Validators.required,
@@ -159,7 +162,7 @@ export class DeviceEditorComponent implements OnInit {
       profile: 'ose',
       name: value.name,
       description: value.description,
-      port: value.port,
+      port: value.port!,
       host: value.address,
       username: value.sshUsername,
     };
@@ -253,12 +256,38 @@ export class DeviceEditorComponent implements OnInit {
       path: file, passphrase
     });
   }
+
+  authInfoHelp() {
+    switch (this.formGroup.controls.sshAuth.controls.type.getRawValue()) {
+      case NewDeviceAuthentication.DevKey: {
+        MessageDialogComponent.open(this.modalService, {
+          message: DevmodePassphraseHintComponent,
+          positive: 'Close'
+        });
+        break;
+      }
+      case NewDeviceAuthentication.LocalKey: {
+        MessageDialogComponent.open(this.modalService, {
+          message: SshPrivkeyHintComponent,
+          positive: 'Close'
+        });
+        break;
+      }
+      case NewDeviceAuthentication.Password: {
+        MessageDialogComponent.open(this.modalService, {
+          message: SshPasswordHintComponent,
+          positive: 'Close'
+        });
+        break;
+      }
+    }
+  }
 }
 
 interface SetupInfo {
   name: string;
   address: string;
-  port: number;
+  port: number | null;
   description: string;
   sshUsername: string;
   sshAuth: SetupAuthInfoUnion;
@@ -268,7 +297,7 @@ interface SetupInfo {
 type SetupInfoFormControls = {
   name: FormControl<string>;
   address: FormControl<string>;
-  port: FormControl<number>;
+  port: FormControl<number | null>;
   description: FormControl<string>;
   sshUsername: FormControl<string>;
   sshAuth: FormGroup<SetupAuthInfoFormControls>;
