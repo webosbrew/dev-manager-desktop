@@ -36,7 +36,7 @@ async fn ls<R: Runtime>(
             .collect());
     })
     .await
-    .unwrap();
+    .expect("critical failure in file::ls task");
 }
 
 #[tauri::command]
@@ -56,7 +56,7 @@ async fn read<R: Runtime>(
         return Ok(buf);
     })
     .await
-    .unwrap();
+    .expect("critical failure in file::read task");
 }
 
 #[tauri::command]
@@ -76,7 +76,7 @@ async fn write<R: Runtime>(
         return Ok(());
     })
     .await
-    .unwrap();
+    .expect("critical failure in file::write task");
 }
 
 #[tauri::command]
@@ -97,7 +97,7 @@ async fn get<R: Runtime>(
         return Ok(());
     })
     .await
-    .unwrap();
+    .expect("critical failure in file::get task");
 }
 
 #[tauri::command]
@@ -123,7 +123,7 @@ async fn put<R: Runtime>(
         return Ok(());
     })
     .await
-    .unwrap();
+    .expect("critical failure in file::put task");
 }
 
 #[tauri::command]
@@ -136,11 +136,11 @@ async fn get_temp<R: Runtime>(
     let extension = source
         .extension()
         .map_or(String::new(), |s| format!(".{}", s.to_string_lossy()));
+    let temp_path = temp_dir().join(format!("webos-dev-tmp-{}{}", Uuid::new_v4(), extension));
     let target = String::from(
-        temp_dir()
-            .join(format!("webos-dev-tmp-{}{}", Uuid::new_v4(), extension))
+        temp_path
             .to_str()
-            .unwrap(),
+            .expect(&format!("Bad temp_path {:?}", temp_path)),
     );
     get(app, device, path, target.clone()).await?;
     return Ok(target);

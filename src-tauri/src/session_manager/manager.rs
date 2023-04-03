@@ -30,12 +30,20 @@ impl SessionManager {
         if device.new {
             return DeviceConnectionPool::new(device);
         }
-        if let Some(p) = self.pools.lock().unwrap().get(&device.name) {
+        if let Some(p) = self
+            .pools
+            .lock()
+            .expect("Failed to lock SessionManager::pools")
+            .get(&device.name)
+        {
             return p.clone();
         }
         let key = device.name.clone();
         let pool = DeviceConnectionPool::new(device);
-        self.pools.lock().unwrap().insert(key, pool.clone());
+        self.pools
+            .lock()
+            .expect("Failed to lock SessionManager::pools")
+            .insert(key, pool.clone());
         return pool;
     }
 }

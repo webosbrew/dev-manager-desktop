@@ -53,7 +53,7 @@ fn main() {
         MessageDialog::new()
             .set_type(MessageType::Error)
             .set_title("webOS Dev Manager")
-            .set_text("Unexpected error occurred")
+            .set_text(&format!("Unexpected error occurred: {:?}", e))
             .show_alert()
             .expect("Unexpected error occurred while processing unexpected error :(");
     }

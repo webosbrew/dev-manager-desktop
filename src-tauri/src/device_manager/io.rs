@@ -30,7 +30,7 @@ pub(crate) async fn read() -> Result<Vec<Device>, Error> {
             .collect());
     })
     .await
-    .unwrap();
+    .expect("critical failure in app::io::read task");
 }
 
 pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
@@ -59,7 +59,7 @@ pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
         return Ok(());
     })
     .await
-    .unwrap();
+    .expect("critical failure in app::io::write task");
 }
 
 pub(crate) fn ssh_dir() -> Option<PathBuf> {

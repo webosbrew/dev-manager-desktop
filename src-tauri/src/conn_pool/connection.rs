@@ -19,16 +19,24 @@ impl DeviceConnection {
 
         session.connect()?;
 
-        let passphrase = device.valid_passphrase();
-        let priv_key_content = device
-            .private_key
-            .clone()
-            .map(|k| k.content().unwrap())
-            .unwrap();
-        let priv_key = SshKey::from_privkey_base64(&priv_key_content, passphrase.as_deref())?;
+        if let Some(private_key) = &device.private_key {
+            let passphrase = device.valid_passphrase();
+            let priv_key_content = private_key.content()?;
+            let priv_key = SshKey::from_privkey_base64(&priv_key_content, passphrase.as_deref())?;
 
-        if session.userauth_publickey(None, &priv_key)? != AuthStatus::Success {
-            return Err(Error::BadPassphrase);
+            if session.userauth_publickey(None, &priv_key)? != AuthStatus::Success {
+                return Err(Error::BadPassphrase);
+            }
+        } else if let Some(password) = &device.password {
+            if session.userauth_password(None, Some(password))? != AuthStatus::Success {
+                return Err(Error::Authorization {
+                    message: format!("Bad SSH password"),
+                });
+            }
+        } else if session.userauth_none(None)? != AuthStatus::Success {
+            return Err(Error::Authorization {
+                message: format!("Host needs authorization"),
+            });
         }
         let connection = DeviceConnection {
             id: Uuid::new_v4(),
@@ -40,11 +48,17 @@ impl DeviceConnection {
     }
 
     pub(super) fn reset_last_ok(&self) {
-        *self.last_ok.lock().unwrap() = false;
+        *self
+            .last_ok
+            .lock()
+            .expect("Failed to lock DeviceConnection::last_ok") = false;
     }
 
     pub fn mark_last_ok(&self) {
-        *self.last_ok.lock().unwrap() = true;
+        *self
+            .last_ok
+            .lock()
+            .expect("Failed to lock DeviceConnection::last_ok") = true;
     }
 }
 
@@ -67,7 +81,9 @@ impl Drop for DeviceConnection {
         log::debug!(
             "Connection {} dropped. last_ok={}",
             self.id,
-            self.last_ok.lock().unwrap()
+            self.last_ok
+                .lock()
+                .expect("Failed to lock DeviceConnection::last_ok")
         );
     }
 }
