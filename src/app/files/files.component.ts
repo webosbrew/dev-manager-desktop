@@ -171,7 +171,11 @@ export class FilesComponent implements OnInit, OnDestroy {
     if (files.length == 1) {
       return await this.downloadFile(files[0]);
     }
-    const returnValue = await showOpenDialog({directory: true, multiple: false});
+    const returnValue = await showOpenDialog({
+      directory: true,
+      multiple: false,
+      defaultPath: ''
+    });
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     const target = returnValue as string;
@@ -261,7 +265,10 @@ export class FilesComponent implements OnInit, OnDestroy {
   async uploadFiles(): Promise<void> {
     const cwd = this.history?.current;
     if (!cwd || !this.device) return;
-    const returnValue = await showOpenDialog({multiple: true});
+    const returnValue = await showOpenDialog({
+      multiple: true,
+      defaultPath: ''
+    });
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
