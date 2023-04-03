@@ -98,13 +98,13 @@ impl DeviceManager {
         let mut easy = Easy::new();
         let mut data = Vec::<u8>::new();
         let url = format!("http://{}:9991/webos_rsa", address);
-        easy.url(&url).unwrap();
+        easy.url(&url).expect("Failed to set url for curl");
         let mut xfer = easy.transfer();
         xfer.write_function(|new_data| {
             data.extend_from_slice(new_data);
             Ok(new_data.len())
         })
-        .unwrap();
+        .expect("Failed to set write function for curl");
         xfer.perform()?;
         drop(xfer);
         if easy.response_code()? == 200 {

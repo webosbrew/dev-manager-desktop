@@ -9,7 +9,8 @@ impl PrivateKey {
     pub fn content(&self) -> Result<String, Error> {
         return match self {
             PrivateKey::Path { name } => {
-                let mut secret_file = std::fs::File::open(ssh_dir().unwrap().join(name))?;
+                let mut secret_file =
+                    std::fs::File::open(ssh_dir().ok_or(Error::bad_config()).join(name))?;
                 let mut secret = String::new();
                 secret_file.read_to_string(&mut secret)?;
                 Ok(secret)
