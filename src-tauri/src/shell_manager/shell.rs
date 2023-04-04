@@ -1,3 +1,5 @@
+use libssh_rs::Error::RequestDenied;
+use libssh_rs::SshResult;
 use std::collections::HashMap;
 use std::io::Write;
 use std::sync::mpsc::channel;
@@ -19,7 +21,7 @@ impl Shell {
     }
 
     pub fn resize(&self, rows: u16, cols: u16) -> Result<(), Error> {
-        if !self.has_pty {
+        if self.has_pty.lock().unwrap().eq(&false) {
             return Err(Error::Unsupported);
         }
         self.parser.lock().unwrap().set_size(rows, cols);
@@ -33,7 +35,7 @@ impl Shell {
     }
 
     pub fn screen(&self, cols: u16) -> Result<ShellScreen, Error> {
-        if !self.has_pty {
+        if self.has_pty.lock().unwrap().eq(&false) {
             return Err(Error::Unsupported);
         }
         let guard = self.parser.lock().unwrap();
@@ -72,7 +74,8 @@ impl Shell {
         return ShellInfo {
             token: self.token.clone(),
             title: self.title(),
-            has_pty: self.has_pty,
+            ready: self.sender.lock().unwrap().is_some(),
+            has_pty: *self.has_pty.lock().unwrap(),
             created_at: self.created_at,
         };
     }
@@ -88,7 +91,7 @@ impl Shell {
             token: ShellToken::new(),
             created_at: Instant::now(),
             device,
-            has_pty,
+            has_pty: Mutex::new(false),
             sender: Mutex::default(),
             callback: Mutex::new(None),
             parser: Mutex::new(Parser::new(rows, cols, 1000)),
@@ -99,7 +102,7 @@ impl Shell {
     }
 
     fn process(&self, data: &[u8]) -> bool {
-        if !self.has_pty {
+        if self.has_pty.lock().unwrap().eq(&false) {
             return false;
         }
         let mut parser = self.parser.lock().unwrap();
@@ -128,13 +131,20 @@ impl Shell {
 
     fn worker(&self) -> Result<(), Error> {
         let (sender, receiver) = channel::<ShellMessage>();
-        *self.sender.lock().unwrap() = Some(sender);
         let connection = DeviceConnection::new(self.device.clone())?;
         let channel = connection.new_channel()?;
         channel.open_session()?;
         let (rows, cols) = self.parser.lock().unwrap().screen().size();
-        channel.request_pty("xterm", cols as u32, rows as u32)?;
+        match channel.request_pty("xterm", cols as u32, rows as u32) {
+            Ok(_) => *self.has_pty.lock().unwrap() = true,
+            Err(RequestDenied(s)) => log::warn!("Failed to request pty {:?}", s),
+            e => e?,
+        }
         channel.request_shell()?;
+        *self.sender.lock().unwrap() = Some(sender);
+        if let Some(callback) = self.callback.lock().unwrap().as_ref() {
+            callback.info(self.info());
+        }
         let mut buf = [0; 8192];
         while !channel.is_closed() {
             if let Ok(msg) = receiver.recv_timeout(Duration::from_micros(1)) {
@@ -151,6 +161,9 @@ impl Shell {
                 }
             }
             let size = channel.read_timeout(&mut buf, false, Some(Duration::from_micros(5)))?;
+            if size == 0 {
+                continue;
+            }
             if let Some(callback) = self.callback.lock().unwrap().as_ref() {
                 callback.rx(&buf[..size]);
             }

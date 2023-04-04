@@ -22,7 +22,7 @@ pub struct Shell {
     pub token: ShellToken,
     created_at: Instant,
     device: Device,
-    has_pty: bool,
+    pub(crate) has_pty: Mutex<bool>,
     pub(crate) sender: Mutex<Option<Sender<ShellMessage>>>,
     pub(crate) callback: Mutex<Option<Box<dyn ShellCallback + Send + Sync>>>,
     pub(crate) parser: Mutex<Parser>,
@@ -42,6 +42,7 @@ pub struct ShellToken(Uuid);
 pub struct ShellInfo {
     pub token: ShellToken,
     pub title: String,
+    pub ready: bool,
     #[serde(rename = "hasPty")]
     pub has_pty: bool,
     #[serde(skip_serializing)]

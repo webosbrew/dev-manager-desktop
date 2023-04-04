@@ -1,5 +1,5 @@
-import {Component, ElementRef, Input, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {RemoteShellService, ShellObservable, ShellSubject, ShellToken} from "../../core/services/remote-shell.service";
+import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
 import {Subscription} from "rxjs";
 import {Buffer} from "buffer";
 
@@ -72,8 +72,10 @@ export class DumbComponent implements OnInit, OnDestroy {
       str = str.substring(0, end);
     }
     lastLog.output = `${lastLog.output}${str}`;
-    const container = this.container!.nativeElement;
-    container.scrollTop = container.scrollHeight;
+    setTimeout(() => {
+      const container = this.container!.nativeElement;
+      container.scrollTop = container.scrollHeight;
+    }, 10);
   }
 }
 

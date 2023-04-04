@@ -11,6 +11,7 @@ export type ShellToken = string;
 export interface ShellInfo {
   token: ShellToken;
   title: string;
+  ready: boolean;
   hasPty: boolean;
 }
 

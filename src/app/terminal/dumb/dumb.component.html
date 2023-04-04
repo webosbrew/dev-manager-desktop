@@ -1,10 +1,10 @@
-<div class="p-2 pb-3 w-100 h-100 container" #container>
-  <div class="w-100 text-warning fw-bold small">
+<div class="p-2 pb-3 w-100 h-100 container" #container (click)="input.focus()">
+  <div class="w-100 text-warning fw-bold small" (click)="$event.stopPropagation()">
     Interactive terminal is not supported for this connection. Check <a
     href="https://github.com/webosbrew/dev-manager-desktop/wiki/About-Dumb-Shell" appExternalLink>here</a> for
     more info.
   </div>
-  <div *ngFor="let item of logs">
+  <div *ngFor="let item of logs" (click)="$event.stopPropagation()">
     <div class="d-flex flex-row align-items-baseline">
       <label class="mx-1 text-secondary">&gt;</label>
       <pre class="w-100 mb-0 user-select-text">{{item.input}}</pre>
