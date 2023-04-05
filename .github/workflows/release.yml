@@ -5,6 +5,9 @@ on:
     types: [ created ]
   workflow_dispatch:
 
+env:
+  TAURI_BUILD_FLAGS: "${{ github.event_name == 'release' && '' || '-d' }}"
+
 jobs:
   build:
     strategy:
@@ -51,18 +54,18 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           rustup target add i686-pc-windows-msvc
-          npm run build -- --features=vendored-openssl --target x86_64-pc-windows-msvc
-          npm run build -- --features=vendored-openssl --target i686-pc-windows-msvc
+          npm run build -- --features=vendored-openssl --target x86_64-pc-windows-msvc ${{ env.TAURI_BUILD_FLAGS }}
+          npm run build -- --features=vendored-openssl --target i686-pc-windows-msvc ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Build the app (Linux)
         if: runner.os == 'Linux'
-        run: npm run build
+        run: npm run build ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Build the app (macOS)
         if: runner.os == 'macOS'
         run: |
           rustup target add aarch64-apple-darwin
-          npm run build -- --features=vendored-openssl --target universal-apple-darwin
+          npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3

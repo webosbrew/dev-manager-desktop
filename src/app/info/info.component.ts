@@ -53,7 +53,7 @@ export class InfoComponent {
   loadInfo(): void {
     if (!this.device) return;
     this.loadDeviceInfo()
-      .then(() => Promise.all([this.loadDevModeInfo(), this.loadHomebrewInfo()]))
+      .then(() => Promise.allSettled([this.loadDevModeInfo(), this.loadHomebrewInfo()]))
       .catch(() => {
       });
   }
