@@ -10,6 +10,7 @@ import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/api/di
 import * as path from "path";
 import {RemoteCommandService} from "../core/services/remote-command.service";
 import {trimEnd} from "lodash";
+import {downloadDir} from "@tauri-apps/api/path";
 
 class FilesState {
 
@@ -174,7 +175,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     const returnValue = await showOpenDialog({
       directory: true,
       multiple: false,
-      defaultPath: ''
+      defaultPath: await downloadDir(),
     });
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
@@ -267,7 +268,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     if (!cwd || !this.device) return;
     const returnValue = await showOpenDialog({
       multiple: true,
-      defaultPath: ''
+      defaultPath: await downloadDir(),
     });
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
