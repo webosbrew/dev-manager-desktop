@@ -56,7 +56,7 @@ jobs:
 
       - name: Build the app (Linux)
         if: runner.os == 'Linux'
-        run: npm run build ${{ env.TAURI_BUILD_FLAGS }}
+        run: npm run build -- ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Build the app (macOS)
         if: runner.os == 'macOS'
