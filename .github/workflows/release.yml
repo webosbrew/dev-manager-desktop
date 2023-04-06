@@ -1,4 +1,5 @@
 name: 'Release'
+run-name: "${{ format('{0} {1}', github.event_name == 'release' && 'Release' || 'Snapshot', github.ref_name) }}"
 
 on:
   release:
@@ -19,10 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - uses: olegtarasov/get-tag@v2.1.2
-        if: ${{ github.event_name == 'release' }}
-        id: tagName
 
       - name: Cache Node Modules
         uses: actions/cache@v3
@@ -82,7 +79,7 @@ jobs:
         if: github.event_name == 'release'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: Dev Manager ${{ steps.tagName.outputs.tag }}
+          name: Dev Manager ${{ github.ref_name }}
           allowUpdates: true
           omitNameDuringUpdate: true
           omitBodyDuringUpdate: true
