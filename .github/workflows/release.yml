@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  TAURI_BUILD_FLAGS: "${{ github.event_name == 'release' && '' || '-d' }}"
+  TAURI_BUILD_FLAGS: "${{ github.event_name == 'release' && ' ' || '-d' }}"
 
 jobs:
   build:
