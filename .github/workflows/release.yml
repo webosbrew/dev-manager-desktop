@@ -1,5 +1,5 @@
 name: 'Release'
-run-name: "${{ github.event_name == 'release' && format('Release {0}', github.ref) || format('Snapshot {0}', github.sha) }}"
+run-name: "${{ github.event_name == 'release' && format('Release {0}', github.ref_name) || format('Snapshot {0}', github.sha) }}"
 
 on:
   release:
