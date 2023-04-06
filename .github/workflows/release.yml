@@ -72,10 +72,10 @@ jobs:
         with:
           name: ${{ runner.os }}-snapshot
           path: |
-            src-tauri/target/**/release/bundle/deb/*.deb
-            src-tauri/target/**/release/bundle/appimage/*.AppImage
-            src-tauri/target/**/release/bundle/msi/*.msi
-            src-tauri/target/**/release/bundle/dmg/*.dmg
+            src-tauri/target/**/bundle/deb/*.deb
+            src-tauri/target/**/bundle/appimage/*.AppImage
+            src-tauri/target/**/bundle/msi/*.msi
+            src-tauri/target/**/bundle/dmg/*.dmg
 
       - name: Create Release
         uses: ncipollo/release-action@v1
@@ -87,7 +87,7 @@ jobs:
           omitNameDuringUpdate: true
           omitBodyDuringUpdate: true
           omitPrereleaseDuringUpdate: true
-          artifacts: "src-tauri/target/**/release/bundle/deb/*.deb,\
-            src-tauri/target/**/release/bundle/appimage/*.AppImage,\
-            src-tauri/target/**/release/bundle/msi/*.msi,\
-            src-tauri/target/**/release/bundle/dmg/*.dmg"
+          artifacts: "src-tauri/target/**/bundle/deb/*.deb,\
+            src-tauri/target/**/bundle/appimage/*.AppImage,\
+            src-tauri/target/**/bundle/msi/*.msi,\
+            src-tauri/target/**/bundle/dmg/*.dmg"

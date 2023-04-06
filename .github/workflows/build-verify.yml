@@ -60,7 +60,7 @@ jobs:
         run: npm ci
 
       - name: Check lint
-        run: npm run ng:lint
+        run: npm run ng lint
 
       - name: Build the app
         run: npm run build

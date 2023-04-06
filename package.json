@@ -16,11 +16,7 @@
     "tauri": "tauri",
     "start": "tauri dev",
     "build": "tauri build",
-    "ng": "ng",
-    "ng:start": "ng serve --port 1420",
-    "ng:build": "ng build",
-    "ng:test": "ng test",
-    "ng:lint": "ng lint"
+    "ng": "node ng-wrapper.js"
   },
   "private": true,
   "engines": {
