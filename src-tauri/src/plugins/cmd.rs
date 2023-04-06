@@ -80,15 +80,15 @@ fn proc_worker<R: Runtime>(
     proc.start(&app.state::<SessionManager>())?;
     match proc.wait_close() {
         Ok(SpawnResult::Closed) => {
-            log::warn!("Process {command} was not gracefully closed. It has been leaked.");
+            log::warn!("{proc:?} was not gracefully closed. It has been leaked.");
             channel.closed(&SpawnResult::Closed);
         }
         Ok(r) => {
-            log::debug!("Process {} closed with {:?}", command, r);
+            log::info!("{proc:?} closed with {r:?}");
             channel.closed(&r);
         }
         Err(e) => {
-            log::debug!("Process {} got error {:?}", command, e);
+            log::warn!("{proc:?} closed with {e:?}");
             channel.closed(e);
         }
     }

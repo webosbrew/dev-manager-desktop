@@ -1,6 +1,7 @@
 use libssh_rs::Error::RequestDenied;
 use libssh_rs::SshResult;
 use std::collections::HashMap;
+use std::fmt::{Debug, Formatter};
 use std::io::Write;
 use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
@@ -25,12 +26,7 @@ impl Shell {
             return Err(Error::Unsupported);
         }
         self.parser.lock().unwrap().set_size(rows, cols);
-        log::info!(
-            "Shell {:?} resized. rows = {}, cols = {}",
-            self.token,
-            rows,
-            cols
-        );
+        log::info!("{self:?} resized. rows = {}, cols = {}", rows, cols);
         return self.queue_message(ShellMessage::Resize { rows, cols });
     }
 
@@ -97,7 +93,7 @@ impl Shell {
             parser: Mutex::new(Parser::new(rows, cols, 1000)),
             shells,
         };
-        log::info!("Create shell {}: rows={}, cols={}", shell.token, rows, cols);
+        log::info!("{shell:?} created: rows={rows}, cols={cols}");
         return shell;
     }
 
@@ -137,7 +133,7 @@ impl Shell {
         let (rows, cols) = self.parser.lock().unwrap().screen().size();
         match channel.request_pty("xterm", cols as u32, rows as u32) {
             Ok(_) => *self.has_pty.lock().unwrap() = true,
-            Err(RequestDenied(s)) => log::warn!("Failed to request pty {:?}", s),
+            Err(RequestDenied(s)) => log::warn!("{self:?} failed to request pty {s:?}"),
             e => e?,
         }
         channel.request_shell()?;
@@ -185,15 +181,24 @@ impl Shell {
     }
 
     pub(crate) fn thread(shell: Arc<Shell>) -> JoinHandle<Result<(), Error>> {
-        log::info!("Spawning worker thread for shell {:?}", shell.token);
+        log::info!("Starting thread for {shell:?}");
         return std::thread::spawn(move || {
             let result = shell.worker();
             let token = shell.token.clone();
             if shell.shells.lock().unwrap().remove(&shell.token).is_some() {
-                log::info!("Removed shell {:?}", token);
+                log::info!("Removed {shell:?}");
                 shell.closed();
             }
             return result;
         });
+    }
+}
+
+impl Debug for Shell {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "Shell {{ token={}, device.name={} }}",
+            self.token.0, self.device.name
+        ))
     }
 }

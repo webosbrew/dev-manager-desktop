@@ -10,6 +10,7 @@ pub mod pool;
 
 pub struct DeviceConnection {
     id: Uuid,
+    device: Device,
     session: Session,
     last_ok: Mutex<bool>,
 }

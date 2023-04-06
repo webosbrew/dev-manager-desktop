@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use std::time::Duration;
 
 use crate::error::Error;
@@ -61,7 +62,7 @@ impl Spawned for Proc {
                 match channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10))) {
                     Ok(len) => len,
                     Err(e) => {
-                        log::error!("Proc error {:?}", e);
+                        log::error!("{self:?} error {e:?}");
                         break;
                     }
                 };
@@ -69,10 +70,19 @@ impl Spawned for Proc {
                 self.data(&buf[..buf_size])?;
             }
         }
-        log::info!("Proc channel closed");
+        log::debug!("{self:?} channel closed");
         session.mark_last_ok();
         return Ok(SpawnResult::Exit {
             status: channel.get_exit_status().unwrap_or(0) as u32,
         });
+    }
+}
+
+impl Debug for Proc {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "Proc {{ command={}, device.name={} }}",
+            self.command, self.device.name
+        ))
     }
 }

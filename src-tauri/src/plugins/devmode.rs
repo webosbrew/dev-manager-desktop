@@ -96,7 +96,7 @@ async fn valid_token<R: Runtime>(
     })?;
     let regex = Regex::new("^[0-9a-zA-Z]+$").unwrap();
     if !regex.is_match(&token) {
-        log::debug!("Token {} doesn't look like a valid devmode token", token);
+        log::warn!("Token `{}` doesn't look like a valid DevMode token", token);
         return Ok(None);
     }
     return Ok(Some(token));

@@ -42,14 +42,20 @@ fn serve_worker<R: Runtime>(
     channel: EventChannel<R, ServeChannelHandler>,
     path: String,
 ) -> Result<(), Error> {
-    log::debug!("Serve is waiting for start.");
+    log::debug!(
+        "Serve {{ path={path}, device.name={} }} is waiting for start.",
+        device.name
+    );
     if let Some(h) = channel.handler.lock().unwrap().as_ref() {
         h.wait();
     }
     let sessions = app.state::<SessionManager>();
-    let mut conn = sessions.session(device)?;
+    let mut conn = sessions.session(device.clone())?;
     let remote_port = conn.listen_forward(Some("127.0.0.1"), 0)?;
-    log::debug!("Serve is available on http://127.0.0.1:{remote_port}/, hosting {path}");
+    log::info!(
+        "Serve {{ path={path}, device.name={} }} is available on http://127.0.0.1:{remote_port}/",
+        device.name
+    );
     channel.rx(&ServeReady {
         host: format!("http://127.0.0.1:{remote_port}/"),
     });
@@ -67,7 +73,10 @@ fn serve_worker<R: Runtime>(
         };
         serve_handler(&path, ch)?;
     }
-
+    log::info!(
+        "Serve {{ path={path}, device.name={} }} closed",
+        device.name
+    );
     channel.closed(None::<String>);
     return result;
 }

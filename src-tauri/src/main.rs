@@ -5,6 +5,7 @@
 
 extern crate core;
 
+use log::LevelFilter;
 use tauri::Manager;
 
 use native_dialog::{MessageDialog, MessageType};
@@ -25,7 +26,7 @@ mod shell_manager;
 mod spawn_manager;
 
 fn main() {
-    env_logger::init();
+    env_logger::builder().filter_level(LevelFilter::Debug).init();
     curl::init();
     let result = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {

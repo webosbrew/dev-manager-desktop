@@ -1,3 +1,4 @@
+use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 use std::sync::Mutex;
 
@@ -40,10 +41,11 @@ impl DeviceConnection {
         }
         let connection = DeviceConnection {
             id: Uuid::new_v4(),
+            device: device.clone(),
             session,
             last_ok: Mutex::new(true),
         };
-        log::debug!("Connection {} created", connection.id);
+        log::info!("{:?} created", connection);
         return Ok(connection);
     }
 
@@ -78,12 +80,21 @@ impl DerefMut for DeviceConnection {
 
 impl Drop for DeviceConnection {
     fn drop(&mut self) {
-        log::debug!(
-            "Connection {} dropped. last_ok={}",
-            self.id,
+        log::info!(
+            "Dropping {:?}, last_ok={}",
+            self,
             self.last_ok
                 .lock()
                 .expect("Failed to lock DeviceConnection::last_ok")
         );
+    }
+}
+
+impl Debug for DeviceConnection {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "DeviceConnection {{ id={}, device.name={} }}",
+            self.id, self.device.name
+        ))
     }
 }
