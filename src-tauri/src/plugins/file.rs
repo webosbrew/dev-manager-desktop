@@ -25,15 +25,15 @@ async fn ls<R: Runtime>(
     log::info!("ls {}", path);
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let session = sessions.session(device)?;
-        let sftp = session.sftp()?;
-        let entries = sftp.read_dir(&path)?;
-        session.mark_last_ok();
-        return Ok(entries
-            .iter()
-            .filter(|entry| entry.name() != Some(".") && entry.name() != Some(".."))
-            .map(|entry| entry.into())
-            .collect());
+        return sessions.with_session(device, |session| {
+            let sftp = session.sftp()?;
+            let entries = sftp.read_dir(&path)?;
+            return Ok(entries
+                .iter()
+                .filter(|entry| entry.name() != Some(".") && entry.name() != Some(".."))
+                .map(|entry| entry.into())
+                .collect());
+        });
     })
     .await
     .expect("critical failure in file::ls task");
@@ -47,13 +47,13 @@ async fn read<R: Runtime>(
 ) -> Result<Vec<u8>, Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let session = sessions.session(device)?;
-        let sftp = session.sftp()?;
-        let mut file = sftp.open(&path, 0 /*O_RDONLY*/, 0)?;
-        let mut buf = Vec::<u8>::new();
-        file.read_to_end(&mut buf)?;
-        session.mark_last_ok();
-        return Ok(buf);
+        return sessions.with_session(device, |session| {
+            let sftp = session.sftp()?;
+            let mut file = sftp.open(&path, 0 /*O_RDONLY*/, 0)?;
+            let mut buf = Vec::<u8>::new();
+            file.read_to_end(&mut buf)?;
+            return Ok(buf);
+        });
     })
     .await
     .expect("critical failure in file::read task");
@@ -68,12 +68,12 @@ async fn write<R: Runtime>(
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let session = sessions.session(device)?;
-        let sftp = session.sftp()?;
-        let mut file = sftp.open(&path, 0x0301 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)?;
-        file.write_all(&content)?;
-        session.mark_last_ok();
-        return Ok(());
+        return Ok(sessions.with_session(device, |session| {
+            let sftp = session.sftp()?;
+            let mut file = sftp.open(&path, 0x0301 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)?;
+            file.write_all(&content)?;
+            return Ok(());
+        })?);
     })
     .await
     .expect("critical failure in file::write task");
@@ -88,13 +88,13 @@ async fn get<R: Runtime>(
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let session = sessions.session(device)?;
-        let sftp = session.sftp()?;
-        let mut sfile = sftp.open(&path, 0, 0)?;
-        let mut file = File::create(target)?;
-        copy(&mut sfile, &mut file)?;
-        session.mark_last_ok();
-        return Ok(());
+        return sessions.with_session(device, |session| {
+            let sftp = session.sftp()?;
+            let mut sfile = sftp.open(&path, 0, 0)?;
+            let mut file = File::create(target.clone())?;
+            copy(&mut sfile, &mut file)?;
+            return Ok(());
+        });
     })
     .await
     .expect("critical failure in file::get task");
@@ -109,18 +109,14 @@ async fn put<R: Runtime>(
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let session = sessions.session(device)?;
-        log::info!("session.sftp()");
-        let sftp = session.sftp()?;
-        log::info!(
-            "sftp.open({}, 0o1101 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)",
-            path
-        );
-        let mut sfile = sftp.open(&path, 0x0301 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)?;
-        let mut file = File::open(source)?;
-        copy(&mut file, &mut sfile)?;
-        session.mark_last_ok();
-        return Ok(());
+        return sessions.with_session(device, |session| {
+            let sftp = session.sftp()?;
+            let mut sfile =
+                sftp.open(&path, 0x0301 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)?;
+            let mut file = File::open(source.clone())?;
+            copy(&mut file, &mut sfile)?;
+            return Ok(());
+        });
     })
     .await
     .expect("critical failure in file::put task");

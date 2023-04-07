@@ -1,9 +1,10 @@
 import {Component, Inject, OnInit} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../../types';
-import {DeviceManagerService} from '../../core/services';
-import {BehaviorSubject, noop, Observable, Subject} from 'rxjs';
+import {DeviceManagerService, DevModeService} from '../../core/services';
+import {noop} from 'rxjs';
 import {save as showSaveDialog} from '@tauri-apps/api/dialog'
+import {writeTextFile} from '@tauri-apps/api/fs';
 
 @Component({
   selector: 'app-renew-script',
@@ -13,21 +14,19 @@ import {save as showSaveDialog} from '@tauri-apps/api/dialog'
 export class RenewScriptComponent implements OnInit {
 
   public privKeyContent?: string;
-  public devModeToken$: Observable<string>;
-  private devModeTokenSubject: Subject<string>;
+  public devModeToken?: string;
 
   constructor(
     public modal: NgbActiveModal,
     private deviceManager: DeviceManagerService,
+    private devMode: DevModeService,
     @Inject('device') public device: Device
   ) {
-    this.devModeTokenSubject = new BehaviorSubject<string>("");
-    this.devModeToken$ = this.devModeTokenSubject.asObservable();
   }
 
-  async ngOnInit(): Promise<void> {
-    this.devModeTokenSubject.next(await this.deviceManager.devModeToken(this.device));
-    this.privKeyContent = await this.deviceManager.readPrivKey(this.device);
+  ngOnInit(): void {
+    this.devMode.status(this.device).then(({token}) => this.devModeToken = token);
+    this.deviceManager.readPrivKey(this.device).then(key => this.privKeyContent = key);
   }
 
   async copyScript(content: string): Promise<void> {
@@ -38,7 +37,10 @@ export class RenewScriptComponent implements OnInit {
     showSaveDialog({
       defaultPath: `renew-devmode-${this.device.name}.sh`
     }).then(value => {
-      // this.electron.fs.writeFileSync(value.filePath, content, { encoding: 'utf8', mode: 0o755 });
+      if (!value) {
+        return;
+      }
+      return writeTextFile(value, content);
     }).catch(noop);
   }
 }

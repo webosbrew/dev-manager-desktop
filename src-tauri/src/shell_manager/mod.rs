@@ -22,7 +22,7 @@ pub struct Shell {
     pub token: ShellToken,
     created_at: Instant,
     device: Device,
-    pub(crate) has_pty: Mutex<bool>,
+    pub(crate) has_pty: Mutex<Option<bool>>,
     pub(crate) sender: Mutex<Option<Sender<ShellMessage>>>,
     pub(crate) callback: Mutex<Option<Box<dyn ShellCallback + Send + Sync>>>,
     pub(crate) parser: Mutex<Parser>,

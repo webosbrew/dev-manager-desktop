@@ -18,15 +18,20 @@
   </div>
   <div class="card mt-4" *ngIf="sysInfo && devModeInfo">
     <div class="card-body">
-      <h5 class="card-title">Dev Mode</h5>
-      <p class="card-text">
-        <strong *ngIf="devModeRemaining">Remaining duration: </strong><span>{{devModeRemaining | async}}</span><br>
-        <small>Remaining time displaying on your TV will only update on boot.</small>
-      </p>
-      <div *ngIf="devModeInfo.token">
-        <button class="btn btn-primary me-2" (click)="renewDevMode()">Renew session</button>
-        <button class="btn btn-primary" (click)="renewScript()">Renew automatically...</button>
-      </div>
+      <h5 class="card-title">Developer Mode</h5>
+      <ng-container *ngIf="devModeInfo.token else invalidToken">
+        <p class="card-text">
+          <strong>Remaining duration: </strong><span>{{devModeInfo.remaining | devmodeCountdown | async}}</span><br>
+          <small>Remaining time displaying on your TV will only update on boot.</small>
+        </p>
+        <div>
+          <button class="btn btn-primary me-2" (click)="renewDevMode()">Renew session</button>
+          <button class="btn btn-primary" (click)="renewScript()">Renew automatically...</button>
+        </div>
+      </ng-container>
+      <ng-template #invalidToken>
+        <p class="card-text">Can't find a valid Developer Mode token.</p>
+      </ng-template>
     </div>
   </div>
   <div class="card mt-4" *ngIf="sysInfo">

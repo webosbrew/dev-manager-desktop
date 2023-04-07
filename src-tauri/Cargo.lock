@@ -1624,7 +1624,7 @@ checksum = "99227334921fae1a979cf0bfdfcc6b3e5ce376ef57e16fb6fb3ea2ed6095f80c"
 [[package]]
 name = "libssh-rs"
 version = "0.1.8"
-source = "git+https://github.com/mariotaku/libssh-rs.git#25371869cee96e354a2bd6368fbf433ed4de6ad7"
+source = "git+https://github.com/mariotaku/libssh-rs.git?rev=ff5783331c169ea6d9b41af1e128a6e1a00450e7#ff5783331c169ea6d9b41af1e128a6e1a00450e7"
 dependencies = [
  "bitflags",
  "libssh-rs-sys",
@@ -1635,7 +1635,7 @@ dependencies = [
 [[package]]
 name = "libssh-rs-sys"
 version = "0.1.3"
-source = "git+https://github.com/mariotaku/libssh-rs.git#25371869cee96e354a2bd6368fbf433ed4de6ad7"
+source = "git+https://github.com/mariotaku/libssh-rs.git?rev=ff5783331c169ea6d9b41af1e128a6e1a00450e7#ff5783331c169ea6d9b41af1e128a6e1a00450e7"
 dependencies = [
  "cc",
  "libz-sys",

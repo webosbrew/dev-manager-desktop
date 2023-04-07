@@ -78,7 +78,7 @@ export class FilesComponent implements OnInit, OnDestroy {
       this.filesSubject.next(new FilesState(dir, undefined, e as Error));
       return;
     }
-    if (pushHistory) {
+    if (pushHistory && this.history?.current !== dir) {
       this.history?.push(dir);
     }
     this.filesSubject.next(new FilesState(dir, list.sort(this.compareName), undefined));

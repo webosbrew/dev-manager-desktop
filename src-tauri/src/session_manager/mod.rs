@@ -8,7 +8,6 @@ use crate::device_manager::Device;
 
 mod manager;
 mod proc;
-pub(crate) mod spawned;
 
 #[derive(Default)]
 pub struct SessionManager {
@@ -18,10 +17,9 @@ pub struct SessionManager {
 pub struct Proc {
     pub(crate) device: Device,
     pub(crate) command: String,
-    pub(crate) callback: Mutex<Option<Box<dyn SpawnedCallback + Send>>>,
+    pub(crate) callback: Mutex<Option<Box<dyn ProcCallback + Send>>>,
     pub(crate) ready: Arc<(Mutex<bool>, Condvar)>,
     pub(crate) interrupted: Mutex<bool>,
-    pub(crate) session: Mutex<Option<ManagedDeviceConnection>>,
 }
 
 #[derive(Clone, Serialize)]
@@ -30,6 +28,6 @@ pub struct ProcData {
     pub data: Vec<u8>,
 }
 
-pub trait SpawnedCallback {
+pub trait ProcCallback {
     fn rx(&self, fd: u32, data: &[u8]);
 }

@@ -1,7 +1,6 @@
 import {Component, Injector} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {noop, Observable, of, timer} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {noop} from 'rxjs';
 import {Device, RawPackageInfo} from '../types';
 import {
   AppManagerService,
@@ -17,7 +16,6 @@ import {HomebrewChannelConfiguration, SystemInfo} from "../types/luna-apis";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {RemoteFileService} from "../core/services/remote-file.service";
 import {open as openPath} from "@tauri-apps/api/shell";
-import {DateTime, Duration} from "luxon";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 
 @Component({
@@ -29,7 +27,6 @@ export class InfoComponent {
   device: Device | null = null;
   sysInfo: Partial<SystemInfo> | null = null;
   devModeInfo: DevModeStatus | null = null;
-  devModeRemaining: Observable<string> | null = null;
   homebrewAppInfo: RawPackageInfo | null = null;
   homebrewAppConfig: Partial<HomebrewChannelConfiguration> | null = null;
   homebrewRepoManifest?: RepositoryItem;
@@ -107,20 +104,11 @@ export class InfoComponent {
   }
 
   private async loadDevModeInfo(): Promise<void> {
-    if (!this.device) return;
+    if (!this.device || this.device.username !== 'prisoner') return;
     try {
-      const devModeInfo = await this.devMode.status(this.device);
-      this.devModeInfo = devModeInfo;
-      if (devModeInfo.remaining) {
-        const expireDate = DateTime.now().plus(Duration.fromISOTime(devModeInfo.remaining));
-        this.devModeRemaining = timer(0, 1000).pipe(map(() => expireDate
-          .diffNow('seconds').toFormat('hh:mm')));
-      } else {
-        this.devModeRemaining = of("--:--");
-      }
+      this.devModeInfo = await this.devMode.status(this.device);
     } catch (e) {
       this.devModeInfo = null;
-      this.devModeRemaining = null;
     }
   }
 

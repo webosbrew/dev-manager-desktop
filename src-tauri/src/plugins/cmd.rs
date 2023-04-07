@@ -9,8 +9,7 @@ use tauri::{
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
-use crate::session_manager::spawned::{SpawnResult, Spawned};
-use crate::session_manager::{Proc, ProcData, SessionManager, SpawnedCallback};
+use crate::session_manager::{Proc, ProcCallback, ProcData, SessionManager};
 use crate::spawn_manager::SpawnManager;
 
 #[tauri::command]
@@ -22,19 +21,20 @@ async fn exec<R: Runtime>(
 ) -> Result<Vec<u8>, Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let session = sessions.session(device)?;
-        let ch = session.new_channel()?;
-        ch.open_session()?;
-        ch.request_exec(&command)?;
-        if let Some(stdin) = stdin {
-            ch.stdin().write_all(&stdin)?;
-            ch.send_eof()?;
-        }
-        let mut buf = Vec::<u8>::new();
-        ch.stdout().read_to_end(&mut buf)?;
-        ch.close()?;
-        session.mark_last_ok();
-        return Ok(buf);
+        return sessions.with_session(device, |session| {
+            let mut ch = session.new_channel()?;
+            ch.open_session()?;
+            ch.request_exec(&command)?;
+            if let Some(stdin) = stdin.clone() {
+                ch.stdin().write_all(&stdin)?;
+                ch.send_eof()?;
+            }
+            let mut buf = Vec::<u8>::new();
+            ch.stdout().read_to_end(&mut buf)?;
+            ch.close()?;
+            session.mark_last_ok();
+            return Ok(buf);
+        });
     })
     .await
     .unwrap();
@@ -48,14 +48,10 @@ async fn spawn<R: Runtime>(
     command: String,
     managed: Option<bool>,
 ) -> Result<String, Error> {
-    let channel = EventChannel::<R, ProcEventHandler<R>>::new(app.clone(), "shell-proc");
+    let channel = EventChannel::<R, ProcEventHandler>::new(app.clone(), "shell-proc");
     let token = channel.token();
     let proc = Arc::new(sessions.spawn(device, &command));
-    channel.listen(ProcEventHandler {
-        app: app.clone(),
-        proc: proc.clone(),
-        command: command.clone(),
-    });
+    channel.listen(ProcEventHandler { proc: proc.clone() });
     tokio::task::spawn_blocking(move || {
         proc_worker(app, proc, command, channel, managed.unwrap_or(true))
     });
@@ -66,7 +62,7 @@ fn proc_worker<R: Runtime>(
     app: AppHandle<R>,
     proc: Arc<Proc>,
     command: String,
-    channel: EventChannel<R, ProcEventHandler<R>>,
+    channel: EventChannel<R, ProcEventHandler>,
     managed: bool,
 ) -> Result<(), Error> {
     let spawns = app.state::<SpawnManager>();
@@ -74,15 +70,11 @@ fn proc_worker<R: Runtime>(
     if managed {
         spawns.add_proc(proc.clone());
     }
-    *proc.callback.lock().unwrap() = Some(Box::new(ProcCallback {
+    *proc.callback.lock().unwrap() = Some(Box::new(ProcCallbackImpl {
         channel: channel.clone(),
     }));
-    proc.start(&app.state::<SessionManager>())?;
-    match proc.wait_close() {
-        Ok(SpawnResult::Closed) => {
-            log::warn!("{proc:?} was not gracefully closed. It has been leaked.");
-            channel.closed(&SpawnResult::Closed);
-        }
+    proc.start()?;
+    match proc.wait_close(&app.state::<SessionManager>()) {
         Ok(r) => {
             log::info!("{proc:?} closed with {r:?}");
             channel.closed(&r);
@@ -96,17 +88,15 @@ fn proc_worker<R: Runtime>(
     return Ok(());
 }
 
-struct ProcEventHandler<R: Runtime> {
-    app: AppHandle<R>,
+struct ProcEventHandler {
     proc: Arc<Proc>,
-    command: String,
 }
 
-struct ProcCallback<R: Runtime> {
-    channel: Arc<EventChannel<R, ProcEventHandler<R>>>,
+struct ProcCallbackImpl<R: Runtime> {
+    channel: Arc<EventChannel<R, ProcEventHandler>>,
 }
 
-impl<R: Runtime> SpawnedCallback for ProcCallback<R> {
+impl<R: Runtime> ProcCallback for ProcCallbackImpl<R> {
     fn rx(&self, fd: u32, data: &[u8]) {
         self.channel.rx(ProcData {
             fd,
@@ -115,7 +105,7 @@ impl<R: Runtime> SpawnedCallback for ProcCallback<R> {
     }
 }
 
-impl<R: Runtime> EventHandler for ProcEventHandler<R> {
+impl EventHandler for ProcEventHandler {
     fn tx(&self, payload: Option<&str>) {
         if let Some(payload) = payload {
             self.proc.data(payload.as_bytes()).unwrap_or(());

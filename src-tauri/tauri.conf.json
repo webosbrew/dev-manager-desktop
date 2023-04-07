@@ -2,8 +2,8 @@
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeBuildCommand": "npm run ng build",
-    "beforeDevCommand": "npm run ng serve -- --port 1420",
-    "devPath": "http://localhost:1420",
+    "beforeDevCommand": "npm run ng serve -- --port 4280",
+    "devPath": "http://localhost:4280",
     "distDir": "../dist"
   },
   "package": {
