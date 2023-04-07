@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Formatter};
 use std::ops::{Deref, DerefMut};
 use std::sync::Mutex;
+use std::time::Duration;
 
 use libssh_rs::{AuthStatus, Session, SshKey, SshOption};
 use uuid::Uuid;
@@ -11,7 +12,8 @@ use crate::error::Error;
 
 impl DeviceConnection {
     pub(crate) fn new(device: Device) -> Result<DeviceConnection, Error> {
-        let mut session = Session::new()?;
+        let session = Session::new()?;
+        session.set_option(SshOption::Timeout(Duration::from_secs(10)))?;
         session.set_option(SshOption::Hostname(device.host.clone()))?;
         session.set_option(SshOption::Port(device.port.clone()))?;
         session.set_option(SshOption::User(Some(device.username.clone())))?;

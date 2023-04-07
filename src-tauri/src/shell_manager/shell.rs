@@ -22,7 +22,7 @@ impl Shell {
     }
 
     pub fn resize(&self, rows: u16, cols: u16) -> Result<(), Error> {
-        if self.has_pty.lock().unwrap().eq(&false) {
+        if !self.has_pty.lock().unwrap().unwrap_or(false) {
             return Err(Error::Unsupported);
         }
         self.parser.lock().unwrap().set_size(rows, cols);
@@ -31,7 +31,7 @@ impl Shell {
     }
 
     pub fn screen(&self, cols: u16) -> Result<ShellScreen, Error> {
-        if self.has_pty.lock().unwrap().eq(&false) {
+        if !self.has_pty.lock().unwrap().unwrap_or(false) {
             return Err(Error::Unsupported);
         }
         let guard = self.parser.lock().unwrap();
@@ -71,14 +71,14 @@ impl Shell {
             token: self.token.clone(),
             title: self.title(),
             ready: self.sender.lock().unwrap().is_some(),
-            has_pty: *self.has_pty.lock().unwrap(),
+            has_pty: self.has_pty.lock().unwrap().unwrap_or(false),
             created_at: self.created_at,
         };
     }
 
     pub(crate) fn new(
         device: Device,
-        has_pty: bool,
+        wants_pty: bool,
         rows: u16,
         cols: u16,
         shells: Arc<Mutex<ShellsMap>>,
@@ -87,7 +87,7 @@ impl Shell {
             token: ShellToken::new(),
             created_at: Instant::now(),
             device,
-            has_pty: Mutex::new(false),
+            has_pty: Mutex::new(if !wants_pty { Some(false) } else { None }),
             sender: Mutex::default(),
             callback: Mutex::new(None),
             parser: Mutex::new(Parser::new(rows, cols, 1000)),
@@ -98,7 +98,7 @@ impl Shell {
     }
 
     fn process(&self, data: &[u8]) -> bool {
-        if self.has_pty.lock().unwrap().eq(&false) {
+        if !self.has_pty.lock().unwrap().unwrap_or(false) {
             return false;
         }
         let mut parser = self.parser.lock().unwrap();
@@ -131,10 +131,15 @@ impl Shell {
         let channel = connection.new_channel()?;
         channel.open_session()?;
         let (rows, cols) = self.parser.lock().unwrap().screen().size();
-        match channel.request_pty("xterm", cols as u32, rows as u32) {
-            Ok(_) => *self.has_pty.lock().unwrap() = true,
-            Err(RequestDenied(s)) => log::warn!("{self:?} failed to request pty {s:?}"),
-            e => e?,
+        if self.has_pty.lock().unwrap().unwrap_or(true) {
+            match channel.request_pty("xterm", cols as u32, rows as u32) {
+                Ok(_) => *self.has_pty.lock().unwrap() = Some(true),
+                Err(RequestDenied(s)) => {
+                    *self.has_pty.lock().unwrap() = Some(false);
+                    log::warn!("{self:?} failed to request pty {s:?}");
+                }
+                e => e?,
+            }
         }
         channel.request_shell()?;
         *self.sender.lock().unwrap() = Some(sender);
@@ -184,7 +189,6 @@ impl Shell {
         log::info!("Starting thread for {shell:?}");
         return std::thread::spawn(move || {
             let result = shell.worker();
-            let token = shell.token.clone();
             if shell.shells.lock().unwrap().remove(&shell.token).is_some() {
                 log::info!("Removed {shell:?}");
                 shell.closed();

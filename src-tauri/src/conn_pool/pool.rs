@@ -4,7 +4,9 @@ use std::time::Duration;
 
 use r2d2::{HandleError, ManageConnection, Pool, PooledConnection};
 
-use crate::conn_pool::{DeviceConnection, DeviceConnectionManager, DeviceConnectionPool};
+use crate::conn_pool::{
+    DeviceConnection, DeviceConnectionManager, DeviceConnectionPool, ManagedDeviceConnection,
+};
 use crate::device_manager::Device;
 use crate::error::Error;
 
@@ -22,7 +24,7 @@ impl DeviceConnectionPool {
         return DeviceConnectionPool { inner, last_error };
     }
 
-    pub fn get(&self) -> Result<PooledConnection<DeviceConnectionManager>, Error> {
+    pub fn get(&self) -> Result<ManagedDeviceConnection, Error> {
         return match self.inner.get() {
             Ok(c) => {
                 c.reset_last_ok();
@@ -46,10 +48,7 @@ impl ManageConnection for DeviceConnectionManager {
         return DeviceConnection::new(self.device.clone());
     }
 
-    fn is_valid(&self, conn: &mut Self::Connection) -> Result<(), Self::Error> {
-        if !(conn.is_connected()) {
-            return Err(Error::Disconnected);
-        }
+    fn is_valid(&self, _: &mut Self::Connection) -> Result<(), Self::Error> {
         return Ok(());
     }
 

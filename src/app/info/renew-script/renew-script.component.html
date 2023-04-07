@@ -5,7 +5,7 @@
 <div class="modal-body">
   <div class="d-flex">
     <ul ngbNav #nav="ngbNav" class="nav-pills me-4" orientation="vertical">
-      <li ngbNavItem="ifttt">
+      <li ngbNavItem="ifttt" *ngIf="devModeToken">
         <a class="text-nowrap" ngbNavLink>IFTTT Applet</a>
         <ng-template ngbNavContent>
           <ul>
@@ -18,7 +18,7 @@
             <li>Use <strong>URL below</strong>:
               <div class="overflow-auto bg-panel p-2">
                 <code
-                  class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{devModeToken$ | async}}</code>
+                  class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{devModeToken}}</code>
               </div>
             </li>
             <li>Select <strong>Creation action</strong>.</li>

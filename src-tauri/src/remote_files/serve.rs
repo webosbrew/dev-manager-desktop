@@ -4,9 +4,11 @@ use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
 
+use crate::conn_pool::{DeviceConnectionManager, ManagedDeviceConnection};
 use httparse::Status;
-use libssh_rs::Channel;
+use libssh_rs::{Channel, SshResult};
 use path_slash::PathBufExt;
+use r2d2::PooledConnection;
 use serde::Serialize;
 use tauri::{AppHandle, Manager, Runtime};
 
@@ -50,8 +52,22 @@ fn serve_worker<R: Runtime>(
         h.wait();
     }
     let sessions = app.state::<SessionManager>();
-    let mut conn = sessions.session(device.clone())?;
-    let remote_port = conn.listen_forward(Some("127.0.0.1"), 0)?;
+    let remote_port: u16;
+    let conn: ManagedDeviceConnection;
+    loop {
+        let session = sessions.session(device.clone())?;
+        match session.listen_forward(Some("127.0.0.1"), 0) {
+            Ok(port) => {
+                remote_port = port;
+                conn = session;
+                break;
+            }
+            Err(e) => match Error::from(e) {
+                Error::Disconnected => continue,
+                e => return Err(e),
+            },
+        }
+    }
     log::info!(
         "Serve {{ path={path}, device.name={} }} is available on http://127.0.0.1:{remote_port}/",
         device.name
@@ -60,7 +76,6 @@ fn serve_worker<R: Runtime>(
         host: format!("http://127.0.0.1:{remote_port}/"),
     });
 
-    let mut result: Result<(), Error> = Ok(());
     loop {
         if let Some(h) = channel.handler.lock().unwrap().as_ref() {
             if h.closed() {
@@ -78,13 +93,13 @@ fn serve_worker<R: Runtime>(
         device.name
     );
     channel.closed(None::<String>);
-    return result;
+    return Ok(());
 }
 
-fn serve_handler(path: &String, mut ch: Channel) -> Result<(), Error> {
+fn serve_handler(path: &String, ch: Channel) -> Result<(), Error> {
+    let url: String;
+    let method: String;
     let mut req_data = Vec::<u8>::new();
-    let mut method: String;
-    let mut url: String;
     let mut out = ch.stdin();
     loop {
         let mut buf: [u8; 8192] = [0; 8192];

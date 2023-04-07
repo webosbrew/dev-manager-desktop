@@ -1,8 +1,10 @@
+use crate::conn_pool::{DeviceConnectionManager, ManagedDeviceConnection};
+use libssh_rs::Channel;
+use r2d2::PooledConnection;
 use std::fmt::{Debug, Formatter};
 use std::time::Duration;
 
 use crate::error::Error;
-use crate::session_manager::spawned::{SpawnResult, Spawned};
 use crate::session_manager::{Proc, SessionManager};
 
 impl Proc {
@@ -18,13 +20,12 @@ impl Proc {
         cvar.notify_one();
     }
 
-    pub fn start(&self, sessions: &SessionManager) -> Result<(), Error> {
+    pub fn start(&self) -> Result<(), Error> {
         let (lock, cvar) = &*self.ready;
         let mut ready = lock.lock().unwrap();
         while !*ready {
             ready = cvar.wait(ready).unwrap();
         }
-        *self.session.lock().unwrap() = Some(sessions.session(self.device.clone())?);
         return Ok(());
     }
 
@@ -39,17 +40,27 @@ impl Proc {
         }
         return Err(Error::Disconnected);
     }
-}
 
-impl Spawned for Proc {
-    fn wait_close(&self) -> Result<SpawnResult, Error> {
-        let mut guard = self.session.lock().unwrap();
-        if guard.is_none() {
-            return Err(Error::Disconnected);
+    pub fn wait_close(&self, sessions: &SessionManager) -> Result<i32, Error> {
+        let session: ManagedDeviceConnection;
+        let channel: Channel;
+        loop {
+            let conn = sessions.session(self.device.clone())?;
+            let open = || {
+                let ch = conn.new_channel()?;
+                ch.open_session()?;
+                Ok(ch)
+            };
+            match open() {
+                Ok(ch) => {
+                    session = conn;
+                    channel = ch;
+                    break;
+                }
+                Err(Error::Disconnected) => continue,
+                Err(e) => return Err(e),
+            };
         }
-        let mut session = guard.as_mut().unwrap();
-        let mut channel = session.new_channel()?;
-        channel.open_session()?;
         channel.request_exec(&self.command)?;
         let mut buf = [0; 8192];
         while !channel.is_closed() {
@@ -72,9 +83,7 @@ impl Spawned for Proc {
         }
         log::debug!("{self:?} channel closed");
         session.mark_last_ok();
-        return Ok(SpawnResult::Exit {
-            status: channel.get_exit_status().unwrap_or(0) as u32,
-        });
+        return Ok(channel.get_exit_status().unwrap_or(-1));
     }
 }
 

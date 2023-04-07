@@ -1,18 +1,36 @@
+use libssh_rs::{Channel, Sftp};
 use std::sync::{Arc, Condvar, Mutex};
 
 use r2d2::PooledConnection;
 
-use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool};
+use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool, ManagedDeviceConnection};
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::session_manager::{Proc, SessionManager};
 
 impl SessionManager {
-    pub fn session(
-        &self,
-        device: Device,
-    ) -> Result<PooledConnection<DeviceConnectionManager>, Error> {
+    pub fn session(&self, device: Device) -> Result<ManagedDeviceConnection, Error> {
         return self.pool(device).get();
+    }
+
+    pub fn with_session<T, F>(&self, device: Device, action: F) -> Result<T, Error>
+    where
+        F: Fn(&ManagedDeviceConnection) -> Result<T, Error>,
+    {
+        let pool = self.pool(device);
+        loop {
+            let session = pool.get()?;
+            return match action(&session) {
+                Ok(ret) => {
+                    session.mark_last_ok();
+                    Ok(ret)
+                }
+                Err(Error::Disconnected) => {
+                    continue;
+                }
+                Err(e) => Err(e),
+            };
+        }
     }
 
     pub fn spawn(&self, device: Device, command: &str) -> Proc {
@@ -22,7 +40,6 @@ impl SessionManager {
             callback: Mutex::default(),
             ready: Arc::new((Mutex::default(), Condvar::new())),
             interrupted: Mutex::new(false),
-            session: Mutex::default(),
         };
     }
 

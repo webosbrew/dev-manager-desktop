@@ -80,13 +80,13 @@ async fn valid_token<R: Runtime>(
 ) -> Result<Option<String>, Error> {
     let data = tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        let session = sessions.session(device)?;
-        let sftp = session.sftp()?;
-        let mut ch = sftp.open("/var/luna/preferences/devmode_enabled", 0, 0)?;
-        let mut data = Vec::<u8>::new();
-        ch.read_to_end(&mut data)?;
-        session.mark_last_ok();
-        return Ok::<Vec<u8>, Error>(data);
+        return sessions.with_session(device, |session| {
+            let mut sftp = session.sftp()?;
+            let mut ch = sftp.open("/var/luna/preferences/devmode_enabled", 0, 0)?;
+            let mut data = Vec::<u8>::new();
+            ch.read_to_end(&mut data)?;
+            return Ok::<Vec<u8>, Error>(data);
+        });
     })
     .await
     .unwrap()?;
