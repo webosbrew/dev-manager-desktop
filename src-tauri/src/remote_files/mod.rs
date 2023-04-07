@@ -8,11 +8,10 @@ pub struct FileItem {
     filename: String,
     r#type: String,
     mode: String,
-    user: String,
-    group: String,
+    user: Option<String>,
+    group: Option<String>,
     size: usize,
     mtime: f64,
-    abspath: String,
     link: Option<LinkInfo>,
 }
 

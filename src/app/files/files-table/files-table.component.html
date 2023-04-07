@@ -6,6 +6,7 @@
     <th>Size</th>
     <th>Permission</th>
     <th>Owner</th>
+    <th>Group</th>
   </tr>
   </thead>
   <tbody class="border-top-0">
@@ -37,7 +38,13 @@
       <ng-template #nonRegular>-</ng-template>
     </td>
     <td class="text-nowrap font-monospace">{{file.mode}}</td>
-    <td class="text-nowrap">{{file.user}}:{{file.group}}</td>
+    <td class="text-nowrap">
+      <ng-container *ngIf="file.user else unknownValue">{{file.user}}</ng-container>
+    </td>
+    <td class="text-nowrap">
+      <ng-container *ngIf="file.group else unknownValue">{{file.group}}</ng-container>
+    </td>
   </tr>
   </tbody>
 </table>
+<ng-template #unknownValue>-</ng-template>

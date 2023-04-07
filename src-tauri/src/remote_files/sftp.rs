@@ -13,8 +13,8 @@ impl From<&Metadata> for FileItem {
                 abbrev_type(stat.file_type().unwrap_or(FileType::Unknown))
             ),
             mode: unix_mode::to_string(stat.permissions().unwrap_or(0)),
-            user: format!("{}", stat.uid().unwrap_or(0)),
-            group: format!("{}", stat.gid().unwrap_or(0)),
+            user: stat.owner().map(|s| String::from(s)),
+            group: stat.group().map(|s| String::from(s)),
             size: stat.len().unwrap_or(0) as usize,
             mtime: stat
                 .modified()
@@ -22,7 +22,6 @@ impl From<&Metadata> for FileItem {
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
                 .as_secs_f64(),
-            abspath: String::from(stat.name().unwrap()),
             link: None,
         };
     }

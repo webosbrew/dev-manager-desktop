@@ -11,6 +11,7 @@ import * as path from "path";
 import {RemoteCommandService} from "../core/services/remote-command.service";
 import {trimEnd} from "lodash";
 import {downloadDir} from "@tauri-apps/api/path";
+import {CreateDirectoryMessageComponent} from "./create-directory-message/create-directory-message.component";
 
 class FilesState {
 
@@ -148,7 +149,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     let tempPath: string | null = null;
     do {
       try {
-        tempPath = await this.session!.getTemp(file.abspath);
+        tempPath = await this.session!.getTemp(path.join(cwd, file.filename));
       } catch (e) {
         result = await MessageDialogComponent.open(this.modalService, {
           title: `Failed to download file ${file.filename}`,
@@ -156,6 +157,7 @@ export class FilesComponent implements OnInit, OnDestroy {
           error: e as Error,
           positive: 'Retry',
           negative: 'Cancel',
+          cancellable: false,
         }).result;
       }
     } while (result);
@@ -184,7 +186,7 @@ export class FilesComponent implements OnInit, OnDestroy {
       let result = false;
       do {
         try {
-          await this.session!.get(file.abspath, target);
+          await this.session!.get(path.join(cwd, file.filename), target);
         } catch (e) {
           result = await MessageDialogComponent.open(this.modalService, {
             title: `Failed to download file ${file.filename}`,
@@ -193,6 +195,7 @@ export class FilesComponent implements OnInit, OnDestroy {
             positive: 'Retry',
             negative: 'Skip',
             alternative: 'Abort',
+            cancellable: false,
           }).result;
         }
       } while (result);
@@ -220,7 +223,7 @@ export class FilesComponent implements OnInit, OnDestroy {
       let result = false;
       do {
         try {
-          await this.session!.rm(file.abspath, true);
+          await this.session!.rm(path.posix.join(cwd, file.filename), true);
         } catch (e) {
           result = await MessageDialogComponent.open(this.modalService, {
             title: `Failed to delete ${file.filename}`,
@@ -229,6 +232,7 @@ export class FilesComponent implements OnInit, OnDestroy {
             positive: 'Retry',
             negative: 'Skip',
             alternative: 'Abort',
+            cancellable: false,
           }).result;
         }
       } while (result);
@@ -249,7 +253,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     let result = false;
     do {
       try {
-        await this.session!.get(file.abspath, returnValue);
+        await this.session!.get(path.join(cwd, file.filename), returnValue);
       } catch (e) {
         result = await MessageDialogComponent.open(this.modalService, {
           title: `Failed to download file ${file.filename}`,
@@ -257,6 +261,7 @@ export class FilesComponent implements OnInit, OnDestroy {
           error: e as Error,
           positive: 'Retry',
           negative: 'Cancel',
+          cancellable: false,
         }).result;
       }
     } while (result);
@@ -281,10 +286,44 @@ export class FilesComponent implements OnInit, OnDestroy {
           positive: 'Retry',
           negative: 'Skip',
           alternative: 'Abort',
+          cancellable: false,
         }).result;
         if (result == null) throw e;
         return result;
       });
+      await this.cd(cwd);
+    } finally {
+      progress.dismiss();
+    }
+  }
+
+  async createDirectory(): Promise<void> {
+    const cwd = this.history?.current;
+    if (!cwd || !this.device) return;
+    const filename: string | false = await MessageDialogComponent.open(this.modalService, {
+      title: 'Create Directory',
+      size: 'md',
+      message: CreateDirectoryMessageComponent,
+      positive: 'Create',
+      negative: 'Cancel',
+    }).result;
+    if (!filename) {
+      return;
+    }
+    const progress = ProgressDialogComponent.open(this.modalService);
+    try {
+      try {
+        await this.session!.mkdir(path.join(cwd, filename));
+      } catch (e) {
+        await MessageDialogComponent.open(this.modalService, {
+          title: `Failed to create directory ${filename}`,
+          message: (e as Error).message ?? String(e),
+          error: e as Error,
+          positive: 'OK',
+          cancellable: false,
+        }).result;
+        throw e;
+      }
       await this.cd(cwd);
     } finally {
       progress.dismiss();

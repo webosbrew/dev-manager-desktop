@@ -10,6 +10,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import {NgbActiveModal, NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
+import {isFunction} from "lodash";
 
 @Component({
   selector: 'app-message-dialog',
@@ -20,8 +21,14 @@ export class MessageDialogComponent implements AfterViewInit, MessageDialogConfi
   title: string = '';
   message: string | Type<any> = '';
   positive: string = '';
+  positiveDisabled?: boolean;
+  positiveAction?: () => any;
   negative?: string;
+  negativeDisabled?: boolean;
+  negativeAction?: () => any;
   alternative?: string;
+  alternativeDisabled?: boolean;
+  alternativeAction?: () => any;
   autofocus?: 'positive' | 'negative' | 'alternative';
   positiveStyle?: ButtonStyle = 'primary';
   messageExtras?: Record<string, any>;
@@ -48,7 +55,14 @@ export class MessageDialogComponent implements AfterViewInit, MessageDialogConfi
           useValue: this.messageExtras && this.messageExtras[name]
         }));
       }
-      this.messageComponent?.createComponent(this.message, {injector: Injector.create({providers})});
+      this.messageComponent?.createComponent(this.message, {
+        injector: Injector.create({
+          providers: [
+            {provide: MessageDialogComponent, useValue: this},
+            ...providers
+          ]
+        })
+      });
       this.changeDetector.detectChanges();
     }
   }
@@ -66,12 +80,30 @@ export class MessageDialogComponent implements AfterViewInit, MessageDialogConfi
   static open(service: NgbModal, config: MessageDialogConfig): NgbModalRef {
     return service.open(MessageDialogComponent, {
       centered: true,
-      size: 'lg',
+      size: config.size || 'lg',
       scrollable: true,
+      beforeDismiss: () => {
+        if (isFunction(config.cancellable)) {
+          return config.cancellable();
+        }
+        return config.cancellable !== false;
+      },
       injector: Injector.create({
         providers: [{provide: 'config', useValue: config}]
       })
     });
+  }
+
+  positiveClicked() {
+    this.modal.close(this.positiveAction?.() ?? true);
+  }
+
+  negativeClicked() {
+    this.modal.close(this.negativeAction?.() ?? false);
+  }
+
+  alternativeClicked() {
+    this.modal.close(this.alternativeAction?.() ?? null);
   }
 
 }
@@ -84,8 +116,10 @@ export interface MessageDialogConfig {
   positive: string;
   negative?: string;
   alternative?: string;
+  cancellable?: boolean | (() => boolean | Promise<boolean>);
   autofocus?: 'positive' | 'negative' | 'alternative';
   positiveStyle?: ButtonStyle;
   error?: Error;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   messageExtras?: { [keys: string]: any };
 }

@@ -31,8 +31,18 @@ async fn exec<R: Runtime>(
             }
             let mut buf = Vec::<u8>::new();
             ch.stdout().read_to_end(&mut buf)?;
+            let mut stderr = Vec::<u8>::new();
+            ch.stderr().read_to_end(&mut stderr)?;
+            let exit_code = ch.get_exit_status().unwrap_or(0);
             ch.close()?;
             session.mark_last_ok();
+            if exit_code != 0 {
+                return Err(Error::ExitStatus {
+                    message: format!(""),
+                    exit_code,
+                    stderr,
+                });
+            }
             return Ok(buf);
         });
     })

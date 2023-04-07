@@ -40,6 +40,11 @@ export class FileSessionImpl implements FileSession {
     return this.file.put(this.device, remotePath, localPath);
   }
 
+  mkdir(path: string): Promise<void> {
+    console.log('mkdir', path);
+    return this.file.mkdir(this.device, path);
+  }
+
   async uploadBatch(sources: string[], pwd: string, failCb: (name: string, e: Error) => Promise<boolean>): Promise<void> {
     for (const source of sources) {
       const name = await basename(source);

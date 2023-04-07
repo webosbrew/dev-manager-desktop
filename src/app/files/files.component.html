@@ -13,10 +13,11 @@
       <div class="flex-fill mx-2 breadcrumb-bar border rounded overflow-hidden">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb my-0 btn-group flex-nowrap">
-            <li class="breadcrumb-item btn btn-sm btn-outline-secondary text-nowrap border-top-0 border-bottom-0 rounded-0"
-                [class.border-start-0]="idx === 0"
-                (click)="breadcrumbNav(state.breadcrumb.slice(0, idx + 1))"
-                *ngFor="let dir of state.breadcrumb; index as idx">
+            <li
+              class="breadcrumb-item btn btn-sm btn-outline-secondary text-nowrap border-top-0 border-bottom-0 rounded-0"
+              [class.border-start-0]="idx === 0"
+              (click)="breadcrumbNav(state.breadcrumb.slice(0, idx + 1))"
+              *ngFor="let dir of state.breadcrumb; index as idx">
               <span *ngIf="idx > 0; else rootLabel">{{dir}}</span>
               <ng-template #rootLabel><i class="bi-hdd-fill me-1"></i>/</ng-template>
             </li>
@@ -31,9 +32,20 @@
               ngbTooltip="Download" container="body">
         <i class="bi bi-download"></i>
       </button>
-      <button class="btn btn-sm btn-primary ms-2" (click)="uploadFiles()" ngbTooltip="Upload" container="body">
-        <i class="bi bi-upload"></i>
-      </button>
+      <div class="btn-group ms-2" ngbDropdown container="body" display="dynamic" role="group"
+           aria-label="More options">
+        <button class="btn btn-sm btn-primary" ngbDropdownToggle>
+          <i class="bi bi-plus-lg"></i>
+        </button>
+        <ul class="dropdown-menu" ngbDropdownMenu>
+          <li ngbDropdownItem (click)="uploadFiles()">
+            <i class="bi bi-upload me-3"></i>Upload
+          </li>
+          <li ngbDropdownItem (click)="createDirectory()">
+            <i class="bi bi-folder-plus me-3"></i>New Directory...
+          </li>
+        </ul>
+      </div>
     </div>
     <div class="flex-fill table-responsive" *ngIf="state.items as items else loadingAndError">
       <app-files-table [items]="items" (opened)="openItem($event)" (selected)="selectionChanged($event)">

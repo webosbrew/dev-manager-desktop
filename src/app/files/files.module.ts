@@ -5,10 +5,18 @@ import {FilesRoutingModule} from './files-routing.module';
 import {NgxFilesizeModule} from "ngx-filesize";
 import {FilesComponent} from "./files.component";
 import {AttrsPermissionsPipe} from "./attrs-permissions.pipe";
-import {NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
+import {
+    NgbDropdown,
+    NgbDropdownItem,
+    NgbDropdownMenu,
+    NgbDropdownToggle,
+    NgbTooltipModule
+} from "@ng-bootstrap/ng-bootstrap";
 import {NgLetModule} from "ng-let";
 import {FilesTableComponent} from './files-table/files-table.component';
 import {SharedModule} from "../shared/shared.module";
+import { CreateDirectoryMessageComponent } from './create-directory-message/create-directory-message.component';
+import {ReactiveFormsModule} from "@angular/forms";
 
 
 @NgModule({
@@ -16,6 +24,7 @@ import {SharedModule} from "../shared/shared.module";
     FilesComponent,
     AttrsPermissionsPipe,
     FilesTableComponent,
+    CreateDirectoryMessageComponent,
   ],
   imports: [
     CommonModule,
@@ -24,6 +33,11 @@ import {SharedModule} from "../shared/shared.module";
     NgbTooltipModule,
     NgLetModule,
     SharedModule,
+    NgbDropdown,
+    NgbDropdownItem,
+    NgbDropdownMenu,
+    NgbDropdownToggle,
+    ReactiveFormsModule,
   ]
 })
 export class FilesModule {
