@@ -13,7 +13,7 @@ pub enum Error {
     Disconnected,
     ExitStatus {
         message: String,
-        exit_code: u32,
+        exit_code: i32,
         stderr: Vec<u8>,
     },
     IO {

@@ -4,12 +4,11 @@ export declare interface FileItem {
   filename: string;
   type: FileType;
   mode: string;
-  user: string;
-  group: string;
+  user?: string;
+  group?: string;
   size: number,
   mtime: number,
   link?: LinkInfo;
-  abspath: string;
 }
 
 export declare interface LinkInfo {
@@ -26,6 +25,8 @@ export declare interface FileSession {
   get(remotePath: string, localPath: string): Promise<void>;
 
   put(localPath: string, remotePath: string): Promise<void>;
+
+  mkdir(path: string): Promise<void>;
 
   getTemp(remotePath: string): Promise<string>;
 

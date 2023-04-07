@@ -3,7 +3,7 @@ import {BackendClient, BackendError} from "./backend-client";
 import {Device, FileItem} from "../../types";
 import {Buffer} from "buffer";
 import {ExecutionError, RemoteCommandService} from "./remote-command.service";
-import {finalize, firstValueFrom, lastValueFrom, Observable, ReplaySubject, Subject} from "rxjs";
+import {finalize, firstValueFrom, lastValueFrom, Observable, Subject} from "rxjs";
 import {EventChannel} from "../event-channel";
 import {map} from "rxjs/operators";
 
@@ -49,6 +49,11 @@ export class RemoteFileService extends BackendClient {
 
   public async put(device: Device, path: string, source: string): Promise<void> {
     await this.invoke('put', {device, path, source}).catch(RemoteFileService.handleExecError);
+  }
+
+  public async mkdir(device: Device, path: string): Promise<void> {
+    await this.cmd.exec(device, `xargs -0 mkdir`, 'buffer', path)
+      .catch(RemoteFileService.handleExecError);
   }
 
   public async getTemp(device: Device, path: string): Promise<string> {
