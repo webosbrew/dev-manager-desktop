@@ -1,6 +1,6 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, from, Observable, Subject} from "rxjs";
-import {CrashReportEntry, Device, DeviceLike, DevicePrivateKey, FileSession, NewDevice} from '../../types';
+import {CrashReportEntry, Device, DeviceLike, FileSession, NewDevice} from '../../types';
 import {BackendClient} from "./backend-client";
 import {FileSessionImpl} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../types/luna-apis";
@@ -9,7 +9,6 @@ import {LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {Buffer} from "buffer";
 import {RemoteFileService} from "./remote-file.service";
-import {app} from "@tauri-apps/api";
 import {DevModeService} from "./dev-mode.service";
 
 @Injectable({

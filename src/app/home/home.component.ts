@@ -1,5 +1,4 @@
-import {Component, Injector, OnInit} from '@angular/core';
-import {Router} from '@angular/router';
+import {Component, Injector} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../types';
 import {DeviceManagerService} from '../core/services';
