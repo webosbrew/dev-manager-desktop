@@ -48,11 +48,12 @@ jobs:
         id: short-sha
         uses: actions/github-script@v6
         with:
-          script: core.setOutput('id', context.sha.substring(0, 7))
+          script: return context.sha.substring(0, 7)
+          result-encoding: string
 
       - name: Populate Snapshot Version
         if: github.event_name != 'release'
-        run: npm version prerelease --no-git-tag-version --preid "${{steps.short-sha.output.id}}"
+        run: npm version prerelease --no-git-tag-version --preid "${{steps.short-sha.outputs.result}}"
 
       - name: Extract Version
         id: pkg-version
@@ -115,4 +116,6 @@ jobs:
           url_prefix: '~/'
           strip_common_prefix: true
           version: ${{ steps.pkg-version.outputs.version }}
+          ignore_missing: true
+          ignore_empty: true
           finalize: false
