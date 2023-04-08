@@ -1,9 +1,9 @@
-use crate::conn_pool::{DeviceConnectionManager, ManagedDeviceConnection};
-use libssh_rs::Channel;
-use r2d2::PooledConnection;
 use std::fmt::{Debug, Formatter};
 use std::time::Duration;
 
+use libssh_rs::Channel;
+
+use crate::conn_pool::ManagedDeviceConnection;
 use crate::error::Error;
 use crate::session_manager::{Proc, SessionManager};
 

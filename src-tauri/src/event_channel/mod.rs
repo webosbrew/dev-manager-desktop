@@ -14,6 +14,7 @@ pub struct EventChannel<R: Runtime, H: EventHandler + Send + 'static> {
 
 pub trait EventHandler: Sized {
     fn tx(&self, payload: Option<&str>);
+    //noinspection RsLiveness
     fn close(&self, payload: Option<&str>) {
         unimplemented!();
     }

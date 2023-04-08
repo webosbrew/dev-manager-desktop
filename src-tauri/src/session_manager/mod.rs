@@ -3,7 +3,7 @@ use std::sync::{Arc, Condvar, Mutex};
 
 use serde::Serialize;
 
-use crate::conn_pool::{DeviceConnectionPool, ManagedDeviceConnection};
+use crate::conn_pool::DeviceConnectionPool;
 use crate::device_manager::Device;
 
 mod manager;
