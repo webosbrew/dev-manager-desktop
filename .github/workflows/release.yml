@@ -115,3 +115,4 @@ jobs:
           url_prefix: '~/'
           strip_common_prefix: true
           version: ${{ steps.pkg-version.outputs.version }}
+          finalize: false
