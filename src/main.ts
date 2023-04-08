@@ -15,7 +15,7 @@ Sentry.init({
     })
   ],
   environment: AppConfig.environment,
-  release: `ui@${packageInfo.version}`,
+  release: packageInfo.version,
   beforeBreadcrumb: (breadcrumb, hint) => breadcrumb.level !== 'debug' ? breadcrumb : null,
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.

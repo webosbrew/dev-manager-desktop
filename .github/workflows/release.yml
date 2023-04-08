@@ -44,6 +44,20 @@ jobs:
         with:
           node-version: 16.x
 
+      - name: Get Short Commit ID
+        id: short-sha
+        uses: actions/github-script@v6
+        with:
+          script: core.setOutput('id', github.sha.substring(0, 7))
+
+      - name: Populate Snapshot Version
+        if: github.event_name != 'release'
+        run: npm version prerelease --no-git-tag-version --preid "${{steps.short-sha.output.id}}"
+
+      - name: Extract Version
+        id: pkg-version
+        uses: Saionaro/extract-package-version@v1.2.1
+
       - name: Install NPM Dependencies
         run: npm ci
 
@@ -88,3 +102,16 @@ jobs:
             src-tauri/target/**/bundle/appimage/*.AppImage,\
             src-tauri/target/**/bundle/msi/*.msi,\
             src-tauri/target/**/bundle/dmg/*.dmg"
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: webosbrew
+          SENTRY_PROJECT: dev-manager-desktop-ui
+        with:
+          environment: production
+          sourcemaps: './dist'
+          url_prefix: '~/'
+          strip_common_prefix: true
+          version: ${{ steps.pkg-version.outputs.version }}
