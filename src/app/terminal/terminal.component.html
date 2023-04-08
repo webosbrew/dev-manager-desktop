@@ -31,7 +31,8 @@
         <li>
         </li>
       </ul>
-      <div class="btn-group btn-group-sm my-1 mx-2 flex-shrink-0 flex-nowrap" role="group" aria-label="New Tab">
+      <div class="btn-group btn-group-sm my-1 mx-2 flex-shrink-0 flex-nowrap" role="group" aria-label="New Tab"
+           *ngIf="deviceManager.devices$ | async as devices">
         <button type="button" class="btn btn-secondary" (click)="newTab()">
           <i class="bi bi-plus-lg"></i>
         </button>
@@ -40,7 +41,7 @@
           <button type="button" class="btn btn-secondary" ngbDropdownToggle>
           </button>
           <div class="dropdown-menu" ngbDropdownMenu>
-            <button ngbDropdownItem *ngFor="let device of (deviceManager.devices$ | async)"
+            <button ngbDropdownItem *ngFor="let device of devices"
                     (click)="newTab(device)">{{device.name}}</button>
             <!--            <div class="dropdown-divider"></div>-->
             <!--            <button ngbDropdownItem>Open in system terminal...<i class="bi bi-box-arrow-up-right ms-2"></i></button>-->
@@ -59,9 +60,9 @@
 
   <div class="position-absolute w-100 h-100 p-4" *ngIf="shells.length === 0">
     <h4>Select a device to start terminal session</h4>
-    <div class="list-group mt-3">
+    <div class="list-group mt-3" *ngIf="deviceManager.devices$ | async as devices">
       <button class="list-group-item list-group-item-action" type="button" (click)="newTab(device)"
-              *ngFor="let device of (deviceManager.devices$ | async)">
+              *ngFor="let device of devices">
         {{device.name}}
         <span class="float-end text-secondary">{{device.username}}</span>
       </button>

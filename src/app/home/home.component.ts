@@ -7,6 +7,8 @@ import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove
 import packageInfo from '../../../package.json';
 import {WizardComponent} from "../add-device/wizard/wizard.component";
 import {noop} from "rxjs";
+import {filter} from "rxjs/operators";
+import {isNonNull} from "../shared/operators";
 
 @Component({
   selector: 'app-home',
@@ -21,10 +23,9 @@ export class HomeComponent {
 
   constructor(
     public deviceManager: DeviceManagerService,
-    private modalService: NgbModal,
-    private router: Router
+    private modalService: NgbModal
   ) {
-    deviceManager.devices$.subscribe((devices) => {
+    deviceManager.devices$.pipe(filter(isNonNull)).subscribe((devices) => {
       this.selectedDevice = devices.find((device) => device.default) || devices[0];
       if (!this.selectedDevice) {
         this.openSetupDevice(false);

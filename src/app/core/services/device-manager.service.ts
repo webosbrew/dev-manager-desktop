@@ -17,18 +17,18 @@ import {DevModeService} from "./dev-mode.service";
 })
 export class DeviceManagerService extends BackendClient {
 
-  private devicesSubject: Subject<Device[]>;
+  private devicesSubject: Subject<Device[] | null>;
   private selectedSubject: Subject<Device | null>;
 
   constructor(zone: NgZone, private cmd: RemoteCommandService, private file: RemoteFileService,
               private luna: RemoteLunaService, private devMode: DevModeService) {
     super(zone, 'device-manager');
-    this.devicesSubject = new BehaviorSubject<Device[]>([]);
+    this.devicesSubject = new BehaviorSubject<Device[] | null>(null);
     this.selectedSubject = new BehaviorSubject<Device | null>(null);
     this.on('devicesUpdated', (devices: Device[]) => this.onDevicesUpdated(devices));
   }
 
-  get devices$(): Observable<Device[]> {
+  get devices$(): Observable<Device[] | null> {
     return this.devicesSubject.asObservable();
   }
 

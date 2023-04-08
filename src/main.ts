@@ -3,7 +3,25 @@ import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 
 import {AppModule} from './app/app.module';
 import {AppConfig} from './environments/environment';
+import * as Sentry from "@sentry/angular-ivy";
+import packageInfo from '../package.json';
 
+Sentry.init({
+  dsn: "https://93c623f5a47940f0b7bac7d0d5f6a91f@o4504977150377984.ingest.sentry.io/4504978685689856",
+  integrations: [
+    new Sentry.BrowserTracing({
+      tracePropagationTargets: ["localhost", "https://tauri.localhost/"],
+      routingInstrumentation: Sentry.routingInstrumentation,
+    })
+  ],
+  environment: AppConfig.environment,
+  release: `ui@${packageInfo.version}`,
+  beforeBreadcrumb: (breadcrumb, hint) => breadcrumb.level !== 'debug' ? breadcrumb : null,
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
+});
 
 if (AppConfig.production) {
   enableProdMode();

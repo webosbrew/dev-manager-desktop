@@ -34,6 +34,7 @@
     "@angular/router": "^15.1.5",
     "@ng-bootstrap/ng-bootstrap": "^14.0.1",
     "@popperjs/core": "^2.11.5",
+    "@sentry/angular-ivy": "7.47.0",
     "@tauri-apps/api": "^1.2.0",
     "bootstrap": "^5.3.0-alpha1",
     "bootstrap-icons": "^1.10.3",
