@@ -53,7 +53,8 @@
               "xterm-addon-fit",
               "filesize",
               "find-matching-bracket"
-            ]
+            ],
+            "sourceMap": true
           },
           "configurations": {
             "production": {
