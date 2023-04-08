@@ -48,7 +48,7 @@ jobs:
         id: short-sha
         uses: actions/github-script@v6
         with:
-          script: core.setOutput('id', github.sha.substring(0, 7))
+          script: core.setOutput('id', context.sha.substring(0, 7))
 
       - name: Populate Snapshot Version
         if: github.event_name != 'release'
