@@ -11,6 +11,7 @@ env:
   SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
   SENTRY_ORG: webosbrew
   SENTRY_PROJECT: dev-manager-desktop-ui
+  SENTRY_ENVIRONMENT: "${{ github.event_name == 'release' && 'release' || 'development' }}"
 
 jobs:
   sentry-create-release:
@@ -34,9 +35,9 @@ jobs:
         with:
           script: |
             if (process.env.SENTRY_ENVIRONMENT !== 'release') {
-              core.setOutput('release', "${{ steps.pkg-version.outputs.version }}-" + context.sha.substring(0, 7));
+              core.exportVariable('SENTRY_RELEASE', "${{ steps.pkg-version.outputs.version }}-" + context.sha.substring(0, 7));
             } else {
-              core.setOutput('release', "${{ steps.pkg-version.outputs.version }}");
+              core.exportVariable('SENTRY_RELEASE', "${{ steps.pkg-version.outputs.version }}");
             }
 
       - uses: getsentry/action-release@v1
@@ -88,9 +89,13 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            if (!process.env.SENTRY_RELEASE) {
+              core.setFailed('SENTRY_RELEASE was not found');
+              return;
+            }
             const fs = require('fs');
             fs.writeFileSync('src/release.json', JSON.stringify({
-              version: "${{ needs.sentry-create-release.outputs.release }}"
+              version: process.env.SENTRY_RELEASE
             }));
 
       - name: Install NPM Dependencies
@@ -114,7 +119,7 @@ jobs:
           npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Upload Source Maps
-        run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
+        run: npx --yes @sentry/cli sourcemaps upload -r ${{ env.SENTRY_RELEASE }} dist
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
