@@ -14,9 +14,9 @@ Sentry.init({
       routingInstrumentation: Sentry.routingInstrumentation,
     })
   ],
-  enabled: ReleaseInfo.version !== '0.0.0',
+  enabled: !!ReleaseInfo.version,
   environment: AppConfig.environment,
-  release: ReleaseInfo.version,
+  release: ReleaseInfo.version || 'local',
   beforeBreadcrumb: (breadcrumb) => breadcrumb.level !== 'debug' ? breadcrumb : null,
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.

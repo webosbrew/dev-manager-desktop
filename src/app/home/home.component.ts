@@ -8,6 +8,7 @@ import {WizardComponent} from "../add-device/wizard/wizard.component";
 import {noop} from "rxjs";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
+import ReleaseInfo from '../../release.json';
 
 @Component({
   selector: 'app-home',
@@ -30,7 +31,7 @@ export class HomeComponent {
         this.openSetupDevice(false);
       }
     });
-    this.appVersion = packageInfo.version;
+    this.appVersion = ReleaseInfo.version || packageInfo.version;
   }
 
   async removeDevice(device: Device): Promise<void> {
