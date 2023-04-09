@@ -35,10 +35,11 @@ jobs:
         with:
           script: |
             if (process.env.SENTRY_ENVIRONMENT !== 'release') {
-              core.setOutput('release', "${{ steps.pkg-version.outputs.version }}-" + context.sha.substring(0, 7));
+              return "${{ steps.pkg-version.outputs.version }}-" + context.sha.substring(0, 7);
             } else {
-              core.setOutput('release', "${{ steps.pkg-version.outputs.version }}");
+              return "${{ steps.pkg-version.outputs.version }}";
             }
+          result-encoding: string
 
       - uses: getsentry/action-release@v1
         name: Create Sentry Release
@@ -47,6 +48,9 @@ jobs:
           ignore_missing: true
           ignore_empty: true
           finalize: false
+
+    outputs:
+      release: ${{ steps.release-info.outputs.result }}
 
   build:
     name: Build Package
@@ -150,7 +154,7 @@ jobs:
   sentry-finalize-release:
     name: Finalize Sentry Release
     runs-on: ubuntu-latest
-    needs: [sentry-create-release, build]
+    needs: [ sentry-create-release, build ]
     steps:
       - uses: getsentry/action-release@v1
         with:
