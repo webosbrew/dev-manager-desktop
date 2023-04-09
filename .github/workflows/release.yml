@@ -35,9 +35,9 @@ jobs:
         with:
           script: |
             if (process.env.SENTRY_ENVIRONMENT !== 'release') {
-              core.exportVariable('SENTRY_RELEASE', "${{ steps.pkg-version.outputs.version }}-" + context.sha.substring(0, 7));
+              core.setOutput('release', "${{ steps.pkg-version.outputs.version }}-" + context.sha.substring(0, 7));
             } else {
-              core.exportVariable('SENTRY_RELEASE', "${{ steps.pkg-version.outputs.version }}");
+              core.setOutput('release', "${{ steps.pkg-version.outputs.version }}");
             }
 
       - uses: getsentry/action-release@v1
@@ -89,13 +89,14 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            if (!process.env.SENTRY_RELEASE) {
-              core.setFailed('SENTRY_RELEASE was not found');
+            const release = "${{ needs.sentry-create-release.outputs.release }}".trim();
+            if (!release) {
+              core.setFailed('Sentry release was not found');
               return;
             }
             const fs = require('fs');
             fs.writeFileSync('src/release.json', JSON.stringify({
-              version: process.env.SENTRY_RELEASE
+              version: release
             }));
 
       - name: Install NPM Dependencies
@@ -149,7 +150,7 @@ jobs:
   sentry-finalize-release:
     name: Finalize Sentry Release
     runs-on: ubuntu-latest
-    needs: build
+    needs: [sentry-create-release, build]
     steps:
       - uses: getsentry/action-release@v1
         with:
