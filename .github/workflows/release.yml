@@ -124,7 +124,7 @@ jobs:
           npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Upload Source Maps
-        run: npx --yes @sentry/cli sourcemaps upload -r ${{ env.SENTRY_RELEASE }} dist
+        run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
