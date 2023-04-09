@@ -8,15 +8,55 @@ on:
 
 env:
   TAURI_BUILD_FLAGS: "${{ github.event_name == 'release' && ' ' || '-d' }}"
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+  SENTRY_ORG: webosbrew
+  SENTRY_PROJECT: dev-manager-desktop-ui
 
 jobs:
+  sentry-create-release:
+    name: Create Sentry Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+
+      - name: Extract Version
+        id: pkg-version
+        uses: Saionaro/extract-package-version@v1.2.1
+
+      - name: Get Short Commit ID
+        id: release-info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            if (process.env.SENTRY_ENVIRONMENT !== 'release') {
+              core.setOutput('release', "${{ steps.release-info.outputs.version }}-" + context.sha.substring(0, 7));
+            } else {
+              core.setOutput('release', "${{ steps.release-info.outputs.version }}");
+            }
+
+      - uses: getsentry/action-release@v1
+        name: Create Sentry Release
+        with:
+          version: ${{ steps.release-info.outputs.release }}
+          ignore_missing: true
+          ignore_empty: true
+          finalize: false
+
   build:
+    name: Build Package
     strategy:
       fail-fast: false
       matrix:
         os: [ windows-latest, ubuntu-20.04, macos-latest ]
 
     runs-on: ${{ matrix.os }}
+
+    needs: sentry-create-release
 
     steps:
       - uses: actions/checkout@v3
@@ -44,23 +84,23 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: Get Short Commit ID
-        id: short-sha
-        uses: actions/github-script@v6
-        with:
-          script: return context.sha.substring(0, 7)
-          result-encoding: string
-
-      - name: Populate Snapshot Version
-        if: github.event_name != 'release'
-        run: npm version prerelease --no-git-tag-version --preid "${{steps.short-sha.outputs.result}}"
-
       - name: Extract Version
         id: pkg-version
         uses: Saionaro/extract-package-version@v1.2.1
 
+      - name: Write Version
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            fs.writeFileSync('src/release.json', JSON.stringify({
+              version: "${{ needs.sentry-create-release.outputs.release }}"
+            }));
+
       - name: Install NPM Dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm install -g @sentry/cli
 
       - name: Build the app (Windows)
         if: runner.os == 'Windows'
@@ -104,18 +144,17 @@ jobs:
             src-tauri/target/**/bundle/msi/*.msi,\
             src-tauri/target/**/bundle/dmg/*.dmg"
 
-      - name: Create Sentry release
-        uses: getsentry/action-release@v1
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: webosbrew
-          SENTRY_PROJECT: dev-manager-desktop-ui
+      - name: Upload Source Maps
+        run: sentry sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
+
+  sentry-finalize-release:
+    name: Finalize Sentry Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: getsentry/action-release@v1
         with:
-          environment: production
-          sourcemaps: './dist'
-          url_prefix: '~/'
-          strip_common_prefix: true
-          version: ${{ steps.pkg-version.outputs.version }}
+          version: ${{ needs.sentry-create-release.outputs.release }}
           ignore_missing: true
           ignore_empty: true
           finalize: false
