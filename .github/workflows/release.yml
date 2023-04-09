@@ -29,7 +29,7 @@ jobs:
         id: pkg-version
         uses: Saionaro/extract-package-version@v1.2.1
 
-      - name: Get Short Commit ID
+      - name: Generate Sentry Release Name
         id: release-info
         uses: actions/github-script@v6
         with:
