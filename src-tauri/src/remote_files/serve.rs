@@ -4,14 +4,13 @@ use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
 
-use crate::conn_pool::{DeviceConnectionManager, ManagedDeviceConnection};
 use httparse::Status;
-use libssh_rs::{Channel, SshResult};
+use libssh_rs::Channel;
 use path_slash::PathBufExt;
-use r2d2::PooledConnection;
 use serde::Serialize;
 use tauri::{AppHandle, Manager, Runtime};
 
+use crate::conn_pool::ManagedDeviceConnection;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};

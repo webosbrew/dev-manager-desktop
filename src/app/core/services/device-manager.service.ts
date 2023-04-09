@@ -1,6 +1,6 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, from, Observable, Subject} from "rxjs";
-import {CrashReportEntry, Device, DeviceLike, DevicePrivateKey, FileSession, NewDevice} from '../../types';
+import {CrashReportEntry, Device, DeviceLike, FileSession, NewDevice} from '../../types';
 import {BackendClient} from "./backend-client";
 import {FileSessionImpl} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../types/luna-apis";
@@ -9,7 +9,6 @@ import {LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {Buffer} from "buffer";
 import {RemoteFileService} from "./remote-file.service";
-import {app} from "@tauri-apps/api";
 import {DevModeService} from "./dev-mode.service";
 
 @Injectable({
@@ -17,18 +16,18 @@ import {DevModeService} from "./dev-mode.service";
 })
 export class DeviceManagerService extends BackendClient {
 
-  private devicesSubject: Subject<Device[]>;
+  private devicesSubject: Subject<Device[] | null>;
   private selectedSubject: Subject<Device | null>;
 
   constructor(zone: NgZone, private cmd: RemoteCommandService, private file: RemoteFileService,
               private luna: RemoteLunaService, private devMode: DevModeService) {
     super(zone, 'device-manager');
-    this.devicesSubject = new BehaviorSubject<Device[]>([]);
+    this.devicesSubject = new BehaviorSubject<Device[] | null>(null);
     this.selectedSubject = new BehaviorSubject<Device | null>(null);
     this.on('devicesUpdated', (devices: Device[]) => this.onDevicesUpdated(devices));
   }
 
-  get devices$(): Observable<Device[]> {
+  get devices$(): Observable<Device[] | null> {
     return this.devicesSubject.asObservable();
   }
 

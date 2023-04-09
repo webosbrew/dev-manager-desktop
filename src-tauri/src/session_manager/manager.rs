@@ -1,9 +1,6 @@
-use libssh_rs::{Channel, Sftp};
 use std::sync::{Arc, Condvar, Mutex};
 
-use r2d2::PooledConnection;
-
-use crate::conn_pool::{DeviceConnectionManager, DeviceConnectionPool, ManagedDeviceConnection};
+use crate::conn_pool::{DeviceConnectionPool, ManagedDeviceConnection};
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::session_manager::{Proc, SessionManager};

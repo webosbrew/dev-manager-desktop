@@ -53,7 +53,8 @@
               "xterm-addon-fit",
               "filesize",
               "find-matching-bracket"
-            ]
+            ],
+            "sourceMap": true
           },
           "configurations": {
             "production": {
@@ -83,7 +84,13 @@
               "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
-              "namedChunks": true
+              "namedChunks": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"

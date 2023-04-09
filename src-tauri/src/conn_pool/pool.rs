@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use r2d2::{HandleError, ManageConnection, Pool, PooledConnection};
+use r2d2::{HandleError, ManageConnection, Pool};
 
 use crate::conn_pool::{
     DeviceConnection, DeviceConnectionManager, DeviceConnectionPool, ManagedDeviceConnection,

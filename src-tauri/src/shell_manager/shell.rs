@@ -1,12 +1,12 @@
-use libssh_rs::Error::RequestDenied;
-use libssh_rs::SshResult;
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::io::Write;
-use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
+
+use libssh_rs::Error::RequestDenied;
 use vt100::Parser;
 
 use crate::conn_pool::DeviceConnection;

@@ -81,7 +81,7 @@ async fn valid_token<R: Runtime>(
     let data = tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
-            let mut sftp = session.sftp()?;
+            let sftp = session.sftp()?;
             let mut ch = sftp.open("/var/luna/preferences/devmode_enabled", 0, 0)?;
             let mut data = Vec::<u8>::new();
             ch.read_to_end(&mut data)?;

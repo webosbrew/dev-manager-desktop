@@ -22,7 +22,7 @@ async fn exec<R: Runtime>(
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
-            let mut ch = session.new_channel()?;
+            let ch = session.new_channel()?;
             ch.open_session()?;
             ch.request_exec(&command)?;
             if let Some(stdin) = stdin.clone() {
@@ -62,16 +62,13 @@ async fn spawn<R: Runtime>(
     let token = channel.token();
     let proc = Arc::new(sessions.spawn(device, &command));
     channel.listen(ProcEventHandler { proc: proc.clone() });
-    tokio::task::spawn_blocking(move || {
-        proc_worker(app, proc, command, channel, managed.unwrap_or(true))
-    });
+    tokio::task::spawn_blocking(move || proc_worker(app, proc, channel, managed.unwrap_or(true)));
     return Ok(token);
 }
 
 fn proc_worker<R: Runtime>(
     app: AppHandle<R>,
     proc: Arc<Proc>,
-    command: String,
     channel: EventChannel<R, ProcEventHandler>,
     managed: bool,
 ) -> Result<(), Error> {

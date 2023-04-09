@@ -1,5 +1,4 @@
-import {Component, Injector, OnInit} from '@angular/core';
-import {Router} from '@angular/router';
+import {Component, Injector} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../types';
 import {DeviceManagerService} from '../core/services';
@@ -7,6 +6,9 @@ import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove
 import packageInfo from '../../../package.json';
 import {WizardComponent} from "../add-device/wizard/wizard.component";
 import {noop} from "rxjs";
+import {filter} from "rxjs/operators";
+import {isNonNull} from "../shared/operators";
+import ReleaseInfo from '../../release.json';
 
 @Component({
   selector: 'app-home',
@@ -21,16 +23,15 @@ export class HomeComponent {
 
   constructor(
     public deviceManager: DeviceManagerService,
-    private modalService: NgbModal,
-    private router: Router
+    private modalService: NgbModal
   ) {
-    deviceManager.devices$.subscribe((devices) => {
+    deviceManager.devices$.pipe(filter(isNonNull)).subscribe((devices) => {
       this.selectedDevice = devices.find((device) => device.default) || devices[0];
       if (!this.selectedDevice) {
         this.openSetupDevice(false);
       }
     });
-    this.appVersion = packageInfo.version;
+    this.appVersion = ReleaseInfo.version || packageInfo.version;
   }
 
   async removeDevice(device: Device): Promise<void> {

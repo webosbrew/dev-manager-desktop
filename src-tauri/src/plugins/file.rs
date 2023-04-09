@@ -1,6 +1,6 @@
 use std::env::temp_dir;
 use std::fs::File;
-use std::io::{copy, BufWriter, Read, Write};
+use std::io::{copy, Read, Write};
 use std::path::Path;
 
 use tauri::plugin::{Builder, TauriPlugin};

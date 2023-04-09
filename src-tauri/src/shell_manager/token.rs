@@ -1,9 +1,9 @@
 use std::fmt;
-use std::fmt::{Display, Formatter, Write};
+use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::Visitor;
 use uuid::Uuid;
 
 use crate::shell_manager::ShellToken;

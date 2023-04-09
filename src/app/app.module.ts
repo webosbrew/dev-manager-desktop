@@ -1,5 +1,5 @@
 import {HttpClientModule} from '@angular/common/http';
-import {NgModule} from '@angular/core';
+import {APP_INITIALIZER, ErrorHandler, NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
@@ -16,6 +16,8 @@ import {NgbAccordionModule, NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
 import {RemoveDeviceComponent} from './remove-device/remove-device.component';
 import {AddDeviceModule} from "./add-device/add-device.module";
 import {NgOptimizedImage} from "@angular/common";
+import {Router} from "@angular/router";
+import * as Sentry from "@sentry/angular-ivy";
 
 @NgModule({
   declarations: [
@@ -27,21 +29,37 @@ import {NgOptimizedImage} from "@angular/common";
     UpdateDetailsComponent,
     RemoveDeviceComponent,
   ],
-    imports: [
-        BrowserModule,
-        BrowserAnimationsModule,
-        FormsModule,
-        HttpClientModule,
-        CoreModule,
-        SharedModule,
-        ReactiveFormsModule,
-        AppRoutingModule,
-        NgbNavModule,
-        NgbAccordionModule,
-        AddDeviceModule,
-        NgOptimizedImage,
-    ],
-  providers: [],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    FormsModule,
+    HttpClientModule,
+    CoreModule,
+    SharedModule,
+    ReactiveFormsModule,
+    AppRoutingModule,
+    NgbNavModule,
+    NgbAccordionModule,
+    AddDeviceModule,
+    NgOptimizedImage,
+  ],
+  providers: [{
+    provide: ErrorHandler,
+    useValue: Sentry.createErrorHandler({
+      showDialog: false,
+    }),
+  },
+    {
+      provide: Sentry.TraceService,
+      deps: [Router],
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: () => () => {
+      },
+      deps: [Sentry.TraceService],
+      multi: true,
+    },],
   bootstrap: [AppComponent]
 })
 export class AppModule {
