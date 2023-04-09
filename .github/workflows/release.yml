@@ -44,7 +44,7 @@ jobs:
       - uses: getsentry/action-release@v1
         name: Create Sentry Release
         with:
-          version: ${{ steps.release-info.outputs.release }}
+          version: ${{ steps.release-info.outputs.result }}
           ignore_missing: true
           ignore_empty: true
           finalize: false
