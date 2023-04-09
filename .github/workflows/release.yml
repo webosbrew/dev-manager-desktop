@@ -34,9 +34,9 @@ jobs:
         with:
           script: |
             if (process.env.SENTRY_ENVIRONMENT !== 'release') {
-              core.setOutput('release', "${{ steps.release-info.outputs.version }}-" + context.sha.substring(0, 7));
+              core.setOutput('release', "${{ steps.pkg-version.outputs.version }}-" + context.sha.substring(0, 7));
             } else {
-              core.setOutput('release', "${{ steps.release-info.outputs.version }}");
+              core.setOutput('release', "${{ steps.pkg-version.outputs.version }}");
             }
 
       - uses: getsentry/action-release@v1
@@ -83,10 +83,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-
-      - name: Extract Version
-        id: pkg-version
-        uses: Saionaro/extract-package-version@v1.2.1
 
       - name: Write Version
         uses: actions/github-script@v6

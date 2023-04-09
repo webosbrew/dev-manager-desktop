@@ -14,7 +14,7 @@ Sentry.init({
       routingInstrumentation: Sentry.routingInstrumentation,
     })
   ],
-  enabled: AppConfig.environment !== 'local',
+  enabled: ReleaseInfo.version !== '0.0.0',
   environment: AppConfig.environment,
   release: ReleaseInfo.version,
   beforeBreadcrumb: (breadcrumb) => breadcrumb.level !== 'debug' ? breadcrumb : null,
