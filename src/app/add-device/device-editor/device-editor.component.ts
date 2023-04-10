@@ -150,7 +150,7 @@ export class DeviceEditorComponent implements OnInit {
       positive: 'OK',
       negative: 'Cancel',
     });
-    return await ref.result.then(() => false);
+    return await ref.result.catch(() => false);
   }
 
   private async getNewDevice(): Promise<NewDevice> {
