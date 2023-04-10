@@ -306,7 +306,7 @@ export class FilesComponent implements OnInit, OnDestroy {
       message: CreateDirectoryMessageComponent,
       positive: 'Create',
       negative: 'Cancel',
-    }).result;
+    }).result.catch(() => false);
     if (!filename) {
       return;
     }
