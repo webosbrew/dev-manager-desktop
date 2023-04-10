@@ -37,6 +37,12 @@ platformBrowserDynamic()
 const darkTheme = window.matchMedia('(prefers-color-scheme: dark)');
 
 document.documentElement.setAttribute('data-bs-theme', darkTheme.matches ? 'dark' : 'light');
-darkTheme.addEventListener('change', (media) => {
-  document.documentElement.setAttribute('data-bs-theme', media.matches ? 'dark' : 'light');
-});
+if (darkTheme.addEventListener) {
+  darkTheme.addEventListener('change', (media) => {
+    document.documentElement.setAttribute('data-bs-theme', media.matches ? 'dark' : 'light');
+  });
+} else {
+  // noinspection JSDeprecatedSymbols
+  darkTheme.addListener?.((ev) => document.documentElement.setAttribute(
+    'data-bs-theme', ev.matches ? 'dark' : 'light'));
+}
