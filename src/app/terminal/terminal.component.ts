@@ -63,7 +63,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
       this.shells.splice(tabIndex, 1);
     }
     if (this.currentShell === token) {
-      this.currentShell = this.shells[tabIndex > 0 ? tabIndex - 1 : 0].token;
+      this.currentShell = this.shells[tabIndex > 0 ? tabIndex - 1 : 0]?.token;
     }
     if (sendClose) {
       this.shell.close(token).then(noop);
