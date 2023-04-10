@@ -93,7 +93,7 @@ export class DeviceEditorComponent implements OnInit {
     if (this.auth) {
       this.formGroup.controls.sshAuth.controls.type.disable();
     }
-    this.formGroup.controls.sshAuth.controls.type.valueChanges.subscribe((type) => {
+    this.formGroup.controls.sshAuth.controls.type.valueChanges.subscribe(() => {
       this.formGroup.controls.sshAuth.controls.value.reset(null);
     });
   }
@@ -105,7 +105,7 @@ export class DeviceEditorComponent implements OnInit {
       const info = await this.deviceManager.getSystemInfo(newDevice);
       console.log(info);
     } catch (e) {
-      console.log('Failed to get device info:', e);
+      console.warn('Failed to get device info:', e);
       // Something wrong happened. Abort adding by default
       if (!await this.confirmVerificationFailure(newDevice, e as Error)) {
         throw e;
@@ -126,6 +126,7 @@ export class DeviceEditorComponent implements OnInit {
           error: e as Error,
           positive: 'Retry',
           negative: 'Cancel',
+          cancellable: false,
         });
         if (await confirm.result) {
           retryCount++;
@@ -149,7 +150,7 @@ export class DeviceEditorComponent implements OnInit {
       positive: 'OK',
       negative: 'Cancel',
     });
-    return await ref.result;
+    return await ref.result.then(() => false);
   }
 
   private async getNewDevice(): Promise<NewDevice> {
@@ -240,16 +241,19 @@ export class DeviceEditorComponent implements OnInit {
     try {
       await this.deviceManager.verifyLocalPrivateKey(file);
     } catch (e) {
-      console.log(e);
-      if (BackendError.isCompatibleBody(e)) {
-        if (e.reason === 'PassphraseRequired') {
-          passphrase = await KeyPassphrasePromptComponent.prompt(this.modalService, file);
-        } else {
-          MessageDialogComponent.open(this.modalService, {
-            message: 'Failed to open private key',
-            positive: 'OK'
-          });
-        }
+      if (!BackendError.isCompatibleBody(e)) {
+        throw e;
+      }
+      if (e.reason === 'PassphraseRequired') {
+        passphrase = await KeyPassphrasePromptComponent.prompt(this.modalService, file);
+      }
+      if (!passphrase) {
+        MessageDialogComponent.open(this.modalService, {
+          message: 'Failed to open private key',
+          error: e as any,
+          positive: 'OK'
+        });
+        return;
       }
     }
     this.formGroup.controls.sshAuth.controls.value.setValue({

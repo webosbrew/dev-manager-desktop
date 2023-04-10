@@ -32,7 +32,7 @@ export class RemoveDeviceComponent {
       injector: Injector.create({
         providers: [{provide: 'device', useValue: device}]
       })
-    }).result;
+    }).result.catch(() => null);
   }
 }
 

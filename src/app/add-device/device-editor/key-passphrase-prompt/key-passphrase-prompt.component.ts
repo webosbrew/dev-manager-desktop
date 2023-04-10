@@ -34,7 +34,7 @@ export class KeyPassphrasePromptComponent {
     }));
   }
 
-  static prompt(modals: NgbModal, keyPath: string): Promise<string> {
+  static prompt(modals: NgbModal, keyPath: string): Promise<string | undefined> {
     const ref = modals.open(KeyPassphrasePromptComponent, {
       size: 'sm',
       centered: true,
@@ -44,6 +44,6 @@ export class KeyPassphrasePromptComponent {
         ]
       })
     });
-    return ref.result;
+    return ref.result.catch(() => undefined);
   }
 }

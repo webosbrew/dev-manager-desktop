@@ -15,11 +15,10 @@ export class ProgressDialogComponent {
   }
 
   static open(service: NgbModal): NgbModalRef {
-    const ref = service.open(ProgressDialogComponent, {
+    return service.open(ProgressDialogComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false
     });
-    return ref;
   }
 }

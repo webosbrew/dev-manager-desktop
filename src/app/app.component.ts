@@ -6,6 +6,7 @@ import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {MessageDialogComponent} from './shared/components/message-dialog/message-dialog.component';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {open} from "@tauri-apps/api/shell";
+import {noop} from "rxjs";
 
 @Component({
   selector: 'app-root',
@@ -55,7 +56,7 @@ export class AppComponent {
           break;
         }
       }
-    });
+    }).catch(noop);
   }
 
 }

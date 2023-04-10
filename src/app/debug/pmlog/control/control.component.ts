@@ -28,13 +28,12 @@ export class PmLogControlComponent {
   }
 
   async showSetLevel() {
-    try {
-      const result = await SetContextComponent.prompt(this.modals);
-      const changed = await this.log.pmLogSetLevel(this.device, result.context, result.level);
-      this.reflectChanges(changed, result.level);
-    } catch (e) {
-      // Noop
+    const result = await SetContextComponent.prompt(this.modals);
+    if (!result) {
+      return;
     }
+    const changed = await this.log.pmLogSetLevel(this.device, result.context, result.level);
+    this.reflectChanges(changed, result.level);
   }
 
   private reflectChanges(changed: string[], level: PrefLogLevel) {

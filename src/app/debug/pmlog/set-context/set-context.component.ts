@@ -20,8 +20,8 @@ export class SetContextComponent {
     })
   }
 
-  public static async prompt(modals: NgbModal): Promise<SetContextResult> {
-    return modals.open(SetContextComponent).result;
+  public static async prompt(modals: NgbModal): Promise<SetContextResult | undefined> {
+    return modals.open(SetContextComponent).result.catch(() => undefined);
   }
 
 }

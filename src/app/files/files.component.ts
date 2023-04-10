@@ -216,7 +216,7 @@ export class FilesComponent implements OnInit, OnDestroy {
       positive: 'Delete',
       negative: 'Cancel',
       positiveStyle: 'danger',
-    }).result;
+    }).result.catch(() => false);
     if (!answer) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     for (const file of files) {
@@ -278,19 +278,20 @@ export class FilesComponent implements OnInit, OnDestroy {
     if (!returnValue) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      await this.session!.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], cwd, async (name, e) => {
-        const result = await MessageDialogComponent.open(this.modalService, {
-          title: `Failed to upload file ${name}`,
-          message: e.message ?? String(e),
-          error: e as Error,
-          positive: 'Retry',
-          negative: 'Skip',
-          alternative: 'Abort',
-          cancellable: false,
-        }).result;
-        if (result == null) throw e;
-        return result;
-      });
+      await this.session!.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], cwd,
+        async (name, e): Promise<boolean> => {
+          const result = await MessageDialogComponent.open(this.modalService, {
+            title: `Failed to upload file ${name}`,
+            message: e.message ?? String(e),
+            error: e as Error,
+            positive: 'Retry',
+            negative: 'Skip',
+            alternative: 'Abort',
+            cancellable: false,
+          }).result;
+          if (result == null) throw e;
+          return result;
+        });
       await this.cd(cwd);
     } finally {
       progress.dismiss();

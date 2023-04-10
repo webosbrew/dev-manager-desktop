@@ -82,12 +82,11 @@ export class InfoComponent {
         .finally(() => this.files.rm(device, imgPath, false).catch(noop));
       await openPath(tempPath);
     } catch (e) {
-      console.log(JSON.stringify(e));
       MessageDialogComponent.open(this.modalService, {
         message: 'Failed to take screenshot',
         error: e as Error,
         positive: 'OK'
-      })
+      });
     } finally {
       progress.dismiss();
     }

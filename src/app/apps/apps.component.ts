@@ -149,7 +149,7 @@ export class AppsComponent implements OnInit, OnDestroy {
       negative: 'Cancel',
       autofocus: 'negative',
     });
-    if (!await confirm.result) return;
+    if (!await confirm.result.catch(() => false)) return;
     if (pkg.id === APP_ID_HBCHANNEL) {
       const doubleConfirm = MessageDialogComponent.open(this.modalService, {
         message: HbchannelRemoveComponent,
@@ -158,7 +158,7 @@ export class AppsComponent implements OnInit, OnDestroy {
         negative: 'Cancel',
         autofocus: 'negative',
       });
-      if (!await doubleConfirm.result) return;
+      if (!await doubleConfirm.result.catch(() => false)) return;
     }
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
@@ -169,8 +169,9 @@ export class AppsComponent implements OnInit, OnDestroy {
         error: e as Error,
         positive: 'Close'
       });
+    } finally {
+      progress.close(true);
     }
-    progress.close(true);
   }
 
   async installPackage(item: RepositoryItem): Promise<void> {

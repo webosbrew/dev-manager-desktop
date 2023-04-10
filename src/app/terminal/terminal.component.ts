@@ -88,13 +88,12 @@ export class TerminalComponent implements OnInit, OnDestroy {
       this.shells.push(shellInfo);
       this.currentShell = shellInfo.token;
     } catch (e) {
-      console.log(e);
       MessageDialogComponent.open(this.modals, {
         title: 'Failed to open terminal',
         message: 'Please make sure the TV was turned on. For some cases, you will need to wait one minute or two for SSH to be available.',
         error: e as Error,
         positive: 'Close'
-      })
+      });
     } finally {
       progress.close();
     }
