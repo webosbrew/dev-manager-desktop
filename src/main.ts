@@ -5,6 +5,7 @@ import {AppModule} from './app/app.module';
 import {AppConfig} from './environments/environment';
 import ReleaseInfo from './release.json';
 import * as Sentry from "@sentry/angular-ivy";
+import {Breadcrumb, defaultStackParser} from "@sentry/angular-ivy";
 
 Sentry.init({
   dsn: "https://93c623f5a47940f0b7bac7d0d5f6a91f@o4504977150377984.ingest.sentry.io/4504978685689856",
@@ -17,7 +18,13 @@ Sentry.init({
   enabled: !!ReleaseInfo.version,
   environment: AppConfig.environment,
   release: ReleaseInfo.version || 'local',
-  beforeBreadcrumb: (breadcrumb) => breadcrumb.level !== 'debug' ? breadcrumb : null,
+  stackParser: (stack: string, skipFirst?: number) => {
+    stack = stack.replace(/@tauri:\/\/localhost\//g,"@https://tauri.localhost/");
+    return defaultStackParser(stack, skipFirst);
+  },
+  beforeBreadcrumb: (breadcrumb: Breadcrumb) => {
+    return breadcrumb.level !== 'debug' ? breadcrumb : null;
+  },
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
