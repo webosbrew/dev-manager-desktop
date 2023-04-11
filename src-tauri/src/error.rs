@@ -83,6 +83,8 @@ impl From<libssh_rs::Error> for Error {
         if let libssh_rs::Error::Fatal(s) = &value {
             if s == "Socket error: disconnected" {
                 return Error::Disconnected;
+            } else if s.starts_with("Timeout connecting to ") {
+                return Error::Timeout;
             }
         }
         return Error::new(format!("SSH Error: {:?}", value));
