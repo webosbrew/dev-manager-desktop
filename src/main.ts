@@ -19,7 +19,8 @@ Sentry.init({
   environment: AppConfig.environment,
   release: ReleaseInfo.version || 'local',
   stackParser: (stack: string, skipFirst?: number) => {
-    stack = stack.replace(/@tauri:\/\/localhost\//g,"@https://tauri.localhost/");
+    // noinspection HttpUrlsUsage
+    stack = stack.replace(/@tauri:\/\//g, "@http://");
     return defaultStackParser(stack, skipFirst);
   },
   beforeBreadcrumb: (breadcrumb: Breadcrumb) => {
