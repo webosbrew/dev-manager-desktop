@@ -1,6 +1,6 @@
+use reqwest::Url;
 use std::io::Read;
 
-use curl::easy::Easy;
 use serde::{Deserialize, Serialize};
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::regex::Regex;
@@ -39,29 +39,21 @@ async fn token<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<String, 
 #[tauri::command]
 async fn status<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<DevModeStatus, Error> {
     if let Some(token) = valid_token(app, device).await? {
-        let mut data = Vec::<u8>::new();
-        let mut easy = Easy::new();
-        let url = format!(
-            "https://developer.lge.com/secure/CheckDevModeSession.dev?sessionToken={}",
-            easy.url_encode(token.as_bytes()),
-        );
-        easy.url(&url).unwrap();
-        let mut xfer = easy.transfer();
-        xfer.write_function(|new_data| {
-            data.extend_from_slice(new_data);
-            Ok(new_data.len())
-        })
-        .unwrap();
-        xfer.perform()?;
-        drop(xfer);
-        if easy.response_code()? == 200 {
-            let session = serde_json::from_slice::<DevModeSession>(&data)?;
-            if session.result == "success" {
-                return Ok(DevModeStatus {
-                    token: Some(token),
-                    remaining: Some(session.error_msg.unwrap_or(String::from(""))),
-                });
-            }
+        let resp = reqwest::get(
+            Url::parse_with_params(
+                "https://developer.lge.com/secure/CheckDevModeSession.dev",
+                &[("sessionToken", &token)],
+            )
+            .expect("Illegal HTTP URL"),
+        )
+        .await?
+        .error_for_status()?;
+        let session = resp.json::<DevModeSession>().await?;
+        if session.result == "success" {
+            return Ok(DevModeStatus {
+                token: Some(token),
+                remaining: Some(session.error_msg.unwrap_or(String::from(""))),
+            });
         }
         return Ok(DevModeStatus {
             token: Some(token),

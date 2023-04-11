@@ -27,7 +27,6 @@ mod spawn_manager;
 
 fn main() {
     env_logger::builder().filter_level(LevelFilter::Debug).init();
-    curl::init();
     let result = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
             if let Some(wnd) = app.get_window("main") {

@@ -1,7 +1,6 @@
 use std::fs;
 use std::path::Path;
 
-use curl::easy::Easy;
 use libssh_rs::SshKey;
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
@@ -95,24 +94,10 @@ impl DeviceManager {
 
     //noinspection HttpUrlsUsage
     pub async fn novacom_getkey(&self, address: &str) -> Result<String, Error> {
-        let mut easy = Easy::new();
-        let mut data = Vec::<u8>::new();
-        let url = format!("http://{}:9991/webos_rsa", address);
-        easy.url(&url).expect("Failed to set url for curl");
-        let mut xfer = easy.transfer();
-        xfer.write_function(|new_data| {
-            data.extend_from_slice(new_data);
-            Ok(new_data.len())
-        })
-        .expect("Failed to set write function for curl");
-        xfer.perform()?;
-        drop(xfer);
-        if easy.response_code()? == 200 {
-            return Ok(String::from_utf8(data).unwrap());
-        }
-        return Err(Error::Message {
-            message: format!("Failed to fetch private key from {}", address),
-        });
+        let resp = reqwest::get(format!("http://{}:9991/webos_rsa", address))
+            .await?
+            .error_for_status()?;
+        return Ok(resp.text().await?);
     }
 
     pub async fn localkey_verify(&self, name: &str, passphrase: &str) -> Result<(), Error> {
