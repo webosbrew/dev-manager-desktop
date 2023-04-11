@@ -1,6 +1,6 @@
 import {BehaviorSubject, noop, Observable, Subject} from "rxjs";
 import {listen} from "@tauri-apps/api/event";
-import {BackendClient} from "./backend-client";
+import {BackendClient, BackendErrorBody} from "./backend-client";
 import {Injectable, NgZone} from "@angular/core";
 import {Device} from "../../types";
 import {Buffer} from "buffer";
@@ -11,9 +11,15 @@ export type ShellToken = string;
 export interface ShellInfo {
   token: ShellToken;
   title: string;
-  ready: boolean;
-  hasPty: boolean;
+  hasPty?: boolean;
+  state: ShellState;
 }
+
+export type ShellState =
+  { which: 'Connecting' } |
+  { which: 'Connected' } |
+  { which: 'Exited'; returnCode: number; } |
+  { which: 'Error'; error: BackendErrorBody; };
 
 export interface ShellMessage {
   token: ShellToken;

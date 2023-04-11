@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::io::Write;
-use std::sync::{Arc, Mutex};
+use std::ops::Deref;
 use std::sync::mpsc::channel;
+use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
@@ -12,7 +13,7 @@ use vt100::Parser;
 use crate::conn_pool::DeviceConnection;
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::shell_manager::{Shell, ShellInfo, ShellMessage, ShellScreen, ShellToken};
+use crate::shell_manager::{Shell, ShellInfo, ShellMessage, ShellScreen, ShellState, ShellToken};
 
 pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
 
@@ -62,16 +63,22 @@ impl Shell {
 
     pub fn close(&self) -> Result<(), Error> {
         self.queue_message(ShellMessage::Close)?;
-        self.closed();
         return Ok(());
     }
 
     pub fn info(&self) -> ShellInfo {
+        let state: ShellState = if let Some(s) = self.closed.lock().unwrap().as_ref() {
+            s.clone()
+        } else if self.sender.lock().unwrap().is_some() {
+            ShellState::Connected
+        } else {
+            ShellState::Connecting
+        };
         return ShellInfo {
             token: self.token.clone(),
             title: self.title(),
-            ready: self.sender.lock().unwrap().is_some(),
-            has_pty: self.has_pty.lock().unwrap().unwrap_or(false),
+            has_pty: self.has_pty.lock().unwrap().clone(),
+            state,
             created_at: self.created_at,
         };
     }
@@ -88,6 +95,7 @@ impl Shell {
             created_at: Instant::now(),
             device,
             has_pty: Mutex::new(if !wants_pty { Some(false) } else { None }),
+            closed: Mutex::default(),
             sender: Mutex::default(),
             callback: Mutex::new(None),
             parser: Mutex::new(Parser::new(rows, cols, 1000)),
@@ -125,7 +133,7 @@ impl Shell {
         return Err(Error::Disconnected);
     }
 
-    fn worker(&self) -> Result<(), Error> {
+    fn worker(&self) -> Result<i32, Error> {
         let (sender, receiver) = channel::<ShellMessage>();
         let connection = DeviceConnection::new(self.device.clone())?;
         let channel = connection.new_channel()?;
@@ -158,6 +166,7 @@ impl Shell {
                     }
                     ShellMessage::Close => {
                         channel.close()?;
+                        break;
                     }
                 }
             }
@@ -174,26 +183,38 @@ impl Shell {
                 }
             }
         }
-        return Ok(());
+        return Ok(channel.get_exit_status().unwrap_or(0));
     }
 
-    fn closed(&self) -> bool {
+    fn closed(&self, result: Result<i32, Error>) -> bool {
+        *self.closed.lock().unwrap() = Some(match &result {
+            Ok(code) => ShellState::Exited {
+                return_code: code.clone(),
+            },
+            Err(e) => ShellState::Error { error: e.clone() },
+        });
         if let Some(callback) = self.callback.lock().unwrap().take() {
-            callback.closed();
+            let removed = result.map_or(false, |v| v == 0);
+            if !removed {
+                callback.info(self.info());
+            }
+            callback.closed(removed);
             return true;
         }
         return false;
     }
 
-    pub(crate) fn thread(shell: Arc<Shell>) -> JoinHandle<Result<(), Error>> {
+    pub(crate) fn thread(shell: Arc<Shell>) -> JoinHandle<()> {
         log::info!("Starting thread for {shell:?}");
         return std::thread::spawn(move || {
             let result = shell.worker();
-            if shell.shells.lock().unwrap().remove(&shell.token).is_some() {
-                log::info!("Removed {shell:?}");
-                shell.closed();
+            log::info!("{shell:?} worker exited with {result:?}");
+            if let Ok(0) = result {
+                if shell.shells.lock().unwrap().remove(&shell.token).is_some() {
+                    log::info!("Removed {shell:?}");
+                }
             }
-            return result;
+            shell.closed(result);
         });
     }
 }

@@ -46,7 +46,7 @@ export class TerminalComponent implements OnInit, OnDestroy {
     });
     this.unlistenFns.push(await listen('shell-info', (event) =>
       this.zone.run(() => this.updateTab(event.payload as ShellInfo))));
-    this.unlistenFns.push(await listen('shell-closed', (event) =>
+    this.unlistenFns.push(await listen('shell-removed', (event) =>
       this.zone.run(() => this.closeTab(event.payload as ShellToken, false))));
   }
 

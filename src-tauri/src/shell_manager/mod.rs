@@ -7,6 +7,7 @@ use uuid::Uuid;
 use vt100::Parser;
 
 use crate::device_manager::Device;
+use crate::error::Error;
 use crate::shell_manager::shell::ShellsMap;
 
 pub(crate) mod manager;
@@ -23,6 +24,7 @@ pub struct Shell {
     created_at: Instant,
     device: Device,
     pub(crate) has_pty: Mutex<Option<bool>>,
+    pub(crate) closed: Mutex<Option<ShellState>>,
     pub(crate) sender: Mutex<Option<Sender<ShellMessage>>>,
     pub(crate) callback: Mutex<Option<Box<dyn ShellCallback + Send + Sync>>>,
     pub(crate) parser: Mutex<Parser>,
@@ -32,7 +34,7 @@ pub struct Shell {
 pub trait ShellCallback {
     fn info(&self, info: ShellInfo);
     fn rx(&self, data: &[u8]);
-    fn closed(&self);
+    fn closed(&self, removed: bool);
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
@@ -42,9 +44,9 @@ pub struct ShellToken(Uuid);
 pub struct ShellInfo {
     pub token: ShellToken,
     pub title: String,
-    pub ready: bool,
-    #[serde(rename = "hasPty")]
-    pub has_pty: bool,
+    pub state: ShellState,
+    #[serde(rename = "hasPty", skip_serializing_if = "Option::is_none")]
+    pub has_pty: Option<bool>,
     #[serde(skip_serializing)]
     created_at: Instant,
 }
@@ -67,4 +69,18 @@ pub(crate) enum ShellMessage {
     Data(Vec<u8>),
     Resize { rows: u16, cols: u16 },
     Close,
+}
+
+#[derive(Clone, Serialize, Debug)]
+#[serde(tag = "which")]
+pub enum ShellState {
+    Connecting,
+    Connected,
+    Exited {
+        #[serde(rename = "returnCode")]
+        return_code: i32,
+    },
+    Error {
+        error: Error,
+    },
 }

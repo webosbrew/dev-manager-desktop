@@ -30,8 +30,8 @@ class FilesState {
 export class FilesComponent implements OnInit, OnDestroy {
   device: Device | null = null;
   session: FileSession | null = null;
+  home?: string;
   history?: HistoryStack;
-  home: string | null = null;
   files$: Observable<FilesState>;
 
   selectedItems: FileItem[] | null = null;
@@ -50,13 +50,15 @@ export class FilesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.subscription = this.deviceManager.selected$.subscribe(async (selected) => {
+      this.filesSubject.next(new FilesState(''));
+      this.history = undefined;
+      this.home = undefined;
       this.device = selected;
       this.session = selected && this.deviceManager.fileSession(selected);
-      if (selected) {
-        this.home = await this.homeDir();
+      if (!selected) {
+        return;
       }
-      this.history = new HistoryStack(this.home ?? '/media/developer');
-      await this.cd(this.home ?? '/media/developer');
+      await this.cd();
     });
   }
 
@@ -68,10 +70,24 @@ export class FilesComponent implements OnInit, OnDestroy {
     return (this.selectedItems?.length ?? 0) > 0;
   }
 
-  async cd(dir: string, pushHistory: boolean = false): Promise<void> {
+  async cd(dir: string = '', pushHistory: boolean = false): Promise<void> {
     if (!this.device) return;
-    console.log('cd', dir);
-    this.filesSubject.next(new FilesState(dir));
+    if (!dir) {
+      console.log('cd ~');
+      this.filesSubject.next(new FilesState(''));
+      if (!this.home) {
+        try {
+          this.home = await this.homeDir();
+        } catch (e) {
+          this.filesSubject.next(new FilesState('', undefined, e as Error));
+          return;
+        }
+      }
+      dir = this.home;
+    } else {
+      console.log('cd', dir);
+      this.filesSubject.next(new FilesState(dir));
+    }
     let list: FileItem[];
     try {
       list = await this.session!.ls(dir);
@@ -80,7 +96,11 @@ export class FilesComponent implements OnInit, OnDestroy {
       return;
     }
     if (pushHistory && this.history?.current !== dir) {
-      this.history?.push(dir);
+      if (!this.history) {
+        this.history = new HistoryStack(dir);
+      } else {
+        this.history.push(dir);
+      }
     }
     this.filesSubject.next(new FilesState(dir, list.sort(this.compareName), undefined));
     this.selectedItems = null;
@@ -106,7 +126,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     const def = '/media/developer';
     if (!this.device) return def;
     let path = await this.cmd.exec(this.device, 'echo -n $HOME', 'utf-8');
-    return trimEnd(path, ' /');
+    return trimEnd(path, ' /') || def;
   }
 
   compareName(this: void, a: FileItem, b: FileItem): number {

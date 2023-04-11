@@ -5,26 +5,35 @@
           [animation]="false" [(activeId)]="currentShell">
         <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.token" [destroyOnHide]="false">
           <a class="text-nowrap" ngbNavLink>
-            <div class="spinner-border spinner-border-sm text-primary" role="status" *ngIf="!shell.ready">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"
+                 *ngIf="shell.state.which === 'Connecting'">
               <span class="visually-hidden">Connecting...</span>
             </div>
             {{shell.title}}
             <span class="close position-relative ps-2 font-weight-light"
                   (click)="closeTab(shell.token);$event.preventDefault();$event.stopImmediatePropagation();">×</span>
           </a>
-          <ng-template ngbNavContent [ngSwitch]="shell.ready">
-            <ng-container *ngSwitchCase="true" [ngSwitch]="shell.hasPty">
+          <ng-template ngbNavContent [ngSwitch]="shell.state.which === 'Connecting'">
+            <ng-container *ngSwitchCase="false" [ngSwitch]="shell.hasPty">
               <ng-container *ngSwitchCase="true">
                 <app-terminal-pty class="terminal-tab-page" [token]="shell.token" [size]="termSize"
-                                  *ngIf="termSize"></app-terminal-pty>
+                                  [readonly]="shell.state.which !== 'Connected'" *ngIf="termSize"></app-terminal-pty>
                 <div class="terminal-resize" *ngIf="pendingResize">
                   {{pendingResize.rows}} &times; {{pendingResize.cols}}
                 </div>
               </ng-container>
-              <app-terminal-dumb class="terminal-tab-page" [token]="shell.token" *ngSwitchDefault></app-terminal-dumb>
+              <app-terminal-dumb class="terminal-tab-page" [token]="shell.token"
+                                 [readonly]="shell.state.which !== 'Connected'"
+                                 *ngSwitchCase="false"></app-terminal-dumb>
             </ng-container>
-            <div class="terminal-tab-page p-1" *ngSwitchDefault>
+            <div class="terminal-tab-page p-1" *ngSwitchCase="true">
               Connecting to {{shell.title}}...
+            </div>
+            <div class="terminal-closed p-1" *ngIf="shell.state.which === 'Error' && shell.state as state">
+              <div>Error: {{state.error.reason}}</div>
+            </div>
+            <div class="terminal-closed p-1" *ngIf="shell.state.which === 'Exited' && shell.state as state">
+              <div>Shell exited with: {{state.returnCode}}</div>
             </div>
           </ng-template>
         </li>

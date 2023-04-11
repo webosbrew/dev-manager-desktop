@@ -10,6 +10,7 @@ import {MessageTraceComponent} from './components/message-dialog/message-trace/m
 import {ErrorCardComponent} from './components/error-card/error-card.component';
 import {ExternalLinkDirective} from "./directives";
 import {SizeCalculatorComponent} from "./components/term-size-calculator/size-calculator.component";
+import { LoadingCardComponent } from './components/loading-card/loading-card.component';
 
 @NgModule({
   declarations: [
@@ -21,18 +22,20 @@ import {SizeCalculatorComponent} from "./components/term-size-calculator/size-ca
     ErrorCardComponent,
     ExternalLinkDirective,
     SizeCalculatorComponent,
+    LoadingCardComponent,
   ],
   imports: [CommonModule, FormsModule, NgbModule],
-  exports: [
-    PageNotFoundComponent,
-    TrustUriPipe,
-    MessageDialogComponent,
-    ProgressDialogComponent,
-    MessageTraceComponent,
-    ErrorCardComponent,
-    ExternalLinkDirective,
-    SizeCalculatorComponent
-  ]
+    exports: [
+        PageNotFoundComponent,
+        TrustUriPipe,
+        MessageDialogComponent,
+        ProgressDialogComponent,
+        MessageTraceComponent,
+        ErrorCardComponent,
+        ExternalLinkDirective,
+        SizeCalculatorComponent,
+        LoadingCardComponent
+    ]
 })
 export class SharedModule {
 }

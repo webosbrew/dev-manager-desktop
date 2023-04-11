@@ -24,8 +24,8 @@ export class AppManagerService {
     this.packagesSubjects = new Map();
   }
 
-  packages$(device: Device): Observable<PackageInfo[]> {
-    return this.obtainSubject(device).pipe(map(v => v ?? []));
+  packages$(device: Device): Observable<PackageInfo[] | null> {
+    return this.obtainSubject(device);
   }
 
   async load(device: Device): Promise<PackageInfo[]> {

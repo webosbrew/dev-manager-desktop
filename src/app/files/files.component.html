@@ -1,18 +1,18 @@
-<ng-container *ngIf="device && history">
+<ng-container *ngIf="device">
   <div class="w-100 h-100 d-flex flex-column overflow-hidden" [class.loading]="!state.items && !state.error"
        *ngIf="files$ | async as state">
     <div class="manager-toolbar navbar bg-panel border-bottom d-flex flex-row flex-nowrap px-2">
       <div class="btn-group">
-        <button class="btn btn-sm btn-outline-primary" (click)="navBack()" [disabled]="!history.canBack">
+        <button class="btn btn-sm btn-outline-primary" (click)="navBack()" [disabled]="history?.canBack !== true">
           <i class="bi bi-chevron-left"></i>
         </button>
-        <button class="btn btn-sm btn-outline-primary" (click)="navForward()" [disabled]="!history.canForward">
+        <button class="btn btn-sm btn-outline-primary" (click)="navForward()" [disabled]="history?.canForward !== true">
           <i class="bi bi-chevron-right"></i>
         </button>
       </div>
       <div class="flex-fill mx-2 breadcrumb-bar border rounded overflow-hidden">
         <nav aria-label="breadcrumb">
-          <ol class="breadcrumb my-0 btn-group flex-nowrap">
+          <ol class="breadcrumb my-0 btn-group flex-nowrap" *ngIf="history else locationConnectingAndError">
             <li
               class="breadcrumb-item btn btn-sm btn-outline-secondary text-nowrap border-top-0 border-bottom-0 rounded-0"
               [class.border-start-0]="idx === 0"
@@ -22,19 +22,27 @@
               <ng-template #rootLabel><i class="bi-hdd-fill me-1"></i>/</ng-template>
             </li>
           </ol>
+          <ng-template #locationConnectingAndError>
+            <ul class="breadcrumb my-0 btn-group flex-nowrap">
+              <li class="breadcrumb-item btn btn-sm disabled text-nowrap border-0" [ngSwitch]="!!state.error">
+                <ng-container *ngSwitchCase="true">Failed to connect to {{device.name}}</ng-container>
+                <ng-container *ngSwitchDefault>Connecting to {{device.name}}...</ng-container>
+              </li>
+            </ul>
+          </ng-template>
         </nav>
       </div>
-      <button class="btn btn-sm btn-danger ms-2" [disabled]="!hasSelection" (click)="removeFiles(selectedItems)"
-              ngbTooltip="Delete" container="body">
+      <button class="btn btn-sm btn-danger ms-2" [disabled]="!history || !hasSelection"
+              (click)="removeFiles(selectedItems)" ngbTooltip="Delete" container="body">
         <i class="bi bi-trash"></i>
       </button>
-      <button class="btn btn-sm btn-primary ms-2" [disabled]="!hasSelection" (click)="downloadFiles(selectedItems)"
-              ngbTooltip="Download" container="body">
+      <button class="btn btn-sm btn-primary ms-2" [disabled]="!history || !hasSelection"
+              (click)="downloadFiles(selectedItems)" ngbTooltip="Download" container="body">
         <i class="bi bi-download"></i>
       </button>
       <div class="btn-group ms-2" ngbDropdown container="body" display="dynamic" role="group"
            aria-label="More options">
-        <button class="btn btn-sm btn-primary" ngbDropdownToggle>
+        <button class="btn btn-sm btn-primary" [disabled]="!history" ngbDropdownToggle>
           <i class="bi bi-plus-lg"></i>
         </button>
         <ul class="dropdown-menu" ngbDropdownMenu>
@@ -52,10 +60,11 @@
       </app-files-table>
     </div>
     <ng-template #loadingAndError>
-      <div class="p-3">
-        <app-error-card title="Unable to list directory" [error]="state.error" (retry)="cd(state.dir)">
+      <div class="p-3" [ngSwitch]="!!state.error">
+        <app-error-card title="Unable to list directory" [error]="state.error" (retry)="cd(state.dir)"
+                        *ngSwitchCase="true">
         </app-error-card>
-        <div *ngIf="!state.error">Loading</div>
+        <div *ngSwitchDefault>Loading</div>
       </div>
     </ng-template>
     <div class="stat-bar border-top bottom-0 mt-auto">

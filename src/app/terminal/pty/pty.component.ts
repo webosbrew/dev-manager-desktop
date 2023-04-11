@@ -15,6 +15,9 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input()
   public token?: ShellToken;
 
+  @Input()
+  public readonly?: boolean;
+
   @ViewChild('termwin')
   public termwin!: ElementRef<HTMLElement>;
 
