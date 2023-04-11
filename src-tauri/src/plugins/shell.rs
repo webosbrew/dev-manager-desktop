@@ -95,11 +95,13 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
         self.app.emit_all("shell-rx", payload).unwrap_or(());
     }
 
-    fn closed(&self) {
+    fn closed(&self, removed:bool) {
         let shells = self.app.state::<ShellManager>();
-        self.app
-            .emit_all("shell-closed", self.token.clone())
-            .unwrap_or(());
+        if removed {
+            self.app
+                .emit_all("shell-removed", self.token.clone())
+                .unwrap_or(());
+        }
         self.app
             .emit_all("shells-updated", shells.list())
             .unwrap_or(());

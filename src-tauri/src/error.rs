@@ -1,7 +1,7 @@
+use libssh_rs::Error as SshError;
+use serde::{Deserialize, Serialize};
 use std::error::Error as ErrorTrait;
 use std::fmt::{Display, Formatter};
-
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(tag = "reason")]
@@ -74,20 +74,35 @@ impl From<serde_json::Error> for Error {
 
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
+        if value.is_timeout() {
+            return Error::Timeout;
+        }
         return Error::new(format!("HTTP Error: {:?}", value));
     }
 }
 
-impl From<libssh_rs::Error> for Error {
-    fn from(value: libssh_rs::Error) -> Self {
-        if let libssh_rs::Error::Fatal(s) = &value {
-            if s == "Socket error: disconnected" {
-                return Error::Disconnected;
-            } else if s.starts_with("Timeout connecting to ") {
-                return Error::Timeout;
+impl From<SshError> for Error {
+    fn from(value: SshError) -> Self {
+        return match value {
+            SshError::RequestDenied(s) => Error::Message {
+                message: format!("SSH Error: {s}"),
+            },
+            SshError::TryAgain => Error::IO {
+                code: std::io::ErrorKind::WouldBlock.to_string(),
+                message: format!("Would block"),
+            },
+            SshError::Fatal(s) => {
+                if s == "Socket error: disconnected" {
+                    return Error::Disconnected;
+                } else if s.starts_with("Timeout connecting to ") {
+                    return Error::Timeout;
+                }
+                Error::Message {
+                    message: format!("SSH Error: {s}"),
+                }
             }
-        }
-        return Error::new(format!("SSH Error: {:?}", value));
+            SshError::Sftp(e) => Error::new(format!("SFTP Error: {:?}", e)),
+        };
     }
 }
 

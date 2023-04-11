@@ -17,7 +17,8 @@
   </div>
   <div class="d-flex flex-row align-items-baseline prompt">
     <label class="mx-1 text-secondary">&gt;</label>
-    <textarea class="flex-fill text-light" wrap="soft" autosize autofocus spellcheck="false" [disabled]="working"
+    <textarea class="flex-fill text-light" wrap="soft" autosize autofocus spellcheck="false"
+              [disabled]="readonly || working"
               [placeholder]="working ? 'Please wait for the command to finish' : 'Input command here'"
               (keydown.enter)="$event.preventDefault(); send(input.value); input.value=''" #input></textarea>
     <div class="spinner-border spinner-border-sm align-self-center" role="status" *ngIf="working">

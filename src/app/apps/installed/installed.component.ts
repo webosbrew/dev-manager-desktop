@@ -15,7 +15,7 @@ export class InstalledComponent implements OnDestroy, OnChanges {
   device: Device | null = null;
 
   @Input()
-  installed$?: Observable<PackageInfo[]>;
+  installed$?: Observable<PackageInfo[] | null>;
 
   installedError?: Error;
 
@@ -36,7 +36,7 @@ export class InstalledComponent implements OnDestroy, OnChanges {
       this.subscription = this.installed$?.subscribe((pkgs) => {
           this.installedError = undefined;
 
-          const strings: string[] = pkgs.map((pkg) => pkg.id);
+          const strings: string[] = pkgs?.map((pkg) => pkg.id) ?? [];
           this.appsRepo.showApps(...strings).then(apps => this.repoPackages = apps);
         },
         (error) => this.installedError = error);

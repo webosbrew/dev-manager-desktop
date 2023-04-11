@@ -13,6 +13,9 @@ export class DumbComponent implements OnInit, OnDestroy {
   @Input()
   public token?: ShellToken;
 
+  @Input()
+  public readonly?: boolean;
+
   public shell?: ShellObservable;
 
   public logs: CommandLog[] = [];

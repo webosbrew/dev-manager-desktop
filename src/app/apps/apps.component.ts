@@ -18,7 +18,7 @@ import {HbchannelRemoveComponent} from "./hbchannel-remove/hbchannel-remove.comp
 })
 export class AppsComponent implements OnInit, OnDestroy {
 
-  packages$?: Observable<PackageInfo[]>;
+  packages$?: Observable<PackageInfo[] | null>;
   instPackages?: Record<string, RawPackageInfo>;
   device: Device | null = null;
 
@@ -77,7 +77,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     this.packages$ = this.appManager.packages$(device);
     this.packagesSubscription = this.packages$.subscribe({
       next: (pkgs) => {
-        if (pkgs.length) {
+        if (pkgs?.length) {
           this.instPackages = keyBy(pkgs, (pkg) => pkg.id);
         }
       }, error: noop
