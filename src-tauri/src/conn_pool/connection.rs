@@ -28,7 +28,9 @@ impl DeviceConnection {
             let priv_key = SshKey::from_privkey_base64(&priv_key_content, passphrase.as_deref())?;
 
             if session.userauth_publickey(None, &priv_key)? != AuthStatus::Success {
-                return Err(Error::BadPassphrase);
+                return Err(Error::Authorization {
+                    message: format!("Key authorization failed"),
+                });
             }
         } else if let Some(password) = &device.password {
             if session.userauth_password(None, Some(password))? != AuthStatus::Success {

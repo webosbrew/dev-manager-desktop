@@ -10,6 +10,7 @@ pub enum Error {
         message: String,
     },
     BadPassphrase,
+    BadPrivateKey,
     Disconnected,
     ExitStatus {
         message: String,
@@ -23,15 +24,10 @@ pub enum Error {
     Message {
         message: String,
     },
-    NeedsReconnect,
-    NegativeReply,
-    NotFound,
     PassphraseRequired,
+    NotFound,
     Timeout,
     Unsupported,
-    UnsupportedKey {
-        type_name: String,
-    },
 }
 
 impl Error {
@@ -96,6 +92,8 @@ impl From<SshError> for Error {
                     return Error::Disconnected;
                 } else if s.starts_with("Timeout connecting to ") {
                     return Error::Timeout;
+                } else if s.starts_with("Failed to parse ssh key") {
+                    return Error::BadPrivateKey;
                 }
                 Error::Message {
                     message: format!("SSH Error: {s}"),
