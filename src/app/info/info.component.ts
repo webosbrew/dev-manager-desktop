@@ -48,17 +48,21 @@ export class InfoComponent {
   }
 
   loadInfo(): void {
-    if (!this.device) return;
-    this.loadDeviceInfo()
-      .then(() => Promise.allSettled([this.loadDevModeInfo(), this.loadHomebrewInfo()]))
-      .catch(() => {
+    const device = this.device;
+    if (!device) return;
+    this.infoError = null;
+    this.deviceManager.getSystemInfo(device)
+      .then(() => Promise.allSettled([this.loadDevModeInfo(device), this.loadHomebrewInfo(device)]))
+      .catch((e) => {
+        this.infoError = e;
       });
   }
 
   async renewDevMode(): Promise<void> {
-    if (!this.device) return;
-    await this.deviceManager.extendDevMode(this.device);
-    await this.loadDevModeInfo();
+    const device = this.device;
+    if (!device) return;
+    await this.deviceManager.extendDevMode(device);
+    await this.loadDevModeInfo(device);
   }
 
   renewScript(): void {
@@ -92,43 +96,36 @@ export class InfoComponent {
     }
   }
 
-  private async loadDeviceInfo(): Promise<void> {
-    if (!this.device) return;
-    this.infoError = null;
-    try {
-      this.sysInfo = await this.deviceManager.getSystemInfo(this.device);
-    } catch (e) {
-      this.infoError = e;
+  private async loadDevModeInfo(device: Device): Promise<void> {
+    if (!device || device.username !== 'prisoner') {
+      this.devModeInfo = null;
+      return;
     }
-  }
-
-  private async loadDevModeInfo(): Promise<void> {
-    if (!this.device || this.device.username !== 'prisoner') return;
     try {
-      this.devModeInfo = await this.devMode.status(this.device);
+      this.devModeInfo = await this.devMode.status(device);
     } catch (e) {
       this.devModeInfo = null;
     }
   }
 
-  private async loadHomebrewInfo(): Promise<void> {
-    if (!this.device) return;
-    this.homebrewAppInfo = await this.appManager.info(this.device, APP_ID_HBCHANNEL);
+  private async loadHomebrewInfo(device: Device): Promise<void> {
+    this.homebrewAppInfo = await this.appManager.info(device, APP_ID_HBCHANNEL);
     this.homebrewRepoManifest = await this.appsRepo.showApp(APP_ID_HBCHANNEL);
-    this.homebrewAppConfig = await this.deviceManager.getHbChannelConfig(this.device).catch(() => null);
+    this.homebrewAppConfig = await this.deviceManager.getHbChannelConfig(device).catch(() => null);
     if (this.homebrewRepoManifest && this.homebrewAppInfo) {
       this.homebrewRepoHasUpdate = this.homebrewRepoManifest.manifest?.hasUpdate(this.homebrewAppInfo.version) === true;
     }
   }
 
   async installHbChannel(): Promise<void> {
-    if (!this.device) return;
+    const device = this.device;
+    if (!device) return;
     const item = this.homebrewRepoManifest;
     if (!item) return;
     const progress = ProgressDialogComponent.open(this.modalService);
     const component = progress.componentInstance as ProgressDialogComponent;
     try {
-      await this.appManager.installByManifest(this.device, item.manifest!, this.homebrewAppInfo !== null,
+      await this.appManager.installByManifest(device, item.manifest!, this.homebrewAppInfo !== null,
         (progress, statusText) => {
           component.progress = progress;
           component.message = statusText;
@@ -138,7 +135,7 @@ export class InfoComponent {
     } finally {
       progress.close(true);
     }
-    await this.loadHomebrewInfo();
+    await this.loadHomebrewInfo(device);
   }
 
 }
