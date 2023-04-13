@@ -166,7 +166,7 @@ impl Shell {
             if let Ok(msg) = receiver.recv_timeout(Duration::from_micros(1)) {
                 match msg {
                     ShellMessage::Data(d) => {
-                        channel.stdin().write(&d)?;
+                        channel.stdin().write_all(&d)?;
                     }
                     ShellMessage::Resize { rows, cols } => {
                         channel.change_pty_size(cols as u32, rows as u32)?;

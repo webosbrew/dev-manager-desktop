@@ -1,4 +1,6 @@
 use std::fmt::{Debug, Formatter};
+use std::io::Write;
+use std::sync::mpsc::channel;
 use std::time::Duration;
 
 use libssh_rs::Channel;
@@ -33,9 +35,19 @@ impl Proc {
         *self.interrupted.lock().unwrap() = true;
     }
 
-    pub fn data(&self, data: &[u8]) -> Result<(), Error> {
+    pub fn data(&self, fd: u32, data: &[u8]) -> Result<(), Error> {
         if let Some(cb) = self.callback.lock().unwrap().as_ref() {
-            cb.rx(0, data);
+            cb.rx(fd, data);
+            return Ok(());
+        }
+        return Err(Error::Disconnected);
+    }
+
+    pub fn write(&self, data: Vec<u8>) -> Result<(), Error> {
+        if let Some(sender) = self.sender.lock().unwrap().as_ref() {
+            if let Ok(_) = sender.send(data) {
+                return Ok(());
+            }
             return Ok(());
         }
         return Err(Error::Disconnected);
@@ -43,6 +55,8 @@ impl Proc {
 
     pub fn wait_close(&self, sessions: &SessionManager) -> Result<i32, Error> {
         let session: ManagedDeviceConnection;
+        let (sender, receiver) = channel::<Vec<u8>>();
+        *self.sender.lock().unwrap() = Some(sender);
         let channel: Channel;
         loop {
             let conn = sessions.session(self.device.clone())?;
@@ -68,17 +82,17 @@ impl Proc {
                 channel.request_send_signal("TERM")?;
                 channel.close()?;
                 break;
+            } else if let Ok(msg) = receiver.recv_timeout(Duration::from_micros(1)) {
+                channel.stdin().write_all(&msg)?;
             }
             let buf_size =
-                match channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10))) {
-                    Ok(len) => len,
-                    Err(e) => {
-                        log::error!("{self:?} error {e:?}");
-                        break;
-                    }
-                };
+                channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10)))?;
             if buf_size > 0 {
-                self.data(&buf[..buf_size])?;
+                self.data(0, &buf[..buf_size])?;
+            }
+            let buf_size = channel.read_timeout(&mut buf, true, Some(Duration::from_millis(10)))?;
+            if buf_size > 0 {
+                self.data(1, &buf[..buf_size])?;
             }
         }
         log::debug!("{self:?} channel closed");

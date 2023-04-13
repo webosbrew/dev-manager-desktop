@@ -115,7 +115,7 @@ impl<R: Runtime> ProcCallback for ProcCallbackImpl<R> {
 impl EventHandler for ProcEventHandler {
     fn tx(&self, payload: Option<&str>) {
         if let Some(payload) = payload {
-            self.proc.data(payload.as_bytes()).unwrap_or(());
+            self.proc.write(Vec::from(payload.as_bytes())).unwrap_or(());
         } else if !self.proc.is_ready() {
             self.proc.notify_ready();
         } else {

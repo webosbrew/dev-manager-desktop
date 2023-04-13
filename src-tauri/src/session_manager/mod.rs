@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::mpsc::Sender;
 use std::sync::{Arc, Condvar, Mutex};
 
 use serde::Serialize;
@@ -19,6 +20,7 @@ pub struct Proc {
     pub(crate) command: String,
     pub(crate) callback: Mutex<Option<Box<dyn ProcCallback + Send>>>,
     pub(crate) ready: Arc<(Mutex<bool>, Condvar)>,
+    pub(crate) sender: Mutex<Option<Sender<Vec<u8>>>>,
     pub(crate) interrupted: Mutex<bool>,
 }
 
