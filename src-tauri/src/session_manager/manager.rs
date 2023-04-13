@@ -36,6 +36,7 @@ impl SessionManager {
             command: String::from(command),
             callback: Mutex::default(),
             ready: Arc::new((Mutex::default(), Condvar::new())),
+            sender:Mutex::default(),
             interrupted: Mutex::new(false),
         };
     }
