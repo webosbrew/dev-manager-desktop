@@ -23,6 +23,7 @@ export type ShellState =
 
 export interface ShellMessage {
   token: ShellToken;
+  fd: number;
   data: number[];
 }
 
@@ -31,8 +32,6 @@ export interface ShellScreenContent {
   data?: Uint8Array;
   cursor: [number, number];
 }
-
-export type ShellObservable = ShellWritable & Observable<Buffer>;
 
 interface ShellWritable {
 
@@ -43,7 +42,14 @@ interface ShellWritable {
   resize(rows: number, cols: number): Promise<void>;
 }
 
-export class ShellSubject extends Subject<Buffer> implements ShellWritable {
+export interface ShellBuffer {
+  fd: number;
+  data: Buffer;
+}
+
+export type ShellObservable = ShellWritable & Observable<ShellBuffer>;
+
+export class ShellSubject extends Subject<ShellBuffer> implements ShellWritable {
   private readonly encoder = new TextEncoder();
 
   constructor(private shell: RemoteShellService, private token: ShellToken) {
@@ -79,7 +85,10 @@ export class RemoteShellService extends BackendClient {
       const message = e.payload as ShellMessage;
       const shell = this.shellSessions.get(message.token);
       if (shell) {
-        zone.run(() => shell.next(Buffer.from(message.data)));
+        zone.run(() => shell.next({
+          fd: message.fd,
+          data: Buffer.from(message.data),
+        }));
       }
     }).then(noop);
     listen('shell-info', () => {

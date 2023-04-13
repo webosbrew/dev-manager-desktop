@@ -31,7 +31,7 @@ export class DumbComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.shell = this.shells.obtain(this.token!);
     this.subscription = this.shell.subscribe((v) => {
-      this.received(v);
+      this.received(v.fd, v.data);
     });
   }
 
@@ -61,7 +61,7 @@ export class DumbComponent implements OnInit, OnDestroy {
     this.shell?.write(`${command};echo command-${id}:$?\n`);
   }
 
-  received(data: Buffer) {
+  received(fd: number, data: Buffer) {
     const lastLog = this.logs[this.logs.length - 1];
     if (!lastLog) {
       return;
