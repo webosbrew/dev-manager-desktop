@@ -4,16 +4,18 @@ import {ITerminalDimensions} from "xterm-addon-fit";
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
 import {AppWebLinksAddon} from "../../shared/xterm/web-links";
 import {TERMINAL_CONFIG} from "../../shared/xterm/config";
+import {NgbNav} from "@ng-bootstrap/ng-bootstrap";
+import {ITerminalComponent} from "../terminal.component";
 
 @Component({
   selector: 'app-terminal-pty',
   templateUrl: './pty.component.html',
   styleUrls: ['./pty.component.scss'],
 })
-export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PtyComponent implements OnInit, AfterViewInit, OnDestroy, ITerminalComponent {
 
   @Input()
-  public token?: ShellToken;
+  public token!: ShellToken;
 
   @Input()
   public readonly?: boolean;
@@ -56,6 +58,7 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
     if (token) {
       this.openDefaultShell(token).catch(e => this.connError(e));
     }
+    setTimeout(() => this.focus());
   }
 
   ngOnDestroy(): void {
@@ -71,6 +74,10 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
     console.log(error);
     this.term.writeln('>>> Connection error. Press any key to reconnect.');
     this.term.writeln(`>>> ${String(error)}`);
+  }
+
+  focus() {
+    this.term.focus();
   }
 
   async openDefaultShell(token: ShellToken): Promise<void> {

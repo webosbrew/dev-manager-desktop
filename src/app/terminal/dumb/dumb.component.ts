@@ -1,17 +1,18 @@
-import {Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
 import {Subscription} from "rxjs";
 import {Buffer} from "buffer";
+import {ITerminalComponent} from "../terminal.component";
 
 @Component({
   selector: 'app-terminal-dumb',
   templateUrl: './dumb.component.html',
   styleUrls: ['./dumb.component.scss']
 })
-export class DumbComponent implements OnInit, OnDestroy {
+export class DumbComponent implements OnInit, AfterViewInit, OnDestroy, ITerminalComponent {
 
   @Input()
-  public token?: ShellToken;
+  public token!: ShellToken;
 
   @Input()
   public readonly?: boolean;
@@ -21,7 +22,10 @@ export class DumbComponent implements OnInit, OnDestroy {
   public logs: CommandLog[] = [];
 
   @ViewChild('container')
-  public container?: ElementRef<HTMLElement>;
+  public container!: ElementRef<HTMLElement>;
+
+  @ViewChild('input')
+  public input!: ElementRef<HTMLElement>;
 
   private subscription?: Subscription;
 
@@ -33,6 +37,10 @@ export class DumbComponent implements OnInit, OnDestroy {
     this.subscription = this.shell.subscribe((v) => {
       this.received(v.fd, v.data);
     });
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.focus());
   }
 
   ngOnDestroy(): void {
@@ -76,9 +84,13 @@ export class DumbComponent implements OnInit, OnDestroy {
     }
     lastLog.output = `${lastLog.output}${str}`;
     setTimeout(() => {
-      const container = this.container!.nativeElement;
+      const container = this.container.nativeElement;
       container.scrollTop = container.scrollHeight;
     }, 10);
+  }
+
+  focus(): void {
+    this.input.nativeElement.focus();
   }
 }
 

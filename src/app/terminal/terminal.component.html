@@ -3,7 +3,8 @@
     <div class="d-flex flex-row overflow-hidden pt-2 w-100 flex-nowrap border-bottom bg-panel">
       <ul ngbNav #nav="ngbNav" class="terminal-tabs nav-tabs flex-shrink-1 flex-nowrap border-bottom-0 px-2"
           [animation]="false" [(activeId)]="currentShell">
-        <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.token" [destroyOnHide]="false">
+        <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.token" [destroyOnHide]="false"
+            (shown)="focusShell(shell)">
           <a class="text-nowrap" ngbNavLink>
             <div class="spinner-border spinner-border-sm text-primary" role="status"
                  *ngIf="shell.state.which === 'Connecting'">
@@ -17,14 +18,16 @@
             <ng-container *ngSwitchCase="false" [ngSwitch]="shell.hasPty">
               <ng-container *ngSwitchCase="true">
                 <app-terminal-pty class="terminal-tab-page" [token]="shell.token" [size]="termSize"
-                                  [readonly]="shell.state.which !== 'Connected'" *ngIf="termSize"></app-terminal-pty>
+                                  [readonly]="shell.state.which !== 'Connected'" *ngIf="termSize"
+                                  #terminal></app-terminal-pty>
                 <div class="terminal-resize" *ngIf="pendingResize">
                   {{pendingResize.rows}} &times; {{pendingResize.cols}}
                 </div>
               </ng-container>
+              <!--suppress JSUnusedGlobalSymbols -->
               <app-terminal-dumb class="terminal-tab-page" [token]="shell.token"
                                  [readonly]="shell.state.which !== 'Connected'"
-                                 *ngSwitchCase="false"></app-terminal-dumb>
+                                 *ngSwitchCase="false" #terminal></app-terminal-dumb>
             </ng-container>
             <div class="terminal-tab-page p-1" *ngSwitchCase="true">
               Connecting to {{shell.title}}...

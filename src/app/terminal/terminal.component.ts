@@ -1,4 +1,4 @@
-import {Component, NgZone, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, NgZone, OnDestroy, OnInit, QueryList, ViewChildren, ViewEncapsulation} from '@angular/core';
 import {DeviceManagerService} from '../core/services';
 import {firstValueFrom, noop, Subscription} from "rxjs";
 import {Device} from "../types";
@@ -27,6 +27,9 @@ export class TerminalComponent implements OnInit, OnDestroy {
   public termSize?: ITerminalDimensions;
 
   private subscription?: Subscription;
+
+  @ViewChildren('terminal')
+  public terminals?: QueryList<ITerminalComponent>;
 
   public preferDumbShell: boolean = false;
   public pendingResize?: ITerminalDimensions;
@@ -102,4 +105,18 @@ export class TerminalComponent implements OnInit, OnDestroy {
   shellTracker(index: number, value: ShellInfo): string {
     return value.token;
   }
+
+  focusShell(shell: ShellInfo) {
+    const match = this.terminals?.find(item => item.token === shell.token);
+    if (!match) {
+      return;
+    }
+    match.focus();
+  }
+}
+
+export interface ITerminalComponent {
+  readonly token: ShellToken;
+
+  focus(): void;
 }
