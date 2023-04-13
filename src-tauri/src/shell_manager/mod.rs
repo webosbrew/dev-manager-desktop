@@ -33,7 +33,7 @@ pub struct Shell {
 
 pub trait ShellCallback {
     fn info(&self, info: ShellInfo);
-    fn rx(&self, data: &[u8]);
+    fn rx(&self, fd: u32, data: &[u8]);
     fn closed(&self, removed: bool);
 }
 

@@ -90,8 +90,8 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy {
         firstLine = false;
       }
     }
-    shell.subscribe((data) => {
-      this.term.write(data);
+    shell.subscribe((buffer) => {
+      this.term.write(buffer.data);
     }, (error) => {
       console.log('shell error', error);
     }, () => {

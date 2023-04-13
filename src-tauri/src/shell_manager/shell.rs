@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
+use std::future::Future;
 use std::io::Write;
 use std::ops::Deref;
 use std::sync::mpsc::channel;
@@ -139,9 +140,15 @@ impl Shell {
         let channel = connection.new_channel()?;
         channel.open_session()?;
         let (rows, cols) = self.parser.lock().unwrap().screen().size();
+        let mut has_pty = false;
         if self.has_pty.lock().unwrap().unwrap_or(true) {
             match channel.request_pty("xterm", cols as u32, rows as u32) {
-                Ok(_) => *self.has_pty.lock().unwrap() = Some(true),
+                Ok(_) => {
+                    *self.has_pty.lock().unwrap() = {
+                        has_pty = true;
+                        Some(true)
+                    }
+                }
                 Err(RequestDenied(s)) => {
                     *self.has_pty.lock().unwrap() = Some(false);
                     log::warn!("{self:?} failed to request pty {s:?}");
@@ -171,15 +178,22 @@ impl Shell {
                 }
             }
             let size = channel.read_timeout(&mut buf, false, Some(Duration::from_micros(5)))?;
-            if size == 0 {
-                continue;
-            }
-            if let Some(callback) = self.callback.lock().unwrap().as_ref() {
-                callback.rx(&buf[..size]);
-            }
-            if self.process(&buf[..size]) {
+            if size != 0 {
                 if let Some(callback) = self.callback.lock().unwrap().as_ref() {
-                    callback.info(self.info());
+                    callback.rx(0, &buf[..size]);
+                }
+                if self.process(&buf[..size]) {
+                    if let Some(callback) = self.callback.lock().unwrap().as_ref() {
+                        callback.info(self.info());
+                    }
+                }
+            }
+            if !has_pty {
+                let size = channel.read_timeout(&mut buf, true, Some(Duration::from_micros(5)))?;
+                if size != 0 {
+                    if let Some(callback) = self.callback.lock().unwrap().as_ref() {
+                        callback.rx(1, &buf[..size]);
+                    }
                 }
             }
         }

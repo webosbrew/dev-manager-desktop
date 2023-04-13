@@ -86,16 +86,16 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
         self.app.emit_all("shell-info", info).unwrap_or(());
     }
 
-    fn rx(&self, data: &[u8]) {
+    fn rx(&self, fd: u32, data: &[u8]) {
         let payload = ShellData {
             token: self.token.clone(),
-            fd: 0,
             data: Vec::from(data),
+            fd,
         };
         self.app.emit_all("shell-rx", payload).unwrap_or(());
     }
 
-    fn closed(&self, removed:bool) {
+    fn closed(&self, removed: bool) {
         let shells = self.app.state::<ShellManager>();
         if removed {
             self.app
