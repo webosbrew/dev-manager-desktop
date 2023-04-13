@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, catchError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
-import {LunaResponse, RemoteLunaService} from "./remote-luna.service";
+import {LunaResponse, LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {escapeSingleQuoteString, RemoteCommandService} from "./remote-command.service";
 import {filter, map} from "rxjs/operators";
 import * as path from "path";
@@ -174,7 +174,7 @@ export class AppManagerService {
       map((v: LunaResponse): boolean => {
         if (v.returnValue === false) {
           // If returnValue is false, then it must be a failure.
-          throw v;
+          throw new LunaResponseError(v);
         } else if (v['finished']) {
           return true;
         } else if (v.subscribed === false && v.returnValue) {
