@@ -1,5 +1,15 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, catchError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject} from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  firstValueFrom,
+  lastValueFrom,
+  mergeMap,
+  noop,
+  Observable,
+  Subject,
+  tap
+} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
 import {LunaResponse, LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {escapeSingleQuoteString, RemoteCommandService} from "./remote-command.service";
@@ -157,7 +167,9 @@ export class AppManagerService {
     await lastValueFrom(luna.asObservable().pipe(
       map(v => mapAppinstalldResponse(v, /installed/i)),
       filter(v => v)/* Only pick finish event */,
-      mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
+      mergeMap(async () => {
+        return await luna.unsubscribe();
+      }) /* Unsubscribe when done */,
       catchError((e) => fromPromise(luna.unsubscribe().then(() => {
         throw e;
       })))/* Unsubscribe when failed, and throw the error */)
