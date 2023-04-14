@@ -52,7 +52,10 @@ export class InfoComponent {
     if (!device) return;
     this.infoError = null;
     this.deviceManager.getSystemInfo(device)
-      .then(() => Promise.allSettled([this.loadDevModeInfo(device), this.loadHomebrewInfo(device)]))
+      .then((info) => {
+        this.sysInfo = info;
+        return Promise.allSettled([this.loadDevModeInfo(device), this.loadHomebrewInfo(device)]);
+      })
       .catch((e) => {
         this.infoError = e;
       });
