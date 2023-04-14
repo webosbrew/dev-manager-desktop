@@ -1,15 +1,5 @@
 import {Injectable} from '@angular/core';
-import {
-  BehaviorSubject,
-  catchError,
-  firstValueFrom,
-  lastValueFrom,
-  mergeMap,
-  noop,
-  Observable,
-  Subject,
-  tap
-} from 'rxjs';
+import {BehaviorSubject, catchError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
 import {LunaResponse, LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {escapeSingleQuoteString, RemoteCommandService} from "./remote-command.service";
