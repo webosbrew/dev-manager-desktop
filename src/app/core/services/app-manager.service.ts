@@ -157,9 +157,7 @@ export class AppManagerService {
     await lastValueFrom(luna.asObservable().pipe(
       map(v => mapAppinstalldResponse(v, /installed/i)),
       filter(v => v)/* Only pick finish event */,
-      mergeMap(async () => {
-        return await luna.unsubscribe();
-      }) /* Unsubscribe when done */,
+      mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
       catchError((e) => fromPromise(luna.unsubscribe().then(() => {
         throw e;
       })))/* Unsubscribe when failed, and throw the error */)
