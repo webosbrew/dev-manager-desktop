@@ -7,7 +7,7 @@ import {
 } from "./remote-command.service";
 import {Injectable} from "@angular/core";
 import {DeviceLike} from "../../types";
-import {lastValueFrom, Observable, ReplaySubject, Subject, Subscription} from "rxjs";
+import {lastValueFrom, noop, Observable, ReplaySubject, Subject, Subscription} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {omit} from "lodash";
 import {isNonNull} from "../../shared/operators";
@@ -79,22 +79,15 @@ export class LunaSubscription<T> {
         return null;
       }
     }), filter(isNonNull)).subscribe({
-      next: (value: T) => {
-        console.log('luna command value', value);
-        this.subject.next(value);
-      },
+      next: (value: T) => this.subject.next(value),
       error: (err) => {
-        console.log('luna command err', err);
         if (ExecutionError.isCompatible(err) && err.status == 127) {
           this.subject.error(new LunaUnsupportedError(`Failed to invoke luna-send command. Is this really a webOS device?`));
         } else {
           this.subject.error(err);
         }
       },
-      complete: () => {
-        console.log('luna command complete');
-        this.subject.complete();
-      },
+      complete: () => this.subject.complete(),
     });
   }
 
@@ -112,7 +105,8 @@ export class LunaSubscription<T> {
     }
     this.subscription = undefined;
     await this.proc.write();
-    await lastValueFrom(this.proc);
+    this.subject.complete();
+    await lastValueFrom(this.proc).catch(noop);
     subscription.unsubscribe();
   }
 }
