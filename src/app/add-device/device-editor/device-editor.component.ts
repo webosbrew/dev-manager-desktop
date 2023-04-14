@@ -5,7 +5,7 @@ import {DeviceManagerService} from '../../core/services';
 import {MessageDialogComponent} from '../../shared/components/message-dialog/message-dialog.component';
 import {KeyserverHintComponent} from '../keyserver-hint/keyserver-hint.component';
 import {NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../../types";
-import {Observable, of} from "rxjs";
+import {noop, Observable, of} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {open as showOpenDialog} from '@tauri-apps/api/dialog';
 import {homeDir} from '@tauri-apps/api/path';
@@ -120,6 +120,14 @@ export class DeviceEditorComponent implements OnInit {
       try {
         return await this.deviceManager.novacomGetKey(address, passphrase);
       } catch (e) {
+        if (BackendError.isCompatible(e) && (e.reason == 'BadPassphrase' || e.reason == 'PassphraseRequired')) {
+          await MessageDialogComponent.open(this.modalService, {
+            title: 'Failed to verify private key',
+            message: 'Please make sure the passphrase is correct, it usually has 6 characters and is case sensitive.',
+            positive: 'OK',
+          }).result.catch(noop);
+          throw e;
+        }
         const confirm = MessageDialogComponent.open(this.modalService, {
           title: 'Failed to fetch private key',
           message: KeyserverHintComponent,

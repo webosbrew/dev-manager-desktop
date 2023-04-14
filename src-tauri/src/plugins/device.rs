@@ -38,8 +38,11 @@ async fn remove(
 async fn novacom_getkey(
     manager: State<'_, DeviceManager>,
     address: String,
+    passphrase: Option<String>,
 ) -> Result<String, Error> {
-    return manager.novacom_getkey(&address).await;
+    return manager
+        .novacom_getkey(&address, passphrase.as_deref().unwrap_or(""))
+        .await;
 }
 
 #[tauri::command]
