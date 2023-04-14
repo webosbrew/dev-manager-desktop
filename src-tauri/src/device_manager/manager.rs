@@ -93,11 +93,20 @@ impl DeviceManager {
     }
 
     //noinspection HttpUrlsUsage
-    pub async fn novacom_getkey(&self, address: &str) -> Result<String, Error> {
+    pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
         let resp = reqwest::get(format!("http://{}:9991/webos_rsa", address))
             .await?
             .error_for_status()?;
-        return Ok(resp.text().await?);
+        let content = resp.text().await?;
+
+        return match SshKey::from_privkey_base64(&content, Some(passphrase)) {
+            Ok(_) => Ok((content)),
+            _ => Err(if passphrase.is_empty() {
+                Error::PassphraseRequired
+            } else {
+                Error::BadPassphrase
+            }),
+        };
     }
 
     pub async fn localkey_verify(&self, name: &str, passphrase: &str) -> Result<(), Error> {

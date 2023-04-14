@@ -51,7 +51,7 @@ export class BackendError extends Error {
   }
 
   static isCompatible(e: unknown): e is BackendError {
-    return e instanceof Error && (typeof (e as any).reason === 'string');
+    return e instanceof Error && BackendError.isCompatibleBody(e);
   }
 
   static isCompatibleBody(e: unknown): e is BackendErrorBody {

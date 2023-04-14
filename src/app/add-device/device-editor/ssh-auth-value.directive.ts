@@ -25,7 +25,7 @@ export class SshAuthValueDirective implements DoCheck {
       case NewDeviceAuthentication.LocalKey:
         return 'SSH private key';
       case NewDeviceAuthentication.DevKey:
-        return 'Dev Mode passphrase';
+        return 'Dev Mode passphrase (CASE SENSITIVE)';
       case NewDeviceAuthentication.Password:
         return 'SSH Password';
       default:
