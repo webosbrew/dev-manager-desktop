@@ -100,7 +100,7 @@ impl DeviceManager {
         let content = resp.text().await?;
 
         return match SshKey::from_privkey_base64(&content, Some(passphrase)) {
-            Ok(_) => Ok((content)),
+            Ok(_) => Ok(content),
             _ => Err(if passphrase.is_empty() {
                 Error::PassphraseRequired
             } else {

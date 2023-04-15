@@ -1,9 +1,9 @@
 use libssh_rs::Error as SshError;
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Serializer};
 use std::error::Error as ErrorTrait;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone)]
 #[serde(tag = "reason")]
 pub enum Error {
     Authorization {
@@ -18,7 +18,8 @@ pub enum Error {
         stderr: Vec<u8>,
     },
     IO {
-        code: String,
+        #[serde(serialize_with = "as_debug_string")]
+        code: std::io::ErrorKind,
         message: String,
     },
     Message {
@@ -54,7 +55,7 @@ impl Display for Error {
 impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
         return Error::IO {
-            code: format!("{:?}", value.kind()),
+            code: value.kind(),
             message: value.to_string(),
         };
     }
@@ -84,12 +85,24 @@ impl From<SshError> for Error {
                 message: format!("SSH Error: {s}"),
             },
             SshError::TryAgain => Error::IO {
-                code: std::io::ErrorKind::WouldBlock.to_string(),
+                code: std::io::ErrorKind::WouldBlock,
                 message: format!("Would block"),
             },
             SshError::Fatal(s) => {
-                if s == "Socket error: disconnected" {
-                    return Error::Disconnected;
+                if let Some(socket_error) = s.strip_prefix("Socket error:") {
+                    return if socket_error == "disconnected" {
+                        Error::Disconnected
+                    } else {
+                        Error::IO {
+                            code: std::io::ErrorKind::Other,
+                            message: String::from(socket_error),
+                        }
+                    };
+                } else if s == "Connection refused" {
+                    return Error::IO {
+                        code: std::io::ErrorKind::ConnectionRefused,
+                        message: format!("Connection refused by host"),
+                    };
                 } else if s.starts_with("Timeout connecting to ") {
                     return Error::Timeout;
                 } else if s.starts_with("Failed to parse ssh key") {
@@ -108,4 +121,12 @@ impl From<Box<dyn ErrorTrait>> for Error {
     fn from(value: Box<dyn ErrorTrait>) -> Self {
         return Error::new(format!("{:?}", value));
     }
+}
+
+fn as_debug_string<T, S>(v: &T, serializer: S) -> Result<S::Ok, S::Error>
+where
+    T: Debug,
+    S: Serializer,
+{
+    return serializer.serialize_str(&format!("{v:?}"));
 }
