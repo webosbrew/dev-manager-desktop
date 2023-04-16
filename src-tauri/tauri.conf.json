@@ -38,7 +38,9 @@
       "category": "DeveloperTool",
       "copyright": "",
       "deb": {
-        "depends": []
+        "depends": [
+          "libssl1.1"
+        ]
       },
       "externalBin": [],
       "icon": [
