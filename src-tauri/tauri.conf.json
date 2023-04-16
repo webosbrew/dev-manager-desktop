@@ -57,7 +57,7 @@
       "deb": {
         "depends": [
           "libssl1.1",
-          "zlib1g >= 1.2.11"
+          "zlib1g (>=1.2.11)"
         ]
       },
       "externalBin": [],
