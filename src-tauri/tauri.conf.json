@@ -33,6 +33,23 @@
         "open": ".*"
       }
     },
+    "security": {
+      "csp": null,
+      "devCsp": "default-src 'self' localhost"
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "webOS Dev Manager",
+        "width": 1024,
+        "height": 720,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "fullscreen": false,
+        "visible": true
+      }
+    ],
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
@@ -51,7 +68,8 @@
         "icons/icon.ico"
       ],
       "identifier": "org.webosbrew.devman",
-      "longDescription": "webOS Dev Manager",
+      "shortDescription": "Device/Dev Mode Manager for webOS TV",
+      "longDescription": "Simple tool to manage developer mode enabled or rooted webOS TV\n\nFeatures\n- No need to install LG SDK or IDE\n- Add device without need to use command line\n- Install apps on TV with a few clicks\n- Configuration compatible with ares-cli\n- Works on Windows, Linux and macOS (Apple Silicon too!)\n- Dark mode follows system preferences",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -61,7 +79,6 @@
         "license": "../LICENSE"
       },
       "resources": [],
-      "shortDescription": "",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -76,25 +93,8 @@
         }
       }
     },
-    "security": {
-      "csp": null,
-      "devCsp": "default-src 'self' localhost"
-    },
     "updater": {
       "active": false
-    },
-    "windows": [
-      {
-        "label": "main",
-        "title": "webOS Dev Manager",
-        "width": 1024,
-        "height": 720,
-        "minWidth": 800,
-        "minHeight": 600,
-        "resizable": true,
-        "fullscreen": false,
-        "visible": true
-      }
-    ]
+    }
   }
 }
