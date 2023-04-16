@@ -1,10 +1,8 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
-use std::future::Future;
 use std::io::Write;
-use std::ops::Deref;
-use std::sync::mpsc::channel;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
