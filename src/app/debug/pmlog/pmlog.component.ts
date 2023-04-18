@@ -7,6 +7,9 @@ import {LogReaderComponent} from "../log-reader/log-reader.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {PmLogControlComponent} from "./control/control.component";
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
+import {DeviceManagerService} from "../../core/services";
+import {RemoteLunaService} from "../../core/services/remote-luna.service";
+import semver from "semver/preload";
 
 @Component({
   selector: 'app-pmlog',
@@ -21,7 +24,9 @@ export class PmLogComponent {
 
   private deviceField: Device | null = null;
 
-  constructor(private cmd: RemoteCommandService, private log: RemoteLogService, private modals: NgbModal) {
+  constructor(private cmd: RemoteCommandService, private log: RemoteLogService,
+              private luna: RemoteLunaService, private deviceManager: DeviceManagerService,
+              private modals: NgbModal) {
   }
 
 
@@ -41,7 +46,7 @@ export class PmLogComponent {
   private reload(device: Device) {
     this.logError = undefined;
     this.hasData = undefined;
-    this.logs = from(this.log.logread(device, LogReaderComponent.retainLogs)).pipe(mergeMap(identity), tap(message => {
+    this.logs = from(this.logRead(device)).pipe(mergeMap(identity), tap(message => {
       if (this.hasData === undefined) {
         this.hasData = true;
       }
@@ -52,6 +57,16 @@ export class PmLogComponent {
       }
       throw err;
     }));
+  }
+
+  private async logRead(device: Device): Promise<Observable<LogMessage>> {
+    const info = await this.deviceManager.getSystemInfo(device);
+    if (semver.satisfies(info.sdkVersion || '', '>=4.0')) {
+      await this.luna.call(device, 'luna://com.webos.service.config/setConfigs', {configs: {"system.collectDevLogs": true}}, false);
+    } else {
+      await this.luna.call(device, 'luna://com.webos.pmlogd/setdevlogstatus', {recordDevLogs: true}, false);
+    }
+    return this.log.logread(device, LogReaderComponent.retainLogs);
   }
 
   async openCtrl(): Promise<void> {
