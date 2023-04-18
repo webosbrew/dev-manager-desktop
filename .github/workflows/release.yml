@@ -120,8 +120,10 @@ jobs:
       - name: Build the app (macOS)
         if: runner.os == 'macOS'
         run: |
-          rustup target add aarch64-apple-darwin
-          npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
+          # Blocked by https://github.com/webosbrew/dev-manager-desktop/issues/116
+          # rustup target add aarch64-apple-darwin
+          # npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
+          npm run build -- --features=vendored-openssl ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Upload Source Maps
         run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
