@@ -58,7 +58,7 @@ export class FilesComponent implements OnInit, OnDestroy {
       if (!selected) {
         return;
       }
-      await this.cd();
+      await this.cd('', true);
     });
   }
 
