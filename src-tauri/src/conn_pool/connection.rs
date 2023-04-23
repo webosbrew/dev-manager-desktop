@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Mutex;
 use std::time::Duration;
 
-use libssh_rs::{AuthStatus, Session, SshKey, SshOption};
+use libssh_rs::{AuthStatus, LogLevel, Session, SshKey, SshOption};
 use uuid::Uuid;
 
 use crate::conn_pool::DeviceConnection;
@@ -19,6 +19,18 @@ impl DeviceConnection {
         session.set_option(SshOption::User(Some(device.username.clone())))?;
         session.set_option(SshOption::HostKeys(format!("ssh-ed25519,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256,ssh-rsa")))?;
         session.set_option(SshOption::PublicKeyAcceptedTypes(format!("ssh-ed25519,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256,ssh-rsa")))?;
+        session.set_option(SshOption::ProcessConfig(false))?;
+        #[cfg(windows)]
+        {
+            session.set_option(SshOption::KnownHosts(Some(format!("C:\\nul"))))?;
+            session.set_option(SshOption::GlobalKnownHosts(Some(format!("C:\\nul"))))?;
+        }
+
+        #[cfg(not(windows))]
+        {
+            session.set_option(SshOption::KnownHosts(Some(format!("/dev/null"))))?;
+            session.set_option(SshOption::GlobalKnownHosts(Some(format!("/dev/null"))))?;
+        }
 
         session.connect()?;
 

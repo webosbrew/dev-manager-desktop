@@ -36,7 +36,7 @@
     "@popperjs/core": "^2.11.5",
     "@sentry/angular-ivy": "7.47.0",
     "@tauri-apps/api": "^1.2.0",
-    "bootstrap": "^5.3.0-alpha1",
+    "bootstrap": "^5.3.0-alpha3",
     "bootstrap-icons": "^1.10.3",
     "buffer": "^6.0.3",
     "chalk": "5.2.0",
