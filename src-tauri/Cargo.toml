@@ -34,6 +34,8 @@ r2d2 = "0.8.10"
 unix_mode = "0.1.3"
 sha256 = "1.1.2"
 pathdiff = "0.2.1"
+libssh-rs = { version = "0.1.8", features = ["vendored"] }
+libssh-rs-sys = "0.1.3"
 
 [dependencies.tauri]
 version = "1.2.4"
@@ -43,18 +45,6 @@ features = ["clipboard-all", "dialog-all", "path-all", "protocol-all", "shell-op
 [dependencies.reqwest]
 version = "0.11.16"
 features = ["json"]
-
-[dependencies.libssh-rs]
-#version = "0.1.7"
-git = "https://github.com/mariotaku/libssh-rs.git"
-rev = "a886967834189fb6ede637c173386ba44f495421"
-features = ["vendored"]
-
-[dependencies.libssh-rs-sys]
-#version = "0.1.3"
-git = "https://github.com/mariotaku/libssh-rs.git"
-rev = "a886967834189fb6ede637c173386ba44f495421"
-features = ["libz-sys"]
 
 [dependencies.native-dialog]
 version = "0.6.3"
@@ -74,3 +64,7 @@ default = ["custom-protocol"]
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
 vendored-openssl = ["libssh-rs-sys/vendored-openssl", "reqwest/native-tls-vendored"]
+
+[patch.crates-io]
+libssh-rs = { git = "https://github.com/mariotaku/libssh-rs.git", rev = "a886967834189fb6ede637c173386ba44f495421" }
+libssh-rs-sys = { git = "https://github.com/mariotaku/libssh-rs.git", rev = "a886967834189fb6ede637c173386ba44f495421", features = ["libz-sys"] }

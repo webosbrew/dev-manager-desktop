@@ -31,7 +31,7 @@ export class LogReaderComponent implements OnDestroy, AfterViewInit {
     info: chalk.white,
     debug: chalk.gray,
   };
-  static readonly retainLogs = 1000;
+  static readonly retainLogs = 10000;
 
 
   constructor() {
@@ -89,7 +89,11 @@ export class LogReaderComponent implements OnDestroy, AfterViewInit {
     if (message.msgid) {
       this.term.write(` ${chalk.yellow(message.msgid)}`);
     }
-    this.term.writeln(' ' + levelStyle(message.message));
+    this.term.write(' ' + levelStyle(message.message));
+    if (message.extras) {
+      this.term.write(' ' + chalk.dim(JSON.stringify(message.extras)));
+    }
+    this.term.writeln('');
   }
 
   get reachedBottom(): boolean {
