@@ -5,6 +5,8 @@ import {DeviceManagerService, DevModeService} from '../../core/services';
 import {noop} from 'rxjs';
 import {save as showSaveDialog} from '@tauri-apps/api/dialog'
 import {writeTextFile} from '@tauri-apps/api/fs';
+import renewScriptTemplate from './renew-script.sh';
+import Mustache from 'mustache';
 
 @Component({
   selector: 'app-renew-script',
@@ -13,7 +15,7 @@ import {writeTextFile} from '@tauri-apps/api/fs';
 })
 export class RenewScriptComponent implements OnInit {
 
-  public privKeyContent?: string;
+  public renewScriptContent?: string;
   public devModeToken?: string;
 
   constructor(
@@ -26,7 +28,14 @@ export class RenewScriptComponent implements OnInit {
 
   ngOnInit(): void {
     this.devMode.status(this.device).then(({token}) => this.devModeToken = token);
-    this.deviceManager.readPrivKey(this.device).then(key => this.privKeyContent = key);
+    this.deviceManager.readPrivKey(this.device).then(key => {
+      this.renewScriptContent = Mustache.render(renewScriptTemplate, {
+        device: this.device,
+        keyContent: key.trim(),
+      }, undefined, {
+        escape: (v) => v,
+      });
+    });
   }
 
   async copyScript(content: string): Promise<void> {
