@@ -30,50 +30,17 @@
           </ul>
         </ng-template>
       </li>
-      <li ngbNavItem="script">
+      <li ngbNavItem="script" *ngIf="renewScriptContent as script">
         <a class="text-nowrap" ngbNavLink>Shell Script</a>
         <ng-template ngbNavContent>
           <p>Following is a shell script. It can be executed anywhere in your local area network.</p>
           <div class="position-relative">
-            <pre class="pre-scrollable bg-panel p-3" #renewScript><![CDATA[#!/bin/sh]]>
-<ng-container><![CDATA[
-cat > /tmp/webos_privkey_{{device.name}} << END_OF_PRIVKEY
-  {{privKeyContent}}
-  END_OF_PRIVKEY
-
-chmod 600 /tmp/webos_privkey_{{device.name}}
-  ]]></ng-container>
-<ng-container *ngIf="device.passphrase"><![CDATA[
-ssh-keygen -p -P '{{device.passphrase}}' -N '' -f /tmp/webos_privkey_{{device.name}}
-  ]]></ng-container>
-<![CDATA[sessionToken=$(ssh -i /tmp/webos_privkey_{{device.name}} \
- -o ConnectTimeout=3 -o StrictHostKeyChecking=no \
- -o HostKeyAlgorithms=+ssh-rsa \
- -o PubkeyAcceptedKeyTypes=+ssh-rsa \
- -p {{device.port}} {{device.username}}@{{device.host}} \
- cat /var/luna/preferences/devmode_enabled)
-
-if [ -z "$sessionToken" ]; then
-  echo "ssh into TV failed, loading previous sessionToken from /tmp/webos_devmode_token_{{device.name}}.txt" >&2
-  sessionToken=$(cat /tmp/webos_devmode_token_{{device.name}}.txt)
-else
-  echo "Got sessionToken from TV - writing to /tmp/webos_devmode_token_{{device.name}}.txt" >&2
-  echo $sessionToken > /tmp/webos_devmode_token_{{device.name}}.txt
-fi
-
-if [ -z "$sessionToken" ]; then
-  echo "Unable to get token" >&2
-  exit 1
-fi
-
-checkSession=$(curl --max-time 3 -s "https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken=$sessionToken")
-
-echo $checkSession]]></pre>
+            <pre class="pre-scrollable bg-panel p-3">{{script}}</pre>
             <div class="position-absolute top-0 right-0 my-2 mx-4">
-              <button type="button" class="btn btn-primary me-2" (click)="copyScript(renewScript.textContent || '')">
+              <button type="button" class="btn btn-primary me-2" (click)="copyScript(script)">
                 <i class="bi bi-clipboard"></i>
               </button>
-              <button type="button" class="btn btn-primary" (click)="saveScript(renewScript.textContent || '')">
+              <button type="button" class="btn btn-primary" (click)="saveScript(script)">
                 <i class="bi bi-save"></i>
               </button>
             </div>

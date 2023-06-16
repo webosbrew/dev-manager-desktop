@@ -1,4 +1,8 @@
 //Polyfill Node.js core modules in Webpack. This module is only needed for webpack 5+.
+import {BuildOptions} from "@angular-devkit/build-angular/src/utils/build-options";
+import type {Configuration} from 'webpack';
+import * as util from "util";
+
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const {IgnorePlugin} = require("webpack");
 const path = require('path');
@@ -6,7 +10,7 @@ const path = require('path');
 /**
  * Custom angular webpack configuration
  */
-module.exports = (config, options) => {
+module.exports = (config: Configuration, options: BuildOptions) => {
   config.target = 'web';
 
   if (options.fileReplacements) {
@@ -24,7 +28,7 @@ module.exports = (config, options) => {
   }
 
   config.plugins = [
-    ...config.plugins,
+    ...config.plugins ?? [],
     new NodePolyfillPlugin({
       excludeAliases: ['console', 'process']
     }),
@@ -34,5 +38,15 @@ module.exports = (config, options) => {
     }),
   ];
 
+  if (!config.module) {
+    config.module = {};
+  }
+  if (!config.module.rules) {
+    config.module.rules = [];
+  }
+
+  config.module.rules.push({test: /\.sh/, type: 'asset/source'});
+  console.log(util.inspect(config));
+
   return config;
-}
+};

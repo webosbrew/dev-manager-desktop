@@ -40,7 +40,7 @@
               ]
             },
             "customWebpackConfig": {
-              "path": "./webpack.config.js",
+              "path": "./webpack.config.ts",
               "replaceDuplicatePlugins": true
             },
             "allowedCommonJsDependencies": [
