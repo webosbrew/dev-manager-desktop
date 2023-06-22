@@ -13,14 +13,12 @@ export abstract class BackendClient {
       tauri.invoke(cmd, args)
         .then(result => {
           console.debug('invoke', `${this.category}/${method}`, 'result', result);
-          return result;
+          this.zone.run(() => resolve(result as any));
         })
         .catch(reason => {
           console.warn('invoke', `${this.category}/${method}`, 'error', reason);
-          throw new BackendError(reason);
-        })
-        .then(result => this.zone.run(() => resolve(result as any)))
-        .catch(reason => this.zone.run(() => reject(reason)));
+          this.zone.run(() => reject(new BackendError(reason)));
+        });
     });
   }
 
