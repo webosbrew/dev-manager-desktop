@@ -77,10 +77,14 @@ impl Proc {
         }
         channel.request_exec(&self.command)?;
         let mut buf = [0; 8192];
+        let mut interrupted = false;
         while !channel.is_closed() {
             if self.interrupted.lock().unwrap().eq(&true) {
+                channel.send_eof()?;
+                log::info!("interrupting luna-send");
                 channel.request_send_signal("TERM")?;
                 channel.close()?;
+                interrupted = true;
                 break;
             } else if let Ok(msg) = receiver.recv_timeout(Duration::from_micros(1)) {
                 channel.stdin().write_all(&msg)?;
@@ -95,9 +99,14 @@ impl Proc {
                 self.data(1, &buf[..buf_size])?;
             }
         }
-        log::debug!("{self:?} channel closed");
+        let status = channel.get_exit_status().unwrap_or(-1);
+        if interrupted {
+            log::debug!("{self:?} channel interrupted by client");
+        } else {
+            log::debug!("{self:?} channel closed with status {status}");
+        }
         session.mark_last_ok();
-        return Ok(channel.get_exit_status().unwrap_or(-1));
+        return Ok(status);
     }
 }
 

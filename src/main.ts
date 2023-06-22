@@ -16,7 +16,7 @@ Sentry.init({
       routingInstrumentation: Sentry.routingInstrumentation,
     })
   ],
-  enabled: true,
+  enabled: !!ReleaseInfo.version,
   environment: AppConfig.environment,
   release: ReleaseInfo.version || 'local',
   stackParser: (stack: string, skipFirst?: number) => {
