@@ -30,7 +30,7 @@ export class AppComponent {
       if (remoteVer.compare(curVer) > 0) {
         await this.notifyUpdate(info, remoteVer);
       }
-    });
+    }).catch(noop);
     deviceManager.load();
   }
 
