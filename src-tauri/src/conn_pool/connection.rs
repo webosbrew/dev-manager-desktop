@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 use std::sync::Mutex;
 use std::time::Duration;
 
-use libssh_rs::{AuthStatus, LogLevel, Session, SshKey, SshOption};
+use libssh_rs::{AuthStatus, Session, SshKey, SshOption};
 use uuid::Uuid;
 
 use crate::conn_pool::DeviceConnection;

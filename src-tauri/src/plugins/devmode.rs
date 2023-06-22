@@ -83,7 +83,7 @@ async fn valid_token<R: Runtime>(
     .await
     .unwrap()?;
     let token = String::from_utf8(data).map_err(|_| Error::IO {
-        code: std::io::ErrorKind::Other,
+        code: std::io::ErrorKind::InvalidData,
         message: format!("Can\'t read dev mode token"),
     })?;
     let regex = Regex::new("^[0-9a-zA-Z]+$").unwrap();
