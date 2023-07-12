@@ -4,7 +4,6 @@ import {ITerminalDimensions} from "xterm-addon-fit";
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
 import {AppWebLinksAddon} from "../../shared/xterm/web-links";
 import {TERMINAL_CONFIG} from "../../shared/xterm/config";
-import {NgbNav} from "@ng-bootstrap/ng-bootstrap";
 import {ITerminalComponent} from "../terminal.component";
 
 @Component({
