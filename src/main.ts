@@ -5,7 +5,7 @@ import {AppModule} from './app/app.module';
 import {AppConfig} from './environments/environment';
 import ReleaseInfo from './release.json';
 import * as Sentry from "@sentry/angular-ivy";
-import {Breadcrumb, defaultStackParser} from "@sentry/angular-ivy";
+import {defaultStackParser} from "@sentry/angular-ivy";
 import {remove} from "lodash";
 
 Sentry.init({
@@ -24,8 +24,11 @@ Sentry.init({
     stack = stack.replace(/@tauri:\/\//g, "@http://");
     return defaultStackParser(stack, skipFirst);
   },
-  beforeBreadcrumb: (breadcrumb: Breadcrumb) => {
+  beforeBreadcrumb: (breadcrumb) => {
     return breadcrumb.level !== 'debug' ? breadcrumb : null;
+  },
+  beforeSendTransaction: () => {
+    return null;
   },
   beforeSend: (event) => {
     if (event.exception?.values) {
