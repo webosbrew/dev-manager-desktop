@@ -1,6 +1,19 @@
 # Device/DevMode Manager for webOS TV
 
-Simple tool to manage developer mode enabled or rooted webOS TV - [Download Now](https://github.com/webosbrew/dev-manager-desktop/releases/latest)
+Simple tool to manage developer mode enabled or rooted webOS
+TV
+
+## Download
+
+Find [latest release](https://github.com/webosbrew/dev-manager-desktop/releases/latest), and download the installer for
+your system
+
+| Operating System      | x86_64                                      | x86                                       | arm64                                                                                  |
+|-----------------------|---------------------------------------------|-------------------------------------------|----------------------------------------------------------------------------------------|
+| Windows               | webOS.Dev.Manager_[VERSION]_x64_en-US.msi   | webOS.Dev.Manager_[VERSION]_x86_en-US.msi | Not available yet                                                                      |
+| macOS                 | webOS.Dev.Manager_[VERSION]_x64.dmg         | Not available                             | Not available, see [#116](https://github.com/webosbrew/dev-manager-desktop/issues/116) |
+| Linux (Debian/Ubuntu) | web-os-dev-manager_[VERSION]_amd64.deb      | Not available                             | Not available yet                                                                      |
+| Linux (Other distros) | web-os-dev-manager_[VERSION]_amd64.AppImage | Not available                             | Not available yet                                                                      |
 
 ## Features
 
