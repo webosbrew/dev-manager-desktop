@@ -40,6 +40,6 @@ if [ -z "$SESSION_TOKEN" ]; then
   exit 1
 fi
 
-CHECK_RESULT=$(curl --max-time 3 -s "https://developer.lge.com/secure/ResetDevModeSession.dev?SESSION_TOKEN=$SESSION_TOKEN")
+CHECK_RESULT=$(curl --max-time 3 -s "https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken=$SESSION_TOKEN")
 
 echo "${CHECK_RESULT}"
