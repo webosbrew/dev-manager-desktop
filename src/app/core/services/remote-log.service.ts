@@ -29,6 +29,10 @@ export class RemoteLogService {
       finalize(() => subject.write()));
   }
 
+  async logClear(device: DeviceLike): Promise<void> {
+    await this.cmd.exec(device, 'echo > /var/log/messages', 'utf-8');
+  }
+
   private parsePmLog(line: string): LogMessage | null {
     line = line.trim();
     if (!line) {

@@ -3,7 +3,8 @@
     <button class="btn btn-sm btn-secondary" (click)="openCtrl()"><i class="bi bi-toggles" ngbTooltip="Set log levels"></i></button>
     <button class="btn btn-sm btn-secondary mt-2" *ngIf="false"><i class="bi bi-funnel" ngbTooltip="Filter"></i></button>
     <hr>
-    <button class="btn btn-sm btn-secondary" (click)="logReader.scrollToBottom()" [disabled]="logReader.reachedBottom"
+    <button class="btn btn-sm btn-secondary mb-2" (click)="clearBuffer()"><i class="bi bi-trash" ngbTooltip="Clear"></i></button>
+    <button class="btn btn-sm btn-secondary mb-2" (click)="logReader.scrollToBottom()" [disabled]="logReader.reachedBottom"
             ngbTooltip="Scroll to bottom">
       <i class="bi bi-chevron-bar-down"></i>
     </button>

@@ -6,3 +6,13 @@
 .ng-touched.ng-invalid {
   @extend .is-invalid;
 }
+
+
+.stat-bar {
+  height: 30px;
+}
+
+.storage-info-bar {
+  width: 25%;
+  max-width: 110px;
+}

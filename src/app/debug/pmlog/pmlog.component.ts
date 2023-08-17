@@ -91,4 +91,12 @@ export class PmLogComponent {
     }
   }
 
+  async clearBuffer(): Promise<void> {
+    const device = this.device;
+    if (!device) {
+      return;
+    }
+    await this.log.logClear(device);
+    this.reload(device);
+  }
 }

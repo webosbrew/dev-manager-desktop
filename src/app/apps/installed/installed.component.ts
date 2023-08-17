@@ -1,4 +1,4 @@
-import {Component, Host, Input, OnChanges, OnDestroy, SimpleChanges} from '@angular/core';
+import {Component, Host, Input, OnDestroy} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
 import {Observable, Subscription} from "rxjs";
@@ -9,38 +9,42 @@ import {AppsRepoService, RepositoryItem} from "../../core/services";
   templateUrl: './installed.component.html',
   styleUrls: ['./installed.component.scss']
 })
-export class InstalledComponent implements OnDestroy, OnChanges {
+export class InstalledComponent implements OnDestroy {
 
   @Input()
   device: Device | null = null;
-
-  @Input()
-  installed$?: Observable<PackageInfo[] | null>;
 
   installedError?: Error;
 
   repoPackages?: Record<string, RepositoryItem>;
 
   private subscription?: Subscription;
+  private installedField?: Observable<PackageInfo[] | null>;
 
   constructor(@Host() public parent: AppsComponent, private appsRepo: AppsRepoService) {
   }
 
-  ngOnDestroy(): void {
+  @Input()
+  set installed$(value: Observable<PackageInfo[] | null> | undefined) {
     this.subscription?.unsubscribe();
+    this.subscription = value?.subscribe({
+      next: (pkgs) => {
+        this.installedError = undefined;
+
+        const strings: string[] = pkgs?.map((pkg) => pkg.id) ?? [];
+        this.appsRepo.showApps(...strings).then(apps => this.repoPackages = apps);
+      },
+      error: (error) => this.installedError = error
+    });
+    this.installedField = value;
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['installed$']) {
-      this.subscription?.unsubscribe();
-      this.subscription = this.installed$?.subscribe((pkgs) => {
-          this.installedError = undefined;
+  get installed$(): Observable<PackageInfo[] | null> | undefined {
+    return this.installedField;
+  }
 
-          const strings: string[] = pkgs?.map((pkg) => pkg.id) ?? [];
-          this.appsRepo.showApps(...strings).then(apps => this.repoPackages = apps);
-        },
-        (error) => this.installedError = error);
-    }
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
   }
 
   loadPackages(): void {
