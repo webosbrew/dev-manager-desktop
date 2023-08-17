@@ -1,0 +1,16 @@
+<div class="position-relative" *ngIf="storage">
+  <div class="progress" role="progressbar" [attr.aria-valuenow]="storage.used"
+       aria-valuemin="0" [attr.aria-valuemax]="storage.total" style="height: 1.25em">
+    <div class="d-flex flex-column justify-content-center position-absolute w-100 h-100">
+      <small class="text-nowrap mx-1">
+        {{storage.available * 1024 | filesize:sizeOptions}} / {{storage.total * 1024 | filesize:sizeOptions}} free
+      </small>
+    </div>
+    <div class="progress-bar" [class.bg-danger]="storage.available / storage.total < 0.1"
+         [style.width]="(storage.used / storage.total * 100) + '%'">
+      <small class="text-nowrap text-light mx-1">
+        {{storage.available * 1024 | filesize:sizeOptions}} / {{storage.total * 1024 | filesize:sizeOptions}} free
+      </small>
+    </div>
+  </div>
+</div>

@@ -26,3 +26,9 @@ export declare interface RawPackageInfo {
 export declare interface PackageInfo extends RawPackageInfo {
   iconUri?: string;
 }
+
+export declare interface StorageInfo {
+  total: number;
+  used: number;
+  available: number;
+}

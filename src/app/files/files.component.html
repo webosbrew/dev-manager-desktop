@@ -67,10 +67,12 @@
         <div *ngSwitchDefault>Loading</div>
       </div>
     </ng-template>
-    <div class="stat-bar border-top bottom-0 mt-auto">
+    <div class="stat-bar d-flex flex-row align-items-center border-top bottom-0 mt-auto">
       <small class="px-2" *ngIf="state.items as items">
         {{items.length}} {{items.length === 1 ? 'item' : 'items'}}
       </small>
+      <app-stat-storage-info class="ms-auto me-3 storage-info-bar" [device]="device"
+                             [location]="cwd"></app-stat-storage-info>
     </div>
   </div>
 </ng-container>

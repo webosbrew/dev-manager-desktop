@@ -9,6 +9,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.ts]
+indent_size = 4
 quote_type = single
 
 [*.{rs,py}]
