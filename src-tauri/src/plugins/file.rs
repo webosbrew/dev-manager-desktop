@@ -70,7 +70,10 @@ async fn write<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         return Ok(sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
-            let mut file = sftp.open(&path, 0x0301 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)?;
+            let mut file = sftp.open(
+                &path, 0o1101, /*O_WRONLY | O_CREAT | O_TRUNC on Linux*/
+                0o644,
+            )?;
             file.write_all(&content)?;
             return Ok(());
         })?);
