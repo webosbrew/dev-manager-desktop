@@ -3,7 +3,7 @@ run-name: "${{ github.event_name == 'release' && format('Release {0}', github.re
 
 on:
   release:
-    types: [ created ]
+    types: [ published ]
   workflow_dispatch:
 
 env:
@@ -130,6 +130,7 @@ jobs:
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
+        if: github.event_name != 'release'
         with:
           name: ${{ runner.os }}-snapshot
           path: |
