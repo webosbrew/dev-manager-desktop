@@ -10,9 +10,23 @@
         <br>
         <strong>webOS version: </strong><span>{{sysInfo.sdkVersion}}</span>
       </p>
-      <div>
+      <div class="btn-group">
         <button class="btn btn-primary" (click)="takeScreenshot()" *ngIf="device.username === 'root'">Take Screenshot
         </button>
+        <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
+             aria-label="More options">
+          <button class="btn btn-primary" ngbDropdownToggle>
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" ngbDropdownMenu>
+            <li ngbDropdownItem (click)="takeScreenshot('VIDEO')">
+              Video
+            </li>
+            <li ngbDropdownItem (click)="takeScreenshot('GRAPHIC')">
+              Graphic (UI)
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>

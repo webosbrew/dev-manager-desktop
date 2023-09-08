@@ -11,6 +11,8 @@ import {Buffer} from "buffer";
 import {RemoteFileService} from "./remote-file.service";
 import {DevModeService} from "./dev-mode.service";
 
+export type ScreenshotMethod = 'DISPLAY' | 'VIDEO' | 'GRAPHIC';
+
 @Injectable({
     providedIn: 'root'
 })
@@ -119,11 +121,11 @@ export class DeviceManagerService extends BackendClient {
         })
     }
 
-    async takeScreenshot(device: DeviceLike): Promise<string> {
-        const tmpPath = `/tmp/devman_shot_${Date.now()}.png`
+    async takeScreenshot(device: DeviceLike, method: ScreenshotMethod = 'DISPLAY'): Promise<string> {
+        const tmpPath = `/tmp/devman_shot_${Date.now()}.bmp`
         const param: Record<string, any> = {
             path: tmpPath,
-            method: "DISPLAY",
+            method: method,
             format: "PNG",
             width: 1920,
             height: 1080
