@@ -216,8 +216,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
 
     private get hasHbChannel(): boolean {
-        // return has(this.instPackages, APP_ID_HBCHANNEL);
-        return false;
+        return has(this.instPackages, APP_ID_HBCHANNEL);
     }
 
     private handleInstallationError(name: string, e: Error) {
