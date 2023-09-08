@@ -36,6 +36,7 @@ sha256 = "1.1.4"
 pathdiff = "0.2.1"
 libssh-rs = { version = "0.2.0", features = ["vendored"] }
 libssh-rs-sys = "0.2.0"
+flate2 = "1.0"
 
 [dependencies.tauri]
 version = "1.4.0"

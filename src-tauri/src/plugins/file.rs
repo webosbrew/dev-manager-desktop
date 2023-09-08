@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::{copy, Read, Write};
 use std::path::Path;
 
+use flate2::read::GzDecoder;
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime};
 use uuid::Uuid;
@@ -10,7 +11,7 @@ use uuid::Uuid;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::remote_files::serve;
-use crate::remote_files::FileItem;
+use crate::remote_files::{FileItem, PermInfo};
 use crate::session_manager::SessionManager;
 
 #[tauri::command]
@@ -28,10 +29,11 @@ async fn ls<R: Runtime>(
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
             let entries = sftp.read_dir(&path)?;
+            let user = session.user.as_ref();
             return Ok(entries
                 .iter()
                 .filter(|entry| entry.name() != Some(".") && entry.name() != Some(".."))
-                .map(|entry| entry.into())
+                .map(|entry| FileItem::new(entry, None, user.map(|u| PermInfo::from(entry, &u))))
                 .collect());
         });
     })
@@ -44,6 +46,7 @@ async fn read<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     path: String,
+    encoding: Option<String>,
 ) -> Result<Vec<u8>, Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
@@ -51,7 +54,16 @@ async fn read<R: Runtime>(
             let sftp = session.sftp()?;
             let mut file = sftp.open(&path, 0 /*O_RDONLY*/, 0)?;
             let mut buf = Vec::<u8>::new();
-            file.read_to_end(&mut buf)?;
+            if let Some(encoding) = &encoding {
+                if encoding == "gzip" {
+                    let mut decoder = GzDecoder::new(&mut file);
+                    decoder.read_to_end(&mut buf)?;
+                } else {
+                    return Err(Error::new(format!("Unsupported encoding {}", encoding)));
+                }
+            } else {
+                file.read_to_end(&mut buf)?;
+            }
             return Ok(buf);
         });
     })
