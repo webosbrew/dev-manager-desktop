@@ -7,6 +7,18 @@
     </tr>
     </thead>
     <tbody>
+    <tr>
+      <td>
+        <label class="form-label" for="log-level-all">All</label>
+      </td>
+      <td>
+
+        <select class="form-select" [ngModel]="defaultLevel" (change)="changeAllLogLevel($any(allLevelSelect.value))"
+                id="log-level-all" #allLevelSelect>
+          <option [value]="item.level" *ngFor="let item of logLevels">{{item.label}}</option>
+        </select>
+      </td>
+    </tr>
     <tr *ngFor="let context of contexts">
       <td>
         <label class="form-label" [for]="'log-level-'+context[0]">{{context[0]}}</label>

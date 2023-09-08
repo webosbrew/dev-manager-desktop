@@ -1,10 +1,16 @@
 <div class="w-100 h-100 p-4" *ngIf="!reportsError else error">
   <ol class="list-group list-group-numbered">
-    <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-start"
+    <li class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
         (click)="openDetails(report)" *ngFor="let report of reports">
       <div class="ms-2 me-auto">
         <div class="fw-bold">{{report.title}}</div>
         {{report.summary}}
+      </div>
+      <div>
+        <button class="btn btn-link text-danger" type="button" (click)="$event.stopPropagation();deleteReport(report)"
+                *ngIf="report.file.access?.write">
+          <i class="bi bi-trash"></i>
+        </button>
       </div>
     </li>
   </ol>
