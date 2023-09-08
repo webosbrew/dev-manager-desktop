@@ -10,6 +10,8 @@ import {open as showOpenDialog} from '@tauri-apps/api/dialog';
 import {basename, downloadDir} from "@tauri-apps/api/path";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 import {HbchannelRemoveComponent} from "./hbchannel-remove/hbchannel-remove.component";
+import {BaseDirectory, writeBinaryFile} from "@tauri-apps/api/fs";
+import {LocalFileService} from "../core/services/local-file.service";
 
 @Component({
     selector: 'app-apps',
@@ -21,7 +23,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     packages$?: Observable<PackageInfo[] | null>;
     instPackages?: Record<string, RawPackageInfo>;
     device: Device | null = null;
-
+    tabId: string = 'installed';
 
     private deviceSubscription?: Subscription;
     private packagesSubscription?: Subscription;
@@ -30,6 +32,7 @@ export class AppsComponent implements OnInit, OnDestroy {
         private modalService: NgbModal,
         private deviceManager: DeviceManagerService,
         private appManager: AppManagerService,
+        private localFiles: LocalFileService,
     ) {
     }
 
@@ -53,8 +56,8 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
 
     onDragOver(event: DragEvent): void {
-        // console.log('onDragOver', event.type, event.dataTransfer.items.length && event.dataTransfer.items[0]);
         event.preventDefault();
+        event.stopPropagation();
     }
 
     onDragEnter(event: DragEvent): void {
@@ -63,12 +66,12 @@ export class AppsComponent implements OnInit, OnDestroy {
             return;
         }
         event.preventDefault();
-        console.log('onDragEnter', event.type, transfer.items.length && transfer.items[0]);
+        event.stopPropagation();
     }
 
     onDragLeave(event: DragEvent): void {
-        const dataTransfer = event.dataTransfer!;
-        console.log('onDragLeave', dataTransfer.items.length && dataTransfer.items[0]);
+        event.preventDefault();
+        event.stopPropagation();
     }
 
     loadPackages(): void {
@@ -87,15 +90,20 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
 
     async dropFiles(event: DragEvent): Promise<void> {
-        if (!this.device) return;
+        if (!this.device || this.tabId !== 'installed') return;
         const transfer = event.dataTransfer!;
-        console.log('dropFiles', event, transfer.files);
+        event.preventDefault();
+        event.stopPropagation();
         const files = transfer.files;
         if (files.length != 1 || !files[0].name.endsWith('.ipk')) {
             // Show error
             return;
         }
         const file: File = files[0];
+
+        writeBinaryFile((`webos-dev-tmp-${Date.now()}.ipk`), await file.arrayBuffer(), {
+            dir: BaseDirectory.Temp
+        });
         const progress = ProgressDialogComponent.open(this.modalService);
         const component = progress.componentInstance as ProgressDialogComponent;
         try {
@@ -208,7 +216,8 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
 
     private get hasHbChannel(): boolean {
-        return has(this.instPackages, APP_ID_HBCHANNEL);
+        // return has(this.instPackages, APP_ID_HBCHANNEL);
+        return false;
     }
 
     private handleInstallationError(name: string, e: Error) {

@@ -1,4 +1,5 @@
-<div class="container-fluid">
+<div class="container-fluid" (drop)="defaultDrop($event)" (dragover)="defaultDragOver($event)"
+     (dragenter)="defaultDragEnter($event)" (dragleave)="defaultDragLeave($event)">
   <div class="row">
     <nav class="col-3 col-xl-2 d-flex flex-column bg-panel">
       <ng-container *ngIf="(deviceManager.devices$ | async) as devices">

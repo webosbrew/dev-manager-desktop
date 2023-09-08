@@ -11,59 +11,85 @@ import {isNonNull} from "../shared/operators";
 import ReleaseInfo from '../../release.json';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+    selector: 'app-home',
+    templateUrl: './home.component.html',
+    styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
 
-  selectedDevice?: Device;
-  activeItem: string = 'apps';
-  appVersion: string;
+    selectedDevice?: Device;
+    activeItem: string = 'apps';
+    appVersion: string;
 
-  constructor(
-    public deviceManager: DeviceManagerService,
-    private modalService: NgbModal
-  ) {
-    deviceManager.devices$.pipe(filter(isNonNull)).subscribe((devices) => {
-      this.selectedDevice = devices.find((device) => device.default) || devices[0];
-      if (!this.selectedDevice) {
-        this.openSetupDevice(false);
-      }
-    });
-    this.appVersion = ReleaseInfo.version || packageInfo.version;
-  }
-
-  async removeDevice(device: Device): Promise<void> {
-    let answer: RemoveConfirmation;
-    try {
-      let a = await RemoveDeviceComponent.confirm(this.modalService, device);
-      if (!a) {
-        return;
-      }
-      answer = a;
-    } catch (e) {
-      return;
+    constructor(
+        public deviceManager: DeviceManagerService,
+        private modalService: NgbModal
+    ) {
+        deviceManager.devices$.pipe(filter(isNonNull)).subscribe((devices) => {
+            this.selectedDevice = devices.find((device) => device.default) || devices[0];
+            if (!this.selectedDevice) {
+                this.openSetupDevice(false);
+            }
+        });
+        this.appVersion = ReleaseInfo.version || packageInfo.version;
     }
-    await this.deviceManager.removeDevice(device.name, answer.deleteSshKey);
-  }
 
-  markDefault(device: Device): void {
-    this.deviceManager.setDefault(device.name).catch(reason => {
-      console.log(reason);
-    });
-  }
+    async removeDevice(device: Device): Promise<void> {
+        let answer: RemoveConfirmation;
+        try {
+            let a = await RemoveDeviceComponent.confirm(this.modalService, device);
+            if (!a) {
+                return;
+            }
+            answer = a;
+        } catch (e) {
+            return;
+        }
+        await this.deviceManager.removeDevice(device.name, answer.deleteSshKey);
+    }
 
-  openSetupDevice(cancellable: boolean): void {
-    const ref = this.modalService.open(WizardComponent, {
-      size: 'xl', centered: true, scrollable: true,
-      injector: Injector.create({
-        providers: [
-          {provide: 'cancellable', useValue: cancellable}
-        ]
-      }),
-      beforeDismiss: () => cancellable,
-    });
-    ref.result.then((device) => this.deviceManager.setDefault(device.name)).catch(noop);
-  }
+    markDefault(device: Device): void {
+        this.deviceManager.setDefault(device.name).catch(reason => {
+            console.log(reason);
+        });
+    }
+
+    openSetupDevice(cancellable: boolean): void {
+        const ref = this.modalService.open(WizardComponent, {
+            size: 'xl', centered: true, scrollable: true,
+            injector: Injector.create({
+                providers: [
+                    {provide: 'cancellable', useValue: cancellable}
+                ]
+            }),
+            beforeDismiss: () => cancellable,
+        });
+        ref.result.then((device) => this.deviceManager.setDefault(device.name)).catch(noop);
+    }
+
+    defaultDragOver(event: DragEvent): void {
+        event.preventDefault();
+    }
+
+    defaultDragEnter(event: DragEvent): void {
+        const transfer = event.dataTransfer!;
+        if (transfer.items.length != 1 || transfer.items[0].kind != 'file') {
+            return;
+        }
+        event.preventDefault();
+        console.log('defaultDragEnter', event.type, transfer.items.length && transfer.items[0]);
+    }
+
+    defaultDragLeave(event: DragEvent): void {
+        const dataTransfer = event.dataTransfer!;
+        console.log('defaultDragLeave', dataTransfer.items.length && dataTransfer.items[0]);
+    }
+
+    defaultDrop(event: DragEvent): boolean {
+        console.log('defaultDrop', event);
+        event.stopPropagation();
+        event.preventDefault();
+        return false;
+    }
+
 }

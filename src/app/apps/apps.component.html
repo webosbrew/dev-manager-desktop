@@ -1,7 +1,7 @@
 <div class="w-100 h-100 d-flex flex-column overflow-hidden" xmlns="http://www.w3.org/1999/html">
   <nav class="manager-toolbar navbar bg-panel border-bottom px-2">
     <div class="me-auto">
-      <ul ngbNav #nav="ngbNav" class="nav-pills">
+      <ul ngbNav #nav="ngbNav" class="nav-pills" [(activeId)]="tabId">
         <li ngbNavItem="installed">
           <a ngbNavLink>Installed</a>
           <ng-template ngbNavContent>
@@ -22,8 +22,9 @@
       </button>
     </div>
   </nav>
-  <div class="p-3 flex-fill overflow-auto" [ngbNavOutlet]="nav"></div>
-  <div class="stat-bar border-top bottom-0 mt-auto d-flex flex-row align-items-center">
+  <div class="p-3 flex-fill overflow-auto" (drop)="dropFiles($event)" (dragover)="onDragOver($event)"
+       (dragenter)="onDragEnter($event)" (dragleave)="onDragLeave($event)" [ngbNavOutlet]="nav"></div>
+  <div class="stat-bar border-top bottom-0 mt-auto d-flex flex-row flex-shrink-0 align-items-center">
     <app-stat-storage-info class="ms-auto me-3 storage-info-bar" [device]="device"></app-stat-storage-info>
   </div>
 </div>
