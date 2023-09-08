@@ -1,11 +1,16 @@
 <div class="w-100 h-100 d-flex flex-row" *ngIf="hasData || !logError; else hasError">
   <div class="h-100 d-flex flex-column p-2">
-    <button class="btn btn-sm btn-secondary" (click)="openCtrl()"><i class="bi bi-toggles" ngbTooltip="Set log levels"></i></button>
-    <button class="btn btn-sm btn-secondary mt-2" *ngIf="false"><i class="bi bi-funnel" ngbTooltip="Filter"></i></button>
+    <button class="btn btn-sm btn-secondary" ngbTooltip="Set log levels" (click)="openCtrl()">
+      <i class="bi bi-toggles"></i></button>
+    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Filter" *ngIf="false">
+      <i class="bi bi-funnel"></i>
+    </button>
     <hr>
-    <button class="btn btn-sm btn-secondary mb-2" (click)="clearBuffer()"><i class="bi bi-trash" ngbTooltip="Clear"></i></button>
-    <button class="btn btn-sm btn-secondary mb-2" (click)="logReader.scrollToBottom()" [disabled]="logReader.reachedBottom"
-            ngbTooltip="Scroll to bottom">
+    <button class="btn btn-sm btn-secondary mb-2" ngbTooltip="Clear" (click)="clearBuffer()">
+      <i class="bi bi-trash"></i>
+    </button>
+    <button class="btn btn-sm btn-secondary mb-2" ngbTooltip="Scroll to bottom"
+            [disabled]="logReader.reachedBottom" (click)="logReader.scrollToBottom()">
       <i class="bi bi-chevron-bar-down"></i>
     </button>
   </div>

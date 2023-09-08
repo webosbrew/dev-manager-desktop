@@ -1,13 +1,11 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, from, Observable, Subject} from "rxjs";
-import {CrashReportEntry, Device, DeviceLike, FileSession, NewDevice, StorageInfo} from '../../types';
+import {CrashReportEntry, Device, DeviceLike, FileItem, FileSession, NewDevice, StorageInfo} from '../../types';
 import {BackendClient} from "./backend-client";
 import {FileSessionImpl} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../types/luna-apis";
-import {basename} from "@tauri-apps/api/path";
 import {LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
-import {Buffer} from "buffer";
 import {RemoteFileService} from "./remote-file.service";
 import {DevModeService} from "./dev-mode.service";
 
@@ -77,20 +75,9 @@ export class DeviceManagerService extends BackendClient {
     }
 
     async listCrashReports(device: Device): Promise<CrashReport[]> {
-        return this.cmd.exec(device, 'find /tmp/faultmanager/crash/ -name \'*.gz\' -print0', 'utf-8')
-            .catch((e) => {
-                if (e.data) {
-                    throw new Error(e.data);
-                } else {
-                    throw e;
-                }
-            })
-            .then(output => output.split('\0').filter(l => l.length))
-            .then(list => Promise.all(list.map(l => CrashReport.obtain(this, device, l))));
-    }
-
-    async zcat(device: Device, path: string): Promise<Buffer> {
-        return await this.cmd.exec(device, `xargs -0 zcat`, 'buffer', path);
+        const dir = '/tmp/faultmanager/crash/';
+        return this.file.ls(device, dir)
+            .then(list => list.map(l => CrashReport.obtain(this.file, device, dir, l)));
     }
 
     async extendDevMode(device: Device): Promise<any> {
@@ -156,18 +143,24 @@ export class DeviceManagerService extends BackendClient {
 
 export class CrashReport implements CrashReportEntry {
 
-    constructor(public device: Device, public path: string, public title: string, public summary: string,
-                public saveName: string, public content: Observable<string>) {
+    constructor(public device: Device, public dir: string, public file: FileItem, public title: string,
+                public summary: string, public saveName: string, public content: Observable<string>) {
     }
 
-    static async obtain(dm: DeviceManagerService, device: Device, path: string) {
-        const {title, summary, saveName} = await CrashReport.parseTitle(path);
-        const content = from(dm.zcat(device, path).then(content => content.toString('utf-8').trim()));
-        return new CrashReport(device, path, title, summary, saveName, content);
+    get path(): string {
+        return `${this.dir}/${this.file.filename}`;
     }
 
-    private static async parseTitle(path: string): Promise<{ title: string, summary: string; saveName: string; }> {
-        const name = (await basename(path)).replace(/[\x00-\x1f]/g, '/').replace(/.gz$/, '');
+    static obtain(fs: RemoteFileService, device: Device, dir: string, info: FileItem) {
+        const {title, summary, saveName} = CrashReport.parseTitle(info.filename);
+        const path = `${dir}/${info.filename}`;
+        const content = from(fs.read(device, path, 'gzip', 'utf-8')
+            .then(s => s.trim()));
+        return new CrashReport(device, dir, info, title, summary, saveName, content);
+    }
+
+    private static parseTitle(filename: string): { title: string, summary: string; saveName: string; } {
+        const name = filename.replace(/[\x00-\x1f]/g, '/').replace(/.gz$/, '');
         let appDirIdx = -1, appDirPrefix = '';
         for (const prefix of ['/usr/palm/applications/', '/var/palm/jail/']) {
             appDirIdx = name.indexOf(prefix);
