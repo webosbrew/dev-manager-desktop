@@ -2,14 +2,18 @@ import {Injectable, NgZone} from "@angular/core";
 import {BackendClient} from "./backend-client";
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class LocalFileService extends BackendClient {
-  constructor(zone: NgZone) {
-    super(zone, 'local-file');
-  }
+    constructor(zone: NgZone) {
+        super(zone, 'local-file');
+    }
 
-  async checksum(path: string, algorithm: 'sha256'): Promise<string> {
-    return this.invoke('checksum', {path, algorithm});
-  }
+    async checksum(path: string, algorithm: 'sha256'): Promise<string> {
+        return this.invoke('checksum', {path, algorithm});
+    }
+
+    async tempPath(extension: string): Promise<string> {
+        return this.invoke('temp_path', {extension});
+    }
 }

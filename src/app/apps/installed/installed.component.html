@@ -1,6 +1,5 @@
 <div *ngIf="device">
-  <div (drop)="parent.dropFiles($event)" (dragover)="parent.onDragOver($event)" (dragenter)="parent.onDragEnter($event)"
-       (dragleave)="parent.onDragLeave($event)" *ngIf="!installedError; else error">
+  <div *ngIf="!installedError; else error">
     <ul class="list-group list-group-flush" *ngIf="(installed$ | async) as installed else loading">
       <li class="list-group-item app-item d-flex flex-row align-items-center"
           *ngFor="let pkg of installed">
