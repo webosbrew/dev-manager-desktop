@@ -109,7 +109,7 @@ export class DeviceManagerService extends BackendClient {
     }
 
     async takeScreenshot(device: DeviceLike, method: ScreenshotMethod = 'DISPLAY'): Promise<string> {
-        const tmpPath = `/tmp/devman_shot_${Date.now()}.bmp`
+        const tmpPath = `/tmp/devman_shot_${Date.now()}.png`
         const param: Record<string, any> = {
             path: tmpPath,
             method: method,
