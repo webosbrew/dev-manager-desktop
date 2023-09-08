@@ -1,12 +1,14 @@
 use std::fmt::{Debug, Formatter};
+use std::io::{Read, Write};
 use std::ops::{Deref, DerefMut};
 use std::sync::Mutex;
 use std::time::Duration;
 
 use libssh_rs::{AuthStatus, Session, SshKey, SshOption};
+use tauri::regex::Regex;
 use uuid::Uuid;
 
-use crate::conn_pool::DeviceConnection;
+use crate::conn_pool::{DeviceConnection, DeviceConnectionUserInfo, Id};
 use crate::device_manager::Device;
 use crate::error::Error;
 
@@ -58,6 +60,7 @@ impl DeviceConnection {
         let connection = DeviceConnection {
             id: Uuid::new_v4(),
             device: device.clone(),
+            user: DeviceConnectionUserInfo::new(&session)?,
             session,
             last_ok: Mutex::new(true),
         };
@@ -109,8 +112,83 @@ impl Drop for DeviceConnection {
 impl Debug for DeviceConnection {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!(
-            "DeviceConnection {{ id={}, device.name={} }}",
-            self.id, self.device.name
+            "DeviceConnection {{ id={}, device.name={}, user={:?} }}",
+            self.id, self.device.name, self.user,
         ))
+    }
+}
+
+impl DeviceConnectionUserInfo {
+    fn new(session: &Session) -> Result<Option<DeviceConnectionUserInfo>, Error> {
+        let ch = session.new_channel()?;
+        ch.open_session()?;
+        ch.request_exec("id")?;
+        let mut buf = String::new();
+        ch.stdout().read_to_string(&mut buf)?;
+        let exit_code = ch.get_exit_status().unwrap_or(0);
+        ch.close()?;
+        if exit_code != 0 {
+            return Err(Error::Message {
+                message: format!("id command failed with exit code {}", exit_code),
+            });
+        }
+        return Ok(DeviceConnectionUserInfo::parse(&buf));
+    }
+
+    fn parse(s: &str) -> Option<DeviceConnectionUserInfo> {
+        let mut uid: Option<Id> = None;
+        let mut gid: Option<Id> = None;
+        let mut groups: Vec<Id> = Vec::new();
+        for seg in s.split_ascii_whitespace() {
+            let Some((k, v)) = seg.split_once('=') else {
+                continue;
+            };
+            match k {
+                "uid" => {
+                    uid = Id::parse(v);
+                }
+                "gid" => {
+                    gid = Id::parse(v);
+                }
+                "groups" => {
+                    for group in v.split(',') {
+                        if let Some(id) = Id::parse(group) {
+                            groups.push(id);
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        let (Some(uid), Some(gid)) = (uid, gid) else {
+            return None;
+        };
+        return Some(DeviceConnectionUserInfo { uid, gid, groups });
+    }
+}
+
+impl Debug for Id {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        if let Some(name) = &self.name {
+            f.write_fmt(format_args!("{}({})", self.id, name))
+        } else {
+            f.write_fmt(format_args!("{}", self.id))
+        }
+    }
+}
+impl Id {
+    fn parse(s: &str) -> Option<Self> {
+        let regex = Regex::new("(\\d+)(\\(\\w+\\))?").unwrap();
+        let Some(caps) = regex.captures(s) else {
+            return None;
+        };
+        return Some(Self {
+            id: u32::from_str_radix(caps.get(1).unwrap().as_str(), 10).unwrap(),
+            name: caps.get(2).map(|s| {
+                s.as_str()
+                    .trim_matches(|c| c == '(' || c == ')')
+                    .to_string()
+            }),
+        });
     }
 }

@@ -13,10 +13,18 @@ pub struct FileItem {
     size: usize,
     mtime: f64,
     link: Option<LinkInfo>,
+    access: Option<PermInfo>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LinkInfo {
     target: Option<String>,
     broken: Option<bool>,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct PermInfo {
+    read: bool,
+    write: bool,
+    execute: bool,
 }

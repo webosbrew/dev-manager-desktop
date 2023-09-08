@@ -68,6 +68,7 @@ version = "0.1.0"
 dependencies = [
  "env_logger",
  "file-mode",
+ "flate2",
  "hex",
  "httparse",
  "libssh-rs",

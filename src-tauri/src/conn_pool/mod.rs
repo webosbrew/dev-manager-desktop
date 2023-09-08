@@ -10,9 +10,22 @@ pub mod pool;
 
 pub struct DeviceConnection {
     id: Uuid,
-    device: Device,
+    pub device: Device,
+    pub user: Option<DeviceConnectionUserInfo>,
     session: Session,
     last_ok: Mutex<bool>,
+}
+
+#[derive(Debug)]
+pub struct DeviceConnectionUserInfo {
+    pub uid: Id,
+    pub gid: Id,
+    pub groups: Vec<Id>,
+}
+
+pub struct Id {
+    pub id: u32,
+    pub name: Option<String>,
 }
 
 pub type ManagedDeviceConnection = PooledConnection<DeviceConnectionManager>;
