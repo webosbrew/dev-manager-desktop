@@ -9,6 +9,7 @@ import {
   DevModeService,
   DevModeStatus,
   RepositoryItem,
+  ScreenshotMethod,
 } from '../core/services';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {RenewScriptComponent} from './renew-script/renew-script.component';
@@ -78,13 +79,13 @@ export class InfoComponent {
     });
   }
 
-  async takeScreenshot(): Promise<void> {
+  async takeScreenshot(method: ScreenshotMethod = 'DISPLAY'): Promise<void> {
     // TODO: unify root check
     const device = this.device;
     if (!device || device.username !== 'root') return;
     const progress = ProgressDialogComponent.open(this.modalService);
     try {
-      const imgPath = await this.deviceManager.takeScreenshot(device);
+      const imgPath = await this.deviceManager.takeScreenshot(device, method);
       const tempPath = await this.files.getTemp(device, imgPath)
         .finally(() => this.files.rm(device, imgPath, false).catch(noop));
       await openPath(tempPath);
