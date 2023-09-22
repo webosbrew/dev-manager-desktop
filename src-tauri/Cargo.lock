@@ -1744,8 +1744,7 @@ checksum = "f92be4933c13fd498862a9e02a3055f8a8d9c039ce33db97306fd5a6caa7f29b"
 [[package]]
 name = "libssh-rs"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff892c443aa43a8e305913da313b5234bf33a7f17eae378f9c9ae4419dbbaa74"
+source = "git+https://github.com/mariotaku/libssh-rs.git?branch=feature/more-auth-options#1f046b2800ff08de4b791927d1491426b275fcd5"
 dependencies = [
  "bitflags",
  "libssh-rs-sys",
@@ -1756,8 +1755,7 @@ dependencies = [
 [[package]]
 name = "libssh-rs-sys"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aad2e95f77dde4d6a636ca1c713f3efdaa46bb2dae33d7d2abeea992baeb9cb3"
+source = "git+https://github.com/mariotaku/libssh-rs.git?branch=feature/more-auth-options#1f046b2800ff08de4b791927d1491426b275fcd5"
 dependencies = [
  "cc",
  "libz-sys",

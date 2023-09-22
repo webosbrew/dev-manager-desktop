@@ -113,9 +113,7 @@ export class DeviceManagerService extends BackendClient {
         const param: Record<string, any> = {
             path: tmpPath,
             method: method,
-            format: "PNG",
-            width: 1920,
-            height: 1080
+            format: "PNG"
         };
         await (this.luna.call(device, 'luna://com.webos.service.capture/executeOneShot', param, false)
             .catch((e) => {

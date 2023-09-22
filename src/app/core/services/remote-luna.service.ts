@@ -42,6 +42,9 @@ export class RemoteLunaService {
           throw new Error(`Bad response ${out}`);
         }
         if (typed.returnValue === false) {
+          if (typed['errorText']?.startsWith('Unknown method')) {
+              throw new LunaUnknownMethodError(typed);
+          }
           throw new LunaResponseError(typed);
         }
         return typed;
@@ -133,4 +136,10 @@ export class LunaResponseError extends Error {
     return typeof (e.message) === 'string' && e.returnValue === false;
   }
 
+}
+
+export class LunaUnknownMethodError extends LunaResponseError {
+    constructor(payload: Record<string, any>) {
+        super(payload);
+    }
 }

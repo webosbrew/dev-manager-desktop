@@ -63,7 +63,7 @@ export class PmLogComponent {
     const info = await this.deviceManager.getSystemInfo(device);
     if (semver.satisfies(info.sdkVersion || '', '>=4.0')) {
       await this.luna.call(device, 'luna://com.webos.service.config/setConfigs', {configs: {"system.collectDevLogs": true}}, false);
-    } else {
+    } else if (semver.satisfies(info.sdkVersion || '', '>=2.0')) {
       await this.luna.call(device, 'luna://com.webos.pmlogd/setdevlogstatus', {recordDevLogs: true}, false);
     }
     return this.log.logread(device, LogReaderComponent.retainLogs);
