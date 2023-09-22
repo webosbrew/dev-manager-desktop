@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, catchError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
-import {LunaResponse, LunaResponseError, RemoteLunaService} from "./remote-luna.service";
+import {LunaResponse, LunaResponseError, LunaUnknownMethodError, RemoteLunaService} from "./remote-luna.service";
 import {escapeSingleQuoteString, RemoteCommandService} from "./remote-command.service";
 import {filter, map} from "rxjs/operators";
 import * as path from "path";
@@ -44,6 +44,12 @@ export class AppManagerService {
 
   async list(device: Device): Promise<PackageInfo[]> {
     return this.luna.call(device, 'luna://com.webos.applicationManager/dev/listApps')
+      .catch((e) => {
+        if (e instanceof LunaUnknownMethodError) {
+          return this.luna.call(device, 'luna://com.webos.applicationManager/listApps', undefined, false);
+        }
+        throw e;
+      })
       .then(resp => resp['apps'] as RawPackageInfo[])
       .then((result) => Promise.all(result.map(item => this.completeIcon(device, item))));
   }
@@ -142,7 +148,7 @@ export class AppManagerService {
         await this.file.put(device, path, location);
         break;
       default:
-        await this.cmd.exec(device, `curl -sL ${escapeSingleQuoteString(location)} --output ${escapeSingleQuoteString(path)}`);
+        await this.cmd.exec(device, `curl -ksL ${escapeSingleQuoteString(location)} --output ${escapeSingleQuoteString(path)}`);
         break;
     }
     return path;

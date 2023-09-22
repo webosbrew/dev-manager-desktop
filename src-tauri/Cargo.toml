@@ -65,3 +65,7 @@ default = ["custom-protocol"]
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
 vendored-openssl = ["libssh-rs-sys/vendored-openssl", "reqwest/native-tls-vendored"]
+
+[patch.crates-io]
+libssh-rs = { git = "https://github.com/mariotaku/libssh-rs.git", branch = "feature/more-auth-options" }
+libssh-rs-sys = { git = "https://github.com/mariotaku/libssh-rs.git", branch = "feature/more-auth-options" }
