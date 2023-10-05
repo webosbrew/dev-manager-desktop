@@ -1,6 +1,6 @@
 import {event, tauri} from '@tauri-apps/api';
 import {NgZone} from '@angular/core';
-import {omit} from "lodash";
+import {omit} from "lodash-es";
 
 export abstract class BackendClient {
   protected constructor(protected zone: NgZone, public category: string) {

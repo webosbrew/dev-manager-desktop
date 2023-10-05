@@ -9,7 +9,7 @@ import {RemoteFileService, ServeInstance} from "./remote-file.service";
 import {PackageManifest} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {LocalFileService} from "./local-file.service";
-import _ from "lodash";
+import _ from "lodash-es";
 import {APP_ID_HBCHANNEL} from "../../shared/constants";
 
 @Injectable({

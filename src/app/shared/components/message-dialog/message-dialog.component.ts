@@ -10,7 +10,7 @@ import {
   ViewContainerRef
 } from '@angular/core';
 import {NgbActiveModal, NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
-import {isFunction} from "lodash";
+import {isFunction} from "lodash-es";
 
 @Component({
   selector: 'app-message-dialog',

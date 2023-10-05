@@ -4,7 +4,7 @@ import {DeviceLike} from "../../types";
 import {Buffer} from "buffer";
 import {noop, ReplaySubject} from "rxjs";
 import {EventChannel} from "../event-channel";
-import {isNil} from "lodash";
+import {isNil} from "lodash-es";
 
 @Injectable({
   providedIn: 'root'

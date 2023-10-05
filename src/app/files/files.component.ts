@@ -9,7 +9,7 @@ import {open as openPath} from '@tauri-apps/api/shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/api/dialog';
 import * as path from "path";
 import {RemoteCommandService} from "../core/services/remote-command.service";
-import {trimEnd} from "lodash";
+import {trimEnd} from "lodash-es";
 import {downloadDir} from "@tauri-apps/api/path";
 import {CreateDirectoryMessageComponent} from "./create-directory-message/create-directory-message.component";
 

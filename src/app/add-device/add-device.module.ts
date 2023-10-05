@@ -16,6 +16,7 @@ import {
 } from './device-editor/devmode-passphrase-hint/devmode-passphrase-hint.component';
 import {SshPrivkeyHintComponent} from './device-editor/ssh-privkey-hint/ssh-privkey-hint.component';
 import {SshPasswordHintComponent} from './device-editor/ssh-password-hint/ssh-password-hint.component';
+import { RetryFailedComponent } from './retry-failed/retry-failed.component';
 
 
 @NgModule({
@@ -31,6 +32,7 @@ import {SshPasswordHintComponent} from './device-editor/ssh-password-hint/ssh-pa
     DevmodePassphraseHintComponent,
     SshPrivkeyHintComponent,
     SshPasswordHintComponent,
+    RetryFailedComponent,
   ],
   imports: [
     CommonModule,
