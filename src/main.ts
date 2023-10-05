@@ -6,64 +6,65 @@ import {AppConfig} from './environments/environment';
 import ReleaseInfo from './release.json';
 import * as Sentry from "@sentry/angular-ivy";
 import {defaultStackParser} from "@sentry/angular-ivy";
-import {remove} from "lodash";
 
 Sentry.init({
-  dsn: "https://93c623f5a47940f0b7bac7d0d5f6a91f@o4504977150377984.ingest.sentry.io/4504978685689856",
-  integrations: [
-    new Sentry.BrowserTracing({
-      tracePropagationTargets: ["localhost", "https://tauri.localhost/"],
-      routingInstrumentation: Sentry.routingInstrumentation,
-    })
-  ],
-  enabled: !!ReleaseInfo.version,
-  environment: AppConfig.environment,
-  release: ReleaseInfo.version || 'local',
-  stackParser: (stack: string, skipFirst?: number) => {
-    // noinspection HttpUrlsUsage
-    stack = stack.replace(/@tauri:\/\//g, "@http://");
-    return defaultStackParser(stack, skipFirst);
-  },
-  beforeBreadcrumb: (breadcrumb) => {
-    return breadcrumb.level !== 'debug' ? breadcrumb : null;
-  },
-  beforeSendTransaction: () => {
-    return null;
-  },
-  beforeSend: (event) => {
-    if (event.exception?.values) {
-      const filtered = remove(event.exception?.values, e => e.mechanism?.handled !== true);
-      if (filtered.length === 0) {
+    dsn: "https://93c623f5a47940f0b7bac7d0d5f6a91f@o4504977150377984.ingest.sentry.io/4504978685689856",
+    integrations: [
+        new Sentry.BrowserTracing({
+            tracePropagationTargets: ["localhost", "https://tauri.localhost/"],
+            routingInstrumentation: Sentry.routingInstrumentation,
+        })
+    ],
+    enabled: !!ReleaseInfo.version,
+    environment: AppConfig.environment,
+    release: ReleaseInfo.version || 'local',
+    stackParser: (stack: string, skipFirst?: number) => {
+        // noinspection HttpUrlsUsage
+        stack = stack.replace(/@tauri:\/\//g, "@http://");
+        return defaultStackParser(stack, skipFirst);
+    },
+    beforeBreadcrumb: (breadcrumb) => {
+        return breadcrumb.level !== 'debug' ? breadcrumb : null;
+    },
+    beforeSendTransaction: () => {
         return null;
-      }
-    }
-    return event;
-  },
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for performance monitoring.
-  // We recommend adjusting this value in production
-  tracesSampleRate: 1.0,
+    },
+    beforeSend: (event) => {
+        if (!event.exception) {
+            return null;
+        }
+        const unhandled = event.exception.values?.filter(e => e.mechanism?.handled !== true);
+        if (!unhandled?.length) {
+            return null;
+        }
+        event.exception.values = unhandled;
+        return event;
+    },
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 1.0,
 });
 
 if (AppConfig.production) {
-  enableProdMode();
+    enableProdMode();
 }
 
 platformBrowserDynamic()
-  .bootstrapModule(AppModule, {
-    preserveWhitespaces: false
-  })
-  .catch(err => console.error(err));
+    .bootstrapModule(AppModule, {
+        preserveWhitespaces: false
+    })
+    .catch(err => console.error(err));
 
 const darkTheme = window.matchMedia('(prefers-color-scheme: dark)');
 
 document.documentElement.setAttribute('data-bs-theme', darkTheme.matches ? 'dark' : 'light');
 if (darkTheme.addEventListener) {
-  darkTheme.addEventListener('change', (media) => {
-    document.documentElement.setAttribute('data-bs-theme', media.matches ? 'dark' : 'light');
-  });
+    darkTheme.addEventListener('change', (media) => {
+        document.documentElement.setAttribute('data-bs-theme', media.matches ? 'dark' : 'light');
+    });
 } else {
-  // noinspection JSDeprecatedSymbols
-  darkTheme.addListener?.((ev) => document.documentElement.setAttribute(
-    'data-bs-theme', ev.matches ? 'dark' : 'light'));
+    // noinspection JSDeprecatedSymbols
+    darkTheme.addListener?.((ev) => document.documentElement.setAttribute(
+        'data-bs-theme', ev.matches ? 'dark' : 'light'));
 }

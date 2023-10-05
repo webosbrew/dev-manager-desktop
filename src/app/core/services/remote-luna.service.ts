@@ -9,7 +9,7 @@ import {Injectable} from "@angular/core";
 import {DeviceLike} from "../../types";
 import {lastValueFrom, noop, Observable, ReplaySubject, Subject, Subscription} from "rxjs";
 import {filter, map} from "rxjs/operators";
-import {omit} from "lodash";
+import {omit} from "lodash-es";
 import {isNonNull} from "../../shared/operators";
 
 export declare interface LunaResponse extends Record<string, any> {

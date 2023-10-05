@@ -5,7 +5,7 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {DetailsComponent} from "./details/details.component";
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
 import {RemoteFileService} from "../../core/services/remote-file.service";
-import {remove} from "lodash";
+import {remove} from "lodash-es";
 
 @Component({
     selector: 'app-crashes',

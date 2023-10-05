@@ -3,7 +3,7 @@ import {Injectable} from '@angular/core';
 import {firstValueFrom, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {eq as semverEq, gt as semverGt} from 'semver';
-import {keyBy} from "lodash";
+import {keyBy} from "lodash-es";
 
 const baseUrl = 'https://repo.webosbrew.org/api';
 
