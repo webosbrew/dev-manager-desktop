@@ -20,13 +20,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [ 16.x, 18.x ]
+        node-version: [ 18.x, 20.x ]
 
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Cache Node Modules
         uses: actions/cache@v3

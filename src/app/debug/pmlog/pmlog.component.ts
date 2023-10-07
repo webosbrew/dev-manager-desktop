@@ -1,9 +1,8 @@
 import {Component, Injector, Input} from '@angular/core';
 import {Device} from "../../types";
 import {RemoteCommandService} from "../../core/services/remote-command.service";
-import {catchError, from, identity, mergeMap, Observable, of, tap} from "rxjs";
+import {catchError, from, identity, mergeMap, Observable, tap} from "rxjs";
 import {LogMessage, RemoteLogService} from "../../core/services/remote-log.service";
-import {LogReaderComponent} from "../log-reader/log-reader.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {PmLogControlComponent} from "./control/control.component";
 import {ProgressDialogComponent} from "../../shared/components/progress-dialog/progress-dialog.component";
@@ -66,7 +65,7 @@ export class PmLogComponent {
     } else if (semver.satisfies(info.sdkVersion || '', '>=2.0')) {
       await this.luna.call(device, 'luna://com.webos.pmlogd/setdevlogstatus', {recordDevLogs: true}, false);
     }
-    return this.log.logread(device, LogReaderComponent.retainLogs);
+    return this.log.logread(device, 100);
   }
 
   async openCtrl(): Promise<void> {

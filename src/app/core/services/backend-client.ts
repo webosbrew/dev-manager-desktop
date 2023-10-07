@@ -1,6 +1,7 @@
 import {event, tauri} from '@tauri-apps/api';
 import {NgZone} from '@angular/core';
 import {omit} from "lodash-es";
+import {noop} from "rxjs";
 
 export abstract class BackendClient {
   protected constructor(protected zone: NgZone, public category: string) {
@@ -23,9 +24,8 @@ export abstract class BackendClient {
   }
 
   protected on(method: string, handler: (..._: any[]) => void): void {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     event.listen(`${this.category}/${method}`, (event) =>
-      this.zone.run(() => handler(event.payload)));
+      this.zone.run(() => handler(event.payload))).then(noop);
   }
 
 }
