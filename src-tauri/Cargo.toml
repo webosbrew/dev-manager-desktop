@@ -51,6 +51,9 @@ features = ["json"]
 version = "0.6.4"
 features = ["windows_dpi_awareness", "windows_visual_styles"]
 
+[dependencies.openssl]
+version = "0.10.57"
+
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
