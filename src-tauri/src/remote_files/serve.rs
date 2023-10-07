@@ -83,7 +83,7 @@ fn serve_worker<R: Runtime>(
         }
         let (_, ch) = match conn.accept_forward(Duration::from_millis(100)) {
             Ok(res) => res,
-            Err(e) => continue,
+            Err(_e) => continue,
         };
         serve_handler(&path, ch)?;
     }
@@ -110,12 +110,12 @@ fn serve_handler(path: &String, ch: Channel) -> Result<(), Error> {
             Ok(Status::Partial) => {
                 continue;
             }
-            Ok(Status::Complete(size)) => {
+            Ok(Status::Complete(_size)) => {
                 url = req.path.unwrap().to_string();
                 method = req.method.unwrap().to_string();
                 break;
             }
-            Err(e) => {
+            Err(_e) => {
                 return Ok(());
             }
         }
@@ -134,7 +134,7 @@ fn serve_handler(path: &String, ch: Channel) -> Result<(), Error> {
     log::debug!("Serve {} => {:?}", url, path);
     let mut file = match File::open(path) {
         Ok(file) => file,
-        Err(e) => {
+        Err(_e) => {
             out.write_all(b"HTTP/1.1 404\r\n\r\nFile not found\n")?;
             return Ok(());
         }

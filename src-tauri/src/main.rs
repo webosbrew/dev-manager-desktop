@@ -28,7 +28,7 @@ mod spawn_manager;
 fn main() {
     env_logger::builder().filter_level(LevelFilter::Debug).init();
     let result = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(wnd) = app.get_window("main") {
                 wnd.unminimize().unwrap_or(());
                 wnd.set_focus().unwrap_or(());
@@ -44,7 +44,7 @@ fn main() {
         .manage(SessionManager::default())
         .manage(SpawnManager::default())
         .manage(ShellManager::default())
-        .on_page_load(|wnd, payload| {
+        .on_page_load(|wnd, _payload| {
             let spawns = wnd.state::<SpawnManager>();
             spawns.clear();
         })

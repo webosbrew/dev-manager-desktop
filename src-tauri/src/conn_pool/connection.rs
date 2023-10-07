@@ -1,10 +1,10 @@
 use std::fmt::{Debug, Formatter};
-use std::io::{Read, Write};
+use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::sync::Mutex;
 use std::time::Duration;
 
-use libssh_rs::{AuthStatus, LogLevel, Session, SshKey, SshOption};
+use libssh_rs::{AuthStatus, Session, SshKey, SshOption};
 use tauri::regex::Regex;
 use uuid::Uuid;
 
