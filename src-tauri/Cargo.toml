@@ -39,12 +39,12 @@ libssh-rs-sys = "0.2.1"
 flate2 = "1.0"
 
 [dependencies.tauri]
-version = "1.5.0"
+version = "1.5.2"
 default-features = false
 features = ["clipboard-all", "dialog-all", "path-all", "protocol-all", "shell-open", "reqwest-client"]
 
 [dependencies.reqwest]
-version = "0.11.20"
+version = "0.11.22"
 features = ["json"]
 
 [dependencies.native-dialog]
@@ -57,7 +57,7 @@ version = "0.10.57"
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
-default = ["custom-protocol"]
+default = ["custom-protocol", "vendored-openssl"]
 # this feature is used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
