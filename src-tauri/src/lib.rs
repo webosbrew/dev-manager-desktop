@@ -1,5 +1,6 @@
 extern crate core;
 
+#[cfg(target_family = "windows")]
 use std::env;
 use std::path::PathBuf;
 
