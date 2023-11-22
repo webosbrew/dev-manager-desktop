@@ -103,7 +103,7 @@ export class DeviceEditorComponent implements OnInit {
         const newDevice = await this.getNewDevice();
         try {
             console.log(newDevice);
-            const info = await this.deviceManager.getSystemInfo(newDevice);
+            const info = await this.deviceManager.getDeviceInfo(newDevice);
             console.log(info);
         } catch (e) {
             console.warn('Failed to get device info:', e);

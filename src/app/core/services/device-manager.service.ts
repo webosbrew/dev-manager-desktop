@@ -3,7 +3,7 @@ import {BehaviorSubject, from, Observable, Subject} from "rxjs";
 import {CrashReportEntry, Device, DeviceLike, FileItem, FileSession, NewDevice, StorageInfo} from '../../types';
 import {BackendClient, IOError} from "./backend-client";
 import {FileSessionImpl} from "./file.session";
-import {HomebrewChannelConfiguration, SystemInfo} from "../../types/luna-apis";
+import {HomebrewChannelConfiguration, OsInfo, SystemInfo} from "../../types/luna-apis";
 import {LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {RemoteFileService} from "./remote-file.service";
@@ -107,10 +107,18 @@ export class DeviceManagerService extends BackendClient {
         }, true);
     }
 
-    async getSystemInfo(device: DeviceLike): Promise<Partial<SystemInfo>> {
-        return await this.luna.call(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
+    async getDeviceInfo(device: DeviceLike): Promise<Partial<DeviceInfo>> {
+        const systemInfo = await this.luna.call<SystemInfo>(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
             keys: ['firmwareVersion', 'modelName', 'sdkVersion']
         });
+        const osInfo = await this.luna.call<Partial<OsInfo>>(device, 'luna://com.webos.service.systemservice/osInfo/query', {
+            parameters: ['webos_manufacturing_version', 'webos_release']
+        }).catch(() => null);
+        return {
+            modelName: systemInfo.modelName,
+            osVersion: osInfo?.webos_release || systemInfo.sdkVersion,
+            firmwareVersion: systemInfo.firmwareVersion
+        };
     }
 
     async getStorageInfo(device: DeviceLike, mountPoint?: string): Promise<StorageInfo | null> {
@@ -214,4 +222,10 @@ export class CrashReport implements CrashReportEntry {
         return {title, summary, saveName};
     }
 
+}
+
+export interface DeviceInfo {
+    modelName: string;
+    osVersion?: string;
+    firmwareVersion: string;
 }
