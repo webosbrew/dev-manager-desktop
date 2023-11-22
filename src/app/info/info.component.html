@@ -2,13 +2,15 @@
   <app-error-card [error]="infoError" title="Unable to get device info" (retry)="loadInfo()"
                   *ngIf="device && infoError">
   </app-error-card>
-  <div class="card" *ngIf="sysInfo">
+  <div class="card" *ngIf="deviceInfo">
     <div class="card-body">
-      <h5 class="card-title">Device - {{sysInfo.modelName}}</h5>
+      <h5 class="card-title">Device - {{deviceInfo.modelName}}</h5>
       <p class="card-text">
-        <strong>Firmware version: </strong><span>{{sysInfo.firmwareVersion}}</span>
-        <br>
-        <strong>webOS version: </strong><span>{{sysInfo.sdkVersion}}</span>
+        <strong>Firmware version: </strong><span>{{deviceInfo.firmwareVersion}}</span>
+        <ng-container *ngIf="deviceInfo.osVersion as osVersion">
+          <br>
+          <strong>webOS version: </strong><span>{{osVersion}}</span>
+        </ng-container>
       </p>
       <div class="btn-group">
         <button class="btn btn-primary" (click)="takeScreenshot()" *ngIf="device.username === 'root'">Take Screenshot
@@ -30,7 +32,7 @@
       </div>
     </div>
   </div>
-  <div class="card mt-4" *ngIf="sysInfo && devModeInfo">
+  <div class="card mt-4" *ngIf="deviceInfo && devModeInfo">
     <div class="card-body">
       <h5 class="card-title">Developer Mode</h5>
       <ng-container *ngIf="devModeInfo.token else invalidToken">
@@ -48,7 +50,7 @@
       </ng-template>
     </div>
   </div>
-  <div class="card mt-4" *ngIf="sysInfo">
+  <div class="card mt-4" *ngIf="deviceInfo">
     <div class="card-body">
       <h5 class="card-title">Homebrew Channel</h5>
       <p class="card-text" *ngIf="homebrewAppInfo">
