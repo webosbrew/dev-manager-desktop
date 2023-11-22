@@ -1,5 +1,5 @@
-import {event} from '@tauri-apps/api';
 import {invoke} from '@tauri-apps/api/tauri';
+import {Event, listen} from "@tauri-apps/api/event";
 import {NgZone} from '@angular/core';
 import {omit} from "lodash-es";
 import {noop} from "rxjs";
@@ -26,7 +26,7 @@ export abstract class BackendClient {
     }
 
     protected on(method: string, handler: (..._: any[]) => void): void {
-        event.listen(`${this.category}/${method}`, (event) =>
+        listen(`${this.category}/${method}`, (event: Event<any>) =>
             this.zone.run(() => handler(event.payload))).then(noop);
     }
 

@@ -1,5 +1,5 @@
 import {BehaviorSubject, noop, Observable, Subject} from "rxjs";
-import {listen} from "@tauri-apps/api/event";
+import {listen, Event} from "@tauri-apps/api/event";
 import {BackendClient, BackendErrorBody} from "./backend-client";
 import {Injectable, NgZone} from "@angular/core";
 import {Device} from "../../types";
@@ -81,8 +81,8 @@ export class RemoteShellService extends BackendClient {
   constructor(zone: NgZone) {
     super(zone, 'remote-shell');
     this.shellsSubject = new BehaviorSubject<ShellInfo[] | null>(null);
-    listen('shell-rx', e => {
-      const message = e.payload as ShellMessage;
+    listen('shell-rx', (e: Event<ShellMessage>) => {
+      const message = e.payload;
       const shell = this.shellSessions.get(message.token);
       if (shell) {
         zone.run(() => shell.next({
@@ -94,9 +94,9 @@ export class RemoteShellService extends BackendClient {
     listen('shell-info', () => {
       this.list().then(l => this.shellsSubject.next(l));
     }).then(noop);
-    listen('shell-opened', e => {
+    listen('shell-opened', (e: Event<ShellToken>) => {
       console.log('shell-opened', this.shellSessions, e.payload);
-      this.obtain(e.payload as ShellToken);
+      this.obtain(e.payload);
     }).then(noop);
   }
 
