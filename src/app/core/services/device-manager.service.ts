@@ -1,7 +1,7 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BehaviorSubject, from, Observable, Subject} from "rxjs";
 import {CrashReportEntry, Device, DeviceLike, FileItem, FileSession, NewDevice, StorageInfo} from '../../types';
-import {BackendClient} from "./backend-client";
+import {BackendClient, IOError} from "./backend-client";
 import {FileSessionImpl} from "./file.session";
 import {HomebrewChannelConfiguration, SystemInfo} from "../../types/luna-apis";
 import {LunaResponseError, RemoteLunaService} from "./remote-luna.service";
@@ -75,9 +75,28 @@ export class DeviceManagerService extends BackendClient {
     }
 
     async listCrashReports(device: Device): Promise<CrashReport[]> {
-        const dir = '/tmp/faultmanager/crash/';
-        return this.file.ls(device, dir)
-            .then(list => list.map(l => CrashReport.obtain(this.file, device, dir, l)));
+        const dirs = [
+            '/tmp/faultmanager/crash/',
+            '/tmp/var/log/reports/librdx/',
+        ];
+        let currentDir: string | null = null;
+        let files: FileItem[] | null = null;
+        for (const dir of dirs) {
+            try {
+                files = await this.file.ls(device, dir);
+                currentDir = dir;
+                break;
+            } catch (e) {
+                if (e instanceof IOError && e.code === 'NotFound') {
+                    continue;
+                }
+                throw e;
+            }
+        }
+        if (!files || !currentDir) {
+            return [];
+        }
+        return files.map(l => CrashReport.obtain(this.file, device, currentDir!, l))
     }
 
     async extendDevMode(device: Device): Promise<any> {
