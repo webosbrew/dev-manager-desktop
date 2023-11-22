@@ -69,6 +69,7 @@
     "@angular/compiler-cli": "^17.0.4",
     "@tauri-apps/cli": "^1.5.1",
     "@types/jasmine": "^4.3.1",
+    "@types/jest": "29.5.10",
     "@types/lodash-es": "^4.17.9",
     "@types/luxon": "^3.3.2",
     "@types/marked": "^5.0.2",
