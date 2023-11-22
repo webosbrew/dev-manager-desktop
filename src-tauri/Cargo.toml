@@ -44,7 +44,7 @@ regex = "1.10.2"
 [dependencies.tauri]
 version = "1.5.2"
 default-features = false
-features = ["clipboard-all", "dialog-all", "path-all", "protocol-all", "shell-open", "reqwest-client"]
+features = ["wry", "clipboard-all", "dialog-all", "path-all", "protocol-all", "shell-open", "reqwest-client"]
 
 [dependencies.reqwest]
 version = "0.11.22"
@@ -60,6 +60,7 @@ version = "0.10.57"
 [dependencies.tauri-plugin-single-instance]
 git = "https://github.com/tauri-apps/plugins-workspace"
 branch = "dev"
+optional = true
 
 [features]
 # by default Tauri runs in production mode
@@ -69,6 +70,7 @@ default = ["custom-protocol", "vendored-openssl"]
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
 vendored-openssl = ["libssh-rs-sys/vendored-openssl", "reqwest/native-tls-vendored"]
+single-instance = ["tauri-plugin-single-instance"]
 
 [patch.crates-io]
 libssh-rs = { git = "https://github.com/mariotaku/libssh-rs.git", branch = "feature/more-auth-options" }

@@ -22,14 +22,20 @@ mod spawn_manager;
 
 //#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    env_logger::builder().filter_level(LevelFilter::Debug).init();
-    let result = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+    env_logger::builder()
+        .filter_level(LevelFilter::Debug)
+        .init();
+    let mut builder = tauri::Builder::default();
+    #[cfg(feature = "single-instance")]
+    {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(wnd) = app.get_window("main") {
                 wnd.unminimize().unwrap_or(());
                 wnd.set_focus().unwrap_or(());
             }
-        }))
+        }));
+    }
+    let result = builder
         .plugin(plugins::device::plugin("device-manager"))
         .plugin(plugins::cmd::plugin("remote-command"))
         .plugin(plugins::shell::plugin("remote-shell"))
