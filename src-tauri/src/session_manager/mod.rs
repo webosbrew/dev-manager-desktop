@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Condvar, Mutex};
 
@@ -12,6 +13,7 @@ mod proc;
 
 #[derive(Default)]
 pub struct SessionManager {
+    ssh_dir: Mutex<Option<PathBuf>>,
     pools: Mutex<HashMap<String, DeviceConnectionPool>>,
 }
 

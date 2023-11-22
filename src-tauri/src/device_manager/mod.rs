@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
@@ -13,16 +14,10 @@ pub struct DeviceSessionToken {
     pub id: Option<String>,
 }
 
+#[derive(Default)]
 pub struct DeviceManager {
+    ssh_dir: Mutex<Option<PathBuf>>,
     devices: Mutex<Vec<Device>>,
-}
-
-impl Default for DeviceManager {
-    fn default() -> Self {
-        return DeviceManager {
-            devices: Mutex::new(Vec::new()),
-        };
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

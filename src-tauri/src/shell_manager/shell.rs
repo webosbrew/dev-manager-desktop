@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::io::Write;
-use std::sync::{Arc, Mutex};
+use std::path::Path;
 use std::sync::mpsc::channel;
+use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
@@ -84,6 +85,7 @@ impl Shell {
 
     pub(crate) fn new(
         device: Device,
+        ssh_dir: Option<&Path>,
         wants_pty: bool,
         rows: u16,
         cols: u16,
@@ -93,6 +95,7 @@ impl Shell {
             token: ShellToken::new(),
             created_at: Instant::now(),
             device,
+            ssh_dir: ssh_dir.map(|p| p.to_path_buf()),
             has_pty: Mutex::new(if !wants_pty { Some(false) } else { None }),
             closed: Mutex::default(),
             sender: Mutex::default(),
@@ -134,7 +137,7 @@ impl Shell {
 
     fn worker(&self) -> Result<i32, Error> {
         let (sender, receiver) = channel::<ShellMessage>();
-        let connection = DeviceConnection::new(self.device.clone())?;
+        let connection = DeviceConnection::new(self.device.clone(), self.ssh_dir.as_deref())?;
         let channel = connection.new_channel()?;
         channel.open_session()?;
         let (rows, cols) = self.parser.lock().unwrap().screen().size();

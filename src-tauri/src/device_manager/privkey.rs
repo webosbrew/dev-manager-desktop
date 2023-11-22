@@ -1,16 +1,17 @@
-use libssh_rs::{PublicKeyHashType, SshKey};
 use std::io::Read;
+use std::path::Path;
 
-use crate::device_manager::io::ssh_dir;
+use libssh_rs::{PublicKeyHashType, SshKey};
+
 use crate::device_manager::PrivateKey;
 use crate::error::Error;
 
 impl PrivateKey {
-    pub fn content(&self) -> Result<String, Error> {
+    pub fn content(&self, ssh_dir: Option<&Path>) -> Result<String, Error> {
         return match self {
             PrivateKey::Path { name } => {
                 let mut secret_file =
-                    std::fs::File::open(ssh_dir().ok_or(Error::bad_config())?.join(name))?;
+                    std::fs::File::open(ssh_dir.ok_or(Error::bad_config())?.join(name))?;
                 let mut secret = String::new();
                 secret_file.read_to_string(&mut secret)?;
                 Ok(secret)

@@ -1,14 +1,17 @@
 extern crate core;
 
-use log::LevelFilter;
-use tauri::Manager;
+use std::path::PathBuf;
 
+use log::LevelFilter;
 use native_dialog::{MessageDialog, MessageType};
+use tauri::api::path::home_dir;
+use tauri::{AppHandle, Manager, RunEvent, Runtime};
 
 use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
 use crate::shell_manager::ShellManager;
 use crate::spawn_manager::SpawnManager;
+use crate::ssh_dir::{GetSshDir, SetSshDir};
 
 mod conn_pool;
 mod device_manager;
@@ -19,6 +22,7 @@ mod remote_files;
 mod session_manager;
 mod shell_manager;
 mod spawn_manager;
+mod ssh_dir;
 
 //#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -50,7 +54,20 @@ pub fn run() {
             let spawns = wnd.state::<SpawnManager>();
             spawns.clear();
         })
-        .run(tauri::generate_context!());
+        .build(tauri::generate_context!())
+        .and_then(|app| {
+            app.run(|app, event| match event {
+                RunEvent::Ready => {
+                    if let Some(ssh_dir) = app.get_ssh_dir() {
+                        app.state::<DeviceManager>().set_ssh_dir(ssh_dir.clone());
+                        app.state::<SessionManager>().set_ssh_dir(ssh_dir.clone());
+                        app.state::<ShellManager>().set_ssh_dir(ssh_dir.clone());
+                    }
+                }
+                _ => {}
+            });
+            return Ok(());
+        });
     if let Err(e) = result {
         #[cfg(windows)]
         if let tauri::Error::Runtime(ref e) = e {
@@ -70,5 +87,13 @@ pub fn run() {
             .set_text(&format!("Unexpected error occurred: {:?}", e))
             .show_alert()
             .expect("Unexpected error occurred while processing unexpected error :(");
+    }
+}
+
+impl<R: Runtime> GetSshDir for AppHandle<R> {
+    fn get_ssh_dir(&self) -> Option<PathBuf> {
+        return home_dir()
+            .or_else(|| self.path_resolver().app_data_dir())
+            .map(|d| d.join(".ssh"));
     }
 }

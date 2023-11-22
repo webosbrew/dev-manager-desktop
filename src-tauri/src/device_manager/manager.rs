@@ -1,13 +1,15 @@
 use std::fs;
-use std::path::Path;
+use std::fs::create_dir_all;
+use std::path::{Path, PathBuf};
 
 use libssh_rs::SshKey;
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 
-use crate::device_manager::io::{ensure_ssh_dir, read, ssh_dir, write};
+use crate::device_manager::io::{read, write};
 use crate::device_manager::{Device, DeviceManager, PrivateKey};
 use crate::error::Error;
+use crate::ssh_dir::{GetSshDir, SetSshDir};
 
 impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
@@ -40,7 +42,7 @@ impl DeviceManager {
                     let path = Path::new(name);
                     if path.is_absolute() {
                         let name = String::from(
-                            pathdiff::diff_paths(path, ensure_ssh_dir()?)
+                            pathdiff::diff_paths(path, self.ensure_ssh_dir()?)
                                 .ok_or(Error::NotFound)?
                                 .to_string_lossy(),
                         );
@@ -49,7 +51,7 @@ impl DeviceManager {
                 }
                 PrivateKey::Data { data } => {
                     let name = key.name(device.valid_passphrase())?;
-                    let key_path = ensure_ssh_dir()?.join(&name);
+                    let key_path = self.ensure_ssh_dir()?.join(&name);
                     let mut file = File::create(key_path).await?;
                     file.write(data.as_bytes()).await?;
                     device.private_key = Some(PrivateKey::Path { name });
@@ -80,7 +82,7 @@ impl DeviceManager {
                     if !name.starts_with("webos_") {
                         continue;
                     }
-                    let key_path = ensure_ssh_dir()?.join(name);
+                    let key_path = self.ensure_ssh_dir()?.join(name);
                     remove_file(key_path).await?;
                 }
             }
@@ -114,8 +116,7 @@ impl DeviceManager {
         let ssh_key_path = if name_path.is_absolute() {
             name_path.to_path_buf()
         } else {
-            let ssh_dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
-            fs::canonicalize(ssh_dir.join(name))?
+            fs::canonicalize(self.ensure_ssh_dir()?)?
         };
         return match SshKey::from_privkey_file(ssh_key_path.to_str().unwrap(), Some(passphrase)) {
             Ok(_) => Ok(()),
@@ -125,5 +126,16 @@ impl DeviceManager {
                 Error::BadPassphrase
             }),
         };
+    }
+}
+impl GetSshDir for DeviceManager {
+    fn get_ssh_dir(&self) -> Option<PathBuf> {
+        return self.ssh_dir.lock().unwrap().clone();
+    }
+}
+
+impl SetSshDir for DeviceManager {
+    fn set_ssh_dir(&self, dir: PathBuf) {
+        *self.ssh_dir.lock().unwrap() = Some(dir);
     }
 }

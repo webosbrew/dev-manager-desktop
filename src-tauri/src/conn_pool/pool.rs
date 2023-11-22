@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -11,7 +12,7 @@ use crate::device_manager::Device;
 use crate::error::Error;
 
 impl DeviceConnectionPool {
-    pub fn new(device: Device) -> DeviceConnectionPool {
+    pub fn new(device: Device, ssh_dir: Option<PathBuf>) -> DeviceConnectionPool {
         let last_error = Arc::<Mutex<Option<Error>>>::default();
         let inner = Pool::<DeviceConnectionManager>::builder()
             .min_idle(Some(0))
@@ -20,7 +21,7 @@ impl DeviceConnectionPool {
             .error_handler(Box::new(DeviceConnectionErrorHandler {
                 last_error: last_error.clone(),
             }))
-            .build_unchecked(DeviceConnectionManager { device });
+            .build_unchecked(DeviceConnectionManager { device, ssh_dir });
         return DeviceConnectionPool { inner, last_error };
     }
 
@@ -45,7 +46,7 @@ impl ManageConnection for DeviceConnectionManager {
     type Error = Error;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        return DeviceConnection::new(self.device.clone());
+        return DeviceConnection::new(self.device.clone(), self.ssh_dir.as_deref());
     }
 
     fn is_valid(&self, _: &mut Self::Connection) -> Result<(), Self::Error> {

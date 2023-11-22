@@ -1,10 +1,9 @@
+use std::{env, fs};
 use std::fs::{create_dir_all, File};
 use std::io::{BufReader, BufWriter, ErrorKind};
 use std::path::PathBuf;
-use std::{env, fs};
 
 use serde_json::Value;
-use tauri::api::path::home_dir;
 
 use crate::device_manager::Device;
 use crate::error::Error;
@@ -60,18 +59,6 @@ pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
     })
     .await
     .expect("critical failure in app::io::write task");
-}
-
-pub(crate) fn ssh_dir() -> Option<PathBuf> {
-    return home_dir().map(|d| d.join(".ssh"));
-}
-
-pub(crate) fn ensure_ssh_dir() -> Result<PathBuf, Error> {
-    let dir = ssh_dir().ok_or_else(|| Error::bad_config())?;
-    if !dir.exists() {
-        create_dir_all(dir.clone())?;
-    }
-    return Ok(dir);
 }
 
 #[cfg(target_family = "windows")]

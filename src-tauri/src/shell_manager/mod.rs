@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -9,6 +10,7 @@ use vt100::Parser;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::shell_manager::shell::ShellsMap;
+use crate::ssh_dir::GetSshDir;
 
 pub(crate) mod manager;
 pub(crate) mod shell;
@@ -17,12 +19,14 @@ pub(crate) mod token;
 #[derive(Default)]
 pub struct ShellManager {
     pub(crate) shells: Arc<Mutex<ShellsMap>>,
+    ssh_dir: Mutex<Option<PathBuf>>,
 }
 
 pub struct Shell {
     pub token: ShellToken,
     created_at: Instant,
     device: Device,
+    ssh_dir: Option<PathBuf>,
     pub(crate) has_pty: Mutex<Option<bool>>,
     pub(crate) closed: Mutex<Option<ShellState>>,
     pub(crate) sender: Mutex<Option<Sender<ShellMessage>>>,

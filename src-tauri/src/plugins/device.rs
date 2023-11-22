@@ -1,11 +1,12 @@
-use tauri::State;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Runtime,
 };
+use tauri::{AppHandle, State};
 
 use crate::device_manager::{Device, DeviceManager};
 use crate::error::Error;
+use crate::ssh_dir::GetSshDir;
 
 #[tauri::command]
 async fn list(manager: State<'_, DeviceManager>) -> Result<Vec<Device>, Error> {
@@ -57,11 +58,11 @@ async fn localkey_verify(
 }
 
 #[tauri::command]
-async fn privkey_read(device: Device) -> Result<String, Error> {
+async fn privkey_read<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<String, Error> {
     return Ok(device
         .private_key
         .ok_or_else(|| Error::bad_config())?
-        .content()?);
+        .content(app.get_ssh_dir().as_deref())?);
 }
 
 /// Initializes the plugin.

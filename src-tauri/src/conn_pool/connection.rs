@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Formatter};
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::Duration;
 
@@ -13,7 +14,7 @@ use crate::device_manager::Device;
 use crate::error::Error;
 
 impl DeviceConnection {
-    pub(crate) fn new(device: Device) -> Result<DeviceConnection, Error> {
+    pub(crate) fn new(device: Device, ssh_dir: Option<&Path>) -> Result<DeviceConnection, Error> {
         let kex = vec![
             "curve25519-sha256",
             "curve25519-sha256@libssh.org",
@@ -72,7 +73,7 @@ impl DeviceConnection {
 
         if let Some(private_key) = &device.private_key {
             let passphrase = device.valid_passphrase();
-            let priv_key_content = private_key.content()?;
+            let priv_key_content = private_key.content(ssh_dir)?;
             let priv_key = SshKey::from_privkey_base64(&priv_key_content, passphrase.as_deref())?;
 
             if session.userauth_publickey(None, &priv_key)? != AuthStatus::Success {

@@ -2,6 +2,7 @@ use crate::device_manager::Device;
 use crate::error::Error;
 use libssh_rs::Session;
 use r2d2::{Pool, PooledConnection};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 
@@ -37,4 +38,5 @@ pub struct DeviceConnectionPool {
 
 pub struct DeviceConnectionManager {
     device: Device,
+    ssh_dir: Option<PathBuf>,
 }
