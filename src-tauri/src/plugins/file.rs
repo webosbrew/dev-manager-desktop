@@ -4,14 +4,14 @@ use std::io::{copy, Read, Write};
 use std::path::Path;
 
 use flate2::read::GzDecoder;
-use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime};
+use tauri::plugin::{Builder, TauriPlugin};
 use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::remote_files::serve;
 use crate::remote_files::{FileItem, PermInfo};
+use crate::remote_files::serve;
 use crate::session_manager::SessionManager;
 
 #[tauri::command]
