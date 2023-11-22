@@ -20,7 +20,6 @@ mod session_manager;
 mod shell_manager;
 mod spawn_manager;
 
-
 //#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     env_logger::builder().filter_level(LevelFilter::Debug).init();

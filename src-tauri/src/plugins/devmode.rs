@@ -1,10 +1,10 @@
-use reqwest::Url;
 use std::io::Read;
 
+use regex::Regex;
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
-use tauri::plugin::{Builder, TauriPlugin};
-use tauri::regex::Regex;
 use tauri::{AppHandle, Manager, Runtime};
+use tauri::plugin::{Builder, TauriPlugin};
 
 use crate::device_manager::Device;
 use crate::error::Error;

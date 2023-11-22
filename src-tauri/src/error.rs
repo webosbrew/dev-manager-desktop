@@ -4,9 +4,9 @@ use std::io::ErrorKind;
 use std::str::FromStr;
 
 use libssh_rs::{Error as SshError, SftpError};
+use regex::Regex;
 use reqwest::StatusCode;
 use serde::{Serialize, Serializer};
-use tauri::regex::Regex;
 
 #[derive(Debug, Serialize, Clone)]
 #[serde(tag = "reason")]
