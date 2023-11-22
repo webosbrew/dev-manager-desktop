@@ -1,6 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {Device, StorageInfo} from "../../../types";
 import {DeviceManagerService} from "../../../core/services";
+import {FileSizeOptionsBase} from "filesize";
 
 @Component({
     selector: 'app-stat-storage-info',
@@ -14,7 +15,7 @@ export class StatStorageInfoComponent {
 
     storage: StorageInfo | null = null;
 
-    sizeOptions = {round: 0, standard: "jedec"};
+    sizeOptions: FileSizeOptionsBase = {round: 0, standard: "jedec"};
 
     constructor(private service: DeviceManagerService) {
 

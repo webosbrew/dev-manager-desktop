@@ -8,8 +8,7 @@ import {InstalledComponent} from "./installed/installed.component";
 import {NgbDropdownModule, NgbNavModule, NgbPaginationModule, NgbProgressbar} from "@ng-bootstrap/ng-bootstrap";
 import {SharedModule} from "../shared/shared.module";
 import {NgLetModule} from "ng-let";
-import { HbchannelRemoveComponent } from './hbchannel-remove/hbchannel-remove.component';
-import {NgxFilesizeModule} from "ngx-filesize";
+import {HbchannelRemoveComponent} from './hbchannel-remove/hbchannel-remove.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +25,6 @@ import {NgxFilesizeModule} from "ngx-filesize";
         SharedModule,
         NgLetModule,
         NgbDropdownModule,
-        NgxFilesizeModule,
         NgbProgressbar,
     ]
 })
