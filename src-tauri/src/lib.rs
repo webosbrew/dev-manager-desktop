@@ -5,6 +5,7 @@ use std::env;
 use std::path::PathBuf;
 
 use log::LevelFilter;
+#[cfg(feature = "mobile")]
 use native_dialog::{MessageDialog, MessageType};
 use tauri::api::path::home_dir;
 use tauri::{AppHandle, Manager, RunEvent, Runtime};
@@ -73,6 +74,7 @@ pub fn run() {
             });
             return Ok(());
         });
+    #[cfg(feature = "mobile")]
     if let Err(e) = result {
         #[cfg(windows)]
         if let tauri::Error::Runtime(ref e) = e {

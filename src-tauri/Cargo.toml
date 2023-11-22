@@ -1,5 +1,5 @@
 [package]
-name = "app"
+name = "devman"
 version = "0.1.0"
 description = "Device Manager for LG webOS"
 authors = ["Ningyuan Li"]
@@ -53,6 +53,7 @@ features = ["json"]
 [dependencies.native-dialog]
 version = "0.6.4"
 features = ["windows_dpi_awareness", "windows_visual_styles"]
+optional = true
 
 [dependencies.openssl]
 version = "0.10.57"
@@ -65,12 +66,12 @@ optional = true
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
-default = ["custom-protocol", "vendored-openssl", "single-instance"]
+default = ["custom-protocol", "vendored-openssl"]
 # this feature is used for production builds where `devPath` points to the filesystem
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
 vendored-openssl = ["libssh-rs-sys/vendored-openssl", "reqwest/native-tls-vendored"]
-single-instance = ["tauri-plugin-single-instance"]
+desktop = ["tauri-plugin-single-instance", "native-dialog"]
 
 [patch.crates-io]
 libssh-rs = { git = "https://github.com/mariotaku/libssh-rs.git", branch = "feature/more-auth-options" }
