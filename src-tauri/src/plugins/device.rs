@@ -6,7 +6,7 @@ use tauri::{AppHandle, State};
 
 use crate::device_manager::{Device, DeviceManager};
 use crate::error::Error;
-use crate::ssh_dir::GetSshDir;
+use crate::app_dirs::GetSshDir;
 
 #[tauri::command]
 async fn list(manager: State<'_, DeviceManager>) -> Result<Vec<Device>, Error> {

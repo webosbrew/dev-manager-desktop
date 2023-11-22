@@ -17,6 +17,7 @@ pub struct DeviceSessionToken {
 #[derive(Default)]
 pub struct DeviceManager {
     ssh_dir: Mutex<Option<PathBuf>>,
+    conf_dir: Mutex<Option<PathBuf>>,
     devices: Mutex<Vec<Device>>,
 }
 

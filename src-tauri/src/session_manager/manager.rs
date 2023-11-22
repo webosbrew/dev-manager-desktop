@@ -5,7 +5,7 @@ use crate::conn_pool::{DeviceConnectionPool, ManagedDeviceConnection};
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::session_manager::{Proc, SessionManager};
-use crate::ssh_dir::{GetSshDir, SetSshDir};
+use crate::app_dirs::{GetSshDir, SetSshDir};
 
 impl SessionManager {
     pub fn session(&self, device: Device) -> Result<ManagedDeviceConnection, Error> {

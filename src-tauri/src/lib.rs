@@ -1,5 +1,6 @@
 extern crate core;
 
+use std::env;
 use std::path::PathBuf;
 
 use log::LevelFilter;
@@ -7,12 +8,13 @@ use native_dialog::{MessageDialog, MessageType};
 use tauri::api::path::home_dir;
 use tauri::{AppHandle, Manager, RunEvent, Runtime};
 
+use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::DeviceManager;
 use crate::session_manager::SessionManager;
 use crate::shell_manager::ShellManager;
 use crate::spawn_manager::SpawnManager;
-use crate::ssh_dir::{GetSshDir, SetSshDir};
 
+mod app_dirs;
 mod conn_pool;
 mod device_manager;
 mod error;
@@ -22,7 +24,6 @@ mod remote_files;
 mod session_manager;
 mod shell_manager;
 mod spawn_manager;
-mod ssh_dir;
 
 //#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -63,6 +64,9 @@ pub fn run() {
                         app.state::<SessionManager>().set_ssh_dir(ssh_dir.clone());
                         app.state::<ShellManager>().set_ssh_dir(ssh_dir.clone());
                     }
+                    if let Some(conf_dir) = app.get_conf_dir() {
+                        app.state::<DeviceManager>().set_conf_dir(conf_dir.clone());
+                    }
                 }
                 _ => {}
             });
@@ -95,5 +99,23 @@ impl<R: Runtime> GetSshDir for AppHandle<R> {
         return home_dir()
             .or_else(|| self.path_resolver().app_data_dir())
             .map(|d| d.join(".ssh"));
+    }
+}
+
+impl<R: Runtime> GetConfDir for AppHandle<R> {
+    fn get_conf_dir(&self) -> Option<PathBuf> {
+        let home: Option<PathBuf>;
+        #[cfg(target_family = "windows")]
+        {
+            home = env::var("APPDATA")
+                .or_else(|_| env::var("USERPROFILE"))
+                .map(|d| PathBuf::from(d))
+                .ok();
+        }
+        #[cfg(not(target_family = "windows"))]
+        {
+            home = home_dir();
+        }
+        return home.map(|d| d.join(".webos").join("ose"));
     }
 }

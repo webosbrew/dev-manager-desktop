@@ -19,3 +19,21 @@ pub trait GetSshDir {
 pub trait SetSshDir {
     fn set_ssh_dir(&self, dir: PathBuf);
 }
+
+pub trait GetConfDir {
+    fn get_conf_dir(&self) -> Option<PathBuf>;
+    fn ensure_conf_dir(&self) -> Result<PathBuf, Error> {
+        let Some(dir) = self.get_conf_dir() else {
+            return Err(Error::bad_config());
+        };
+        if !dir.exists() {
+            create_dir_all(&dir)?;
+        }
+        return Ok(dir);
+    }
+}
+
+pub trait SetConfDir {
+    fn set_conf_dir(&self, dir: PathBuf);
+
+}

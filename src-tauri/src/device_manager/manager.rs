@@ -1,25 +1,25 @@
 use std::fs;
-use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 
 use libssh_rs::SshKey;
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 
+use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::io::{read, write};
 use crate::device_manager::{Device, DeviceManager, PrivateKey};
 use crate::error::Error;
-use crate::ssh_dir::{GetSshDir, SetSshDir};
 
 impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
-        let devices = read().await?;
+        let devices = read(self.get_conf_dir().as_deref()).await?;
         *self.devices.lock().unwrap() = devices.clone();
         return Ok(devices);
     }
 
     pub async fn set_default(&self, name: &str) -> Result<Option<Device>, Error> {
-        let mut devices = read().await?;
+        let conf_dir = self.get_conf_dir();
+        let mut devices = read(conf_dir.as_deref()).await?;
         let mut result: Option<Device> = None;
         for device in &mut devices {
             if device.name == name {
@@ -30,11 +30,12 @@ impl DeviceManager {
             }
         }
         log::trace!("{:?}", devices);
-        write(devices).await?;
+        write(devices, conf_dir.as_deref()).await?;
         return Ok(result);
     }
 
     pub async fn add(&self, device: &Device) -> Result<Device, Error> {
+        let conf_dir = self.get_conf_dir();
         let mut device = device.clone();
         if let Some(key) = &device.private_key {
             match key {
@@ -59,14 +60,15 @@ impl DeviceManager {
             }
         }
         log::info!("Save device {}", device.name);
-        let mut devices = read().await?;
+        let mut devices = read(conf_dir.as_deref()).await?;
         devices.push(device.clone());
-        write(devices.clone()).await?;
+        write(devices.clone(), conf_dir.as_deref()).await?;
         return Ok(device);
     }
 
     pub async fn remove(&self, name: &str, remove_key: bool) -> Result<(), Error> {
-        let devices = read().await?;
+        let conf_dir = self.get_conf_dir();
+        let devices = read(conf_dir.as_deref()).await?;
         let (will_delete, mut will_keep): (Vec<Device>, Vec<Device>) =
             devices.into_iter().partition(|d| d.name == name);
         let mut need_new_default = false;
@@ -90,7 +92,7 @@ impl DeviceManager {
         if need_new_default && !will_keep.is_empty() {
             will_keep.first_mut().unwrap().default = Some(true);
         }
-        write(will_keep).await?;
+        write(will_keep, conf_dir.as_deref()).await?;
         return Ok(());
     }
 
@@ -137,5 +139,17 @@ impl GetSshDir for DeviceManager {
 impl SetSshDir for DeviceManager {
     fn set_ssh_dir(&self, dir: PathBuf) {
         *self.ssh_dir.lock().unwrap() = Some(dir);
+    }
+}
+
+impl GetConfDir for DeviceManager {
+    fn get_conf_dir(&self) -> Option<PathBuf> {
+        return self.conf_dir.lock().unwrap().clone();
+    }
+}
+
+impl SetConfDir for DeviceManager {
+    fn set_conf_dir(&self, dir: PathBuf) {
+        *self.conf_dir.lock().unwrap() = Some(dir);
     }
 }

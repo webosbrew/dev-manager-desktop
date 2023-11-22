@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use crate::app_dirs::{GetSshDir, SetSshDir};
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::shell_manager::{Shell, ShellInfo, ShellManager, ShellToken};
-use crate::ssh_dir::{GetSshDir, SetSshDir};
 
 impl ShellManager {
     pub fn open(&self, device: Device, rows: u16, cols: u16, dumb: bool) -> Arc<Shell> {

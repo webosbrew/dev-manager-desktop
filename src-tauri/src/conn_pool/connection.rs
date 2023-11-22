@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Formatter};
 use std::io::Read;
 use std::ops::{Deref, DerefMut};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Mutex;
 use std::time::Duration;
 

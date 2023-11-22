@@ -1,16 +1,17 @@
-use std::{env, fs};
+use std::fs;
 use std::fs::{create_dir_all, File};
 use std::io::{BufReader, BufWriter, ErrorKind};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
 use crate::device_manager::Device;
 use crate::error::Error;
 
-pub(crate) async fn read() -> Result<Vec<Device>, Error> {
+pub(crate) async fn read(conf_dir: Option<&Path>) -> Result<Vec<Device>, Error> {
+    let conf_dir = conf_dir.map(|conf_dir| conf_dir.to_path_buf());
     return tokio::task::spawn_blocking(move || -> Result<Vec<Device>, Error> {
-        let path = devices_file_path()?;
+        let path = devices_file_path(conf_dir.as_deref())?;
         let file = match File::open(path.as_path()) {
             Ok(file) => file,
             Err(e) => {
@@ -32,9 +33,10 @@ pub(crate) async fn read() -> Result<Vec<Device>, Error> {
     .expect("critical failure in app::io::read task");
 }
 
-pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
+pub(crate) async fn write(devices: Vec<Device>, conf_dir: Option<&Path>) -> Result<(), Error> {
+    let conf_dir = conf_dir.map(|conf_dir| conf_dir.to_path_buf());
     return tokio::task::spawn_blocking(move || -> Result<(), Error> {
-        let path = devices_file_path()?;
+        let path = devices_file_path(conf_dir.as_deref())?;
         let file = match File::create(path.as_path()) {
             Ok(file) => file,
             Err(e) => {
@@ -61,15 +63,10 @@ pub(crate) async fn write(devices: Vec<Device>) -> Result<(), Error> {
     .expect("critical failure in app::io::write task");
 }
 
-#[cfg(target_family = "windows")]
-fn devices_file_path() -> Result<PathBuf, Error> {
-    let home = env::var("APPDATA")
-        .or_else(|_| env::var("USERPROFILE"))
-        .map_err(|_| Error::bad_config())?;
-    return Ok(PathBuf::from(home)
-        .join(".webos")
-        .join("ose")
-        .join("novacom-devices.json"));
+fn devices_file_path(conf_dir: Option<&Path>) -> Result<PathBuf, Error> {
+    return conf_dir
+        .map(|conf_dir| conf_dir.join("novacom-devices.json"))
+        .ok_or_else(|| Error::bad_config());
 }
 
 #[cfg(not(unix))]
@@ -78,12 +75,6 @@ fn fix_devices_json_perm(path: PathBuf) -> Result<(), Error> {
     perm.set_readonly(false);
     fs::set_permissions(path, perm)?;
     return Ok(());
-}
-
-#[cfg(not(target_family = "windows"))]
-fn devices_file_path() -> Result<PathBuf, Error> {
-    let home = home_dir().ok_or_else(|| Error::bad_config())?;
-    return Ok(home.join(".webos").join("ose").join("novacom-devices.json"));
 }
 
 #[cfg(unix)]

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
-use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
+use std::sync::mpsc::Sender;
 use std::time::Instant;
 
 use serde::Serialize;
@@ -10,7 +10,6 @@ use vt100::Parser;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::shell_manager::shell::ShellsMap;
-use crate::ssh_dir::GetSshDir;
 
 pub(crate) mod manager;
 pub(crate) mod shell;
