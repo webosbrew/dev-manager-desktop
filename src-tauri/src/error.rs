@@ -4,7 +4,9 @@ use std::io::ErrorKind;
 use std::str::FromStr;
 
 use libssh_rs::{Error as SshError, SftpError};
+use reqwest::StatusCode;
 use serde::{Serialize, Serializer};
+use tauri::regex::Regex;
 
 #[derive(Debug, Serialize, Clone)]
 #[serde(tag = "reason")]
@@ -63,9 +65,18 @@ impl Display for Error {
 
 impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
+        let message = value.to_string();
+        if let Some(code) = Regex::new(r"(?i)sftp error code (\d+)")
+            .unwrap()
+            .captures(&message)
+            .and_then(|c| c.get(1))
+            .and_then(|m| u32::from_str(m.as_str()).ok())
+        {
+            return from_sftp_error_code(code, message);
+        }
         return Error::IO {
             code: value.kind(),
-            message: value.to_string(),
+            message,
         };
     }
 }
@@ -82,8 +93,28 @@ impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         if value.is_timeout() {
             return Error::Timeout;
+        } else if value.is_connect() {
+            return Error::IO {
+                code: ErrorKind::ConnectionRefused,
+                message: format!("Connection refused by host"),
+            };
+        } else if let Some(status) = value.status() {
+            return Error::IO {
+                code: match status {
+                    StatusCode::NOT_FOUND => ErrorKind::NotFound,
+                    StatusCode::UNAUTHORIZED => ErrorKind::PermissionDenied,
+                    StatusCode::FORBIDDEN => ErrorKind::PermissionDenied,
+                    StatusCode::CONFLICT => ErrorKind::AlreadyExists,
+                    StatusCode::BAD_REQUEST => ErrorKind::InvalidInput,
+                    _ => ErrorKind::Other,
+                },
+                message: value.to_string(),
+            };
         }
-        return Error::new(format!("HTTP Error: {:?}", value));
+        return Error::IO {
+            code: ErrorKind::Other,
+            message: value.to_string(),
+        };
     }
 }
 
@@ -99,7 +130,7 @@ impl From<SshError> for Error {
             },
             SshError::Fatal(s) => {
                 if let Some(socket_error) = s.strip_prefix("Socket error:") {
-                    return if socket_error == "disconnected" {
+                    return if socket_error.trim() == "disconnected" {
                         Error::Disconnected
                     } else {
                         Error::IO {
@@ -133,21 +164,7 @@ impl From<SftpError> for Error {
             .strip_prefix("Sftp error code ")
             .and_then(|s| u32::from_str(s).ok())
         {
-            return match code {
-                libssh_rs_sys::SSH_FX_EOF => Error::io(ErrorKind::UnexpectedEof),
-                libssh_rs_sys::SSH_FX_NO_SUCH_FILE => Error::io(ErrorKind::NotFound),
-                libssh_rs_sys::SSH_FX_PERMISSION_DENIED => Error::io(ErrorKind::PermissionDenied),
-                libssh_rs_sys::SSH_FX_FAILURE => Error::new("Failed to perform this operation"),
-                libssh_rs_sys::SSH_FX_NO_CONNECTION => Error::Disconnected,
-                libssh_rs_sys::SSH_FX_CONNECTION_LOST => Error::Disconnected,
-                libssh_rs_sys::SSH_FX_NO_SUCH_PATH => Error::io(ErrorKind::NotFound),
-                libssh_rs_sys::SSH_FX_FILE_ALREADY_EXISTS => Error::io(ErrorKind::AlreadyExists),
-                libssh_rs_sys::SSH_FX_WRITE_PROTECT => Error::IO {
-                    code: ErrorKind::Other,
-                    message: String::from("SSH_FX_WRITE_PROTECT"),
-                },
-                _ => Error::Message { message },
-            };
+            return from_sftp_error_code(code, message);
         }
         return Error::Message { message };
     }
@@ -157,6 +174,24 @@ impl From<Box<dyn ErrorTrait>> for Error {
     fn from(value: Box<dyn ErrorTrait>) -> Self {
         return Error::new(format!("{:?}", value));
     }
+}
+
+fn from_sftp_error_code(code: u32, message: String) -> Error {
+    return match code {
+        libssh_rs_sys::SSH_FX_EOF => Error::io(ErrorKind::UnexpectedEof),
+        libssh_rs_sys::SSH_FX_NO_SUCH_FILE => Error::io(ErrorKind::NotFound),
+        libssh_rs_sys::SSH_FX_PERMISSION_DENIED => Error::io(ErrorKind::PermissionDenied),
+        libssh_rs_sys::SSH_FX_FAILURE => Error::new("Failed to perform this operation"),
+        libssh_rs_sys::SSH_FX_NO_CONNECTION => Error::Disconnected,
+        libssh_rs_sys::SSH_FX_CONNECTION_LOST => Error::Disconnected,
+        libssh_rs_sys::SSH_FX_NO_SUCH_PATH => Error::io(ErrorKind::NotFound),
+        libssh_rs_sys::SSH_FX_FILE_ALREADY_EXISTS => Error::io(ErrorKind::AlreadyExists),
+        libssh_rs_sys::SSH_FX_WRITE_PROTECT => Error::IO {
+            code: ErrorKind::Other,
+            message: String::from("SSH_FX_WRITE_PROTECT"),
+        },
+        _ => Error::Message { message },
+    };
 }
 
 fn as_debug_string<T, S>(v: &T, serializer: S) -> Result<S::Ok, S::Error>

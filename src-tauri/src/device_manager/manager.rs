@@ -19,7 +19,7 @@ impl DeviceManager {
     pub async fn set_default(&self, name: &str) -> Result<Option<Device>, Error> {
         let mut devices = read().await?;
         let mut result: Option<Device> = None;
-        for mut device in &mut devices {
+        for device in &mut devices {
             if device.name == name {
                 device.default = Some(true);
                 result = Some(device.clone());
