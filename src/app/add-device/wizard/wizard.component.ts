@@ -92,7 +92,7 @@ export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {
 
     private findNavTitle(id: string): string | undefined {
         const activeLink = this.ngbNav.links?.find((item) => item.navItem.id === id);
-        const linkElem: HTMLElement | undefined = activeLink?.elRef?.nativeElement;
+        const linkElem: HTMLElement | undefined = activeLink?.nativeElement;
         return linkElem?.innerText;
     }
 

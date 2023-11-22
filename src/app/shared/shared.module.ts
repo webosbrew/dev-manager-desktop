@@ -10,27 +10,29 @@ import {MessageTraceComponent} from './components/message-dialog/message-trace/m
 import {ErrorCardComponent} from './components/error-card/error-card.component';
 import {ExternalLinkDirective} from "./directives";
 import {SizeCalculatorComponent} from "./components/term-size-calculator/size-calculator.component";
-import { LoadingCardComponent } from './components/loading-card/loading-card.component';
-import { StatStorageInfoComponent } from './components/stat-storage-info/stat-storage-info.component';
-import {NgxFilesizeModule} from "ngx-filesize";
+import {LoadingCardComponent} from './components/loading-card/loading-card.component';
+import {StatStorageInfoComponent} from './components/stat-storage-info/stat-storage-info.component';
+import {FilesizePipe} from "./pipes/filesize.pipe";
 
 @NgModule({
-  declarations: [
-    PageNotFoundComponent,
-    TrustUriPipe,
-    MessageDialogComponent,
-    ProgressDialogComponent,
-    MessageTraceComponent,
-    ErrorCardComponent,
-    ExternalLinkDirective,
-    SizeCalculatorComponent,
-    LoadingCardComponent,
-    StatStorageInfoComponent,
-  ],
-    imports: [CommonModule, FormsModule, NgbModule, NgxFilesizeModule],
+    declarations: [
+        PageNotFoundComponent,
+        TrustUriPipe,
+        FilesizePipe,
+        MessageDialogComponent,
+        ProgressDialogComponent,
+        MessageTraceComponent,
+        ErrorCardComponent,
+        ExternalLinkDirective,
+        SizeCalculatorComponent,
+        LoadingCardComponent,
+        StatStorageInfoComponent,
+    ],
+    imports: [CommonModule, FormsModule, NgbModule],
     exports: [
         PageNotFoundComponent,
         TrustUriPipe,
+        FilesizePipe,
         MessageDialogComponent,
         ProgressDialogComponent,
         MessageTraceComponent,

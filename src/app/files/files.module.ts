@@ -2,7 +2,6 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 
 import {FilesRoutingModule} from './files-routing.module';
-import {NgxFilesizeModule} from "ngx-filesize";
 import {FilesComponent} from "./files.component";
 import {AttrsPermissionsPipe} from "./attrs-permissions.pipe";
 import {
@@ -15,7 +14,7 @@ import {
 import {NgLetModule} from "ng-let";
 import {FilesTableComponent} from './files-table/files-table.component';
 import {SharedModule} from "../shared/shared.module";
-import { CreateDirectoryMessageComponent } from './create-directory-message/create-directory-message.component';
+import {CreateDirectoryMessageComponent} from './create-directory-message/create-directory-message.component';
 import {ReactiveFormsModule} from "@angular/forms";
 
 
@@ -29,7 +28,6 @@ import {ReactiveFormsModule} from "@angular/forms";
   imports: [
     CommonModule,
     FilesRoutingModule,
-    NgxFilesizeModule,
     NgbTooltipModule,
     NgLetModule,
     SharedModule,
