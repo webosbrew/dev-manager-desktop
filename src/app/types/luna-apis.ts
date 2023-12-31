@@ -4,6 +4,7 @@ export declare interface SystemInfo extends LunaResponse {
     firmwareVersion: string;
     modelName: string;
     sdkVersion: string;
+    otaId: string;
 }
 
 export declare interface OsInfo extends LunaResponse {

@@ -109,7 +109,7 @@ export class DeviceManagerService extends BackendClient {
 
     async getDeviceInfo(device: DeviceLike): Promise<Partial<DeviceInfo>> {
         const systemInfo = await this.luna.call<SystemInfo>(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
-            keys: ['firmwareVersion', 'modelName', 'sdkVersion']
+            keys: ['firmwareVersion', 'modelName', 'sdkVersion', 'otaId']
         });
         const osInfo = await this.luna.call<Partial<OsInfo>>(device, 'luna://com.webos.service.systemservice/osInfo/query', {
             parameters: ['webos_manufacturing_version', 'webos_release']
@@ -117,6 +117,7 @@ export class DeviceManagerService extends BackendClient {
         return {
             modelName: systemInfo.modelName,
             osVersion: osInfo?.webos_release || systemInfo.sdkVersion,
+            otaId: systemInfo.otaId,
             firmwareVersion: systemInfo.firmwareVersion
         };
     }
@@ -227,5 +228,6 @@ export class CrashReport implements CrashReportEntry {
 export interface DeviceInfo {
     modelName: string;
     osVersion?: string;
+    otaId?: string;
     firmwareVersion: string;
 }
