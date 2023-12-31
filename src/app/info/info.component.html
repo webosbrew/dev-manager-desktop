@@ -6,14 +6,19 @@
     <div class="card-body">
       <h5 class="card-title">Device - {{deviceInfo.modelName}}</h5>
       <p class="card-text">
-        <strong>Firmware version: </strong><span>{{deviceInfo.firmwareVersion}}</span>
+        <strong>Firmware version: </strong>
+        <span class="user-select-text">{{deviceInfo.firmwareVersion}}</span>
         <ng-container *ngIf="deviceInfo.osVersion as osVersion">
           <br>
-          <strong>webOS version: </strong><span>{{osVersion}}</span>
+          <strong>webOS version: </strong><span class="user-select-text">{{osVersion}}</span>
+        </ng-container>
+        <ng-container *ngIf="deviceInfo.otaId as otaId">
+          <br>
+          <strong>OTA ID: </strong><span class="user-select-text">{{otaId}}</span>
         </ng-container>
       </p>
-      <div class="btn-group">
-        <button class="btn btn-primary" (click)="takeScreenshot()" *ngIf="device.username === 'root'">Take Screenshot
+      <div class="btn-group" *ngIf="device.username === 'root'">
+        <button class="btn btn-primary" (click)="takeScreenshot()">Take Screenshot
         </button>
         <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
              aria-label="More options">
