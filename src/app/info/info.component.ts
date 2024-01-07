@@ -73,9 +73,12 @@ export class InfoComponent {
     renewScript(): void {
         this.modalService.open(RenewScriptComponent, {
             size: 'lg',
-            // scrollable: true,
+            scrollable: true,
             injector: Injector.create({
-                providers: [{provide: 'device', useValue: this.device}]
+                providers: [
+                    {provide: 'device', useValue: this.device},
+                    {provide: 'devMode', useValue: this.devModeInfo},
+                ]
             })
         });
     }
