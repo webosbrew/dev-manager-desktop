@@ -5,9 +5,42 @@
 <div class="modal-body">
   <div class="d-flex">
     <ul ngbNav #nav="ngbNav" class="nav-pills me-4" orientation="vertical">
-      <li ngbNavItem="ifttt" *ngIf="devModeToken">
+      <li ngbNavItem="manual">
+        <a class="text-nowrap" ngbNavLink>Manual Setup</a>
+        <ng-template ngbNavContent>
+          <p>Following is the URL to renew developer mode session. You can make request to it periodically to keep
+            developer mode session alive.</p>
+          <div class="overflow-auto bg-panel p-2">
+            <code
+              class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{ devMode.token }}</code>
+          </div>
+        </ng-template>
+      </li>
+      <li ngbNavItem="script">
+        <a class="text-nowrap" ngbNavLink>Shell Script</a>
+        <ng-template ngbNavContent>
+          <ng-container *ngIf="renewScriptContent as script">
+            <p>Following is a shell script. It can be executed anywhere in your local area network.</p>
+            <div class="position-relative">
+              <pre class="pre-scrollable bg-panel p-3">{{ script }}</pre>
+              <div class="position-absolute top-0 right-0 my-2 mx-4">
+                <button type="button" class="btn btn-primary me-2" (click)="copyScript(script)">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+                <button type="button" class="btn btn-primary" (click)="saveScript(script)">
+                  <i class="bi bi-save"></i>
+                </button>
+              </div>
+            </div>
+          </ng-container>
+        </ng-template>
+      </li>
+      <li ngbNavItem="ifttt">
         <a class="text-nowrap" ngbNavLink>IFTTT Applet</a>
         <ng-template ngbNavContent>
+          <div class="alert alert-warning" role="alert">
+            IFTTT does not offer webhook feature for free anymore.
+          </div>
           <ul>
             <li>Create an applet in <a href="https://ifttt.com/create" appExternalLink>ifttt.com/create</a>.</li>
             <li>Select <strong>Date & Time</strong> as trigger.</li>
@@ -18,7 +51,7 @@
             <li>Use <strong>URL below</strong>:
               <div class="overflow-auto bg-panel p-2">
                 <code
-                  class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{devModeToken}}</code>
+                  class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{ devMode.token }}</code>
               </div>
             </li>
             <li>Select <strong>Creation action</strong>.</li>
@@ -28,23 +61,6 @@
               this page and use the new URL.
             </li>
           </ul>
-        </ng-template>
-      </li>
-      <li ngbNavItem="script" *ngIf="renewScriptContent as script">
-        <a class="text-nowrap" ngbNavLink>Shell Script</a>
-        <ng-template ngbNavContent>
-          <p>Following is a shell script. It can be executed anywhere in your local area network.</p>
-          <div class="position-relative">
-            <pre class="pre-scrollable bg-panel p-3">{{script}}</pre>
-            <div class="position-absolute top-0 right-0 my-2 mx-4">
-              <button type="button" class="btn btn-primary me-2" (click)="copyScript(script)">
-                <i class="bi bi-clipboard"></i>
-              </button>
-              <button type="button" class="btn btn-primary" (click)="saveScript(script)">
-                <i class="bi bi-save"></i>
-              </button>
-            </div>
-          </div>
         </ng-template>
       </li>
     </ul>
