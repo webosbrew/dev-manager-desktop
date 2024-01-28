@@ -103,7 +103,7 @@ export class AppManagerService {
           return this.installByManifest(device, manifest, false, progress);
         });
     } else {
-      const path = await this.tempDownloadIpk(device, manifest.ipkUrl);
+      const path = await this.tempDownloadIpk(device, new URL(manifest.ipkUrl));
       await this.devInstall(device, path)
         .then(() => this.load(device).catch(noop))
         .finally(() => this.file.rm(device, path, false));
@@ -140,15 +140,14 @@ export class AppManagerService {
     return subject;
   }
 
-  private async tempDownloadIpk(device: Device, location: string): Promise<string> {
-    const url = new URL(location);
+  private async tempDownloadIpk(device: Device, location: string | URL): Promise<string> {
     const path = `/tmp/devman_dl_${Date.now()}.ipk`
-    switch (url.protocol) {
-      case 'file:':
+    switch (typeof location) {
+      case 'string':
         await this.file.put(device, path, location);
         break;
       default:
-        await this.cmd.exec(device, `curl -ksL ${escapeSingleQuoteString(location)} --output ${escapeSingleQuoteString(path)}`);
+        await this.cmd.exec(device, `curl -ksL ${escapeSingleQuoteString(location.toString())} --output ${escapeSingleQuoteString(path)}`);
         break;
     }
     return path;

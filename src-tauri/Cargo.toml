@@ -60,7 +60,7 @@ version = "0.10.57"
 
 [dependencies.tauri-plugin-single-instance]
 git = "https://github.com/tauri-apps/plugins-workspace"
-branch = "dev"
+branch = "v1"
 optional = true
 
 [features]
