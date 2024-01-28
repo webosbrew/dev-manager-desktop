@@ -6,6 +6,7 @@
 /out-tsc
 /app-builds
 /release
+/target
 index.js
 preload.js
 src/**/*.js
