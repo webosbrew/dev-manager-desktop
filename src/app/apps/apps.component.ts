@@ -120,14 +120,13 @@ export class AppsComponent implements OnInit, OnDestroy {
 
     async openInstallChooser(): Promise<void> {
         if (!this.device) return;
-        const open = await showOpenDialog({
+        const path = await showOpenDialog({
             filters: [{name: 'IPK package', extensions: ['ipk']}],
             defaultPath: await downloadDir(),
-        });
-        if (!open) {
+        }).then((result) => Array.isArray(result) ? result[0] : result);
+        if (!path) {
             return;
         }
-        const path = Array.isArray(open) ? open[0] : open;
         const progress = ProgressDialogComponent.open(this.modalService);
         const component = progress.componentInstance as ProgressDialogComponent;
         try {
