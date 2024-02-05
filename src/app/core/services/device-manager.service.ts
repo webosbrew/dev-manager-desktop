@@ -111,7 +111,7 @@ export class DeviceManagerService extends BackendClient {
         const systemInfo = await this.luna.call<SystemInfo>(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
             keys: ['firmwareVersion', 'modelName', 'sdkVersion', 'otaId']
         }, true, false);
-        const osInfo = await this.luna.call<Partial<OsInfo>>(device, 'luna://com.webos.service.systemservice/osInfo/query', {
+        const osInfo = await this.luna.call<Partial<OsInfo>>(device, 'luna://com.palm.systemservice/osInfo/query', {
             parameters: ['webos_manufacturing_version', 'webos_release']
         }).catch(() => null);
         return {
