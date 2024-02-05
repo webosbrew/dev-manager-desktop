@@ -24,7 +24,8 @@ export class RemoteLunaService {
   constructor(private commands: RemoteCommandService) {
   }
 
-  async call<T extends LunaResponse>(device: DeviceLike, uri: string, param: Record<string, unknown> = {}, pub: boolean = true): Promise<T> {
+  async call<T extends LunaResponse>(device: DeviceLike, uri: string, param: Record<string, unknown> = {}, pub: boolean = true,
+                                     falseAsError: boolean = true): Promise<T> {
     const sendCmd = pub ? 'luna-send-pub' : 'luna-send';
     return this.commands.exec(device, `${sendCmd} -n 1 ${uri} ${escapeSingleQuoteString(JSON.stringify(param))}`, 'utf-8')
       .catch(e => {
@@ -45,7 +46,9 @@ export class RemoteLunaService {
           if (typed['errorText']?.startsWith('Unknown method')) {
               throw new LunaUnknownMethodError(typed);
           }
-          throw new LunaResponseError(typed);
+          if (falseAsError) {
+            throw new LunaResponseError(typed);
+          }
         }
         return typed;
       });
