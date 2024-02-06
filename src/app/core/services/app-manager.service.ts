@@ -104,7 +104,7 @@ export class AppManagerService {
                 return;
             } catch (e) {
                 // Never attempt to do default install, if we are reinstalling hbchannel
-                if (manifest.id === APP_ID_HBCHANNEL) {
+                if (e instanceof InstallError || manifest.id === APP_ID_HBCHANNEL) {
                     throw e;
                 }
             }
@@ -206,6 +206,15 @@ export class AppManagerService {
             filter(v => v)/* Only pick finish event */,
             mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
             catchError((e) => fromPromise(luna.unsubscribe().then(() => {
+                const match = e instanceof LunaResponseError && e.details?.match(/(-?\d+): +(\w+)/);
+                if (!match) {
+                    throw e;
+                }
+                if (match[2] === 'FAILED_IPKG_INSTALL') {
+                    if (match[1] === '-5') {
+                        throw InstallError.insufficientSpace(e.details);
+                    }
+                }
                 throw e;
             })))/* Unsubscribe when failed, and throw the error */)
         );
@@ -218,6 +227,11 @@ function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp):
     if (resultValue.match(/FAILED/i)) {
         let details = v['details'];
         if (details && details.reason) {
+            if (details.reason === 'FAILED_IPKG_INSTALL') {
+                if (details.errorCode === -5) {
+                    throw InstallError.insufficientSpace(details.reason);
+                }
+            }
             throw new Error(`${details.errorCode}: ${details.reason}`);
         }
         throw new Error(resultValue);
@@ -230,4 +244,14 @@ function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp):
 
 export interface InstallProgressHandler {
     (progress?: number, statusText?: string): void;
+}
+
+export class InstallError extends Error {
+    constructor(message: string, public details: string) {
+        super(message);
+    }
+
+    static insufficientSpace(details: string): InstallError {
+        return new InstallError('Can\'t install because of insufficient space', details);
+    }
 }
