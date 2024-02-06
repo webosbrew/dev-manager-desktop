@@ -4,17 +4,17 @@
   </app-error-card>
   <div class="card" *ngIf="deviceInfo">
     <div class="card-body">
-      <h5 class="card-title">Device - {{deviceInfo.modelName}}</h5>
+      <h5 class="card-title">Device - {{ deviceInfo.modelName }}</h5>
       <p class="card-text">
         <strong>Firmware version: </strong>
-        <span class="user-select-text">{{deviceInfo.firmwareVersion}}</span>
+        <span class="user-select-text">{{ deviceInfo.firmwareVersion }}</span>
         <ng-container *ngIf="deviceInfo.osVersion as osVersion">
           <br>
-          <strong>webOS version: </strong><span class="user-select-text">{{osVersion}}</span>
+          <strong>webOS version: </strong><span class="user-select-text">{{ osVersion }}</span>
         </ng-container>
         <ng-container *ngIf="deviceInfo.otaId as otaId">
           <br>
-          <strong>OTA ID: </strong><span class="user-select-text">{{otaId}}</span>
+          <strong>OTA ID: </strong><span class="user-select-text">{{ otaId }}</span>
         </ng-container>
       </p>
       <div class="btn-group" *ngIf="device.username === 'root'">
@@ -42,7 +42,7 @@
       <h5 class="card-title">Developer Mode</h5>
       <ng-container *ngIf="devModeInfo.token else invalidToken">
         <p class="card-text">
-          <strong>Remaining duration: </strong><span>{{devModeInfo.remaining | devmodeCountdown | async}}</span><br>
+          <strong>Remaining duration: </strong><span>{{ devModeInfo.remaining | devmodeCountdown | async }}</span><br>
           <small>Remaining time displaying on your TV will only update on boot.</small>
         </p>
         <div>

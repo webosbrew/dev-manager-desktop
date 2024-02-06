@@ -19,6 +19,7 @@ pub enum Error {
     Disconnected,
     ExitStatus {
         message: String,
+        command: String,
         exit_code: i32,
         stderr: Vec<u8>,
     },

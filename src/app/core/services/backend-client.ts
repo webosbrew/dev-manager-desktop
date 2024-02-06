@@ -12,15 +12,16 @@ export abstract class BackendClient {
     protected invoke<T>(method: string, args?: Record<string, unknown>): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             const cmd = `plugin:${(this.category)}|${method}`;
-            console.debug('invoke', `${this.category}/${method}`, args);
+            const call = `${this.category}/${method}`;
+            console.debug('invoke', call, args);
             invoke(cmd, args)
                 .then(result => {
-                    console.debug('invoke', `${this.category}/${method}`, 'result', result);
+                    console.debug('invoke', call, 'result', result);
                     this.zone.run(() => resolve(result as any));
                 })
                 .catch(reason => {
-                    console.warn('invoke', `${this.category}/${method}`, 'error', reason);
-                    this.zone.run(() => reject(BackendClient.toBackendError(reason)));
+                    console.warn('invoke', call, 'error', reason);
+                    this.zone.run(() => reject(BackendClient.toBackendError(reason, call)));
                 });
         });
     }
@@ -30,14 +31,14 @@ export abstract class BackendClient {
             this.zone.run(() => handler(event.payload))).then(noop);
     }
 
-    private static toBackendError(e: unknown): Error {
+    private static toBackendError(e: unknown, call: string): Error {
         if (BackendError.isCompatibleBody(e)) {
             if (e.reason === 'ExitStatus') {
                 return ExecutionError.fromBackendError(e);
             } else if (IOError.isCompatibleBody(e)) {
-                return new IOError(e);
+                return new IOError(e, call);
             }
-            return new BackendError(e);
+            return new BackendError(e, call);
         }
         return e as Error;
     }
@@ -60,7 +61,7 @@ export class BackendError extends Error {
 
     [key: string]: unknown;
 
-    constructor(body: BackendErrorBody) {
+    constructor(body: BackendErrorBody, public call: string) {
         super(body.message ?? body.reason);
         this.reason = body.reason;
         Object.assign(this, omit(body, 'message', 'reason'));

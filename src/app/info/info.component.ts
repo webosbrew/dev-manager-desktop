@@ -133,11 +133,10 @@ export class InfoComponent {
         const progress = ProgressDialogComponent.open(this.modalService);
         const component = progress.componentInstance as ProgressDialogComponent;
         try {
-            await this.appManager.installByManifest(device, item.manifest!, this.homebrewAppInfo !== null,
-                (progress, statusText) => {
-                    component.progress = progress;
-                    component.message = statusText;
-                });
+            await this.appManager.installByManifest(device, item.manifest!, (progress, statusText) => {
+                component.progress = progress;
+                component.message = statusText;
+            });
         } catch (e) {
             // Ignore
         } finally {

@@ -31,7 +31,7 @@
               </button>
               <ul class="dropdown-menu" ngbDropdownMenu>
                 <ng-container *ngIf="rpkg">
-                  <li ngbDropdownItem *ngIf="rpkg.manifestBeta" (click)="parent.installBetaPackage(rpkg)">
+                  <li ngbDropdownItem *ngIf="rpkg.manifestBeta" (click)="parent.installPackage(rpkg, 'beta')">
                     <i class="bi bi-download me-3"></i>Install Beta
                   </li>
                   <li ngbDropdownItem *ngIf="rpkg.manifest?.sourceUrl as url">

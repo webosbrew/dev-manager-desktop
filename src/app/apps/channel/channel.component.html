@@ -32,7 +32,7 @@
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" ngbDropdownMenu>
-                <li ngbDropdownItem *ngIf="item.manifestBeta" (click)="parent.installBetaPackage(item)">
+                <li ngbDropdownItem *ngIf="item.manifestBeta" (click)="parent.installPackage(item, 'beta')">
                   <i class="bi bi-download me-3"></i>Install Beta
                 </li>
                 <a ngbDropdownItem *ngIf="manifest?.sourceUrl as url" [href]="url" appExternalLink>

@@ -25,6 +25,6 @@
   <div class="p-3 flex-fill overflow-auto" (drop)="dropFiles($event)" (dragover)="onDragOver($event)"
        (dragenter)="onDragEnter($event)" (dragleave)="onDragLeave($event)" [ngbNavOutlet]="nav"></div>
   <div class="stat-bar border-top bottom-0 mt-auto d-flex flex-row flex-shrink-0 align-items-center">
-    <app-stat-storage-info class="ms-auto me-3 storage-info-bar" [device]="device"></app-stat-storage-info>
+    <app-stat-storage-info class="ms-auto me-3 storage-info-bar" [device]="device" #storageInfo></app-stat-storage-info>
   </div>
 </div>

@@ -39,6 +39,7 @@ async fn exec<R: Runtime>(
             if exit_code != 0 {
                 return Err(Error::ExitStatus {
                     message: format!(""),
+                    command: command.clone(),
                     exit_code,
                     stderr,
                 });

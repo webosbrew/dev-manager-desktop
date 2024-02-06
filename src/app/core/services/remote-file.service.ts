@@ -2,7 +2,7 @@ import {Injectable, NgZone} from "@angular/core";
 import {BackendClient, BackendError} from "./backend-client";
 import {Device, FileItem} from "../../types";
 import {Buffer} from "buffer";
-import {ExecutionError, RemoteCommandService} from "./remote-command.service";
+import {RemoteCommandService} from "./remote-command.service";
 import {finalize, firstValueFrom, lastValueFrom, Observable, Subject} from "rxjs";
 import {EventChannel} from "../event-channel";
 import {map} from "rxjs/operators";
@@ -60,6 +60,7 @@ export class RemoteFileService extends BackendClient {
     public async serveLocal(device: Device, localPath: string): Promise<ServeInstance> {
         const subject = new Subject<Record<string, any>>();
         const token = await this.invoke<string>('serve', {device, path: localPath});
+        const call = `${this.category}/serveLocal`;
         const channel = new class extends EventChannel<Record<string, any>, any> {
             constructor(token: string) {
                 super(token);
@@ -69,11 +70,7 @@ export class RemoteFileService extends BackendClient {
                 console.log('serve closed', payload);
                 if (payload) {
                     if (BackendError.isCompatibleBody(payload)) {
-                        if (payload.reason === 'ExitStatus') {
-                            subject.error(ExecutionError.fromBackendError(payload));
-                        } else {
-                            subject.error(new BackendError(payload));
-                        }
+                        subject.error(new BackendError(payload, call));
                     } else {
                         subject.error(payload);
                     }

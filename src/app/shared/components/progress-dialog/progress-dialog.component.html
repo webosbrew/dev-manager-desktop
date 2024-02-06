@@ -1,8 +1,8 @@
 <div class="modal-body">
-  <div *ngIf="message else defaultMessage">{{message}}</div>
+  <div *ngIf="message else defaultMessage">{{ message }}</div>
   <ng-template #defaultMessage>
     <div>Please wait</div>
   </ng-template>
   <ngb-progressbar type="info" [value]="progress ?? 100" [max]="100" [striped]="progress === undefined"
-                   [animated]="true"></ngb-progressbar>
+                   [animated]="true" class="mt-2"></ngb-progressbar>
 </div>
