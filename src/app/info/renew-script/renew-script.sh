@@ -6,7 +6,15 @@ DEVICE_PORT='{{device.port}}'
 DEVICE_USERNAME='{{device.username}}'
 DEVICE_PASSPHRASE='{{device.passphrase}}'
 
-PRIV_KEY_FILE="/tmp/webos_privkey_${DEVICE_NAME}"
+if ! TEMP_KEY_DIR="$(mktemp -d)"; then
+    echo "Failed to create random temporary directory for key; using fallback" >&2
+    TEMP_KEY_DIR="/tmp/renew-script.$$"
+    mkdir -p "${TEMP_KEY_DIR}"
+fi
+
+chmod 700 "${TEMP_KEY_DIR}"
+
+PRIV_KEY_FILE="${TEMP_KEY_DIR}/webos_privkey_${DEVICE_NAME}"
 
 cat >"${PRIV_KEY_FILE}" <<END_OF_PRIVKEY
 {{keyContent}}
@@ -24,6 +32,8 @@ SESSION_TOKEN=$(ssh -i "${PRIV_KEY_FILE}" \
   -o PubkeyAcceptedKeyTypes=+ssh-rsa \
   -p "${DEVICE_PORT}" "${DEVICE_USERNAME}@${DEVICE_HOST}" \
   cat /var/luna/preferences/devmode_enabled)
+
+rm -rf "${TEMP_KEY_DIR}"
 
 SESSION_TOKEN_CACHE="/tmp/webos_devmode_token_${DEVICE_NAME}.txt"
 
