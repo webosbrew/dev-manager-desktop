@@ -1,26 +1,30 @@
 #!/bin/sh
 
+# WARNING: Do not run this as root!
+# If $SESSION_TOKEN_CACHE is a symlink, its target wil be overwritten.
+
 DEVICE_NAME='{{device.name}}'
 DEVICE_HOST='{{device.host}}'
 DEVICE_PORT='{{device.port}}'
 DEVICE_USERNAME='{{device.username}}'
 DEVICE_PASSPHRASE='{{device.passphrase}}'
 
+umask 077
+
 if ! TEMP_KEY_DIR="$(mktemp -d)"; then
     echo "Failed to create random temporary directory for key; using fallback" >&2
     TEMP_KEY_DIR="/tmp/renew-script.$$"
-    mkdir -p "${TEMP_KEY_DIR}"
+    if ! mkdir "${TEMP_KEY_DIR}"; then
+        echo "Fallback temporary directory ${TEMP_KEY_DIR} already exists" >&2
+        exit 1
+    fi
 fi
-
-chmod 700 "${TEMP_KEY_DIR}"
 
 PRIV_KEY_FILE="${TEMP_KEY_DIR}/webos_privkey_${DEVICE_NAME}"
 
 cat >"${PRIV_KEY_FILE}" <<END_OF_PRIVKEY
 {{keyContent}}
 END_OF_PRIVKEY
-
-chmod 600 "${PRIV_KEY_FILE}"
 
 if [ -n "${DEVICE_PASSPHRASE}" ]; then
   ssh-keygen -p -P "${DEVICE_PASSPHRASE}" -N '' -f "${PRIV_KEY_FILE}"
