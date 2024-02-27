@@ -20,6 +20,7 @@ on:
         default: 'ubuntu-20.04'
         options:
           - 'ubuntu-20.04'
+          - 'ubuntu-22.04'
           - 'debian-arm64-latest'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -31,7 +32,7 @@ jobs:
         node-version: [ 18.x, 20.x ]
 
     # The type of runner that the job will run on
-    runs-on: ${{ github.event.inputs.runner-type }}
+    runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-20.04' }}
 
     steps:
       - uses: actions/checkout@v4
