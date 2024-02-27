@@ -43,9 +43,9 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-${{ github.event.inputs.runner-type }}-node_modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node_modules
+            ${{ runner.os }}-${{ github.event.inputs.runner-type }}-node_modules
 
       - name: Install Required Packages
         run: |
@@ -58,7 +58,7 @@ jobs:
       - name: Cache Rust Project
         uses: Swatinem/rust-cache@v2
         with:
-          prefix-key: ${{ runner.os }}-rust
+          prefix-key: ${{ runner.os }}-${{ github.event.inputs.runner-type }}-rust
           workspaces: src-tauri
 
       - name: Use Node.js ${{ matrix.node-version }}
