@@ -13,6 +13,14 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      runner-type:
+        description: 'The type of runner to use'
+        required: true
+        default: 'ubuntu-20.04'
+        options:
+          - 'ubuntu-20.04'
+          - 'debian-arm64-latest'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -23,7 +31,7 @@ jobs:
         node-version: [ 18.x, 20.x ]
 
     # The type of runner that the job will run on
-    runs-on: ubuntu-20.04
+    runs-on: ${{ github.event.inputs.runner-type }}
 
     steps:
       - uses: actions/checkout@v4
