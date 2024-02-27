@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
@@ -31,7 +31,7 @@ jobs:
 
       - name: Generate Sentry Release Name
         id: release-info
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             if (process.env.SENTRY_ENVIRONMENT !== 'release') {
@@ -67,13 +67,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Cache Node Modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ matrix.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node_modules
+            ${{ matrix.os }}-node_modules
 
       - name: Install Required Packages (Linux)
         if: runner.os == 'Linux'
@@ -85,7 +85,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
@@ -129,10 +129,10 @@ jobs:
         run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: github.event_name != 'release'
         with:
-          name: ${{ runner.os }}-snapshot
+          name: ${{ matrix.os }}-snapshot
           path: |
             target/**/bundle/deb/*.deb
             target/**/bundle/appimage/*.AppImage
