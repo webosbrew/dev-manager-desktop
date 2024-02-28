@@ -10,7 +10,6 @@ import {open as showOpenDialog} from '@tauri-apps/api/dialog';
 import {basename, downloadDir} from "@tauri-apps/api/path";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 import {HbchannelRemoveComponent} from "./hbchannel-remove/hbchannel-remove.component";
-import {BaseDirectory, writeBinaryFile} from "@tauri-apps/api/fs";
 import {StatStorageInfoComponent} from "../shared/components/stat-storage-info/stat-storage-info.component";
 
 @Component({
@@ -56,25 +55,6 @@ export class AppsComponent implements OnInit, OnDestroy {
         this.packagesSubscription = undefined;
     }
 
-    onDragOver(event: DragEvent): void {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
-    onDragEnter(event: DragEvent): void {
-        const transfer = event.dataTransfer!;
-        if (transfer.items.length != 1 || transfer.items[0].kind != 'file') {
-            return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
-    onDragLeave(event: DragEvent): void {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
     loadPackages(): void {
         const device = this.device;
         if (!device) return;
@@ -88,35 +68,6 @@ export class AppsComponent implements OnInit, OnDestroy {
             }, error: noop
         });
         this.appManager.load(device).catch(noop);
-    }
-
-    async dropFiles(event: DragEvent): Promise<void> {
-        if (!this.device || this.tabId !== 'installed') return;
-        const transfer = event.dataTransfer!;
-        event.preventDefault();
-        event.stopPropagation();
-        const files = transfer.files;
-        if (files.length != 1 || !files[0].name.endsWith('.ipk')) {
-            // Show error
-            return;
-        }
-        const file: File = files[0];
-
-        writeBinaryFile((`webos-dev-tmp-${Date.now()}.ipk`), await file.arrayBuffer(), {
-            dir: BaseDirectory.Temp
-        });
-        const progress = ProgressDialogComponent.open(this.modalService);
-        const component = progress.componentInstance as ProgressDialogComponent;
-        try {
-            await this.appManager.installByPath(this.device, file.webkitRelativePath, (progress, statusText) => {
-                component.progress = progress;
-                component.message = statusText;
-            });
-        } catch (e) {
-            this.handleInstallationError(file.name, e as Error);
-        } finally {
-            progress.close(true);
-        }
     }
 
     async openInstallChooser(): Promise<void> {
