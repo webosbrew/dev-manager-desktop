@@ -40,6 +40,7 @@ libssh-rs = { version = "0.2.2", features = ["vendored"] }
 libssh-rs-sys = "0.2.2"
 flate2 = "1.0"
 regex = "1.10.3"
+libc = "0.2.153"
 
 [dependencies.tauri]
 version = "1.5.4"

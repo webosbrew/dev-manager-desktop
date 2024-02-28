@@ -82,10 +82,8 @@ async fn write<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         return Ok(sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
-            let mut file = sftp.open(
-                &path, 0o1101, /*O_WRONLY | O_CREAT | O_TRUNC on Linux*/
-                0o644,
-            )?;
+            let mut file =
+                sftp.open(&path, libc::O_WRONLY | libc::O_CREAT | libc::O_TRUNC, 0o644)?;
             file.write_all(&content)?;
             return Ok(());
         })?);
@@ -126,9 +124,24 @@ async fn put<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
-            let mut sfile =
-                sftp.open(&path, 0x0301 /*O_WRONLY | O_CREAT | O_TRUNC*/, 0o644)?;
-            let mut file = File::open(source.clone())?;
+            let mut sfile = sftp
+                .open(&path, libc::O_WRONLY | libc::O_CREAT | libc::O_TRUNC, 0o644)
+                .map_err(|e| {
+                    let e: Error = e.into();
+                    return match e {
+                        Error::IO { code, message } => Error::IO {
+                            code,
+                            message: format!(
+                                "Failed to open remote file {path} for writing: {message}"
+                            ),
+                        },
+                        e => e,
+                    };
+                })?;
+            let mut file = File::open(source.clone()).map_err(|e| Error::IO {
+                code: e.kind(),
+                message: format!("Failed to open local file {source} for uploading: {e:?}"),
+            })?;
             copy(&mut file, &mut sfile)?;
             return Ok(());
         });
