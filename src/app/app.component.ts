@@ -5,7 +5,7 @@ import {SemVer} from 'semver';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {MessageDialogComponent} from './shared/components/message-dialog/message-dialog.component';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
-import {open} from "@tauri-apps/api/shell";
+import {open} from "@tauri-apps/plugin-shell";
 import {noop} from "rxjs";
 
 @Component({

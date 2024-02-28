@@ -7,7 +7,6 @@ use std::path::PathBuf;
 use log::LevelFilter;
 #[cfg(feature = "mobile")]
 use native_dialog::{MessageDialog, MessageType};
-use tauri::api::path::home_dir;
 use tauri::{AppHandle, Manager, RunEvent, Runtime};
 
 use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
@@ -27,7 +26,7 @@ mod session_manager;
 mod shell_manager;
 mod spawn_manager;
 
-//#[cfg_attr(mobile, tauri::mobile_entry_point)]
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     env_logger::builder()
         .filter_level(LevelFilter::Debug)
@@ -43,6 +42,9 @@ pub fn run() {
         }));
     }
     let result = builder
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_fs::init())
         .plugin(plugins::device::plugin("device-manager"))
         .plugin(plugins::cmd::plugin("remote-command"))
         .plugin(plugins::shell::plugin("remote-shell"))
@@ -99,25 +101,43 @@ pub fn run() {
 
 impl<R: Runtime> GetSshDir for AppHandle<R> {
     fn get_ssh_dir(&self) -> Option<PathBuf> {
-        return home_dir()
-            .or_else(|| self.path_resolver().app_data_dir())
-            .map(|d| d.join(".ssh"));
+        let home: Option<PathBuf>;
+        #[cfg(mobile)]
+        {
+            home = self.path().data_dir().ok();
+        }
+        #[cfg(not(mobile))]
+        {
+            home = self
+                .path()
+                .home_dir()
+                .or_else(|_| self.path().data_dir())
+                .ok();
+        }
+        return home.map(|d| d.join(".ssh"));
     }
 }
 
 impl<R: Runtime> GetConfDir for AppHandle<R> {
     fn get_conf_dir(&self) -> Option<PathBuf> {
         let home: Option<PathBuf>;
-        #[cfg(target_family = "windows")]
+        #[cfg(not(mobile))]
         {
-            home = env::var("APPDATA")
-                .or_else(|_| env::var("USERPROFILE"))
-                .map(|d| PathBuf::from(d))
-                .ok();
+            #[cfg(target_family = "windows")]
+            {
+                home = env::var("APPDATA")
+                    .or_else(|_| env::var("USERPROFILE"))
+                    .map(|d| PathBuf::from(d))
+                    .ok();
+            }
+            #[cfg(not(target_family = "windows"))]
+            {
+                home = self.path().home_dir().ok();
+            }
         }
-        #[cfg(not(target_family = "windows"))]
+        #[cfg(mobile)]
         {
-            home = home_dir();
+            home = self.path().data_dir().ok();
         }
         return home.map(|d| d.join(".webos").join("ose"));
     }

@@ -3,8 +3,8 @@ import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../../types';
 import {DeviceManagerService, DevModeStatus} from '../../core/services';
 import {noop} from 'rxjs';
-import {save as showSaveDialog} from '@tauri-apps/api/dialog'
-import {writeTextFile} from '@tauri-apps/api/fs';
+import {save as showSaveDialog} from '@tauri-apps/plugin-dialog'
+import {writeTextFile} from '@tauri-apps/plugin-fs';
 import renewScriptTemplate from './renew-script.sh';
 import Mustache from 'mustache';
 

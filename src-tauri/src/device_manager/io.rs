@@ -29,8 +29,8 @@ pub(crate) async fn read(conf_dir: Option<&Path>) -> Result<Vec<Device>, Error> 
             .filter_map(|v| serde_json::from_value::<Device>(v.clone()).ok())
             .collect());
     })
-    .await
-    .expect("critical failure in app::io::read task");
+        .await
+        .expect("critical failure in app::io::read task");
 }
 
 pub(crate) async fn write(devices: Vec<Device>, conf_dir: Option<&Path>) -> Result<(), Error> {
@@ -59,8 +59,8 @@ pub(crate) async fn write(devices: Vec<Device>, conf_dir: Option<&Path>) -> Resu
         serde_json::to_writer_pretty(writer, &devices)?;
         return Ok(());
     })
-    .await
-    .expect("critical failure in app::io::write task");
+        .await
+        .expect("critical failure in app::io::write task");
 }
 
 fn devices_file_path(conf_dir: Option<&Path>) -> Result<PathBuf, Error> {

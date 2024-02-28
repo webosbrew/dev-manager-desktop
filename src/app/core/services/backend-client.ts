@@ -1,5 +1,5 @@
-import {invoke} from '@tauri-apps/api/tauri';
 import {Event, listen} from "@tauri-apps/api/event";
+import {invoke} from '@tauri-apps/api/core';
 import {NgZone} from '@angular/core';
 import {omit} from "lodash-es";
 import {noop} from "rxjs";
@@ -15,11 +15,11 @@ export abstract class BackendClient {
             const call = `${this.category}/${method}`;
             console.debug('invoke', call, args);
             invoke(cmd, args)
-                .then(result => {
+                .then((result: unknown) => {
                     console.debug('invoke', call, 'result', result);
                     this.zone.run(() => resolve(result as any));
                 })
-                .catch(reason => {
+                .catch((reason: unknown) => {
                     console.warn('invoke', call, 'error', reason);
                     this.zone.run(() => reject(BackendClient.toBackendError(reason, call)));
                 });

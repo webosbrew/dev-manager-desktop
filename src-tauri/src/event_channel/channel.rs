@@ -14,7 +14,7 @@ where
         D: Serialize + Clone,
     {
         self.app
-            .emit_all(
+            .emit(
                 &format!("event_channel:{}:{}:rx", self.category, self.id),
                 data,
             )
@@ -26,7 +26,7 @@ where
         D: Serialize + Clone,
     {
         self.app
-            .emit_all(
+            .emit(
                 &format!("event_channel:{}:{}:closed", self.category, self.id),
                 data,
             )
@@ -38,20 +38,18 @@ where
         *self.handler.lock().unwrap() = Some(handler.clone());
         let handler2 = handler.clone();
         let handler3 = handler.clone();
-        self.listeners.lock().unwrap().extend(&[
-            self.app.once_global(
-                format!("event_channel:{}:{}:close", self.category, self.id),
-                move |e| {
-                    handler2.close(e.payload());
-                },
-            ),
-            self.app.listen_global(
-                format!("event_channel:{}:{}:tx", self.category, self.id),
-                move |e| {
-                    handler3.tx(e.payload());
-                },
-            ),
-        ]);
+        self.app.once(
+            format!("event_channel:{}:{}:close", self.category, self.id),
+            move |e| {
+                handler2.close(Some(e.payload()));
+            },
+        );
+        self.listeners.lock().unwrap().push(self.app.listen(
+            format!("event_channel:{}:{}:tx", self.category, self.id),
+            move |e| {
+                handler3.tx(Some(e.payload()));
+            },
+        ));
     }
 
     pub fn token(&self) -> String {

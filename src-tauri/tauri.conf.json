@@ -3,99 +3,78 @@
   "build": {
     "beforeBuildCommand": "npm run ng build",
     "beforeDevCommand": "npm run ng serve -- --port 4280",
-    "devPath": "http://localhost:4280",
-    "distDir": "../dist"
+    "devUrl": "http://localhost:4280",
+    "frontendDist": "../dist"
   },
-  "package": {
-    "productName": "webOS Dev Manager",
-    "version": "../package.json"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "clipboard": {
-        "all": true,
-        "writeText": true,
-        "readText": true
-      },
-      "dialog": {
-        "all": true,
-        "open": true,
-        "save": true
-      },
-      "path": {
-        "all": true
-      },
-      "protocol": {
-        "all": true
-      },
-      "shell": {
-        "open": ".*"
-      }
-    },
+  "identifier": "org.webosbrew.devman",
+  "productName": "webOS Dev Manager",
+  "version": "../package.json",
+  "app": {
     "security": {
       "csp": null,
       "devCsp": "default-src 'self' localhost"
     },
     "windows": [
       {
-        "label": "main",
-        "title": "webOS Dev Manager",
-        "width": 1024,
-        "height": 720,
-        "minWidth": 800,
-        "minHeight": 600,
-        "resizable": true,
+        "fileDropEnabled": false,
         "fullscreen": false,
+        "height": 720,
+        "label": "main",
+        "minHeight": 600,
+        "minWidth": 800,
+        "resizable": true,
+        "title": "webOS Dev Manager",
         "visible": true,
-        "fileDropEnabled": false
+        "width": 1024
       }
-    ],
-    "bundle": {
-      "active": true,
-      "category": "DeveloperTool",
-      "copyright": "",
+    ]
+  },
+  "plugins": {
+    "shell": {
+      "open": ".*"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "category": "DeveloperTool",
+    "copyright": "",
+    "licenseFile": "../LICENSE",
+    "linux": {
       "deb": {
         "depends": [
           "zlib1g (>=1.2.11)"
         ]
-      },
-      "externalBin": [],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "org.webosbrew.devman",
-      "shortDescription": "Device/Dev Mode Manager for webOS TV",
-      "longDescription": "Simple tool to manage developer mode enabled or rooted webOS TV\n\nFeatures\n- No need to install LG SDK or IDE\n- Add device without need to use command line\n- Install apps on TV with a few clicks\n- Configuration compatible with ares-cli\n- Works on Windows, Linux and macOS (Apple Silicon too!)\n- Dark mode follows system preferences",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null,
-        "license": "../LICENSE"
-      },
-      "resources": [],
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": "",
-        "wix": {
-          "license": "../LICENSE"
-        },
-        "webviewInstallMode": {
-          "type": "embedBootstrapper",
-          "silent": false
-        }
       }
     },
-    "updater": {
-      "active": false
+    "externalBin": [],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "longDescription": "Simple tool to manage developer mode enabled or rooted webOS TV\n\nFeatures\n- No need to install LG SDK or IDE\n- Add device without need to use command line\n- Install apps on TV with a few clicks\n- Configuration compatible with ares-cli\n- Works on Windows, Linux and macOS (Apple Silicon too!)\n- Dark mode follows system preferences",
+    "macOS": {
+      "entitlements": null,
+      "exceptionDomain": "",
+      "frameworks": [],
+      "providerShortName": null,
+      "signingIdentity": null
+    },
+    "resources": [],
+    "shortDescription": "Device/Dev Mode Manager for webOS TV",
+    "targets": "all",
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "webviewInstallMode": {
+        "silent": false,
+        "type": "embedBootstrapper"
+      },
+      "wix": {
+      }
     }
   }
 }

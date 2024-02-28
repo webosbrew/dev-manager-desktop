@@ -1,0 +1,11 @@
+[default]
+description = "Default permissions for the plugin"
+permissions = [
+  "allow-ls",
+  "allow-read",
+  "allow-write",
+  "allow-get",
+  "allow-put",
+  "allow-get-temp",
+  "allow-serve"
+]

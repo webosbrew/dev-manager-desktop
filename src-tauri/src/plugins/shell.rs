@@ -21,7 +21,7 @@ fn open<R: Runtime>(
         token: shell.token.clone(),
         app: app.clone(),
     }));
-    app.emit_all("shell-opened", &shell.token).unwrap_or(());
+    app.emit("shell-opened", &shell.token).unwrap_or(());
     return Ok(shell.info());
 }
 
@@ -32,7 +32,7 @@ async fn close<R: Runtime>(
     token: ShellToken,
 ) -> Result<(), Error> {
     manager.close(&token)?;
-    app.emit_all("shells-updated", manager.list()).unwrap_or(());
+    app.emit("shells-updated", manager.list()).unwrap_or(());
     return Ok(());
 }
 
@@ -83,7 +83,7 @@ struct PluginShellCb<R: Runtime> {
 
 impl<R: Runtime> ShellCallback for PluginShellCb<R> {
     fn info(&self, info: ShellInfo) {
-        self.app.emit_all("shell-info", info).unwrap_or(());
+        self.app.emit("shell-info", info).unwrap_or(());
     }
 
     fn rx(&self, fd: u32, data: &[u8]) {
@@ -92,18 +92,18 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
             data: Vec::from(data),
             fd,
         };
-        self.app.emit_all("shell-rx", payload).unwrap_or(());
+        self.app.emit("shell-rx", payload).unwrap_or(());
     }
 
     fn closed(&self, removed: bool) {
         let shells = self.app.state::<ShellManager>();
         if removed {
             self.app
-                .emit_all("shell-removed", self.token.clone())
+                .emit("shell-removed", self.token.clone())
                 .unwrap_or(());
         }
         self.app
-            .emit_all("shells-updated", shells.list())
+            .emit("shells-updated", shells.list())
             .unwrap_or(());
     }
 }

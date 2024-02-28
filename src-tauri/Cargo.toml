@@ -6,7 +6,8 @@ authors = ["Ningyuan Li"]
 license = "Apache-2.0"
 repository = "https://github.com/webosbrew/dev-manager-desktop"
 edition = "2021"
-rust-version = "1.70.0"
+rust-version = "1.76.0"
+links = "devman"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,7 +16,8 @@ name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "1.5.0", features = [] }
+tauri-build = { version = "2.0.0-beta.5", features = ["codegen"] }
+tauri-plugin = { version = "2.0.0-beta.5", features = ["build"] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -39,13 +41,16 @@ pathdiff = "0.2.1"
 libssh-rs = { version = "0.2.2", features = ["vendored"] }
 libssh-rs-sys = "0.2.2"
 flate2 = "1.0"
+tauri-plugin-shell = "2.0.0-beta.1"
+tauri-plugin-dialog = "2.0.0-beta.1"
+tauri-plugin-fs = "2.0.0-beta.1"
 regex = "1.10.3"
 libc = "0.2.153"
 
 [dependencies.tauri]
-version = "1.5.4"
+version = "2.0.0-beta.7"
 default-features = false
-features = ["wry", "clipboard-all", "dialog-all", "path-all", "protocol-all", "shell-open", "reqwest-client"]
+features = ["wry"]
 
 [dependencies.reqwest]
 version = "0.11.24"
@@ -60,8 +65,7 @@ optional = true
 version = "0.10.63"
 
 [dependencies.tauri-plugin-single-instance]
-git = "https://github.com/tauri-apps/plugins-workspace"
-branch = "v1"
+version = "2.0.0-beta.2"
 optional = true
 
 [features]

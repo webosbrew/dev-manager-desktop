@@ -1,5 +1,5 @@
 import {Directive, HostListener} from '@angular/core';
-import {open} from "@tauri-apps/api/shell";
+import {open} from "@tauri-apps/plugin-shell";
 import {noop} from "rxjs";
 
 @Directive({

@@ -1,7 +1,6 @@
 import {Directive, DoCheck, ElementRef, HostBinding, Input} from '@angular/core';
 import {NgControl} from "@angular/forms";
 import {NewDeviceAuthentication} from "../../types";
-import {path} from "@tauri-apps/api";
 
 @Directive({
   selector: 'input[appSshAuthValue]',
@@ -47,7 +46,7 @@ export class SshAuthValueDirective implements DoCheck {
     if (this.appSshAuthValue == NewDeviceAuthentication.LocalKey) {
       const keyPath = this.ngControl.value?.path;
       if (keyPath) {
-        this.el.nativeElement.value = keyPath.substring(keyPath.lastIndexOf(path.sep) + 1);
+        this.el.nativeElement.value = keyPath.substring(keyPath.lastIndexOf('/') + 1);
       } else {
 
       }
