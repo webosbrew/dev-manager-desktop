@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::io::{Read, Write};
 use std::sync::Arc;
 
@@ -105,6 +106,11 @@ struct ProcCallbackImpl<R: Runtime> {
     channel: Arc<EventChannel<R, ProcEventHandler>>,
 }
 
+#[derive(Deserialize)]
+struct TxPayload {
+    data: Option<Vec<u8>>,
+}
+
 impl<R: Runtime> ProcCallback for ProcCallbackImpl<R> {
     fn rx(&self, fd: u32, data: &[u8]) {
         self.channel.rx(ProcData {
@@ -116,8 +122,16 @@ impl<R: Runtime> ProcCallback for ProcCallbackImpl<R> {
 
 impl EventHandler for ProcEventHandler {
     fn tx(&self, payload: Option<&str>) {
-        if let Some(payload) = payload {
-            self.proc.write(Vec::from(payload.as_bytes())).unwrap_or(());
+        let data = payload
+            .map(|p| {
+                serde_json::from_str::<TxPayload>(p)
+                    .map(|t| t.data)
+                    .ok()
+                    .flatten()
+            })
+            .flatten();
+        if let Some(data) = data {
+            self.proc.write(data).unwrap_or(());
         } else if !self.proc.is_ready() {
             self.proc.notify_ready();
         } else {

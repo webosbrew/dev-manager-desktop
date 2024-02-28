@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use libssh_rs::SshKey;
-use tokio::fs::{remove_file, File};
+use tokio::fs::{File, remove_file};
 use tokio::io::AsyncWriteExt;
 
 use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
@@ -130,6 +130,7 @@ impl DeviceManager {
         };
     }
 }
+
 impl GetSshDir for DeviceManager {
     fn get_ssh_dir(&self) -> Option<PathBuf> {
         return self.ssh_dir.lock().unwrap().clone();

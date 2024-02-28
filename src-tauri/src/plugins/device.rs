@@ -1,8 +1,8 @@
+use tauri::{AppHandle, State};
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Runtime,
 };
-use tauri::{AppHandle, State};
 
 use crate::device_manager::{Device, DeviceManager};
 use crate::error::Error;

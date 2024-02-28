@@ -7,15 +7,14 @@ import {KeyserverHintComponent} from '../keyserver-hint/keyserver-hint.component
 import {NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../../types";
 import {noop, Observable, of} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
-import {open as showOpenDialog} from '@tauri-apps/api/dialog';
-import {homeDir} from '@tauri-apps/api/path';
-import {path} from "@tauri-apps/api";
+import {open as showOpenDialog} from '@tauri-apps/plugin-dialog';
 import {BackendError} from "../../core/services/backend-client";
 import {KeyPassphrasePromptComponent} from "./key-passphrase-prompt/key-passphrase-prompt.component";
 import {SshPrivkeyHintComponent} from "./ssh-privkey-hint/ssh-privkey-hint.component";
 import {DevmodePassphraseHintComponent} from "./devmode-passphrase-hint/devmode-passphrase-hint.component";
 import {SshPasswordHintComponent} from "./ssh-password-hint/ssh-password-hint.component";
 import {RetryFailedComponent} from "../retry-failed/retry-failed.component";
+import {homeDir, join} from "@tauri-apps/api/path";
 
 @Component({
     selector: 'app-device-editor',
@@ -246,10 +245,11 @@ export class DeviceEditorComponent implements OnInit {
     }
 
     async chooseSshPrivKey(): Promise<void> {
-        const sshDir = await path.join(await homeDir(), '.ssh');
+        const sshDir = await join(await homeDir(), '.ssh');
         const file = await showOpenDialog({
+            multiple: false,
             defaultPath: sshDir,
-        });
+        }).then(result => result?.path);
         if (typeof (file) !== 'string' || !file) {
             return;
         }

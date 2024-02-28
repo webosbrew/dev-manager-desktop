@@ -17,7 +17,7 @@ import {RenewScriptComponent} from './renew-script/renew-script.component';
 import {HomebrewChannelConfiguration} from "../types/luna-apis";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {RemoteFileService} from "../core/services/remote-file.service";
-import {open as openPath} from "@tauri-apps/api/shell";
+import {open as openPath} from "@tauri-apps/plugin-shell";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 
 @Component({

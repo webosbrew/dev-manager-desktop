@@ -1,0 +1,21 @@
+{
+  "identifier": "app-caps",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "event:default",
+    "webview:default",
+    "path:default",
+    "fs:default",
+    "shell:allow-open",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "device-manager:default",
+    "remote-command:default",
+    "remote-shell:default",
+    "remote-file:default",
+    "dev-mode:default",
+    "local-file:default"
+  ]
+}

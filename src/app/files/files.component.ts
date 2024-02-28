@@ -5,8 +5,8 @@ import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
-import {open as openPath} from '@tauri-apps/api/shell';
-import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/api/dialog';
+import {open as openPath} from '@tauri-apps/plugin-shell';
+import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/plugin-dialog';
 import * as path from "path";
 import {RemoteCommandService} from "../core/services/remote-command.service";
 import {trimEnd} from "lodash-es";
@@ -298,11 +298,11 @@ export class FilesComponent implements OnInit, OnDestroy {
         const returnValue = await showOpenDialog({
             multiple: true,
             defaultPath: await downloadDir(),
-        });
+        }).then(resp => resp?.map(v => v.path));
         if (!returnValue) return;
         const progress = ProgressDialogComponent.open(this.modalService);
         try {
-            await this.session!.uploadBatch(Array.isArray(returnValue) ? returnValue : [returnValue], cwd,
+            await this.session!.uploadBatch(returnValue, cwd,
                 async (name, e): Promise<boolean> => {
                     const result = await MessageDialogComponent.open(this.modalService, {
                         title: `Failed to upload file ${name}`,
