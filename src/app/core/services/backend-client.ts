@@ -1,5 +1,5 @@
-import {invoke} from '@tauri-apps/api/tauri';
 import {Event, listen} from "@tauri-apps/api/event";
+import {invoke} from '@tauri-apps/api/core';
 import {NgZone} from '@angular/core';
 import {omit} from "lodash-es";
 import {noop} from "rxjs";

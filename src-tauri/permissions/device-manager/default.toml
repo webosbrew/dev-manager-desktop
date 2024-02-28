@@ -1,0 +1,11 @@
+[default]
+description = "Default permissions for the plugin"
+permissions = [
+  "allow-list",
+  "allow-set-default",
+  "allow-add",
+  "allow-remove",
+  "allow-novacom-getkey",
+  "allow-localkey-verify",
+  "allow-privkey-read"
+]

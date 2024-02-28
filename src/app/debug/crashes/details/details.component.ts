@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 import {CrashReport} from "../../../core/services";
 import {firstValueFrom} from "rxjs";
-import {save as showSaveDialog} from "@tauri-apps/api/dialog";
+import {save as showSaveDialog} from "@tauri-apps/plugin-dialog";
 import {ProgressDialogComponent} from "../../../shared/components/progress-dialog/progress-dialog.component";
-import {writeTextFile} from "@tauri-apps/api/fs";
+import {writeTextFile} from "@tauri-apps/plugin-fs";
 import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({

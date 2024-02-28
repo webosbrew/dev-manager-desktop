@@ -151,8 +151,8 @@ export class CommandSubject<T = Buffer | string> extends ReplaySubject<CommandDa
         this.channel.unlisten().catch(noop);
     }
 
-    async write(data?: string | Uint8Array): Promise<void> {
-        await this.channel.send(data);
+    async write(data?: Uint8Array): Promise<void> {
+        await this.channel.send({data});
     }
 
 }

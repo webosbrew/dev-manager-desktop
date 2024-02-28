@@ -6,7 +6,7 @@ import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/s
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {keyBy} from 'lodash';
-import {open as showOpenDialog} from '@tauri-apps/api/dialog';
+import {open as showOpenDialog} from '@tauri-apps/plugin-dialog';
 import {basename, downloadDir} from "@tauri-apps/api/path";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 import {HbchannelRemoveComponent} from "./hbchannel-remove/hbchannel-remove.component";
@@ -75,8 +75,9 @@ export class AppsComponent implements OnInit, OnDestroy {
         if (!this.device) return;
         const path = await showOpenDialog({
             filters: [{name: 'IPK package', extensions: ['ipk']}],
+            multiple: false,
             defaultPath: await downloadDir(),
-        }).then((result) => Array.isArray(result) ? result[0] : result);
+        }).then(result => result?.path);
         if (!path) {
             return;
         }
