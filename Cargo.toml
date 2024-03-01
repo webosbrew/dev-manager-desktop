@@ -3,3 +3,7 @@ resolver = "2"
 members = [
   "src-tauri"
 ]
+
+[patch.crates-io]
+libssh-rs-sys = { git = "https://github.com/mariotaku/libssh-rs.git", rev = "3552a60b" }
+cc = { git = "https://github.com/mariotaku/cc-rs.git", rev = "8d00324f" }

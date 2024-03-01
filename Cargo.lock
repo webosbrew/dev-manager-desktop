@@ -537,12 +537,8 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.83"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1174fb0b6ec23863f8b971027804a42614e347eafb0a95bf0b12cdae21fc4d0"
-dependencies = [
- "libc",
-]
+version = "1.0.88"
+source = "git+https://github.com/mariotaku/cc-rs.git?rev=8d00324f#8d00324f2257e540d3f9552b9e3ffe39388bfcd2"
 
 [[package]]
 name = "cesu8"
@@ -925,7 +921,7 @@ checksum = "4ebda144c4fe02d1f7ea1a7d9641b6fc6b580adcfa024ae48797ecdeb6825b4d"
 dependencies = [
  "libc",
  "redox_users",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -952,7 +948,7 @@ dependencies = [
  "dlopen2_derive",
  "libc",
  "once_cell",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -1581,7 +1577,7 @@ dependencies = [
  "gobject-sys 0.16.3",
  "libc",
  "system-deps",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -1594,7 +1590,7 @@ dependencies = [
  "gobject-sys 0.18.0",
  "libc",
  "system-deps",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -2102,7 +2098,7 @@ dependencies = [
  "jni-sys",
  "log",
  "thiserror",
- "walkdir 2.4.0",
+ "walkdir",
  "windows-sys 0.45.0",
 ]
 
@@ -2131,16 +2127,6 @@ dependencies = [
  "serde_json",
  "thiserror",
  "treediff",
-]
-
-[[package]]
-name = "kernel32-sys"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
-dependencies = [
- "winapi 0.2.8",
- "winapi-build",
 ]
 
 [[package]]
@@ -2210,7 +2196,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b67380fd3b2fbe7527a606e18729d21c6f3951633d0500574c4dc22d2d638b9f"
 dependencies = [
  "cfg-if",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -2249,8 +2235,7 @@ dependencies = [
 [[package]]
 name = "libssh-rs-sys"
 version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3af07827858d82a7b74d6f935ad4201ff764fb1de8efcc26aeaa33e5f9c89ca2"
+source = "git+https://github.com/mariotaku/libssh-rs.git?rev=3552a60b#3552a60bfb4fd33d8ef3aeae076a97ab480ebcf0"
 dependencies = [
  "cc",
  "libz-sys",
@@ -2461,7 +2446,7 @@ dependencies = [
  "versions",
  "wfd",
  "which",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -2563,7 +2548,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77a8165726e8236064dbb45459242600304b42a5ea24ee2948e18e023bf7ba84"
 dependencies = [
  "overload",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -2673,9 +2658,9 @@ dependencies = [
 
 [[package]]
 name = "openssl"
-version = "0.10.63"
+version = "0.10.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15c9d69dd87a29568d4d017cfe8ec518706046a05184e5aea92d0af890b803c8"
+checksum = "95a0481286a310808298130d22dd1fef0fa571e05a8f44ec801801e84b216b1f"
 dependencies = [
  "bitflags 2.4.2",
  "cfg-if",
@@ -2714,9 +2699,9 @@ dependencies = [
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.99"
+version = "0.9.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22e1bf214306098e4832460f797824c05d25aacdf896f64a985fb0fd992454ae"
+checksum = "dda2b0f344e78efc2facf7d195d098df0dd72151b26ab98da807afc26c198dff"
 dependencies = [
  "cc",
  "libc",
@@ -3419,16 +3404,6 @@ checksum = "ef703b7cb59335eae2eb93ceb664c0eb7ea6bf567079d843e09420219668e072"
 
 [[package]]
 name = "same-file"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d931a44fdaa43b8637009e7632a02adc4f2b2e0733c08caa4cf00e8da4a117a7"
-dependencies = [
- "kernel32-sys",
- "winapi 0.2.8",
-]
-
-[[package]]
-name = "same-file"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
@@ -3730,7 +3705,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0d94659ad3c2137fef23ae75b03d5241d633f8acded53d672decfa0e6e0caef"
 dependencies = [
  "libc",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -4021,9 +3996,9 @@ checksum = "69758bda2e78f098e4ccb393021a0963bb3442eac05f135c30f61b7370bbafae"
 
 [[package]]
 name = "tauri"
-version = "2.0.0-beta.7"
+version = "2.0.0-beta.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37ff52a838cb7c37ae344399a51eddb2669817142150a53dd47fe5c9c8f74daf"
+checksum = "b2bd3d5ccf5316833c0f71c645c25585bddf997a16bea652bf3eab8114273cff"
 dependencies = [
  "anyhow",
  "bytes",
@@ -4069,9 +4044,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-build"
-version = "2.0.0-beta.5"
+version = "2.0.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fcbbc1a1b4d71d6f4084cb292f77e46b26b8bdb6a8fd7783d2059bf41dcc9e0"
+checksum = "3ca30dbed856449b41abed13a5a46655ea2196075e09e99e22fe8ed0958b6aee"
 dependencies = [
  "anyhow",
  "cargo_toml",
@@ -4088,14 +4063,14 @@ dependencies = [
  "tauri-utils",
  "tauri-winres",
  "toml 0.8.2",
- "walkdir 2.4.0",
+ "walkdir",
 ]
 
 [[package]]
 name = "tauri-codegen"
-version = "2.0.0-beta.5"
+version = "2.0.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28990f57cb70a6c884810d22bfcf121ac04482b47c58f32487ec3f8f0746ee36"
+checksum = "bf4ed45a0d2a1723ef4ea71d1aa5809c4a8bcaa92de77f6c9a8f4d4f28c5d86a"
 dependencies = [
  "base64",
  "brotli",
@@ -4115,14 +4090,14 @@ dependencies = [
  "time",
  "url",
  "uuid",
- "walkdir 2.4.0",
+ "walkdir",
 ]
 
 [[package]]
 name = "tauri-macros"
-version = "2.0.0-beta.5"
+version = "2.0.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c565fb3e1817401f4c90bc82c70184dbd65f11c01cc8d538c7d04b49245266c"
+checksum = "d0a75661fb86b350141e78ad54ce9c60346149afc5cbf41de2ca60a1ebc252b3"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -4134,9 +4109,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin"
-version = "2.0.0-beta.5"
+version = "2.0.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5f58cf6b5e57a00edcec44ba0a54239a6a826ba068e4c931bf7f0f6014adbbc"
+checksum = "e9530f0f0d809e77ff9a93da5ff2483faf8fef2cb8ed125ca7b0172cb92685d4"
 dependencies = [
  "anyhow",
  "glob",
@@ -4146,7 +4121,7 @@ dependencies = [
  "serde_json",
  "tauri-utils",
  "toml 0.8.2",
- "walkdir 1.0.7",
+ "walkdir",
 ]
 
 [[package]]
@@ -4223,9 +4198,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime"
-version = "2.0.0-beta.5"
+version = "2.0.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d265cd2e7b319030ac9386a8bf711f8da3da292eef2a8f478a44df2042660dfd"
+checksum = "0381b4b96e1f4f39a24ca6472c9b016151b103a54b1425233007fdbc26cf20a8"
 dependencies = [
  "gtk",
  "http",
@@ -4241,9 +4216,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime-wry"
-version = "2.0.0-beta.5"
+version = "2.0.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f428ea2dedaf129bbb72e5b2aaf7f44e541b46d5a67c8bdcbbe4f85f59b2e428"
+checksum = "4eef6a8373c9936b33a58c1bdbdd76fe4603d00ebe72304c0777bf0674e455aa"
 dependencies = [
  "cocoa",
  "gtk",
@@ -4264,9 +4239,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-utils"
-version = "2.0.0-beta.5"
+version = "2.0.0-beta.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66ed6c646be32b5e9df6f1380352f1ecdd720b149b35f53ba0bfc60b065b1e29"
+checksum = "92e35e2f9a5ee8539d00dde621f176647747736a388a07c3083a0cc1b96ba6d7"
 dependencies = [
  "brotli",
  "cargo_metadata",
@@ -4292,7 +4267,7 @@ dependencies = [
  "thiserror",
  "toml 0.8.2",
  "url",
- "walkdir 2.4.0",
+ "walkdir",
 ]
 
 [[package]]
@@ -4638,7 +4613,7 @@ checksum = "89daebc3e6fd160ac4aa9fc8b3bf71e1f74fbf92367ae71fb83a037e8bf164b9"
 dependencies = [
  "memoffset",
  "tempfile",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -4803,22 +4778,11 @@ dependencies = [
 
 [[package]]
 name = "walkdir"
-version = "1.0.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb08f9e670fab86099470b97cd2b252d6527f0b3cc1401acdb595ffc9dd288ff"
-dependencies = [
- "kernel32-sys",
- "same-file 0.1.3",
- "winapi 0.2.8",
-]
-
-[[package]]
-name = "walkdir"
 version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d71d857dc86794ca4c280d616f7da00d2dbfd8cd788846559a6813e6aa4b54ee"
 dependencies = [
- "same-file 1.0.6",
+ "same-file",
  "winapi-util",
 ]
 
@@ -5068,7 +5032,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e713040b67aae5bf1a0ae3e1ebba8cc29ab2b90da9aa1bff6e09031a8a41d7a8"
 dependencies = [
  "libc",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -5085,12 +5049,6 @@ dependencies = [
 
 [[package]]
 name = "winapi"
-version = "0.2.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
-
-[[package]]
-name = "winapi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419"
@@ -5098,12 +5056,6 @@ dependencies = [
  "winapi-i686-pc-windows-gnu",
  "winapi-x86_64-pc-windows-gnu",
 ]
-
-[[package]]
-name = "winapi-build"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
 
 [[package]]
 name = "winapi-i686-pc-windows-gnu"
@@ -5117,7 +5069,7 @@ version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f29e6f9198ba0d26b4c9f07dbe6f9ed633e1f3d5b8b414090084349e46a52596"
 dependencies = [
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
@@ -5521,7 +5473,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2769203cd13a0c6015d515be729c526d041e9cf2c0cc478d57faee85f40c6dcd"
 dependencies = [
  "nix 0.26.4",
- "winapi 0.3.9",
+ "winapi",
 ]
 
 [[package]]
