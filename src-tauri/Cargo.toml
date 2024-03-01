@@ -16,8 +16,8 @@ name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-beta.5", features = ["codegen"] }
-tauri-plugin = { version = "2.0.0-beta.5", features = ["build"] }
+tauri-build = { version = "2.0.0-beta.6", features = ["codegen"] }
+tauri-plugin = { version = "2.0.0-beta.6", features = ["build"] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -48,7 +48,7 @@ regex = "1.10.3"
 libc = "0.2.153"
 
 [dependencies.tauri]
-version = "2.0.0-beta.7"
+version = "2.0.0-beta.8"
 default-features = false
 features = ["wry"]
 
@@ -62,7 +62,7 @@ features = ["windows_dpi_awareness", "windows_visual_styles"]
 optional = true
 
 [dependencies.openssl]
-version = "0.10.63"
+version = "0.10.64"
 
 [dependencies.tauri-plugin-single-instance]
 version = "2.0.0-beta.2"
