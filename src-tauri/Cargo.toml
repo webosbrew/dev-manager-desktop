@@ -16,8 +16,8 @@ name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-beta.6", features = ["codegen"] }
-tauri-plugin = { version = "2.0.0-beta.6", features = ["build"] }
+tauri-build = { version = "2.0.0-beta.8", features = ["codegen"] }
+tauri-plugin = { version = "2.0.0-beta.8", features = ["build"] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -41,14 +41,14 @@ pathdiff = "0.2.1"
 libssh-rs = { version = "0.2.2", features = ["vendored"] }
 libssh-rs-sys = "0.2.2"
 flate2 = "1.0"
-tauri-plugin-shell = "2.0.0-beta.1"
-tauri-plugin-dialog = "2.0.0-beta.1"
-tauri-plugin-fs = "2.0.0-beta.1"
+tauri-plugin-shell = "2.0.0-beta.2"
+tauri-plugin-dialog = "2.0.0-beta.2"
+tauri-plugin-fs = "2.0.0-beta.2"
 regex = "1.10.3"
 libc = "0.2.153"
 
 [dependencies.tauri]
-version = "2.0.0-beta.8"
+version = "2.0.0-beta.10"
 default-features = false
 features = ["wry"]
 
@@ -65,7 +65,7 @@ optional = true
 version = "0.10.64"
 
 [dependencies.tauri-plugin-single-instance]
-version = "2.0.0-beta.2"
+version = "2.0.0-beta.3"
 optional = true
 
 [features]
