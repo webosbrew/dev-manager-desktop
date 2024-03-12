@@ -8,7 +8,7 @@ use regex::Regex;
 use reqwest::StatusCode;
 use serde::{Serialize, Serializer};
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(tag = "reason")]
 pub enum Error {
     Authorization {

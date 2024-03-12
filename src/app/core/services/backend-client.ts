@@ -16,12 +16,21 @@ export abstract class BackendClient {
             console.debug('invoke', call, args);
             invoke(cmd, args)
                 .then((result: unknown) => {
-                    console.debug('invoke', call, 'result', result);
+                    console.debug('invoke', call, 'result', typeof result, result);
                     this.zone.run(() => resolve(result as any));
                 })
                 .catch((reason: unknown) => {
-                    console.warn('invoke', call, 'error', reason);
-                    this.zone.run(() => reject(BackendClient.toBackendError(reason, call)));
+                    console.warn('invoke', call, 'error', typeof reason, reason);
+                    this.zone.run(() => {
+                        if (typeof reason === 'string' && reason.startsWith('{')) {
+                            try {
+                                reason = JSON.parse(reason);
+                            } catch (e) {
+                                reason = new Error(reason as string);
+                            }
+                        }
+                        reject(BackendClient.toBackendError(reason, call));
+                    });
                 });
         });
     }

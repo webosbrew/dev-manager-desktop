@@ -28,11 +28,23 @@ Sentry.init({
         return null;
     },
     beforeSend: (event) => {
-        console.log('beforeSend', event);
         if (!event.exception) {
             return null;
         }
-        const unhandled = event.exception.values?.filter(e => e.mechanism?.handled !== true);
+        const unhandled = event.exception.values?.filter(e => {
+            if (e.mechanism?.handled) {
+                return false;
+            }
+            if (e.value?.startsWith('{')) {
+                try {
+                    const o = JSON.parse(e.value);
+                    return o['unhandled'] === true;
+                } catch {
+                    return false;
+                }
+            }
+            return true;
+        });
         if (!unhandled?.length) {
             return null;
         }
