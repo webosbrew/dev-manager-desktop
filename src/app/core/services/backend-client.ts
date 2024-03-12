@@ -48,6 +48,7 @@ export abstract class BackendClient {
 export interface BackendErrorBody {
     reason: ErrorReason,
     message?: string,
+    unhandled?: boolean,
 
     [key: string]: unknown;
 }

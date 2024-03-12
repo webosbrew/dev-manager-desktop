@@ -4,14 +4,14 @@ use std::io::{copy, Read, Write};
 use std::path::Path;
 
 use flate2::read::GzDecoder;
-use tauri::{AppHandle, Manager, Runtime};
 use tauri::plugin::{Builder, TauriPlugin};
+use tauri::{AppHandle, Manager, Runtime};
 use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::remote_files::{FileItem, PermInfo};
 use crate::remote_files::serve;
+use crate::remote_files::{FileItem, PermInfo};
 use crate::session_manager::SessionManager;
 
 #[tauri::command]
@@ -129,11 +129,16 @@ async fn put<R: Runtime>(
                 .map_err(|e| {
                     let e: Error = e.into();
                     return match e {
-                        Error::IO { code, message } => Error::IO {
+                        Error::IO {
+                            code,
+                            message,
+                            unhandled,
+                        } => Error::IO {
                             code,
                             message: format!(
                                 "Failed to open remote file {path} for writing: {message}"
                             ),
+                            unhandled,
                         },
                         e => e,
                     };
@@ -141,6 +146,7 @@ async fn put<R: Runtime>(
             let mut file = File::open(source.clone()).map_err(|e| Error::IO {
                 code: e.kind(),
                 message: format!("Failed to open local file {source} for uploading: {e:?}"),
+                unhandled: true,
             })?;
             copy(&mut file, &mut sfile)?;
             return Ok(());
