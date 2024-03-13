@@ -72,7 +72,7 @@ impl HandleError<Error> for DeviceConnectionErrorHandler {
     }
 
     fn can_retry(&self, error: &Error, num_retries: u32) -> bool {
-        if *error == Error::Timeout {
+        if *error == Error::Disconnected {
             return num_retries < 3;
         }
         return false;
