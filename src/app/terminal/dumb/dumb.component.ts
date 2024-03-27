@@ -86,6 +86,7 @@ export class DumbComponent implements OnInit, AfterViewInit, OnDestroy, ITermina
     setTimeout(() => {
       const container = this.container.nativeElement;
       container.scrollTop = container.scrollHeight;
+      this.focus();
     }, 10);
   }
 
