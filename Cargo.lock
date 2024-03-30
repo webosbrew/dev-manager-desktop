@@ -2416,9 +2416,9 @@ dependencies = [
 
 [[package]]
 name = "muda"
-version = "0.11.5"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c47e7625990fc1af2226ea4f34fb2412b03c12639fcb91868581eb3a6893453"
+checksum = "a40c16e25abca53b401d2972e8ad344820e318cf7e00ea8a951a5ca265590295"
 dependencies = [
  "cocoa",
  "crossbeam-channel",
@@ -4006,9 +4006,8 @@ checksum = "e1fc403891a21bcfb7c37834ba66a547a8f402146eba7265b5a6d88059c9ff2f"
 
 [[package]]
 name = "tauri"
-version = "2.0.0-beta.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4c18889ceb808488d2a3b2707efaaf8b4d0ecb04a4014b2eaad97030d51b4e8"
+version = "2.0.0-beta.13"
+source = "git+https://github.com/mariotaku/tauri.git?branch=devman#e48b64ff072de770846076e06c95709fdb642f68"
 dependencies = [
  "anyhow",
  "bytes",
@@ -4040,7 +4039,7 @@ dependencies = [
  "tauri-macros",
  "tauri-runtime",
  "tauri-runtime-wry",
- "tauri-utils",
+ "tauri-utils 2.0.0-beta.10 (git+https://github.com/mariotaku/tauri.git?branch=devman)",
  "thiserror",
  "tokio",
  "tray-icon",
@@ -4054,9 +4053,8 @@ dependencies = [
 
 [[package]]
 name = "tauri-build"
-version = "2.0.0-beta.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4671dc132fefbcd7d17c4019679abc190717216818dee608a4990418ad66f335"
+version = "2.0.0-beta.10"
+source = "git+https://github.com/mariotaku/tauri.git?branch=devman#e48b64ff072de770846076e06c95709fdb642f68"
 dependencies = [
  "anyhow",
  "cargo_toml",
@@ -4070,7 +4068,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tauri-codegen",
- "tauri-utils",
+ "tauri-utils 2.0.0-beta.10 (git+https://github.com/mariotaku/tauri.git?branch=devman)",
  "tauri-winres",
  "toml 0.8.11",
  "walkdir",
@@ -4078,9 +4076,8 @@ dependencies = [
 
 [[package]]
 name = "tauri-codegen"
-version = "2.0.0-beta.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "027be730d88694e46ccc4e3a17e17d53e697c1ef27b609d6f0df400b54e6766f"
+version = "2.0.0-beta.10"
+source = "git+https://github.com/mariotaku/tauri.git?branch=devman#e48b64ff072de770846076e06c95709fdb642f68"
 dependencies = [
  "base64 0.22.0",
  "brotli",
@@ -4095,7 +4092,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "syn 2.0.52",
- "tauri-utils",
+ "tauri-utils 2.0.0-beta.10 (git+https://github.com/mariotaku/tauri.git?branch=devman)",
  "thiserror",
  "time",
  "url",
@@ -4105,23 +4102,22 @@ dependencies = [
 
 [[package]]
 name = "tauri-macros"
-version = "2.0.0-beta.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd7b6bbc2a8a739dc3fd351d864e9f42d83833afbd938f3a2c2d84f6d945dfcc"
+version = "2.0.0-beta.10"
+source = "git+https://github.com/mariotaku/tauri.git?branch=devman#e48b64ff072de770846076e06c95709fdb642f68"
 dependencies = [
  "heck",
  "proc-macro2",
  "quote",
  "syn 2.0.52",
  "tauri-codegen",
- "tauri-utils",
+ "tauri-utils 2.0.0-beta.10 (git+https://github.com/mariotaku/tauri.git?branch=devman)",
 ]
 
 [[package]]
 name = "tauri-plugin"
-version = "2.0.0-beta.9"
+version = "2.0.0-beta.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34f9dbdf508f32a6a7581a2757d2eb2187d8acd03984c7561e007824495da979"
+checksum = "233d4ed7ba51ff398831204ed6c8971b9565c91077e3fdef4711fe7b7715b23a"
 dependencies = [
  "anyhow",
  "glob",
@@ -4129,16 +4125,16 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
- "tauri-utils",
+ "tauri-utils 2.0.0-beta.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.8.11",
  "walkdir",
 ]
 
 [[package]]
 name = "tauri-plugin-dialog"
-version = "2.0.0-beta.2"
+version = "2.0.0-beta.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14c7894fb904ed003fd15915b263655672be4e4581298f7fa8916016e50010ed"
+checksum = "462456015607e4325d39dbb74e53f5a3cdcec3074b08ba8ce4936f7f936f8833"
 dependencies = [
  "glib 0.16.9",
  "log",
@@ -4154,9 +4150,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-fs"
-version = "2.0.0-beta.2"
+version = "2.0.0-beta.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d5d71f69535111078131380bcf2a4c2f190ef4d045a33d787a606e7d4fc6a786"
+checksum = "31961707e3be23c95f5fe39cb7688217e3c571a9a88aa9a03149b56bffd8036c"
 dependencies = [
  "anyhow",
  "glob",
@@ -4173,9 +4169,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-shell"
-version = "2.0.0-beta.2"
+version = "2.0.0-beta.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19e5c2d4187bc552d1be72081588c34187eb29e4c375cdfe99872f8d57b6aead"
+checksum = "5624537650f627707f3bd9c6562efe2116c7fb043fcfc2e3d10f802d7870a1cd"
 dependencies = [
  "encoding_rs",
  "log",
@@ -4193,9 +4189,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-single-instance"
-version = "2.0.0-beta.3"
+version = "2.0.0-beta.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71935cac98dffdaf038126e1198c40a2a3433466c6866f662c92ec6602f31b23"
+checksum = "391de079666b74089122099746e9ada7394a109831e3f97648470d40427b59f7"
 dependencies = [
  "log",
  "serde",
@@ -4208,9 +4204,8 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime"
-version = "2.0.0-beta.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52dd438ad0324372d2260e2b440f1df95a77c396dce0c0086383e7ab24d7cc6e"
+version = "2.0.0-beta.10"
+source = "git+https://github.com/mariotaku/tauri.git?branch=devman#e48b64ff072de770846076e06c95709fdb642f68"
 dependencies = [
  "gtk",
  "http",
@@ -4218,7 +4213,7 @@ dependencies = [
  "raw-window-handle 0.6.0",
  "serde",
  "serde_json",
- "tauri-utils",
+ "tauri-utils 2.0.0-beta.10 (git+https://github.com/mariotaku/tauri.git?branch=devman)",
  "thiserror",
  "url",
  "windows 0.52.0",
@@ -4226,9 +4221,8 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime-wry"
-version = "2.0.0-beta.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b38a6017dd8d457270785e740756280fa0139607b428e92e8d7f1f0799d1ca"
+version = "2.0.0-beta.10"
+source = "git+https://github.com/mariotaku/tauri.git?branch=devman#e48b64ff072de770846076e06c95709fdb642f68"
 dependencies = [
  "cocoa",
  "gtk",
@@ -4240,7 +4234,7 @@ dependencies = [
  "softbuffer",
  "tao",
  "tauri-runtime",
- "tauri-utils",
+ "tauri-utils 2.0.0-beta.10 (git+https://github.com/mariotaku/tauri.git?branch=devman)",
  "url",
  "webkit2gtk",
  "webview2-com",
@@ -4250,9 +4244,41 @@ dependencies = [
 
 [[package]]
 name = "tauri-utils"
-version = "2.0.0-beta.9"
+version = "2.0.0-beta.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ec939fd261ec3848b30027a236c0c5a9039d48fa729b4873bdc353a1f4afff1"
+checksum = "ef6a9ec42c3429fac6d46f4af147c765963a6fca18062dd73833032d812231af"
+dependencies = [
+ "cargo_metadata",
+ "ctor",
+ "dunce",
+ "glob",
+ "heck",
+ "html5ever",
+ "infer",
+ "json-patch",
+ "kuchikiki",
+ "log",
+ "memchr",
+ "phf 0.11.2",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "schemars",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "swift-rs",
+ "thiserror",
+ "toml 0.8.11",
+ "url",
+ "urlpattern",
+]
+
+[[package]]
+name = "tauri-utils"
+version = "2.0.0-beta.10"
+source = "git+https://github.com/mariotaku/tauri.git?branch=devman#e48b64ff072de770846076e06c95709fdb642f68"
 dependencies = [
  "brotli",
  "cargo_metadata",
@@ -4602,9 +4628,9 @@ dependencies = [
 
 [[package]]
 name = "tray-icon"
-version = "0.11.3"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a4d9ddd4a7c0f3b6862af1c4911b529a49db4ee89310d3a258859c2f5053fdd"
+checksum = "454035ff34b8430638c894e6197748578d6b4d449c6edaf8ea854d94e2dd862b"
 dependencies = [
  "cocoa",
  "core-graphics",
