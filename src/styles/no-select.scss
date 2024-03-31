@@ -16,6 +16,10 @@ button, a {
   ::before {
     cursor: pointer !important;
   }
+
+  * {
+    cursor: pointer !important;
+  }
 }
 
 /* disable image and anchor dragging */

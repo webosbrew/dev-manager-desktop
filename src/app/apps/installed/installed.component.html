@@ -2,36 +2,38 @@
   <div *ngIf="!installedError; else error">
     <ul class="list-group list-group-flush" *ngIf="(installed$ | async) as installed else loading">
       <li class="list-group-item app-item d-flex flex-row align-items-center"
+          (click)="repoPackages?.[pkg.id] && parent.openDetails(repoPackages![pkg.id])"
           *ngFor="let pkg of installed">
         <div class="app-desc flex-fill">
           <!--suppress AngularNgOptimizedImage -->
           <img class="app-icon" [src]="pkg.iconUri | trustUri" [alt]="pkg.title">
           <div class="app-headline ms-3">
-            <div class="app-title">{{pkg.title}}</div>
-            <div class="app-description">{{pkg.appDescription}}</div>
+            <div class="app-title">{{ pkg.title }}</div>
+            <div class="app-description">{{ pkg.appDescription }}</div>
           </div>
         </div>
         <ng-container *ngLet="repoPackages && repoPackages[pkg.id] as rpkg">
-          <span>{{pkg.version}}</span>
+          <span>{{ pkg.version }}</span>
           <span class="text-primary"
-                *ngIf="rpkg && rpkg.manifest?.hasUpdate(pkg.version)">&rsaquo;{{rpkg.manifest?.version}}</span>
+                *ngIf="rpkg && rpkg.manifest?.hasUpdate(pkg.version)">&rsaquo;{{ rpkg.manifest?.version }}</span>
           <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
-            <button class="btn btn-primary" (click)="parent.installPackage(rpkg)"
+            <button class="btn btn-primary" (click)="$event.stopPropagation(); parent.installPackage(rpkg)"
                     *ngIf="rpkg && rpkg.manifest?.hasUpdate(pkg.version) else noUpdate">
               <i class="bi bi-download me-2"></i>Update
             </button>
             <ng-template #noUpdate>
-              <button class="btn btn-primary" (click)="parent.launchApp(pkg.id)">
+              <button class="btn btn-primary" (click)="$event.stopPropagation(); parent.launchApp(pkg.id)">
                 <i class="bi bi-play-fill me-2"></i>Launch
               </button>
             </ng-template>
             <div class="btn-group" role="group" ngbDropdown container="body" display="dynamic">
-              <button class="btn btn-primary" ngbDropdownToggle>
+              <button class="btn btn-primary" ngbDropdownToggle (click)="$event.stopPropagation()">
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu" ngbDropdownMenu>
                 <ng-container *ngIf="rpkg">
-                  <li ngbDropdownItem *ngIf="rpkg.manifestBeta" (click)="parent.installPackage(rpkg, 'beta')">
+                  <li ngbDropdownItem *ngIf="rpkg.manifestBeta"
+                      (click)="$event.stopPropagation(); parent.installPackage(rpkg, 'beta')">
                     <i class="bi bi-download me-3"></i>Install Beta
                   </li>
                   <li ngbDropdownItem *ngIf="rpkg.manifest?.sourceUrl as url">
@@ -41,7 +43,8 @@
                   </li>
                   <li class="divider dropdown-divider"></li>
                 </ng-container>
-                <li ngbDropdownItem class="text-danger" (click)="parent.removePackage(pkg)">
+                <li ngbDropdownItem class="text-danger"
+                    (click)="$event.stopPropagation(); parent.removePackage(pkg)">
                   <i class="bi bi-trash me-3"></i>Uninstall
                 </li>
               </ul>

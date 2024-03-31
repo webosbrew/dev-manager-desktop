@@ -16,6 +16,10 @@
           <br>
           <strong>OTA ID: </strong><span class="user-select-text">{{ otaId }}</span>
         </ng-container>
+        <ng-container *ngIf="deviceInfo.socName as soc">
+          <br>
+          <strong>SoC: </strong><span class="user-select-text">{{ soc }}</span>
+        </ng-container>
       </p>
       <div class="btn-group" *ngIf="device.username === 'root'">
         <button class="btn btn-primary" (click)="takeScreenshot()">Take Screenshot

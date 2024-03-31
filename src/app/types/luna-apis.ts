@@ -8,6 +8,7 @@ export declare interface SystemInfo extends LunaResponse {
 }
 
 export declare interface OsInfo extends LunaResponse {
+    device_name: string;
     webos_manufacturing_version: string;
     webos_release: string;
 }

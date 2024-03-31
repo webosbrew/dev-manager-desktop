@@ -9,7 +9,7 @@ export class ExternalLinkDirective {
 
     @HostListener('click', ['$event'])
     onClick(e: Event): boolean {
-        const href = (e.target as HTMLAnchorElement)?.href;
+        const href = (e.currentTarget as HTMLAnchorElement)?.href;
         if (!href) {
             return false;
         }
