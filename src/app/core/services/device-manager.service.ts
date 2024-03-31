@@ -107,12 +107,12 @@ export class DeviceManagerService extends BackendClient {
         }, true);
     }
 
-    async getDeviceInfo(device: DeviceLike): Promise<Partial<DeviceInfo>> {
+    async getDeviceInfo(device: DeviceLike): Promise<DeviceInfo> {
         const systemInfo = await this.luna.call<SystemInfo>(device, 'luna://com.webos.service.tv.systemproperty/getSystemInfo', {
             keys: ['firmwareVersion', 'modelName', 'sdkVersion', 'otaId']
         }, true, false);
         const osInfo = await this.luna.call<Partial<OsInfo>>(device, 'luna://com.palm.systemservice/osInfo/query', {
-            parameters: ['webos_manufacturing_version', 'webos_release']
+            parameters: ['device_name', 'webos_manufacturing_version', 'webos_release']
         }).catch(() => null);
         return {
             modelName: systemInfo.modelName,
@@ -125,7 +125,9 @@ export class DeviceManagerService extends BackendClient {
                 }
                 return new URLSearchParams(ret.billingId).get('modelName') ?? undefined;
             }).catch(() => undefined),
-            firmwareVersion: systemInfo.firmwareVersion
+            firmwareVersion: systemInfo.firmwareVersion,
+            socName: osInfo?.device_name || await this.file.read(device, '/etc/prefs/properties/machineName',
+                undefined, 'utf-8').catch(() => undefined),
         };
     }
 
@@ -237,4 +239,5 @@ export interface DeviceInfo {
     osVersion?: string;
     otaId?: string;
     firmwareVersion: string;
+    socName?: string;
 }

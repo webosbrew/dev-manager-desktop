@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Observable, Subscription} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../types';
@@ -11,6 +11,7 @@ import {basename, downloadDir} from "@tauri-apps/api/path";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 import {HbchannelRemoveComponent} from "./hbchannel-remove/hbchannel-remove.component";
 import {StatStorageInfoComponent} from "../shared/components/stat-storage-info/stat-storage-info.component";
+import {DetailsComponent} from "./details/details.component";
 
 @Component({
     selector: 'app-apps',
@@ -136,7 +137,19 @@ export class AppsComponent implements OnInit, OnDestroy {
     }
 
     async installPackage(item: RepositoryItem, channel: 'stable' | 'beta' = 'stable'): Promise<void> {
-        if (!this.device) return;
+        const device = this.device;
+        if (!device) return;
+        const deviceInfo = await this.deviceManager.getDeviceInfo(device).catch(() => null);
+        const hbConfig = await this.deviceManager.getHbChannelConfig(device).catch(() => undefined);
+        const incompatible = deviceInfo && item.checkIncompatibility(deviceInfo, hbConfig);
+        if (incompatible) {
+            MessageDialogComponent.open(this.modalService, {
+                title: 'Incompatible App',
+                message: `App ${item.title} is not compatible with ${deviceInfo?.modelName ?? device.name}`,
+                positive: 'Close',
+            });
+            return;
+        }
         const manifest = channel === 'stable' ? item.manifest : item.manifestBeta;
         if (!manifest) {
             MessageDialogComponent.open(this.modalService, {
@@ -149,7 +162,7 @@ export class AppsComponent implements OnInit, OnDestroy {
         const progress = ProgressDialogComponent.open(this.modalService);
         const component = progress.componentInstance as ProgressDialogComponent;
         try {
-            await this.appManager.installByManifest(this.device, manifest, (progress, statusText) => {
+            await this.appManager.installByManifest(device, manifest, (progress, statusText) => {
                 component.progress = progress;
                 component.message = statusText;
             });
@@ -159,6 +172,21 @@ export class AppsComponent implements OnInit, OnDestroy {
         } finally {
             progress.close(true);
         }
+    }
+
+    openDetails(item: RepositoryItem): void {
+        const modalRef = this.modalService.open(DetailsComponent, {
+            size: 'lg',
+            scrollable: true,
+            injector: Injector.create({
+                providers: [
+                    {provide: RepositoryItem, useValue: item},
+                    {provide: 'device', useValue: this.device},
+                ],
+            }),
+        });
+        const component = modalRef.componentInstance as DetailsComponent;
+        component.parent = this;
     }
 
     private handleInstallationError(name: string, e: Error) {

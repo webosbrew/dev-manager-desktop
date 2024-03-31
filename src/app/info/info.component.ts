@@ -27,7 +27,7 @@ import {APP_ID_HBCHANNEL} from "../shared/constants";
 })
 export class InfoComponent {
     device: Device | null = null;
-    deviceInfo: Partial<DeviceInfo> | null = null;
+    deviceInfo: DeviceInfo | null = null;
     devModeInfo: DevModeStatus | null = null;
     homebrewAppInfo: RawPackageInfo | null = null;
     homebrewAppConfig: Partial<HomebrewChannelConfiguration> | null = null;

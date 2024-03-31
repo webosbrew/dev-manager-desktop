@@ -1,5 +1,5 @@
 import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import {CommonModule, NgOptimizedImage} from '@angular/common';
 
 import {AppsRoutingModule} from './apps-routing.module';
 import {AppsComponent} from "./apps.component";
@@ -26,6 +26,7 @@ import {HbchannelRemoveComponent} from './hbchannel-remove/hbchannel-remove.comp
         NgLetModule,
         NgbDropdownModule,
         NgbProgressbar,
+        NgOptimizedImage,
     ]
 })
 export class AppsModule {

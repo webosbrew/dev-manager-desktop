@@ -1,6 +1,6 @@
 import {Injectable, NgZone} from "@angular/core";
 import {BackendClient, BackendError} from "./backend-client";
-import {Device, FileItem} from "../../types";
+import {Device, DeviceLike, FileItem} from "../../types";
 import {Buffer} from "buffer";
 import {RemoteCommandService} from "./remote-command.service";
 import {finalize, firstValueFrom, lastValueFrom, Observable, Subject} from "rxjs";
@@ -24,10 +24,10 @@ export class RemoteFileService extends BackendClient {
         await this.cmd.exec(device, `xargs -0 rm ${recursive ? '-r' : ''}`, 'buffer', path);
     }
 
-    public async read(device: Device, path: string, encoding?: 'gzip', output?: 'buffer'): Promise<Buffer>;
-    public async read(device: Device, path: string, encoding?: 'gzip', output?: 'utf-8'): Promise<string>;
+    public async read(device: DeviceLike, path: string, encoding?: 'gzip', output?: 'buffer'): Promise<Buffer>;
+    public async read(device: DeviceLike, path: string, encoding?: 'gzip', output?: 'utf-8'): Promise<string>;
 
-    public async read(device: Device, path: string, encoding?: 'gzip', output?: 'buffer' | 'utf-8'): Promise<Buffer | string> {
+    public async read(device: DeviceLike, path: string, encoding?: 'gzip', output?: 'buffer' | 'utf-8'): Promise<Buffer | string> {
         const outputData = Buffer.from(await this.invoke<Buffer>('read', {device, path, encoding}));
         switch (output) {
             case 'utf-8':
