@@ -41,8 +41,15 @@
     "licenseFile": "../LICENSE",
     "linux": {
       "deb": {
+        "desktopTemplate": "./assets/app.desktop",
         "depends": [
           "zlib1g (>=1.2.11)"
+        ]
+      },
+      "rpm": {
+        "desktopTemplate": "./assets/app.desktop",
+        "depends": [
+          "zlib (>=1.2.11)"
         ]
       }
     },

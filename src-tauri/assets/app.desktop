@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=webOS Dev Manager
+{{#if comment}}
+Comment={{comment}}
+{{/if}}
+Exec={{exec}}
+Icon={{icon}}
+Terminal=false
+Categories={{categories}}
