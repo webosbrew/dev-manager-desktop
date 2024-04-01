@@ -27,7 +27,7 @@ Sentry.init({
     beforeSendTransaction: () => {
         return null;
     },
-    beforeSend: (event) => {
+    beforeSend: (event, hint) => {
         if (!event.exception) {
             return null;
         }
@@ -35,13 +35,9 @@ Sentry.init({
             if (e.mechanism?.handled) {
                 return false;
             }
-            if (e.value?.startsWith('{')) {
-                try {
-                    const o = JSON.parse(e.value);
-                    return o['unhandled'] === true;
-                } catch {
-                    return false;
-                }
+            const originalException: any = hint.originalException;
+            if (originalException && originalException['reason']) {
+                return originalException['unhandled'] === true;
             }
             return true;
         });
