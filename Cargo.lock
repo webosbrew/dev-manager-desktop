@@ -2158,8 +2158,7 @@ dependencies = [
 [[package]]
 name = "libssh-rs-sys"
 version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3af07827858d82a7b74d6f935ad4201ff764fb1de8efcc26aeaa33e5f9c89ca2"
+source = "git+https://github.com/wez/libssh-rs.git?rev=5c135f77#5c135f772f40be1575a9879c216ca91f1ff3ec32"
 dependencies = [
  "cc",
  "libz-sys",
@@ -3026,8 +3025,7 @@ dependencies = [
 [[package]]
 name = "r2d2"
 version = "0.8.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51de85fb3fb6524929c8a2eb85e6b6d363de4e8c48f9e2c2eac4944abc181c93"
+source = "git+https://github.com/mariotaku/r2d2.git?rev=aaa2a2ba#aaa2a2ba08582ad685ecdaaa74cc4ac47fe46efa"
 dependencies = [
  "log",
  "parking_lot",

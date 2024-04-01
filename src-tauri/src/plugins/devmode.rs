@@ -3,8 +3,8 @@ use std::io::Read;
 use regex::Regex;
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Manager, Runtime};
 use tauri::plugin::{Builder, TauriPlugin};
+use tauri::{AppHandle, Manager, Runtime};
 
 use crate::device_manager::Device;
 use crate::error::Error;
@@ -82,10 +82,16 @@ async fn valid_token<R: Runtime>(
     })
     .await
     .unwrap()?;
-    let token = String::from_utf8(data).map_err(|_| Error::IO {
-        code: std::io::ErrorKind::InvalidData,
-        message: format!("Can\'t read dev mode token"),
-    })?;
+    let token = match String::from_utf8(data) {
+        Ok(token) => token,
+        Err(e) => {
+            return Err(Error::IO {
+                code: std::io::ErrorKind::InvalidData,
+                message: format!("Can\'t read dev mode token: {:?}", e),
+                unhandled: true,
+            });
+        }
+    };
     let regex = Regex::new("^[0-9a-zA-Z]+$").unwrap();
     if !regex.is_match(&token) {
         log::warn!("Token `{}` doesn't look like a valid DevMode token", token);

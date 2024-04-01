@@ -70,6 +70,13 @@ impl HandleError<Error> for DeviceConnectionErrorHandler {
     fn handle_error(&self, error: Error) {
         *self.last_error.lock().unwrap() = Some(error);
     }
+
+    fn can_retry(&self, error: &Error, num_retries: u32) -> bool {
+        if *error == Error::Disconnected {
+            return num_retries < 3;
+        }
+        return false;
+    }
 }
 
 #[derive(Debug)]

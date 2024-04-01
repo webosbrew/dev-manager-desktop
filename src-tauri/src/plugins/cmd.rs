@@ -42,6 +42,7 @@ async fn exec<R: Runtime>(
                     command: command.clone(),
                     exit_code,
                     stderr,
+                    unhandled: true,
                 });
             }
             return Ok(buf);

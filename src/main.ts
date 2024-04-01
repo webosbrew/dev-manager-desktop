@@ -5,15 +5,13 @@ import {AppModule} from './app/app.module';
 import {AppConfig} from './environments/environment';
 import ReleaseInfo from './release.json';
 import * as Sentry from "@sentry/angular-ivy";
-import {defaultStackParser} from "@sentry/angular-ivy";
+import {browserTracingIntegration, defaultStackParser} from "@sentry/angular-ivy";
 
 Sentry.init({
     dsn: "https://93c623f5a47940f0b7bac7d0d5f6a91f@o4504977150377984.ingest.sentry.io/4504978685689856",
-    tracePropagationTargets: ["localhost", "https://tauri.localhost/"],
+    tracePropagationTargets: [],
     integrations: [
-        new Sentry.BrowserTracing({
-            routingInstrumentation: Sentry.routingInstrumentation,
-        })
+        browserTracingIntegration()
     ],
     enabled: !!ReleaseInfo.version,
     environment: AppConfig.environment,
@@ -33,7 +31,20 @@ Sentry.init({
         if (!event.exception) {
             return null;
         }
-        const unhandled = event.exception.values?.filter(e => e.mechanism?.handled !== true);
+        const unhandled = event.exception.values?.filter(e => {
+            if (e.mechanism?.handled) {
+                return false;
+            }
+            if (e.value?.startsWith('{')) {
+                try {
+                    const o = JSON.parse(e.value);
+                    return o['unhandled'] === true;
+                } catch {
+                    return false;
+                }
+            }
+            return true;
+        });
         if (!unhandled?.length) {
             return null;
         }
