@@ -22,11 +22,11 @@
                     *ngSwitchCase="false">
               <i class="bi bi-play-fill me-2"></i>Launch
             </button>
-            <button class="btn btn-primary ms-2 text-nowrap" (click)="parent?.installPackage(item)"
+            <button class="btn btn-primary ms-2 text-nowrap" (click)="installPackage(item)"
                     *ngSwitchCase="true">
               <i class="bi bi-download me-2"></i>Update
             </button>
-            <button class="btn btn-primary ms-2 text-nowrap" (click)="parent?.installPackage(item)" *ngSwitchDefault>
+            <button class="btn btn-primary ms-2 text-nowrap" (click)="installPackage(item)" *ngSwitchDefault>
               <i class="bi bi-download me-2"></i>Install
             </button>
           </ng-container>
@@ -36,7 +36,7 @@
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" ngbDropdownMenu>
-              <li ngbDropdownItem (click)="parent?.installPackage(item, 'beta')" *ngIf="item.manifestBeta">
+              <li ngbDropdownItem (click)="installPackage(item, 'beta')" *ngIf="item.manifestBeta">
                 <i class="bi bi-download me-3"></i>Install Beta
               </li>
               <a ngbDropdownItem *ngIf="manifest?.sourceUrl as url" [href]="url" appExternalLink>
@@ -44,7 +44,7 @@
               </a>
               <ng-container *ngIf="installed">
                 <li class="divider dropdown-divider"></li>
-                <li ngbDropdownItem class="text-danger" (click)="parent?.removePackage(installed)">
+                <li ngbDropdownItem class="text-danger" (click)="removePackage(installed)">
                   <i class="bi bi-trash me-3"></i>Uninstall
                 </li>
               </ng-container>
@@ -58,11 +58,13 @@
   <div class="alert alert-warning" role="alert" *ngIf="(incompatible$ | async) as reasons">
     <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ item.title }} is marked incompatible with your device.
     <hr>
-    <label *ngFor="let reason of reasons" [ngSwitch]="reason">
-      <ng-container *ngSwitchCase="'root'">This app requires root but your device is not rooted.</ng-container>
-      <ng-container *ngSwitchCase="'soc'">This app is not compatible with your device's SoC.</ng-container>
-      <ng-container *ngSwitchCase="'release'">This app is not compatible with your webOS version.</ng-container>
-    </label>
+    <ul class="mb-0">
+      <li *ngFor="let reason of reasons" [ngSwitch]="reason">
+        <ng-container *ngSwitchCase="'root'">This app requires root but your device is not rooted.</ng-container>
+        <ng-container *ngSwitchCase="'soc'">This app is not compatible with your device's SoC.</ng-container>
+        <ng-container *ngSwitchCase="'release'">This app is not compatible with your webOS version.</ng-container>
+      </li>
+    </ul>
   </div>
   <div class="full-description" [innerHtml]="fullDescriptionHtml$ | async" #fullDescription></div>
   <hr>

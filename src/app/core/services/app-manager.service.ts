@@ -1,17 +1,24 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, catchError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
-import {LunaResponse, LunaResponseError, LunaUnknownMethodError, RemoteLunaService} from "./remote-luna.service";
+import {
+    LunaResponse,
+    LunaResponseError,
+    LunaServiceNotFoundError,
+    LunaUnknownMethodError,
+    RemoteLunaService
+} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {filter, map} from "rxjs/operators";
 import * as path from "path";
 import {RemoteFileService, ServeInstance} from "./remote-file.service";
-import {PackageManifest} from "./apps-repo.service";
+import {IncompatibleReason, PackageManifest, RepositoryItem} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {LocalFileService} from "./local-file.service";
 import _ from "lodash-es";
 import {APP_ID_HBCHANNEL} from "../../shared/constants";
 import {DeviceManagerService} from "./device-manager.service";
+import {HomebrewChannelConfiguration} from "../../types/luna-apis";
 
 @Injectable({
     providedIn: 'root'
@@ -134,6 +141,18 @@ export class AppManagerService {
         await this.luna.call(device, 'luna://com.webos.applicationManager/launch', {
             id: appId, subscribe: false, params
         }, true);
+    }
+
+    async checkIncompatibility(device: Device, item: RepositoryItem): Promise<IncompatibleReason[] | null> {
+        return Promise.all([
+            this.deviceManager.getDeviceInfo(device).catch(() => undefined),
+            this.deviceManager.getHbChannelConfig(device).catch((e): Partial<HomebrewChannelConfiguration> | undefined => {
+                if (e instanceof LunaServiceNotFoundError) {
+                    return {root: false};
+                }
+                return undefined;
+            })
+        ]).then(([info, hbConfig]) => item.checkIncompatibility(info, hbConfig));
     }
 
     private obtainSubject(device: Device): Subject<PackageInfo[] | null> {

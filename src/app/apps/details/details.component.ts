@@ -60,19 +60,15 @@ export class DetailsComponent implements OnInit, OnDestroy {
         public item: RepositoryItem,
         @Inject('device') public device: Device,
         private appManager: AppManagerService,
-        private deviceManager: DeviceManagerService,
         private http: HttpClient,
         private renderer2: Renderer2
     ) {
         this.manifest = item.manifest!;
-        this.installedInfo$ = fromPromise(this.appManager.info(device, item.id));
-        this.incompatible$ = fromPromise(Promise.all([
-            this.deviceManager.getDeviceInfo(device).catch(() => undefined),
-            this.deviceManager.getHbChannelConfig(device).catch(() => undefined)
-        ]).then(([info, hbConfig]) => item.checkIncompatibility(info, hbConfig)));
+        this.incompatible$ = fromPromise(this.appManager.checkIncompatibility(device, item));
         this.fullDescriptionHtml$ = item.fullDescriptionUrl ? this.http.get(item.fullDescriptionUrl, {
             responseType: 'text'
         }) : of('');
+        this.reloadInstalledInfo();
     }
 
     ngOnInit(): void {
@@ -86,5 +82,17 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.unsubscribeClickListener();
+    }
+
+    installPackage(item: RepositoryItem, channel: 'stable' | 'beta' = 'stable') {
+        this.parent?.installPackage(item, channel).then((installed) => installed && this.reloadInstalledInfo());
+    }
+
+    removePackage(item: PackageInfo) {
+        this.parent?.removePackage(item).then((removed) => removed && this.reloadInstalledInfo());
+    }
+
+    private reloadInstalledInfo(): void {
+        this.installedInfo$ = fromPromise(this.appManager.info(this.device, this.item.id));
     }
 }
