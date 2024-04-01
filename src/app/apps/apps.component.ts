@@ -143,12 +143,17 @@ export class AppsComponent implements OnInit, OnDestroy {
         if (!device) return false;
         const incompatible = await this.appManager.checkIncompatibility(device, item);
         if (incompatible) {
-            MessageDialogComponent.open(this.modalService, {
+            const incompatibleConfirm = MessageDialogComponent.open(this.modalService, {
                 title: 'Incompatible App',
-                message: `App ${item.title} is marked not compatible with ${device.name}.`,
-                positive: 'Close',
+                message: `App ${item.title} is marked not compatible with ${device.name}. It may not work properly or not at all.`,
+                positive: 'Install Anyway',
+                positiveStyle: 'danger',
+                negative: 'Cancel',
+                autofocus: 'negative',
             });
-            return false;
+            if (!await incompatibleConfirm.result.catch(() => false)) {
+                return false;
+            }
         }
         const manifest = channel === 'stable' ? item.manifest : item.manifestBeta;
         if (!manifest) {
