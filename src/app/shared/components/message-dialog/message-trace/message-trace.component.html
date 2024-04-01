@@ -1,12 +1,12 @@
 <p>
-  {{message}}
-  <a href="#" (click)="collapse.toggle()" [attr.aria-expanded]="detailsExpanded" aria-controls="collapseExample">
+  {{ message }}
+  <a href="#" (click)="collapse.toggle()" [attr.aria-expanded]="!detailsCollapsed" aria-controls="collapseExample">
     Details
   </a>
 </p>
 
-<div #collapse="ngbCollapse" [(ngbCollapse)]="!detailsExpanded">
+<div #collapse="ngbCollapse" [(ngbCollapse)]="detailsCollapsed">
   <div class="card card-body">
-    {{error}}
+    {{ error }}
   </div>
 </div>

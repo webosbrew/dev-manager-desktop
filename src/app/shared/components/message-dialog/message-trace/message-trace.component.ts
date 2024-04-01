@@ -9,7 +9,7 @@ export class MessageTraceComponent {
 
   message: string = '';
   error: any;
-  detailsExpanded: boolean = false;
+  detailsCollapsed: boolean = true;
 
   constructor() {
   }
