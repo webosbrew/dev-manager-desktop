@@ -8,7 +8,7 @@ use regex::Regex;
 use reqwest::StatusCode;
 use serde::{Serialize, Serializer};
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(tag = "reason")]
 pub enum Error {
     Authorization {
@@ -22,11 +22,13 @@ pub enum Error {
         command: String,
         exit_code: i32,
         stderr: Vec<u8>,
+        unhandled: bool,
     },
     IO {
         #[serde(serialize_with = "as_debug_string")]
         code: ErrorKind,
         message: String,
+        unhandled: bool,
     },
     Message {
         message: String,
@@ -52,6 +54,7 @@ impl Error {
         return Error::IO {
             code: kind,
             message: kind.to_string(),
+            unhandled: false,
         };
     }
 }
@@ -78,6 +81,7 @@ impl From<std::io::Error> for Error {
         return Error::IO {
             code: value.kind(),
             message,
+            unhandled: true,
         };
     }
 }
@@ -97,7 +101,11 @@ impl From<reqwest::Error> for Error {
         } else if value.is_connect() {
             return Error::IO {
                 code: ErrorKind::ConnectionRefused,
-                message: format!("Connection refused by host"),
+                message: format!(
+                    "Connection refused by host {}",
+                    value.url().map(|u| u.host_str()).flatten().unwrap_or("")
+                ),
+                unhandled: false,
             };
         } else if let Some(status) = value.status() {
             return Error::IO {
@@ -110,11 +118,13 @@ impl From<reqwest::Error> for Error {
                     _ => ErrorKind::Other,
                 },
                 message: value.to_string(),
+                unhandled: false,
             };
         }
         return Error::IO {
             code: ErrorKind::Other,
             message: value.to_string(),
+            unhandled: true,
         };
     }
 }
@@ -127,7 +137,8 @@ impl From<SshError> for Error {
             },
             SshError::TryAgain => Error::IO {
                 code: ErrorKind::WouldBlock,
-                message: format!("Would block"),
+                message: "Would block".to_string(),
+                unhandled: true,
             },
             SshError::Fatal(s) => {
                 if let Some(socket_error) = s.strip_prefix("Socket error:") {
@@ -137,12 +148,14 @@ impl From<SshError> for Error {
                         Error::IO {
                             code: ErrorKind::Other,
                             message: String::from(socket_error),
+                            unhandled: false,
                         }
                     };
                 } else if s == "Connection refused" {
                     return Error::IO {
                         code: ErrorKind::ConnectionRefused,
-                        message: format!("Connection refused by host"),
+                        message: "Connection refused by host".to_string(),
+                        unhandled: false,
                     };
                 } else if s.starts_with("Timeout connecting to ") {
                     return Error::Timeout;
@@ -190,6 +203,7 @@ fn from_sftp_error_code(code: u32, message: String) -> Error {
         libssh_rs_sys::SSH_FX_WRITE_PROTECT => Error::IO {
             code: ErrorKind::Other,
             message: String::from("SSH_FX_WRITE_PROTECT"),
+            unhandled: true,
         },
         _ => Error::Message { message },
     };

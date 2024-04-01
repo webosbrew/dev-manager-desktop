@@ -45,6 +45,10 @@ export class InfoComponent {
     ) {
         deviceManager.selected$.subscribe((selected) => {
             this.device = selected;
+            this.deviceInfo = null;
+            this.devModeInfo = null;
+            this.homebrewAppInfo = null;
+            this.homebrewAppConfig = null;
             this.loadInfo();
         });
     }
