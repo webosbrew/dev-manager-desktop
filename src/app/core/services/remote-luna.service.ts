@@ -47,8 +47,12 @@ export class RemoteLunaService {
                 }
                 console.debug('remote-luna call', nonce, 'response', typed);
                 if (typed.returnValue === false) {
-                    if (typed['errorText']?.startsWith('Unknown method')) {
+                    const errorText: string | undefined = typed['errorText'];
+                    if (errorText?.startsWith('Unknown method')) {
                         throw new LunaUnknownMethodError(typed);
+                    }
+                    if (errorText?.startsWith('Service does not exist')) {
+                        throw new LunaServiceNotFoundError(typed);
                     }
                     if (falseAsError) {
                         throw new LunaResponseError(typed);
@@ -151,6 +155,12 @@ export class LunaResponseError extends Error {
 }
 
 export class LunaUnknownMethodError extends LunaResponseError {
+    constructor(payload: Record<string, any>) {
+        super(payload);
+    }
+}
+
+export class LunaServiceNotFoundError extends LunaResponseError {
     constructor(payload: Record<string, any>) {
         super(payload);
     }

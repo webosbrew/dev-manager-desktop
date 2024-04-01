@@ -100,55 +100,55 @@ export class AppsComponent implements OnInit, OnDestroy {
         this.appManager.launch(this.device, id).then(noop);
     }
 
-    async removePackage(pkg: RawPackageInfo): Promise<void> {
-        if (!this.device) return;
+    async removePackage(pkg: RawPackageInfo): Promise<boolean> {
+        if (!this.device) return false;
         const confirm = MessageDialogComponent.open(this.modalService, {
-            title: 'Remove App',
-            message: `Remove app \"${pkg.title}\"?`,
-            positive: 'Remove',
+            title: 'Uninstall App',
+            message: `Uninstall app \"${pkg.title}\"?`,
+            positive: 'Uninstall',
             positiveStyle: 'danger',
             negative: 'Cancel',
             autofocus: 'negative',
         });
-        if (!await confirm.result.catch(() => false)) return;
+        if (!await confirm.result.catch(() => false)) return false;
         if (pkg.id === APP_ID_HBCHANNEL) {
             const doubleConfirm = MessageDialogComponent.open(this.modalService, {
                 message: HbchannelRemoveComponent,
-                positive: 'Yes, remove Homebrew Channel',
+                positive: 'Yes, uninstall Homebrew Channel',
                 positiveStyle: 'danger',
                 negative: 'Cancel',
                 autofocus: 'negative',
             });
-            if (!await doubleConfirm.result.catch(() => false)) return;
+            if (!await doubleConfirm.result.catch(() => false)) return false;
         }
         const progress = ProgressDialogComponent.open(this.modalService);
         try {
             await this.appManager.remove(this.device, pkg.id);
             this.storageInfo?.refresh();
+            return true;
         } catch (e) {
             MessageDialogComponent.open(this.modalService, {
-                message: `Failed to remove ${pkg.title}`,
+                message: `Failed to uninstall ${pkg.title}`,
                 error: e as Error,
                 positive: 'Close'
             });
+            return false;
         } finally {
             progress.close(true);
         }
     }
 
-    async installPackage(item: RepositoryItem, channel: 'stable' | 'beta' = 'stable'): Promise<void> {
+    async installPackage(item: RepositoryItem, channel: 'stable' | 'beta' = 'stable'): Promise<boolean> {
         const device = this.device;
-        if (!device) return;
-        const deviceInfo = await this.deviceManager.getDeviceInfo(device).catch(() => null);
-        const hbConfig = await this.deviceManager.getHbChannelConfig(device).catch(() => undefined);
-        const incompatible = deviceInfo && item.checkIncompatibility(deviceInfo, hbConfig);
+        if (!device) return false;
+        const incompatible = await this.appManager.checkIncompatibility(device, item);
         if (incompatible) {
             MessageDialogComponent.open(this.modalService, {
                 title: 'Incompatible App',
-                message: `App ${item.title} is not compatible with ${deviceInfo?.modelName ?? device.name}`,
+                message: `App ${item.title} is marked not compatible with ${device.name}.`,
                 positive: 'Close',
             });
-            return;
+            return false;
         }
         const manifest = channel === 'stable' ? item.manifest : item.manifestBeta;
         if (!manifest) {
@@ -157,7 +157,7 @@ export class AppsComponent implements OnInit, OnDestroy {
                 message: `No manifest found for ${item.title} in channel ${channel}`,
                 positive: 'Close',
             });
-            return;
+            return false;
         }
         const progress = ProgressDialogComponent.open(this.modalService);
         const component = progress.componentInstance as ProgressDialogComponent;
@@ -167,8 +167,10 @@ export class AppsComponent implements OnInit, OnDestroy {
                 component.message = statusText;
             });
             this.storageInfo?.refresh();
+            return true;
         } catch (e: any) {
             this.handleInstallationError(item.title, e as Error);
+            return false;
         } finally {
             progress.close(true);
         }
