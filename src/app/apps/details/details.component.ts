@@ -1,23 +1,15 @@
 import {Component, ElementRef, Inject, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation} from '@angular/core';
-import {
-    AppManagerService,
-    DeviceInfo,
-    DeviceManagerService, IncompatibleReason,
-    PackageManifest,
-    RepositoryItem
-} from "../../core/services";
+import {AppManagerService, IncompatibleReason, PackageManifest, RepositoryItem} from "../../core/services";
 import {HttpClient} from "@angular/common/http";
 import {noop, Observable, of} from "rxjs";
 import {AsyncPipe, NgForOf, NgIf, NgOptimizedImage, NgSwitch, NgSwitchCase, NgSwitchDefault} from "@angular/common";
-import {open} from "@tauri-apps/api/shell";
+import {open as openPath} from "@tauri-apps/plugin-shell";
 import {NgLetModule} from "ng-let";
 import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle} from "@ng-bootstrap/ng-bootstrap";
 import {SharedModule} from "../../shared/shared.module";
 import {Device, PackageInfo} from "../../types";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
-import {map} from "rxjs/operators";
 import {AppsComponent} from "../apps.component";
-import {HomebrewChannelConfiguration} from "../../types/luna-apis";
 
 @Component({
     selector: 'app-channel-app-details',
@@ -75,7 +67,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
         this.unsubscribeClickListener = this.renderer2.listen(this.fullDescription.nativeElement, 'click', (event) => {
             if (event.target instanceof HTMLAnchorElement) {
                 event.preventDefault();
-                open(event.target.href).then(noop);
+                openPath(event.target.href).then(noop);
             }
         });
     }
