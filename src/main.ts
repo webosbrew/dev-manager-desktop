@@ -28,23 +28,12 @@ Sentry.init({
         return null;
     },
     beforeSend: (event, hint) => {
-        if (!event.exception) {
-            return null;
-        }
-        const unhandled = event.exception.values?.filter(e => {
-            if (e.mechanism?.handled) {
-                return false;
+        const originalException: any = hint.originalException;
+        if (originalException && originalException['reason']) {
+            if (originalException['unhandled'] !== true) {
+                return null;
             }
-            const originalException: any = hint.originalException;
-            if (originalException && originalException['reason']) {
-                return originalException['unhandled'] === true;
-            }
-            return true;
-        });
-        if (!unhandled?.length) {
-            return null;
         }
-        event.exception.values = unhandled;
         return event;
     },
     // Set tracesSampleRate to 1.0 to capture 100%
