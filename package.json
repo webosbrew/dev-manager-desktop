@@ -87,5 +87,10 @@
     "node-polyfill-webpack-plugin": "^2.0.1",
     "typescript": "^5.2.2",
     "webpack": "^5.88.2"
-  }
+  },
+  "browserslist": [
+    "chrome >= 91",
+    "safari >= 11",
+    "defaults"
+  ]
 }
