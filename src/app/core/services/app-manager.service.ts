@@ -91,9 +91,9 @@ export class AppManagerService {
                 await serve.interrupt();
             }
         } else {
-            const ipkPath = await this.tempDownloadIpk(device, localPath);
+            const ipkPath = await this.tempDownloadIpk(device, localPath, progress);
             try {
-                await this.devInstall(device, ipkPath);
+                await this.devInstall(device, ipkPath, progress);
             } finally {
                 await this.file.rm(device, ipkPath, false);
             }
@@ -116,8 +116,8 @@ export class AppManagerService {
                 }
             }
         }
-        const path = await this.tempDownloadIpk(device, new URL(manifest.ipkUrl));
-        await this.devInstall(device, path)
+        const path = await this.tempDownloadIpk(device, new URL(manifest.ipkUrl), progress);
+        await this.devInstall(device, path, progress)
             .then(() => this.load(device).catch(noop))
             .finally(() => this.file.rm(device, path, false));
     }
@@ -202,7 +202,7 @@ export class AppManagerService {
         return subject;
     }
 
-    private async tempDownloadIpk(device: Device, location: string | URL): Promise<string> {
+    private async tempDownloadIpk(device: Device, location: string | URL, progress?: InstallProgressHandler): Promise<string> {
         const targetPath = `/tmp/devman_dl_${Date.now()}.ipk`
         let localPath: string;
         let deleteLocal = false;
@@ -214,16 +214,18 @@ export class AppManagerService {
             default: {
                 localPath = await this.localFile.tempPath('.ipk');
                 deleteLocal = true;
+                progress?.(undefined, 'Downloading IPK to computer...');
                 await this.localFile.download(location.toString(), localPath);
                 break;
             }
         }
+        progress?.(undefined, 'Sending IPK to device...');
         await this.file.put(device, targetPath, localPath).finally(() =>
             deleteLocal && this.localFile.remove(localPath).catch(noop));
         return targetPath;
     }
 
-    private async devInstall(device: Device, path: string): Promise<void> {
+    private async devInstall(device: Device, path: string, progress?: InstallProgressHandler): Promise<void> {
         const luna = await this.luna.subscribe(device, 'luna://com.webos.appInstallService/dev/install', {
             id: 'com.ares.defaultName',
             ipkUrl: path,
