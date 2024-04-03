@@ -141,32 +141,41 @@ export class AppsComponent implements OnInit, OnDestroy {
     async installPackage(item: RepositoryItem, channel: 'stable' | 'beta' = 'stable'): Promise<boolean> {
         const device = this.device;
         if (!device) return false;
-        const incompatible = await this.appManager.checkIncompatibility(device, item);
-        if (incompatible) {
-            const incompatibleConfirm = MessageDialogComponent.open(this.modalService, {
-                title: 'Incompatible App',
-                message: `App ${item.title} is marked not compatible with ${device.name}. It may not work properly or not at all.`,
-                positive: 'Install Anyway',
-                positiveStyle: 'danger',
-                negative: 'Cancel',
-                autofocus: 'negative',
-            });
-            if (!await incompatibleConfirm.result.catch(() => false)) {
+        const progress = ProgressDialogComponent.open(this.modalService);
+        try {
+            const installLocation = await this.appManager.findInstallLocation(device, item.id).catch(() => null);
+            if (installLocation && installLocation !== 'developer') {
+                MessageDialogComponent.open(this.modalService, {
+                    title: `Cannot install ${item.title}`,
+                    message: `Another app with the same ID is already installed. If it was install by LG Content Store, you need to uninstall it first.`,
+                    positive: 'Close',
+                });
                 return false;
             }
-        }
-        const manifest = channel === 'stable' ? item.manifest : item.manifestBeta;
-        if (!manifest) {
-            MessageDialogComponent.open(this.modalService, {
-                title: `Failed to install ${item.title}`,
-                message: `No manifest found for ${item.title} in channel ${channel}`,
-                positive: 'Close',
-            });
-            return false;
-        }
-        const progress = ProgressDialogComponent.open(this.modalService);
-        const component = progress.componentInstance as ProgressDialogComponent;
-        try {
+            const incompatible = await this.appManager.checkIncompatibility(device, item);
+            if (incompatible) {
+                const incompatibleConfirm = MessageDialogComponent.open(this.modalService, {
+                    title: 'Incompatible App',
+                    message: `App ${item.title} is marked not compatible with ${device.name}. It may not work properly or not at all.`,
+                    positive: 'Install Anyway',
+                    positiveStyle: 'danger',
+                    negative: 'Cancel',
+                    autofocus: 'negative',
+                });
+                if (!await incompatibleConfirm.result.catch(() => false)) {
+                    return false;
+                }
+            }
+            const manifest = channel === 'stable' ? item.manifest : item.manifestBeta;
+            if (!manifest) {
+                MessageDialogComponent.open(this.modalService, {
+                    title: `Failed to install ${item.title}`,
+                    message: `No manifest found for ${item.title} in channel ${channel}`,
+                    positive: 'Close',
+                });
+                return false;
+            }
+            const component = progress.componentInstance as ProgressDialogComponent;
             await this.appManager.installByManifest(device, manifest, (progress, statusText) => {
                 component.progress = progress;
                 component.message = statusText;

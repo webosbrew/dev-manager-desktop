@@ -155,6 +155,37 @@ export class AppManagerService {
         ]).then(([info, hbConfig]) => item.checkIncompatibility(info, hbConfig));
     }
 
+    async findInstallLocation(device: Device, id: string): Promise<'developer' | 'cryptofs' | 'system' | null> {
+        if (device.username === 'root') {
+            type AppInfo = { appInfo: { folderPath: string; systemApp?: boolean; } };
+            return this.luna.call<AppInfo>(device, 'luna://com.webos.service.applicationManager/getAppInfo',
+                {id}, false, true).then(info => {
+                if (info.appInfo.systemApp) {
+                    return 'system';
+                } else if (info.appInfo.folderPath.startsWith('/media/developer/')) {
+                    return 'developer';
+                } else {
+                    return 'cryptofs';
+                }
+            }).catch(() => null);
+        } else {
+            const appInfo = await this.info(device, id);
+            // App can be found in developer mode partition
+            if (appInfo) {
+                return 'developer';
+            }
+            // App exists, so it must be in cryptofs
+            type AppLoadStatus = { exist: boolean };
+            const status = await this.luna.call<AppLoadStatus>(device,
+                'luna://com.webos.service.applicationManager/getAppLoadStatus', {appId: id}, true, true)
+                .catch((): AppLoadStatus => ({exist: false}));
+            if (status.exist) {
+                return 'cryptofs';
+            }
+            return null;
+        }
+    }
+
     private obtainSubject(device: Device): Subject<PackageInfo[] | null> {
         let subject = this.packagesSubjects.get(device.name);
         if (!subject) {
