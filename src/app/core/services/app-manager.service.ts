@@ -178,7 +178,14 @@ export class AppManagerService {
             type AppLoadStatus = { exist: boolean };
             const status = await this.luna.call<AppLoadStatus>(device,
                 'luna://com.webos.service.applicationManager/getAppLoadStatus', {appId: id}, true, true)
-                .catch((): AppLoadStatus => ({exist: false}));
+                .catch(async (e): Promise<AppLoadStatus> => {
+                    if (e instanceof LunaUnknownMethodError) {
+                        // We have no way but to try launching the app
+                        return this.launch(device, id).then(() => ({exist: true}))
+                            .catch(() => ({exist: false}));
+                    }
+                    return ({exist: false});
+                });
             if (status.exist) {
                 return 'cryptofs';
             }
