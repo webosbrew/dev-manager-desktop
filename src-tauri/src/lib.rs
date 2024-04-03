@@ -45,6 +45,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_upload::init())
         .plugin(plugins::device::plugin("device-manager"))
         .plugin(plugins::cmd::plugin("remote-command"))
         .plugin(plugins::shell::plugin("remote-shell"))

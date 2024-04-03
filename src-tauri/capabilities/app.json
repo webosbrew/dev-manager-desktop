@@ -11,6 +11,7 @@
     "shell:allow-open",
     "dialog:allow-open",
     "dialog:allow-save",
+    "upload:allow-download",
     "device-manager:default",
     "remote-command:default",
     "remote-shell:default",

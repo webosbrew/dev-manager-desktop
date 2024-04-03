@@ -39,6 +39,7 @@
     "@tauri-apps/plugin-dialog": "2.0.0-beta.2",
     "@tauri-apps/plugin-fs": "2.0.0-beta.2",
     "@tauri-apps/plugin-shell": "2.0.0-beta.2",
+    "@tauri-apps/plugin-upload": "2.0.0-beta.2",
     "bootstrap": "^5.3.2",
     "bootstrap-icons": "^1.11.2",
     "buffer": "^6.0.3",

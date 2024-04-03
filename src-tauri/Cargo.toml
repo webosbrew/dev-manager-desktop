@@ -16,8 +16,8 @@ name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-beta.10", features = ["codegen"] }
-tauri-plugin = { version = "2.0.0-beta.10", features = ["build"] }
+tauri-build = { version = "2.0.0-beta", features = ["codegen"] }
+tauri-plugin = { version = "2.0.0-beta", features = ["build"] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -41,14 +41,14 @@ pathdiff = "0.2.1"
 libssh-rs = { version = "0.2.2", features = ["vendored"] }
 libssh-rs-sys = "0.2.2"
 flate2 = "1.0"
-tauri-plugin-shell = "2.0.0-beta.3"
-tauri-plugin-dialog = "2.0.0-beta.3"
-tauri-plugin-fs = "2.0.0-beta.3"
+tauri-plugin-shell = "2.0.0-beta"
+tauri-plugin-dialog = "2.0.0-beta"
+tauri-plugin-fs = "2.0.0-beta"
 regex = "1.10.3"
 libc = "0.2.153"
 
 [dependencies.tauri]
-version = "2.0.0-beta.13"
+version = "2.0.0-beta"
 default-features = false
 features = ["wry"]
 
@@ -61,8 +61,11 @@ version = "0.7.0"
 features = ["windows_dpi_awareness", "windows_visual_styles"]
 optional = true
 
+[dependencies.tauri-plugin-upload]
+version = "2.0.0-beta"
+
 [dependencies.tauri-plugin-single-instance]
-version = "2.0.0-beta.4"
+version = "2.0.0-beta"
 optional = true
 
 [features]
