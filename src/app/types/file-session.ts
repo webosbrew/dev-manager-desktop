@@ -1,3 +1,5 @@
+import {ProgressCallback} from "../core/services/remote-file.service";
+
 export type FileType = '-' | 'd' | 'c' | 'b' | 's' | 'p' | 'l' | '';
 
 export declare interface FileItem {
@@ -35,7 +37,8 @@ export declare interface FileSession {
 
     mkdir(path: string): Promise<void>;
 
-    getTemp(remotePath: string): Promise<string>;
+    getTemp(remotePath: string, progress?: ProgressCallback): Promise<string>;
 
-    uploadBatch(strings: string[], pwd: string, failCb: (name: string, e: Error) => Promise<boolean>): Promise<void>;
+    uploadBatch(strings: string[], pwd: string, fileCb: (name: string, index: number, total: number) => void,
+                progressCb: ProgressCallback, failCb: (name: string, e: Error) => Promise<boolean>): Promise<void>;
 }

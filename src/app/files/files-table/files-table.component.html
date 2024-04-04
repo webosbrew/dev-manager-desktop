@@ -10,7 +10,7 @@
   </tr>
   </thead>
   <tbody class="border-top-0">
-  <tr *ngFor="let file of items" (dblclick)="openItem(file)" (click)="selectItem(file)"
+  <tr *ngFor="let file of items" (dblclick)="openItem(file)" (click)="selectItem(file, keyModifiers($event))"
       [class.table-active]="selectedItems && selectedItems.includes(file)">
     <td class="text-nowrap">
           <span class="pe-2" [ngSwitch]="file.type">
@@ -23,26 +23,26 @@
               <i class="bi-link" *ngSwitchCase="'l'"></i>
               <i class="bi-file-earmark-x-fill" *ngSwitchDefault></i>
             </span>
-      <span>{{file.filename}}</span>
+      <span>{{ file.filename }}</span>
       <ng-container *ngIf="file.link as link">
         <i class="bi-arrow-right-short text-secondary px-1"></i>
-        <span class="text-secondary" [class.text-decoration-line-through]="link.broken">{{link.target ?? '?'}}</span>
+        <span class="text-secondary" [class.text-decoration-line-through]="link.broken">{{ link.target ?? '?' }}</span>
       </ng-container>
     </td>
-    <td class="text-nowrap">{{file.mtime * 1000 | date:'short'}}
+    <td class="text-nowrap">{{ file.mtime * 1000 | date:'short' }}
     </td>
     <td class="text-nowrap">
           <span *ngIf="file.type === '-'; else nonRegular">
-            {{file.size | filesize:sizeOptions}}
+            {{ file.size | filesize:sizeOptions }}
           </span>
       <ng-template #nonRegular>-</ng-template>
     </td>
-    <td class="text-nowrap font-monospace">{{file.mode}}</td>
+    <td class="text-nowrap font-monospace">{{ file.mode }}</td>
     <td class="text-nowrap">
-      <ng-container *ngIf="file.user else unknownValue">{{file.user}}</ng-container>
+      <ng-container *ngIf="file.user else unknownValue">{{ file.user }}</ng-container>
     </td>
     <td class="text-nowrap">
-      <ng-container *ngIf="file.group else unknownValue">{{file.group}}</ng-container>
+      <ng-container *ngIf="file.group else unknownValue">{{ file.group }}</ng-container>
     </td>
   </tr>
   </tbody>
