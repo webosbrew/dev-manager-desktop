@@ -84,10 +84,8 @@ export class AppsComponent implements OnInit, OnDestroy {
         const progress = ProgressDialogComponent.open(this.modalService);
         const component = progress.componentInstance as ProgressDialogComponent;
         try {
-            await this.appManager.installByPath(this.device, path, (progress, statusText) => {
-                component.progress = progress;
-                component.message = statusText;
-            });
+            await this.appManager.installByPath(this.device, path,
+                (progress, statusText) => component.update(statusText, progress));
         } catch (e) {
             console.warn(e);
             this.handleInstallationError(await basename(path), e as Error);
@@ -177,10 +175,8 @@ export class AppsComponent implements OnInit, OnDestroy {
                 return false;
             }
             const component = progress.componentInstance as ProgressDialogComponent;
-            await this.appManager.installByManifest(device, manifest, (progress, statusText) => {
-                component.progress = progress;
-                component.message = statusText;
-            });
+            await this.appManager.installByManifest(device, manifest,
+                (progress, statusText) => component.update(statusText, progress));
             this.storageInfo?.refresh();
             return true;
         } catch (e: any) {

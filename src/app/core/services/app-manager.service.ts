@@ -19,6 +19,7 @@ import _ from "lodash-es";
 import {APP_ID_HBCHANNEL} from "../../shared/constants";
 import {DeviceManagerService} from "./device-manager.service";
 import {HomebrewChannelConfiguration} from "../../types/luna-apis";
+import {download} from "@tauri-apps/plugin-upload";
 
 @Injectable({
     providedIn: 'root'
@@ -215,12 +216,18 @@ export class AppManagerService {
                 localPath = await this.localFile.tempPath('.ipk');
                 deleteLocal = true;
                 progress?.(undefined, 'Downloading IPK to computer...');
-                await this.localFile.download(location.toString(), localPath);
+                let downloaded: number = 0;
+                await download(location.toString(), localPath, prog => {
+                    downloaded += prog.progress;
+                    progress?.(prog.total ? (100 * downloaded / prog.total) : undefined, 'Downloading IPK to computer...');
+                });
                 break;
             }
         }
         progress?.(undefined, 'Sending IPK to device...');
-        await this.file.put(device, targetPath, localPath).finally(() =>
+        await this.file.put(device, targetPath, localPath, (copied, total) => {
+            progress?.(total ? copied / total * 100 : undefined, 'Sending IPK to device...');
+        }).finally(() =>
             deleteLocal && this.localFile.remove(localPath).catch(noop));
         return targetPath;
     }

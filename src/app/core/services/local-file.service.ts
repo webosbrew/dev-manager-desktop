@@ -13,10 +13,6 @@ export class LocalFileService extends BackendClient {
         return this.invoke('checksum', {path, algorithm});
     }
 
-    async download(url: string, target: string): Promise<void> {
-        await this.invoke('download', {url, target});
-    }
-
     async remove(path: string, recursive: boolean = false): Promise<void> {
         await this.invoke('remove', {path, recursive});
     }
