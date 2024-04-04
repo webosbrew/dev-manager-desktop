@@ -2,7 +2,6 @@
 description = "Default permissions for the plugin"
 permissions = [
   "allow-checksum",
-  "allow-download",
   "allow-remove",
   "allow-temp-path"
 ]

@@ -1,9 +1,12 @@
 use std::env::temp_dir;
 use std::fs::File;
-use std::io::{copy, Read, Write};
+use std::io::{Read, Write};
 use std::path::Path;
 
 use flate2::read::GzDecoder;
+use libssh_rs::SftpFile;
+use serde::Serialize;
+use tauri::ipc::Channel;
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime};
 use uuid::Uuid;
@@ -13,6 +16,12 @@ use crate::error::Error;
 use crate::remote_files::serve;
 use crate::remote_files::{FileItem, PermInfo};
 use crate::session_manager::SessionManager;
+
+#[derive(Clone, Serialize)]
+struct CopyProgress {
+    copied: usize,
+    total: usize,
+}
 
 #[tauri::command]
 async fn ls<R: Runtime>(
@@ -98,14 +107,17 @@ async fn get<R: Runtime>(
     device: Device,
     path: String,
     target: String,
+    on_progress: Channel,
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        return sessions.with_session(device, |session| {
+        let on_progress = on_progress.clone();
+        return sessions.with_session(device, move |session| {
             let sftp = session.sftp()?;
             let mut sfile = sftp.open(&path, 0, 0)?;
             let mut file = File::create(target.clone())?;
-            copy(&mut sfile, &mut file)?;
+            let size = sfile.metadata()?.len().unwrap_or_default() as usize;
+            copy(&mut sfile, &mut file, size, &on_progress)?;
             return Ok(());
         });
     })
@@ -119,10 +131,12 @@ async fn put<R: Runtime>(
     device: Device,
     path: String,
     source: String,
+    on_progress: Channel,
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        return sessions.with_session(device, |session| {
+        let on_progress = on_progress.clone();
+        return sessions.with_session(device, move |session| {
             let sftp = session.sftp()?;
             let mut sfile = sftp
                 .open(&path, libc::O_WRONLY | libc::O_CREAT | libc::O_TRUNC, 0o644)
@@ -148,7 +162,8 @@ async fn put<R: Runtime>(
                 message: format!("Failed to open local file {source} for uploading: {e:?}"),
                 unhandled: true,
             })?;
-            copy(&mut file, &mut sfile)?;
+            let size = file.metadata().unwrap().len() as usize;
+            copy(&mut file, &mut sfile, size, &on_progress)?;
             return Ok(());
         });
     })
@@ -156,11 +171,44 @@ async fn put<R: Runtime>(
     .expect("critical failure in file::put task");
 }
 
+fn copy<R: ?Sized, W: ?Sized>(
+    reader: &mut R,
+    writer: &mut W,
+    total: usize,
+    progress: &Channel,
+) -> std::io::Result<usize>
+where
+    R: Read,
+    W: Write,
+{
+    let mut buf = [0; 8192];
+    let mut copied: usize = 0;
+    loop {
+        let bytes = reader.read(&mut buf)?;
+        if bytes == 0 {
+            break;
+        }
+        writer.write_all(&buf[..bytes])?;
+        copied += bytes;
+        progress.send(CopyProgress { copied, total }).map_err(|e| {
+            return match e {
+                tauri::Error::Io(e) => e,
+                e => std::io::Error::new(
+                    std::io::ErrorKind::Other,
+                    format!("Failed to send progress: {e}"),
+                ),
+            };
+        })?;
+    }
+    Ok(copied)
+}
+
 #[tauri::command]
 async fn get_temp<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     path: String,
+    on_progress: Channel,
 ) -> Result<String, Error> {
     let source = Path::new(&path);
     let extension = source
@@ -172,7 +220,7 @@ async fn get_temp<R: Runtime>(
             .to_str()
             .expect(&format!("Bad temp_path {:?}", temp_path)),
     );
-    get(app, device, path, target.clone()).await?;
+    get(app, device, path, target.clone(), on_progress).await?;
     return Ok(target);
 }
 
