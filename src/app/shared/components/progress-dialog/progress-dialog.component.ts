@@ -11,6 +11,10 @@ export class ProgressDialogComponent {
     message?: string;
     progress?: number;
 
+    secondaryProgress?: number;
+
+    protected readonly isNaN = isNaN;
+
     constructor(private zone: NgZone) {
     }
 
@@ -21,6 +25,12 @@ export class ProgressDialogComponent {
         });
     }
 
+    updateSecondary(message?: string, progress?: number): void {
+        this.zone.run(() => {
+            this.secondaryProgress = progress;
+        });
+    }
+
     static open(service: NgbModal): NgbModalRef {
         return service.open(ProgressDialogComponent, {
             centered: true,
@@ -28,4 +38,5 @@ export class ProgressDialogComponent {
             keyboard: false
         });
     }
+
 }
