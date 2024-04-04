@@ -168,12 +168,15 @@ export class FilesComponent implements OnInit, OnDestroy {
     private async openFile(file: FileItem) {
         const cwd = this.history?.current;
         if (!cwd || !this.device) return;
-        const progress = ProgressDialogComponent.open(this.modalService);
+        const progressRef = ProgressDialogComponent.open(this.modalService);
+        const progress: ProgressDialogComponent = progressRef.componentInstance;
         let result = false;
         let tempPath: string | null = null;
         do {
             try {
-                tempPath = await this.session!.getTemp(path.join(cwd, file.filename));
+                tempPath = await this.session!.getTemp(path.join(cwd, file.filename), (current, total) => {
+                    progress.update('Pulling file from device', total ? current / total * 100 : undefined)
+                });
             } catch (e) {
                 result = await MessageDialogComponent.open(this.modalService, {
                     title: `Failed to download file ${file.filename}`,
@@ -185,7 +188,7 @@ export class FilesComponent implements OnInit, OnDestroy {
                 }).result;
             }
         } while (result);
-        progress.dismiss();
+        progressRef.dismiss();
         if (!tempPath) return;
         console.log(tempPath);
         await openPath(tempPath);
@@ -300,9 +303,16 @@ export class FilesComponent implements OnInit, OnDestroy {
             defaultPath: await downloadDir(),
         }).then(resp => resp?.map(v => v.path));
         if (!returnValue) return;
-        const progress = ProgressDialogComponent.open(this.modalService);
+        const progressRef = ProgressDialogComponent.open(this.modalService);
+        const progress: ProgressDialogComponent = progressRef.componentInstance;
         try {
             await this.session!.uploadBatch(returnValue, cwd,
+                (name, index, total) => {
+                    progress.update(`Uploading ${name} (${index + 1} / ${total})`, index / total * 100);
+                },
+                (copied, total) => {
+                    progress.updateSecondary(undefined, copied / total * 100);
+                },
                 async (name, e): Promise<boolean> => {
                     const result = await MessageDialogComponent.open(this.modalService, {
                         title: `Failed to upload file ${name}`,
@@ -318,7 +328,7 @@ export class FilesComponent implements OnInit, OnDestroy {
                 });
             await this.cd(cwd);
         } finally {
-            progress.dismiss();
+            progressRef.dismiss();
         }
     }
 

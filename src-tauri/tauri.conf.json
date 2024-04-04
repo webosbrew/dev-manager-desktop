@@ -16,7 +16,7 @@
     },
     "windows": [
       {
-        "fileDropEnabled": false,
+        "dragDropEnabled": false,
         "fullscreen": false,
         "height": 720,
         "label": "main",
