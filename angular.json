@@ -49,8 +49,8 @@
               "buffer",
               "path",
               "lodash",
-              "xterm",
-              "xterm-addon-fit",
+              "@xterm/xterm",
+              "@xterm/addon-fit",
               "filesize",
               "find-matching-bracket",
               "crypto"
