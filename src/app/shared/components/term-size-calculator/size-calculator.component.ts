@@ -9,9 +9,9 @@ import {
   Output,
   ViewChild
 } from '@angular/core';
-import {IDisposable, Terminal} from "xterm";
+import {IDisposable, Terminal} from "@xterm/xterm";
 
-import {FitAddon, ITerminalDimensions} from "xterm-addon-fit";
+import {FitAddon, ITerminalDimensions} from "@xterm/addon-fit";
 import {debounceTime, defer, delay, firstValueFrom, fromEvent, noop, of, repeat, Subscription, tap} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {isNonNull} from "../../operators";

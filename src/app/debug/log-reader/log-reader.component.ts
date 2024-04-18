@@ -1,8 +1,8 @@
 import {AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, ViewChild} from '@angular/core';
 import {Observable, Subscription} from "rxjs";
 import {LogLevel, LogMessage} from '../../core/services/remote-log.service';
-import {Terminal} from "xterm";
-import {ITerminalDimensions} from "xterm-addon-fit";
+import {Terminal} from "@xterm/xterm";
+import {ITerminalDimensions} from "@xterm/addon-fit";
 import chalk, {ChalkInstance} from 'chalk';
 import {TERMINAL_CONFIG} from "../../shared/xterm/config";
 import {AppWebLinksAddon} from "../../shared/xterm/web-links";

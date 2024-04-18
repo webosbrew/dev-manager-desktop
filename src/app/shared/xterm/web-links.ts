@@ -1,4 +1,4 @@
-import {WebLinksAddon} from "xterm-addon-web-links";
+import {WebLinksAddon} from "@xterm/addon-web-links";
 import {open} from "@tauri-apps/plugin-shell";
 import {noop} from "rxjs";
 
