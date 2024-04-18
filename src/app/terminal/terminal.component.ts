@@ -5,7 +5,7 @@ import {Device} from "../types";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
 import {RemoteShellService, ShellInfo, ShellToken} from "../core/services/remote-shell.service";
-import {ITerminalDimensions} from "xterm-addon-fit";
+import {ITerminalDimensions} from "@xterm/addon-fit";
 import {listen, UnlistenFn, Event} from "@tauri-apps/api/event";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";

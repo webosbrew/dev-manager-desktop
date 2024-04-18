@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {IDisposable, Terminal} from "xterm";
-import {ITerminalDimensions} from "xterm-addon-fit";
+import {IDisposable, Terminal} from "@xterm/xterm";
+import {ITerminalDimensions} from "@xterm/addon-fit";
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
 import {AppWebLinksAddon} from "../../shared/xterm/web-links";
 import {TERMINAL_CONFIG} from "../../shared/xterm/config";

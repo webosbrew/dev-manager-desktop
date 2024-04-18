@@ -1,6 +1,6 @@
-@use 'bootstrap/scss/bootstrap' as bs;
-@use 'bootstrap-icons/font/bootstrap-icons';
-@use 'xterm/css/xterm.css';
+@use 'bootstrap' as bs;
+@use 'bootstrap-icons';
+@use '@xterm/xterm';
 
 @import './styles/no-select';
 @import './styles/app-item';
