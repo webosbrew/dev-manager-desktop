@@ -32,6 +32,7 @@ pub enum Error {
     },
     Message {
         message: String,
+        unhandled: bool,
     },
     PassphraseRequired,
     NotFound,
@@ -43,11 +44,13 @@ impl Error {
     pub fn new<S: Into<String>>(message: S) -> Error {
         return Error::Message {
             message: message.into(),
+            unhandled: false,
         };
     }
     pub fn bad_config() -> Error {
         return Error::Message {
             message: String::from("Bad configuration"),
+            unhandled: false,
         };
     }
     pub fn io(kind: ErrorKind) -> Error {
@@ -90,6 +93,7 @@ impl From<serde_json::Error> for Error {
     fn from(value: serde_json::Error) -> Self {
         return Error::Message {
             message: format!("JSON Error: {:?}", value),
+            unhandled: false,
         };
     }
 }
@@ -134,6 +138,7 @@ impl From<SshError> for Error {
         return match value {
             SshError::RequestDenied(s) => Error::Message {
                 message: format!("SSH Error: {s}"),
+                unhandled: false,
             },
             SshError::TryAgain => Error::IO {
                 code: ErrorKind::WouldBlock,
@@ -164,6 +169,7 @@ impl From<SshError> for Error {
                 }
                 Error::Message {
                     message: format!("SSH Error: {s}"),
+                    unhandled: false,
                 }
             }
             SshError::Sftp(e) => e.into(),
@@ -180,7 +186,10 @@ impl From<SftpError> for Error {
         {
             return from_sftp_error_code(code, message);
         }
-        return Error::Message { message };
+        return Error::Message {
+            message,
+            unhandled: false,
+        };
     }
 }
 
@@ -205,7 +214,10 @@ fn from_sftp_error_code(code: u32, message: String) -> Error {
             message: String::from("SSH_FX_WRITE_PROTECT"),
             unhandled: true,
         },
-        _ => Error::Message { message },
+        _ => Error::Message {
+            message,
+            unhandled: false,
+        },
     };
 }
 

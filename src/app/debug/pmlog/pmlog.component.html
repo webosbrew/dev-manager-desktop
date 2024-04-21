@@ -2,8 +2,8 @@
   <div class="h-100 d-flex flex-column p-2">
     <button class="btn btn-sm btn-secondary" ngbTooltip="Set log levels" (click)="openCtrl()">
       <i class="bi bi-toggles"></i></button>
-    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Filter" *ngIf="false">
-      <i class="bi bi-funnel"></i>
+    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Search" (click)="logReader.toggleSearchBar()">
+      <i class="bi bi-search"></i>
     </button>
     <hr>
     <button class="btn btn-sm btn-secondary mb-2" ngbTooltip="Clear" (click)="clearBuffer()">

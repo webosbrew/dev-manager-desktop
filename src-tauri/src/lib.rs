@@ -8,6 +8,7 @@ use log::LevelFilter;
 #[cfg(feature = "mobile")]
 use native_dialog::{MessageDialog, MessageType};
 use tauri::{AppHandle, Manager, RunEvent, Runtime};
+use tauri::webview::PageLoadEvent;
 
 use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::DeviceManager;
@@ -56,9 +57,11 @@ pub fn run() {
         .manage(SessionManager::default())
         .manage(SpawnManager::default())
         .manage(ShellManager::default())
-        .on_page_load(|wnd, _payload| {
-            let spawns = wnd.state::<SpawnManager>();
-            spawns.clear();
+        .on_page_load(|wnd, payload| {
+            if payload.event() == PageLoadEvent::Started {
+                let spawns = wnd.state::<SpawnManager>();
+                spawns.clear();
+            }
         })
         .build(tauri::generate_context!())
         .and_then(|app| {

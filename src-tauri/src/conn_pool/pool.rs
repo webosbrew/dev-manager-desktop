@@ -31,12 +31,14 @@ impl DeviceConnectionPool {
                 c.reset_last_ok();
                 Ok(c)
             }
-            Err(_) => Err(self
-                .last_error
-                .lock()
-                .unwrap()
-                .take()
-                .unwrap_or(Error::Timeout)),
+            Err(e) => {
+                return Err(self.last_error.lock().unwrap().take().unwrap_or_else(|| {
+                    Error::Message {
+                        message: format!("Unknown error getting connection from pool: {e:?}"),
+                        unhandled: true,
+                    }
+                }));
+            }
         };
     }
 }
