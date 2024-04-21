@@ -20,6 +20,7 @@ impl SpawnManager {
         for x in old_items {
             if let Some(proc) = x.upgrade() {
                 log::debug!("Terminating {proc:?}");
+                proc.interrupt();
             }
         }
     }

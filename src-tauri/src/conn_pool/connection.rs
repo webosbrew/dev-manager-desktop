@@ -165,6 +165,7 @@ impl DeviceConnectionUserInfo {
         if exit_code != 0 {
             return Err(Error::Message {
                 message: format!("id command failed with exit code {}", exit_code),
+                unhandled: false,
             });
         }
         return Ok(DeviceConnectionUserInfo::parse(&buf));

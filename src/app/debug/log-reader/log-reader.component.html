@@ -5,4 +5,21 @@
   </div>
   <div class="position-absolute w-100 h-100 terminal-container" #termwin>
   </div>
+  <div
+    class="position-absolute d-flex align-items-center flex-row bg-panel border-start border-end border-bottom terminal-search-bar p-2 me-5"
+    *ngIf="showSearchBar">
+    <input type="text" class="form-control form-control-sm me-2" (input)="searchTextChange.next(searchInput.value)"
+           #searchInput>
+    <small class="text-nowrap" *ngIf="matchesStatus as match">{{ match.resultIndex + 1 }}
+      / {{ match.resultCount }}</small>
+    <button class="btn btn-sm" (click)="searchPrevious()"
+            [disabled]="!matchesStatus || matchesStatus.resultIndex <= 0 || matchesStatus.resultIndex >= matchesStatus.resultCount">
+      <i class="bi bi-arrow-up"></i>
+    </button>
+    <button class="btn btn-sm" (click)="searchNext()"
+            [disabled]="!matchesStatus || matchesStatus.resultIndex + 1 >= matchesStatus.resultCount">
+      <i class="bi bi-arrow-down"></i>
+    </button>
+    <button class="btn btn-sm" (click)="closeSearchBar()"><i class="bi bi-x-lg"></i></button>
+  </div>
 </div>

@@ -1,3 +1,16 @@
-<div class="h-100">
-  <app-log-reader [source]="logs"></app-log-reader>
+<div class="w-100 h-100 d-flex flex-row">
+  <div class="h-100 d-flex flex-column p-2">
+    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Search" (click)="logReader.toggleSearchBar()">
+      <i class="bi bi-search"></i>
+    </button>
+    <hr>
+    <button class="btn btn-sm btn-secondary mb-2" ngbTooltip="Clear" (click)="clearBuffer()">
+      <i class="bi bi-trash"></i>
+    </button>
+    <button class="btn btn-sm btn-secondary mb-2" ngbTooltip="Scroll to bottom"
+            [disabled]="logReader.reachedBottom" (click)="logReader.scrollToBottom()">
+      <i class="bi bi-chevron-bar-down"></i>
+    </button>
+  </div>
+  <app-log-reader class="flex-fill" [source]="logs" #logReader></app-log-reader>
 </div>

@@ -1,7 +1,7 @@
 import {Component, Injector, Input} from '@angular/core';
 import {Device} from "../../types";
 import {RemoteCommandService} from "../../core/services/remote-command.service";
-import {catchError, from, identity, mergeMap, Observable, tap} from "rxjs";
+import {catchError, finalize, from, identity, mergeMap, Observable, tap} from "rxjs";
 import {LogMessage, RemoteLogService} from "../../core/services/remote-log.service";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {PmLogControlComponent} from "./control/control.component";
