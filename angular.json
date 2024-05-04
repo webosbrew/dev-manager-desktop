@@ -44,16 +44,17 @@
               "replaceDuplicatePlugins": true
             },
             "allowedCommonJsDependencies": [
-              "rxjs",
-              "semver",
               "buffer",
               "path",
+              "crypto",
               "lodash",
+              "rxjs",
+              "semver",
+              "find-matching-bracket",
+              "filesize",
               "@xterm/xterm",
               "@xterm/addon-fit",
-              "filesize",
-              "find-matching-bracket",
-              "crypto"
+              "@xterm/addon-search"
             ],
             "sourceMap": true
           },

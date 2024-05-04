@@ -4,7 +4,6 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use flate2::read::GzDecoder;
-use libssh_rs::SftpFile;
 use serde::Serialize;
 use tauri::ipc::Channel;
 use tauri::plugin::{Builder, TauriPlugin};
