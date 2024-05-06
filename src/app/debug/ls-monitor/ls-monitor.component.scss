@@ -1,0 +1,61 @@
+.table-container {
+  align-items: start;
+}
+
+.details-opened {
+  width: 23em;
+}
+
+
+table {
+
+  th {
+    position: sticky;
+    top: 0;
+  }
+
+  th, td {
+    font-size: small;
+
+    &.name-col {
+      width: 23em;
+      min-width: 23em;
+      max-width: 23em;
+    }
+
+    &.sender-col {
+      width: 15em;
+      min-width: 15em;
+      max-width: 15em;
+    }
+
+    &.info-col {
+      width: 100%;
+    }
+  }
+
+
+  td.name-col {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    direction: rtl;
+    text-align: left;
+  }
+
+  td.sender-col {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    direction: rtl;
+    text-align: left;
+  }
+
+  td.info-col {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
