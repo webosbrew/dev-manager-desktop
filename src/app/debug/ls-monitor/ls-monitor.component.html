@@ -1,0 +1,45 @@
+<div class="w-100 h-100 d-flex flex-column">
+  <div class="table-container overflow-hidden flex-fill d-flex flex-row">
+    <div class="flex-grow-1 overflow-x-hidden overflow-y-auto h-100" [class.details-opened]="selectedRow">
+      <table class="table table-sm table-striped table-hover">
+        <thead>
+        <tr>
+          <th class="name-col">Name</th>
+          <th class="sender-col" *ngIf="!selectedRow">Sender</th>
+          <th class="info-col" *ngIf="!selectedRow">Information</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr [class.table-active]="selectedRow === row" (click)="selectedRow = row" *ngFor="let row of rows">
+          <td class="name-col">{{ row.name }}</td>
+          <td class="sender-col" *ngIf="!selectedRow">{{ row.sender }}</td>
+          <td class="info-col text-nowrap" *ngIf="!selectedRow">{{ row.information }}</td>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex-fill d-flex flex-column w-100 h-100 border-start" *ngIf="selectedRow as selected">
+      <div class="border-bottom">
+        <button class="btn btn-link" (click)="selectedRow = undefined"><i class="bi bi-x"></i></button>
+      </div>
+      <table class="table table-sm">
+        <thead>
+        <tr>
+          <th>Data</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let message of selected.messages">
+          <td class="text-nowrap">
+            <small [ngSwitch]="message.type">
+              <i class="bi bi-arrow-right" *ngSwitchCase="'call'"></i>
+              <i class="bi bi-arrow-left" *ngSwitchCase="'return'"></i>
+              <i class="bi bi-x-lg" *ngSwitchCase="'callCancel'"></i>
+            </small>
+            {{ message.information }}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

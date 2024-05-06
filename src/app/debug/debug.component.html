@@ -19,6 +19,12 @@
         <app-dmesg [device]="device"></app-dmesg>
       </ng-template>
     </li>
+    <li ngbNavItem="ls-monitor" *ngIf="device.username !== 'prisoner'">
+      <a ngbNavLink>ls-monitor</a>
+      <ng-template ngbNavContent>
+        <app-ls-monitor [device]="device"></app-ls-monitor>
+      </ng-template>
+    </li>
   </ul>
 
   <div class="flex-fill overflow-hidden debug-content" [ngbNavOutlet]="nav"></div>
