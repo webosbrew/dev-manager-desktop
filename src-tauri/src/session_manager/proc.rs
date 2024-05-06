@@ -78,7 +78,7 @@ impl Proc {
         channel.request_exec(&self.command)?;
         let mut buf = [0; 8192];
         let mut interrupted = false;
-        while !channel.is_closed() {
+        while !channel.is_closed() && !channel.is_eof() {
             if self.interrupted.lock().unwrap().eq(&true) {
                 channel.send_eof()?;
                 log::info!("interrupting luna-send");

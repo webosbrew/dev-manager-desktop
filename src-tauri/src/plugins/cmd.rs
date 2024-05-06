@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 use std::sync::Arc;
 
@@ -12,6 +12,14 @@ use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
 use crate::session_manager::{Proc, ProcCallback, ProcData, SessionManager};
 use crate::spawn_manager::SpawnManager;
+
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(tag = "type")]
+pub(crate) enum SpawnResult {
+    Exit { status: i32 },
+    Signal { signal: u32 },
+    Closed,
+}
 
 #[tauri::command]
 async fn exec<R: Runtime>(
@@ -87,7 +95,7 @@ fn proc_worker<R: Runtime>(
     match proc.wait_close(&app.state::<SessionManager>()) {
         Ok(r) => {
             log::info!("{proc:?} closed with {r:?}");
-            channel.closed(&r);
+            channel.closed(SpawnResult::Exit { status: r });
         }
         Err(e) => {
             log::warn!("{proc:?} closed with {e:?}");

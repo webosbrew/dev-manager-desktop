@@ -68,12 +68,12 @@ export declare class CommandData<T = Buffer | string> {
 }
 
 export class CommandSubject<T = Buffer | string> extends ReplaySubject<CommandData<T>> {
-    private channel: EventChannel<ProcData, any>;
+    private channel: EventChannel<ProcData, SpawnResult>;
 
     constructor(zone: NgZone, token: string, command: string, encoding: 'buffer' | 'utf-8' | undefined) {
         super();
         const subject = this;
-        this.channel = new class extends EventChannel<ProcData, any> {
+        this.channel = new class extends EventChannel<ProcData, SpawnResult> {
             stdout: string = '';
             stderr: string = '';
             interrupted = false;
