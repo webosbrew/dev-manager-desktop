@@ -12,30 +12,32 @@ import {DmesgComponent} from "./dmesg/dmesg.component";
 import {PmLogControlComponent} from './pmlog/control/control.component';
 import {SetContextComponent} from './pmlog/set-context/set-context.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import { DetailsComponent } from './crashes/details/details.component';
+import {DetailsComponent} from './crashes/details/details.component';
+import {LsMonitorComponent} from "./ls-monitor/ls-monitor.component";
 
 
 @NgModule({
-  declarations: [
-    DebugComponent,
-    CrashesComponent,
-    PmLogComponent,
-    LogReaderComponent,
-    DmesgComponent,
-    PmLogControlComponent,
-    SetContextComponent,
-    DetailsComponent,
-  ],
-  imports: [
-    CommonModule,
-    DebugRoutingModule,
-    NgbNavModule,
-    NgbTooltipModule,
-    SharedModule,
-    TerminalModule,
-    FormsModule,
-    ReactiveFormsModule
-  ]
+    declarations: [
+        DebugComponent,
+        CrashesComponent,
+        PmLogComponent,
+        LogReaderComponent,
+        DmesgComponent,
+        PmLogControlComponent,
+        SetContextComponent,
+        DetailsComponent,
+        LsMonitorComponent,
+    ],
+    imports: [
+        CommonModule,
+        DebugRoutingModule,
+        NgbNavModule,
+        NgbTooltipModule,
+        SharedModule,
+        TerminalModule,
+        FormsModule,
+        ReactiveFormsModule
+    ]
 })
 export class DebugModule {
 }
