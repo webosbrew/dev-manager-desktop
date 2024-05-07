@@ -1,13 +1,15 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use libssh_rs::SshKey;
-use tokio::fs::{File, remove_file};
+use libssh_rs::{Session, SshKey, SshResult};
+use log::log;
+use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 
 use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
+use crate::conn_pool::DeviceConnection;
 use crate::device_manager::io::{read, write};
-use crate::device_manager::{Device, DeviceManager, PrivateKey};
+use crate::device_manager::{Device, DeviceCheckConnection, DeviceManager, PrivateKey};
 use crate::error::Error;
 
 impl DeviceManager {
@@ -98,7 +100,7 @@ impl DeviceManager {
 
     //noinspection HttpUrlsUsage
     pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
-        let resp = reqwest::get(format!("http://{}:9991/webos_rsa", address))
+        let resp = reqwest::get(format!("http://{address}:9991/webos_rsa"))
             .await?
             .error_for_status()?;
         let content = resp.text().await?;
@@ -128,6 +130,38 @@ impl DeviceManager {
                 Error::BadPassphrase
             }),
         };
+    }
+
+    pub async fn check_connection(&self, host: &str) -> Result<DeviceCheckConnection, Error> {
+        async fn ssh_probe(host: &str, port: u16, user: &str) -> Result<String, Error> {
+            let host = host.to_string();
+            let user = user.to_string();
+            return tokio::task::spawn_blocking(move || {
+                let ssh_sess = Session::new()?;
+                DeviceConnection::session_init(&ssh_sess)?;
+                ssh_sess.set_option(libssh_rs::SshOption::Hostname(host))?;
+                ssh_sess.set_option(libssh_rs::SshOption::Port(port))?;
+                ssh_sess.set_option(libssh_rs::SshOption::User(Some(user)))?;
+                ssh_sess.connect()?;
+                return Ok(ssh_sess.get_server_banner()?);
+            })
+            .await
+            .expect("Failed to spawn_blocking");
+        }
+        //noinspection HttpUrlsUsage
+        async fn key_server_probe(host: &str) -> Result<String, Error> {
+            return reqwest::get(format!("http://{host}:9991/webos_rsa"))
+                .await?
+                .error_for_status()?
+                .text()
+                .await
+                .map_err(Error::from);
+        }
+        return Ok(DeviceCheckConnection {
+            ssh_22: ssh_probe(host, 22, "root").await.ok(),
+            ssh_9922: ssh_probe(host, 9922, "prisoner").await.ok(),
+            key_server: key_server_probe(host).await.is_ok(),
+        });
     }
 }
 

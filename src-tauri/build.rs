@@ -14,6 +14,7 @@ fn main() {
                     "novacom_getkey",
                     "localkey_verify",
                     "privkey_read",
+                    "check_connection",
                 ]),
             )
             .plugin(

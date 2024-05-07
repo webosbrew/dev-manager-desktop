@@ -69,6 +69,10 @@ export class DeviceManagerService extends BackendClient {
         await this.invoke('localkey_verify', {name, passphrase});
     }
 
+    async checkConnection(host: string): Promise<DeviceCheckConnection> {
+        return await this.invoke('check_connection', {host});
+    }
+
     async listCrashReports(device: Device): Promise<CrashReport[]> {
         const dirs = [
             '/tmp/faultmanager/crash/',
@@ -235,4 +239,10 @@ export interface DeviceInfo {
     otaId?: string;
     firmwareVersion: string;
     socName?: string;
+}
+
+export declare interface DeviceCheckConnection {
+    keyServer: boolean;
+    ssh22?: string;
+    ssh9922?: string;
 }

@@ -4,7 +4,7 @@ use tauri::{
     Runtime,
 };
 
-use crate::device_manager::{Device, DeviceManager};
+use crate::device_manager::{Device, DeviceCheckConnection, DeviceManager};
 use crate::error::Error;
 use crate::app_dirs::GetSshDir;
 
@@ -65,6 +65,11 @@ async fn privkey_read<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<S
         .content(app.get_ssh_dir().as_deref())?);
 }
 
+#[tauri::command]
+async fn check_connection(manager: State<'_, DeviceManager>, host: String) -> Result<DeviceCheckConnection, Error> {
+    return manager.check_connection(&host).await;
+}
+
 /// Initializes the plugin.
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
     Builder::new(name)
@@ -76,6 +81,7 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
             novacom_getkey,
             localkey_verify,
             privkey_read,
+            check_connection,
         ])
         .build()
 }

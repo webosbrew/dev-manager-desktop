@@ -60,9 +60,9 @@ pub struct Device {
     #[serde(rename = "logDaemon", skip_serializing_if = "Option::is_none")]
     pub log_daemon: Option<String>,
     #[serde(
-    rename = "noPortForwarding",
-    default,
-    skip_serializing_if = "Option::is_none"
+        rename = "noPortForwarding",
+        default,
+        skip_serializing_if = "Option::is_none"
     )]
     pub no_port_forwarding: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -75,4 +75,12 @@ pub enum DeviceFileTransfer {
     Stream,
     #[serde(rename = "sftp")]
     Sftp,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DeviceCheckConnection {
+    pub ssh_22: Option<String>,
+    pub ssh_9922: Option<String>,
+    pub key_server: bool,
 }

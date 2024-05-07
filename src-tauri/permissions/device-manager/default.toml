@@ -7,5 +7,6 @@ permissions = [
   "allow-remove",
   "allow-novacom-getkey",
   "allow-localkey-verify",
-  "allow-privkey-read"
+  "allow-privkey-read",
+  "allow-check-connection"
 ]
