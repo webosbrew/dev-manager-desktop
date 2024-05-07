@@ -32,6 +32,14 @@ pub struct ProcData {
     pub data: Vec<u8>,
 }
 
+#[derive(Debug, Clone, Serialize, PartialEq)]
+#[serde(tag = "type")]
+pub enum ProcResult {
+    Exit { status: i32 },
+    Signal { signal: Option<String>, core_dumped: bool },
+    Closed,
+}
+
 pub trait ProcCallback {
     fn rx(&self, fd: u32, data: &[u8]);
 }

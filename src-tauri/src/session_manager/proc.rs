@@ -7,7 +7,7 @@ use libssh_rs::Channel;
 
 use crate::conn_pool::ManagedDeviceConnection;
 use crate::error::Error;
-use crate::session_manager::{Proc, SessionManager};
+use crate::session_manager::{Proc, ProcResult, SessionManager};
 
 impl Proc {
     pub fn is_ready(&self) -> bool {
@@ -53,7 +53,7 @@ impl Proc {
         return Err(Error::Disconnected);
     }
 
-    pub fn wait_close(&self, sessions: &SessionManager) -> Result<i32, Error> {
+    pub fn wait_close(&self, sessions: &SessionManager) -> Result<ProcResult, Error> {
         let session: ManagedDeviceConnection;
         let (sender, receiver) = channel::<Vec<u8>>();
         *self.sender.lock().unwrap() = Some(sender);
@@ -99,14 +99,23 @@ impl Proc {
                 self.data(1, &buf[..buf_size])?;
             }
         }
-        let status = channel.get_exit_status().unwrap_or(-1);
+        let mut result = ProcResult::Closed;
         if interrupted {
             log::debug!("{self:?} channel interrupted by client");
-        } else {
+        } else if let Some(status) = channel.get_exit_status() {
             log::debug!("{self:?} channel closed with status {status}");
+            result = ProcResult::Exit { status };
+        } else if let Some(signal) = channel.get_exit_signal() {
+            log::debug!("{self:?} channel closed with signal {signal:?}");
+            result = ProcResult::Signal {
+                signal: signal.signal_name,
+                core_dumped: signal.core_dumped,
+            };
+        } else {
+            log::debug!("{self:?} channel closed with unknown status");
         }
         session.mark_last_ok();
-        return Ok(status);
+        return Ok(result);
     }
 }
 

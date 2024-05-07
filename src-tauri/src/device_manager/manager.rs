@@ -1,8 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use libssh_rs::{Session, SshKey, SshResult};
-use log::log;
+use libssh_rs::{Session, SshKey};
 use tokio::fs::{remove_file, File};
 use tokio::io::AsyncWriteExt;
 

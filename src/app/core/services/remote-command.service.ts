@@ -118,11 +118,11 @@ export class CommandSubject<T = Buffer | string> extends ReplaySubject<CommandDa
                     }
                 } else if (payload.type === 'Signal') {
                     // Treat user initiated SIGINT as success
-                    if (this.interrupted && payload.signal === 2) {
+                    if (this.interrupted && payload.signal === "INT") {
                         zone.run(() => subject.complete());
                     } else {
                         zone.run(() => subject.error(new ExecutionError(`Process exited with signal ${payload.signal}`,
-                            128 + payload.signal, this.stderr, command)));
+                            -1, this.stderr, command)));
                     }
                 } else {
                     zone.run(() => subject.error(new Error('Process closed')));
@@ -169,7 +169,8 @@ declare interface SpawnExited {
 
 declare interface SpawnSignaled {
     type: 'Signal';
-    signal: number;
+    signal?: string;
+    coreDumped: boolean;
 }
 
 declare interface SpawnClosed {
