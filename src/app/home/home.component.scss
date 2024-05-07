@@ -1,0 +1,20 @@
+.nav {
+  .nav-item {
+    margin: 5px;
+
+    .nav-link {
+      padding: 5px 12px;
+      i.bi {
+        font-size: 30px;
+      }
+    }
+  }
+
+  .device-check {
+    width: 1em;
+  }
+
+  .dropdown-toggle:after {
+    display: none;
+  }
+}

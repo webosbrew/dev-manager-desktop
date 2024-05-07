@@ -1,86 +1,64 @@
-<div class="container-fluid" (drop)="defaultDrop($event)" (dragover)="defaultDragOver($event)"
+<div class="d-flex flex-row" (drop)="defaultDrop($event)" (dragover)="defaultDragOver($event)"
      (dragenter)="defaultDragEnter($event)" (dragleave)="defaultDragLeave($event)">
-  <div class="row">
-    <nav class="col-3 col-xl-2 d-flex flex-column bg-panel">
-      <ng-container *ngIf="(deviceManager.devices$ | async) as devices">
-        <select class="form-select mt-2" (change)="markDefault(devices[deviceSelect.selectedIndex])"
-                [(ngModel)]="selectedDevice" *ngIf="devices.length > 0; else noDevice" #deviceSelect>
-          <option *ngFor="let device of devices" [selected]="device.default"
-                  [ngValue]="device">
-            {{device.name}}
-          </option>
-        </select>
-        <ng-template #noDevice>
-          <select class="form-select mt-2" disabled>
-            <option>No device</option>
-          </select>
-        </ng-template>
-      </ng-container>
+  <nav class="d-flex flex-column bg-panel border-end">
+    <ul class="nav nav-pills flex-column mb-auto">
+      <li class="nav-item">
+        <a class="nav-link" routerLink="apps" routerLinkActive="active" ngbTooltip="Apps" placement="end"
+           #t1="ngbTooltip" (mouseleave)="t1?.close()">
+          <i class="bi bi-grid"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="files" routerLinkActive="active" ngbTooltip="Files" placement="end"
+           #t2="ngbTooltip" (mouseleave)="t2?.close()">
+          <i class="bi bi-folder"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="terminal" routerLinkActive="active" ngbTooltip="Terminal" placement="end"
+           #t3="ngbTooltip" (mouseleave)="t3?.close()">
+          <i class="bi bi-terminal"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="info" routerLinkActive="active" ngbTooltip="Info" placement="end"
+           #t4="ngbTooltip" (mouseleave)="t4?.close()">
+          <i class="bi bi-info-circle"></i>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="debug" routerLinkActive="active" ngbTooltip="Debug" placement="end"
+           #t5="ngbTooltip" (mouseleave)="t5?.close()">
+          <i class="bi bi-bug"></i>
+        </a>
+      </li>
+    </ul>
 
-      <ul class="nav nav-pills flex-column mt-2 mb-auto">
-        <li class="nav-item">
-          <a class="nav-link" routerLink="apps" routerLinkActive="active">
-            <i class="bi bi-tv-fill me-1"></i>
-            Apps
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="files" routerLinkActive="active">
-            <i class="bi bi-folder-fill me-1"></i>
-            Files
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="terminal" routerLinkActive="active">
-            <i class="bi bi-terminal-fill me-1"></i>
-            Terminal
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="info" routerLinkActive="active">
-            <i class="bi bi-info-circle-fill me-1"></i>
-            Info
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="debug" routerLinkActive="active">
-            <i class="bi bi-bug-fill me-1"></i>
-            Debug
-          </a>
-        </li>
-      </ul>
+    <ul class="nav flex-column mb-2">
+      <li class="nav-item" ngbDropdown placement="auto">
+        <a class="nav-link" ngbDropdownToggle>
+          <i class="bi bi-tv"></i>
+        </a>
+        <div ngbDropdownMenu>
+          <ng-container *ngIf="(deviceManager.devices$ | async) as devices">
+            <button [class.active]="device === selectedDevice" ngbDropdownItem (click)="markDefault(device)"
+                    *ngFor="let device of devices">
+              {{ device.name }}
+            </button>
+          </ng-container>
+          <div class="dropdown-divider"></div>
+          <button ngbDropdownItem (click)="openSetupDevice(true)">Add new device...</button>
+          <button class="dropdown-item text-danger" (click)="removeDevice(selected)" *ngIf="selectedDevice as selected">
+            Remove {{ selected.name }}...
+          </button>
+        </div>
+      </li>
+    </ul>
+  </nav>
 
-      <h6 class="d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-        <span>More</span>
-      </h6>
-      <ul class="nav flex-column mb-2">
-        <li class="nav-item">
-          <a class="nav-link" (click)="openSetupDevice(true)">
-            <i class="bi bi-plus-lg me-1"></i>
-            Add Device
-          </a>
-        </li>
-        <li class="nav-item" *ngIf="selectedDevice">
-          <a class="nav-link text-danger" (click)="removeDevice(selectedDevice)">
-            <i class="bi bi-trash me-1"></i>
-            Remove Device
-          </a>
-        </li>
-        <!-- <li class="nav-item">
-          <a class="nav-link" href="#">
-            <i class="bi bi-gear-fill me-1"></i>
-            Settings
-          </a>
-        </li> -->
-      </ul>
-      <hr>
-      <small class="text-secondary mb-3">Version: {{appVersion}}</small>
-    </nav>
-
-    <main role="main" class="col-9 col-xl-10 ms-sm-auto p-0">
-      <div class="setup-detail">
-        <router-outlet></router-outlet>
-      </div>
-    </main>
-  </div>
+  <main role="main" class="flex-fill ms-sm-auto p-0">
+    <div class="setup-detail">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
 </div>
