@@ -12,7 +12,14 @@ import {HomeComponent} from './home/home.component';
 import {RenewScriptComponent} from './info/renew-script/renew-script.component';
 import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
-import {NgbAccordionModule, NgbNavModule} from "@ng-bootstrap/ng-bootstrap";
+import {
+    NgbAccordionModule,
+    NgbDropdown, NgbDropdownItem,
+    NgbDropdownMenu,
+    NgbDropdownToggle,
+    NgbNavModule,
+    NgbTooltip
+} from "@ng-bootstrap/ng-bootstrap";
 import {RemoveDeviceComponent} from './remove-device/remove-device.component';
 import {AddDeviceModule} from "./add-device/add-device.module";
 import {NgOptimizedImage} from "@angular/common";
@@ -29,20 +36,25 @@ import * as Sentry from "@sentry/angular-ivy";
     UpdateDetailsComponent,
     RemoveDeviceComponent,
   ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    FormsModule,
-    HttpClientModule,
-    CoreModule,
-    SharedModule,
-    ReactiveFormsModule,
-    AppRoutingModule,
-    NgbNavModule,
-    NgbAccordionModule,
-    AddDeviceModule,
-    NgOptimizedImage,
-  ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        FormsModule,
+        HttpClientModule,
+        CoreModule,
+        SharedModule,
+        ReactiveFormsModule,
+        AppRoutingModule,
+        NgbNavModule,
+        NgbAccordionModule,
+        AddDeviceModule,
+        NgOptimizedImage,
+        NgbTooltip,
+        NgbDropdown,
+        NgbDropdownToggle,
+        NgbDropdownMenu,
+        NgbDropdownItem,
+    ],
   providers: [{
     provide: ErrorHandler,
     useValue: Sentry.createErrorHandler({
