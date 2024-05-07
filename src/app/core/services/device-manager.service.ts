@@ -7,7 +7,6 @@ import {HomebrewChannelConfiguration, OsInfo, SystemInfo} from "../../types/luna
 import {LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {RemoteFileService} from "./remote-file.service";
-import {DevModeService} from "./dev-mode.service";
 
 export type ScreenshotMethod = 'DISPLAY' | 'VIDEO' | 'GRAPHIC';
 
@@ -20,7 +19,7 @@ export class DeviceManagerService extends BackendClient {
     private selectedSubject: Subject<Device | null>;
 
     constructor(zone: NgZone, private cmd: RemoteCommandService, private file: RemoteFileService,
-                private luna: RemoteLunaService, private devMode: DevModeService) {
+                private luna: RemoteLunaService) {
         super(zone, 'device-manager');
         this.devicesSubject = new BehaviorSubject<Device[] | null>(null);
         this.selectedSubject = new BehaviorSubject<Device | null>(null);
@@ -68,10 +67,6 @@ export class DeviceManagerService extends BackendClient {
 
     async verifyLocalPrivateKey(name: string, passphrase?: string): Promise<void> {
         await this.invoke('localkey_verify', {name, passphrase});
-    }
-
-    async devModeToken(device: Device): Promise<string> {
-        return await this.devMode.token(device);
     }
 
     async listCrashReports(device: Device): Promise<CrashReport[]> {
