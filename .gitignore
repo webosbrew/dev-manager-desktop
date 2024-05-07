@@ -13,6 +13,7 @@ src/**/*.js
 !src/karma.conf.js
 *.js.map
 .angular/
+.nx/
 
 # dependencies
 /node_modules
