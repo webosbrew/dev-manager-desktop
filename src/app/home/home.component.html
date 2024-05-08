@@ -1,7 +1,7 @@
-<div class="d-flex flex-row" (drop)="defaultDrop($event)" (dragover)="defaultDragOver($event)"
-     (dragenter)="defaultDragEnter($event)" (dragleave)="defaultDragLeave($event)">
-  <nav class="d-flex flex-column bg-panel border-end">
-    <ul class="nav nav-pills flex-column mb-auto">
+<div class="d-flex flex-column-reverse flex-sm-row h-100" (drop)="defaultDrop($event)"
+     (dragover)="defaultDragOver($event)" (dragenter)="defaultDragEnter($event)" (dragleave)="defaultDragLeave($event)">
+  <nav class="d-flex flex-row flex-sm-column bg-panel border-end">
+    <ul class="nav nav-pills flex-row flex-nowrap flex-sm-column me-auto mb-sm-auto">
       <li class="nav-item">
         <a class="nav-link" routerLink="apps" routerLinkActive="active" ngbTooltip="Apps" placement="end"
            #t1="ngbTooltip" (mouseleave)="t1?.close()">
@@ -34,7 +34,7 @@
       </li>
     </ul>
 
-    <ul class="nav flex-column mb-2">
+    <ul class="nav flex-column mb-sm-2">
       <li class="nav-item" ngbDropdown placement="auto">
         <a class="nav-link" ngbDropdownToggle>
           <i class="bi bi-tv"></i>
@@ -56,9 +56,7 @@
     </ul>
   </nav>
 
-  <main role="main" class="flex-fill ms-sm-auto p-0 overflow-hidden">
-    <div class="setup-detail">
-      <router-outlet></router-outlet>
-    </div>
+  <main role="main" class="flex-fill ms-sm-auto p-0 overflow-auto">
+    <router-outlet></router-outlet>
   </main>
 </div>

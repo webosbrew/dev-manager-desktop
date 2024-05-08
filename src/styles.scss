@@ -12,16 +12,10 @@
  * Content
  */
 
-[role="main"] {
-  // padding-top: 48px; /* Space for fixed navbar */
-  display: flex;
-  flex-flow: column;
-  height: calc(100vh);
-
-  .setup-detail {
-    flex: 1 1 auto;
-    height: 100vh;
-  }
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 .bg-panel {

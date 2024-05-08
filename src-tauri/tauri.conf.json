@@ -21,7 +21,7 @@
         "height": 720,
         "label": "main",
         "minHeight": 600,
-        "minWidth": 800,
+        "minWidth": 420,
         "resizable": true,
         "title": "webOS Dev Manager",
         "visible": true,

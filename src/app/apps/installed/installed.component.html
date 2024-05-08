@@ -9,13 +9,16 @@
           <img class="app-icon" [src]="pkg.iconUri | trustUri" [alt]="pkg.title">
           <div class="app-headline ms-3">
             <div class="app-title">{{ pkg.title }}</div>
-            <div class="app-description">{{ pkg.appDescription }}</div>
+            <div class="app-description">
+              <span>v{{ pkg.version }}</span>
+              <ng-container *ngIf="repoPackages && repoPackages[pkg.id] as rpkg">
+              <span class="text-primary"
+                    *ngIf="rpkg.manifest?.hasUpdate(pkg.version)">&rsaquo;v{{ rpkg.manifest?.version }}</span>
+              </ng-container>
+            </div>
           </div>
         </div>
         <ng-container *ngLet="repoPackages && repoPackages[pkg.id] as rpkg">
-          <span>{{ pkg.version }}</span>
-          <span class="text-primary"
-                *ngIf="rpkg && rpkg.manifest?.hasUpdate(pkg.version)">&rsaquo;{{ rpkg.manifest?.version }}</span>
           <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
             <button class="btn btn-primary" (click)="$event.stopPropagation(); parent.installPackage(rpkg)"
                     *ngIf="rpkg && rpkg.manifest?.hasUpdate(pkg.version) else noUpdate">
