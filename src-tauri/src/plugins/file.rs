@@ -4,6 +4,7 @@ use std::io::{Read, Write};
 use std::path::Path;
 
 use flate2::read::GzDecoder;
+use libssh_rs::OpenFlags;
 use serde::Serialize;
 use tauri::ipc::Channel;
 use tauri::plugin::{Builder, TauriPlugin};
@@ -60,7 +61,7 @@ async fn read<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
-            let mut file = sftp.open(&path, 0 /*O_RDONLY*/, 0)?;
+            let mut file = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
             let mut buf = Vec::<u8>::new();
             if let Some(encoding) = &encoding {
                 if encoding == "gzip" {
@@ -91,7 +92,7 @@ async fn write<R: Runtime>(
         return Ok(sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
             let mut file =
-                sftp.open(&path, libc::O_WRONLY | libc::O_CREAT | libc::O_TRUNC, 0o644)?;
+                sftp.open(&path,  OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE, 0o644)?;
             file.write_all(&content)?;
             return Ok(());
         })?);
@@ -113,7 +114,7 @@ async fn get<R: Runtime>(
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
             let sftp = session.sftp()?;
-            let mut sfile = sftp.open(&path, 0, 0)?;
+            let mut sfile = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
             let mut file = File::create(target.clone())?;
             let size = sfile.metadata()?.len().unwrap_or_default() as usize;
             copy(&mut sfile, &mut file, size, &on_progress)?;
@@ -138,7 +139,7 @@ async fn put<R: Runtime>(
         return sessions.with_session(device, move |session| {
             let sftp = session.sftp()?;
             let mut sfile = sftp
-                .open(&path, libc::O_WRONLY | libc::O_CREAT | libc::O_TRUNC, 0o644)
+                .open(&path, OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE, 0o644)
                 .map_err(|e| {
                     let e: Error = e.into();
                     return match e {
