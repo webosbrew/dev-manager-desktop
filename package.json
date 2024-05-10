@@ -16,7 +16,7 @@
     "tauri": "tauri",
     "start": "tauri dev",
     "build": "tauri build",
-    "ng": "node ng-wrapper.js"
+    "ng": "node scripts/ng-wrapper.js"
   },
   "private": true,
   "engines": {
