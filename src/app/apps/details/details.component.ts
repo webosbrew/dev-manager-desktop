@@ -5,7 +5,13 @@ import {noop, Observable, of} from "rxjs";
 import {AsyncPipe, NgForOf, NgIf, NgOptimizedImage, NgSwitch, NgSwitchCase, NgSwitchDefault} from "@angular/common";
 import {open as openPath} from "@tauri-apps/plugin-shell";
 import {NgLetModule} from "ng-let";
-import {NgbDropdown, NgbDropdownItem, NgbDropdownMenu, NgbDropdownToggle} from "@ng-bootstrap/ng-bootstrap";
+import {
+    NgbActiveModal,
+    NgbDropdown,
+    NgbDropdownItem,
+    NgbDropdownMenu,
+    NgbDropdownToggle
+} from "@ng-bootstrap/ng-bootstrap";
 import {SharedModule} from "../../shared/shared.module";
 import {Device, PackageInfo} from "../../types";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
@@ -49,6 +55,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
     private unsubscribeClickListener!: () => void;
 
     constructor(
+        public modal: NgbActiveModal,
         public item: RepositoryItem,
         @Inject('device') public device: Device,
         private appManager: AppManagerService,
