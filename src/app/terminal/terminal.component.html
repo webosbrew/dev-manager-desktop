@@ -70,7 +70,7 @@
     </div>
   </div>
 
-  <div class="position-absolute w-100 h-100 p-4" *ngIf="shells.length === 0">
+  <div class="position-absolute w-100 h-100 p-3" *ngIf="shells.length === 0">
     <h4>Select a device to start terminal session</h4>
     <div class="list-group mt-3" *ngIf="deviceManager.devices$ | async as devices">
       <button class="list-group-item list-group-item-action" type="button" (click)="newTab(device)"

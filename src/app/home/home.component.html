@@ -1,40 +1,46 @@
 <div class="d-flex flex-column-reverse flex-sm-row h-100" (drop)="defaultDrop($event)"
      (dragover)="defaultDragOver($event)" (dragenter)="defaultDragEnter($event)" (dragleave)="defaultDragLeave($event)">
   <nav class="d-flex flex-row flex-sm-column bg-panel border-end">
-    <ul class="nav nav-pills flex-row flex-nowrap flex-sm-column me-auto mb-sm-auto">
+    <ul class="nav nav-pills flex-row flex-nowrap flex-sm-column me-auto mb-sm-auto w-100 justify-content-evenly">
       <li class="nav-item">
-        <a class="nav-link" routerLink="apps" routerLinkActive="active" ngbTooltip="Apps" placement="end"
+        <a class="nav-link" routerLink="apps" routerLinkActive="active" ngbTooltip="Apps"
            #t1="ngbTooltip" (mouseleave)="t1?.close()">
           <i class="bi bi-grid"></i>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" routerLink="files" routerLinkActive="active" ngbTooltip="Files" placement="end"
+        <a class="nav-link" routerLink="files" routerLinkActive="active" ngbTooltip="Files"
            #t2="ngbTooltip" (mouseleave)="t2?.close()">
           <i class="bi bi-folder"></i>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" routerLink="terminal" routerLinkActive="active" ngbTooltip="Terminal" placement="end"
+        <a class="nav-link" routerLink="terminal" routerLinkActive="active" ngbTooltip="Terminal"
            #t3="ngbTooltip" (mouseleave)="t3?.close()">
           <i class="bi bi-terminal"></i>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" routerLink="info" routerLinkActive="active" ngbTooltip="Info" placement="end"
+        <a class="nav-link" routerLink="info" routerLinkActive="active" ngbTooltip="Info"
            #t4="ngbTooltip" (mouseleave)="t4?.close()">
           <i class="bi bi-info-circle"></i>
         </a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="debug" routerLinkActive="active" ngbTooltip="Debug" placement="end"
+      <li class="nav-item d-none d-sm-block">
+        <a class="nav-link" routerLink="debug" routerLinkActive="active" ngbTooltip="Debug"
            #t5="ngbTooltip" (mouseleave)="t5?.close()">
           <i class="bi bi-bug"></i>
         </a>
       </li>
+      <li class="nav-item d-block d-sm-none">
+        <a class="nav-link" routerLink="nav-more" routerLinkActive="active" ngbTooltip="More"
+           #t6="ngbTooltip" (mouseleave)="t6?.close()">
+          <i class="bi bi-three-dots"></i>
+        </a>
+      </li>
     </ul>
 
-    <ul class="nav flex-column mb-sm-2">
+    <ul class="nav flex-column mb-sm-2 d-none d-sm-block">
       <li class="nav-item" ngbDropdown placement="auto">
         <a class="nav-link" ngbDropdownToggle>
           <i class="bi bi-tv"></i>

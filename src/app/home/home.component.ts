@@ -9,6 +9,7 @@ import {noop} from "rxjs";
 import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
 import ReleaseInfo from '../../release.json';
+import {DeviceChooserComponent} from "./device-chooser/device-chooser.component";
 
 @Component({
     selector: 'app-home',
@@ -92,4 +93,10 @@ export class HomeComponent {
         return false;
     }
 
+    openDeviceChooser(): void {
+        this.modalService.open(DeviceChooserComponent, {
+            size: 'sm',
+            centered: true,
+        }).result.then((device) => this.markDefault(device)).catch(noop);
+    }
 }
