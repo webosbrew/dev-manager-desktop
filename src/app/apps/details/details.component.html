@@ -1,6 +1,9 @@
 <div class="modal-body">
-  <div class="d-flex flex-row">
-    <img [ngSrc]="item.detailIconUri ?? item.iconUri" width="160" height="160" alt="App icon"/>
+  <div class="position-sticky w-100 top-0 d-flex flex-row z-3">
+    <button type="button" class="btn-close ms-auto" aria-label="Close" (click)="modal.dismiss('Close click')"></button>
+  </div>
+  <div class="d-flex flex-wrap flex-sm-row">
+    <img class="app-details-icon" [ngSrc]="item.detailIconUri ?? item.iconUri" width="160" height="160" alt="App icon"/>
     <div class="flex-fill my-2 ms-3 d-flex flex-column">
       <h1>{{ item.title }}</h1>
       <label class="mt-1">
@@ -14,7 +17,7 @@
         <ng-container *ngSwitchCase="'optional'">Root is optional</ng-container>
       </label>
     </div>
-    <div class="d-flex flex-column justify-content-center" *ngLet="(installedInfo$ | async) as installed">
+    <div class="d-flex flex-column justify-content-center ms-auto" *ngLet="(installedInfo$ | async) as installed">
       <ng-container>
         <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
           <ng-container [ngSwitch]="installed && manifest.hasUpdate(installed.version)">
