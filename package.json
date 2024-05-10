@@ -13,7 +13,7 @@
     "tauri"
   ],
   "scripts": {
-    "tauri": "tauri",
+    "tauri": "node scripts/tauri-wrapper.js",
     "start": "tauri dev",
     "build": "tauri build",
     "ng": "node scripts/ng-wrapper.js"

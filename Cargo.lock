@@ -2105,11 +2105,12 @@ dependencies = [
 
 [[package]]
 name = "libssh-rs"
-version = "0.2.2"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb3fe324fb06b71d28abb81382ac547f25b4895e853a9968482dc5002fb3db08"
+checksum = "c13fbf28a79bb77f11a44716baca6327655198455b7c6f6189784279f3e331db"
 dependencies = [
  "bitflags 1.3.2",
+ "libc",
  "libssh-rs-sys",
  "openssl-sys",
  "thiserror",
@@ -2118,7 +2119,7 @@ dependencies = [
 [[package]]
 name = "libssh-rs-sys"
 version = "0.2.2"
-source = "git+https://github.com/wez/libssh-rs.git?rev=5c135f77#5c135f772f40be1575a9879c216ca91f1ff3ec32"
+source = "git+https://github.com/mariotaku/libssh-rs.git?rev=5d4f1aa7#5d4f1aa72cc0dcd16f9feba31174f58c9fb4cbbc"
 dependencies = [
  "cc",
  "libz-sys",
@@ -2552,8 +2553,7 @@ checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
 [[package]]
 name = "openssl-src"
 version = "300.2.3+3.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5cff92b6f71555b61bb9315f7c64da3ca43d87531622120fea0195fc761b4843"
+source = "git+https://github.com/mariotaku/openssl-src-rs.git?rev=aedab1dc#aedab1dc1708a7743f361a69d674f08236cbd27c"
 dependencies = [
  "cc",
 ]

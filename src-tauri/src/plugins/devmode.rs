@@ -1,3 +1,4 @@
+use libssh_rs::OpenFlags;
 use std::io::Read;
 
 use regex::Regex;
@@ -74,7 +75,11 @@ async fn valid_token<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
-            let mut ch = sftp.open("/var/luna/preferences/devmode_enabled", 0, 0)?;
+            let mut ch = sftp.open(
+                "/var/luna/preferences/devmode_enabled",
+                OpenFlags::READ_ONLY,
+                0,
+            )?;
             let mut data = Vec::<u8>::new();
             ch.read_to_end(&mut data)?;
             return Ok::<Vec<u8>, Error>(data);

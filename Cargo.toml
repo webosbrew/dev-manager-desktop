@@ -5,5 +5,6 @@ members = [
 ]
 
 [patch.crates-io]
-libssh-rs-sys = { git = "https://github.com/wez/libssh-rs.git", rev = "5c135f77" }
+libssh-rs-sys = { git = "https://github.com/mariotaku/libssh-rs.git", rev = "5d4f1aa7" }
 r2d2 = { git = "https://github.com/mariotaku/r2d2.git", rev = "aaa2a2ba" }
+openssl-src = { git = "https://github.com/mariotaku/openssl-src-rs.git", rev = "aedab1dc" }

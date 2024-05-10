@@ -1,13 +1,14 @@
 <div class="p-3">
-  <ul class="list-group" *ngIf="parent.selectedDevice as selected">
-    <li class="list-group-item list-group-item-action" (click)="parent.openDeviceChooser()">
+  <ul class="list-group" *ngLet="parent.selectedDevice as selected">
+    <li class="list-group-item list-group-item-action" (click)="parent.openDeviceChooser()" *ngIf="selected">
       <h5 class="mb-1">{{ selected.name }}</h5>
       <small>Tap to change device</small>
     </li>
     <li class="list-group-item list-group-item-action" (click)="parent.openSetupDevice(true)">
       Add new device...
     </li>
-    <li class="list-group-item list-group-item-action text-danger" (click)="parent.removeDevice(selected)">
+    <li class="list-group-item list-group-item-action text-danger" (click)="parent.removeDevice(selected)"
+        *ngIf="selected">
       Remove {{ selected.name }}...
     </li>
 
