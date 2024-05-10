@@ -52,6 +52,7 @@
               "semver",
               "find-matching-bracket",
               "filesize",
+              "process/browser",
               "@xterm/xterm",
               "@xterm/addon-fit",
               "@xterm/addon-search"

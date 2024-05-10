@@ -1,0 +1,32 @@
+<div class="p-3">
+  <ul class="list-group" *ngIf="parent.selectedDevice as selected">
+    <li class="list-group-item list-group-item-action" (click)="parent.openDeviceChooser()">
+      <h5 class="mb-1">{{ selected.name }}</h5>
+      <small>Tap to change device</small>
+    </li>
+    <li class="list-group-item list-group-item-action" (click)="parent.openSetupDevice(true)">
+      Add new device...
+    </li>
+    <li class="list-group-item list-group-item-action text-danger" (click)="parent.removeDevice(selected)">
+      Remove {{ selected.name }}...
+    </li>
+
+  </ul>
+  <h5 class="mt-3">Device tools</h5>
+  <ul class="list-group">
+    <a class="list-group-item list-group-item-action" routerLink="debug" [relativeTo]="homeRoute">
+      <i class="bi bi-bug me-2"></i>Debug
+    </a>
+  </ul>
+  <h5 class="mt-3">About this app</h5>
+  <ul class="list-group">
+    <li class="list-group-item d-flex justify-content-between">
+      <label class="me-auto"><i class="bi bi-info-circle me-2"></i>Version</label>
+      <label class="text-secondary">{{ appVersion || 'local' }}</label>
+    </li>
+    <a class="list-group-item list-group-item-action" href="https://github.com/webosbrew/dev-manager-desktop/"
+       appExternalLink>
+      <i class="bi bi-github me-2"></i>GitHub
+    </a>
+  </ul>
+</div>
