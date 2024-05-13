@@ -15,7 +15,9 @@ pub enum Error {
         message: String,
     },
     BadPassphrase,
-    BadPrivateKey,
+    BadPrivateKey {
+        message: String,
+    },
     Disconnected,
     ExitStatus {
         message: String,
@@ -50,7 +52,7 @@ impl Error {
     pub fn bad_config() -> Error {
         return Error::Message {
             message: String::from("Bad configuration"),
-            unhandled: false,
+            unhandled: true,
         };
     }
     pub fn io(kind: ErrorKind) -> Error {
@@ -165,7 +167,9 @@ impl From<SshError> for Error {
                 } else if s.starts_with("Timeout connecting to ") {
                     return Error::Timeout;
                 } else if s.starts_with("Failed to parse ssh key") {
-                    return Error::BadPrivateKey;
+                    return Error::BadPrivateKey {
+                        message: String::from(s),
+                    };
                 }
                 Error::Message {
                     message: format!("SSH Error: {s}"),

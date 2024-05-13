@@ -102,6 +102,10 @@ impl Proc {
         let mut result = ProcResult::Closed;
         if interrupted {
             log::debug!("{self:?} channel interrupted by client");
+            result = ProcResult::Signal {
+                signal: Some(String::from("INT")),
+                core_dumped: false,
+            };
         } else if let Some(status) = channel.get_exit_status() {
             log::debug!("{self:?} channel closed with status {status}");
             result = ProcResult::Exit { status };

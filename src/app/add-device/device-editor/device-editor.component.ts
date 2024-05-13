@@ -5,7 +5,7 @@ import {DeviceManagerService} from '../../core/services';
 import {MessageDialogComponent} from '../../shared/components/message-dialog/message-dialog.component';
 import {KeyserverHintComponent} from '../keyserver-hint/keyserver-hint.component';
 import {NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../../types";
-import {noop, Observable, of} from "rxjs";
+import {firstValueFrom, noop, Observable, of} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {open as showOpenDialog} from '@tauri-apps/plugin-dialog';
 import {BackendError} from "../../core/services/backend-client";
@@ -14,7 +14,7 @@ import {SshPrivkeyHintComponent} from "./ssh-privkey-hint/ssh-privkey-hint.compo
 import {DevmodePassphraseHintComponent} from "./devmode-passphrase-hint/devmode-passphrase-hint.component";
 import {SshPasswordHintComponent} from "./ssh-password-hint/ssh-password-hint.component";
 import {RetryFailedComponent} from "../retry-failed/retry-failed.component";
-import {homeDir, join} from "@tauri-apps/api/path";
+import {documentDir, homeDir, join} from "@tauri-apps/api/path";
 
 @Component({
     selector: 'app-device-editor',
@@ -36,7 +36,10 @@ export class DeviceEditorComponent implements OnInit {
     @Input()
     hideDevModeAuth?: boolean;
 
+    appSshPubKey$: Observable<string>;
+
     constructor(private modalService: NgbModal, private deviceManager: DeviceManagerService) {
+        this.appSshPubKey$ = fromPromise(this.deviceManager.getAppSshPubKey());
     }
 
     ngOnInit(): void {
@@ -96,6 +99,10 @@ export class DeviceEditorComponent implements OnInit {
         this.formGroup.controls.sshAuth.controls.type.valueChanges.subscribe(() => {
             this.formGroup.controls.sshAuth.controls.value.reset(null);
         });
+    }
+
+    copyText(text: string): void {
+        navigator.clipboard.writeText(text).then(noop);
     }
 
     async submit(): Promise<NewDevice> {
@@ -207,6 +214,14 @@ export class DeviceEditorComponent implements OnInit {
                     passphrase: value.sshAuth.value.passphrase
                 };
             }
+            case NewDeviceAuthentication.AppKey: {
+                return {
+                    ...base,
+                    privateKey: {
+                        openSsh: await this.deviceManager.getAppSshKeyPath(),
+                    }
+                }
+            }
             default: {
                 throw new Error('Bad auth type');
             }
@@ -238,6 +253,14 @@ export class DeviceEditorComponent implements OnInit {
                         console.error(e);
                         throw e;
                     });
+            case NewDeviceAuthentication.AppKey:
+                return this.deviceManager.getAppSshPubKey().then(() => null).catch(e => {
+                    if (BackendError.isCompatibleBody(e)) {
+                        return {[e.reason]: true};
+                    }
+                    console.error(e);
+                    throw e;
+                });
             case NewDeviceAuthentication.DevKey:
                 return auth.value ? null : {PassphraseRequired: true};
 
@@ -245,7 +268,7 @@ export class DeviceEditorComponent implements OnInit {
     }
 
     async chooseSshPrivKey(): Promise<void> {
-        const sshDir = await join(await homeDir(), '.ssh');
+        const sshDir = await join(await homeDir().catch(() => documentDir()), '.ssh');
         const file = await showOpenDialog({
             multiple: false,
             defaultPath: sshDir,
@@ -340,12 +363,20 @@ export interface SetupAuthInfoLocalKey extends SetupAuthInfoBase {
     };
 }
 
+export interface SetupAuthInfoAppKey extends SetupAuthInfoBase {
+    type: NewDeviceAuthentication.AppKey;
+}
+
 export interface SetupAuthInfoDevMode extends SetupAuthInfoBase {
     type: NewDeviceAuthentication.DevKey;
     value: string;
 }
 
-export type SetupAuthInfoUnion = SetupAuthInfoPassword | SetupAuthInfoLocalKey | SetupAuthInfoDevMode;
+export type SetupAuthInfoUnion =
+    SetupAuthInfoPassword
+    | SetupAuthInfoLocalKey
+    | SetupAuthInfoAppKey
+    | SetupAuthInfoDevMode;
 
 export type SetupAuthInfoFormControls = {
     type: FormControl<NewDeviceAuthentication>;
