@@ -165,6 +165,14 @@ export class DeviceManagerService extends BackendClient {
         return await this.luna.call(device, 'luna://org.webosbrew.hbchannel.service/getConfiguration', {});
     }
 
+    async getAppSshKeyPath(): Promise<string> {
+        return await this.invoke<string>('app_ssh_key_path');
+    }
+
+    async getAppSshPubKey(): Promise<string> {
+        return await this.invoke<string>('app_ssh_pubkey');
+    }
+
     fileSession(device: Device): FileSession {
         return new FileSessionImpl(this.cmd, this.file, device);
     }

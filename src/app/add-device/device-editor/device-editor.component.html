@@ -29,13 +29,14 @@
         <select class="form-select" id="authMethod" formControlName="type" required>
           <option value="localKey">Private Key</option>
           <option value="password">Password</option>
+          <option value="appKey">App Key</option>
           <option value="devKey" [hidden]="hideDevModeAuth" [disabled]="hideDevModeAuth">Dev Mode</option>
         </select>
-        <ng-container *ngIf="formGroup.controls.sshAuth.controls.type.getRawValue() as authType" [ngSwitch]="authType">
+        <ng-container *ngIf="formGroup.controls.sshAuth.controls.type.getRawValue() as authType">
           <input type="text" class="form-control" id="authValue" formControlName="value" [appSshAuthValue]="authType"
-                 autocomplete="off" required>
+                 autocomplete="off">
           <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()"
-                  *ngSwitchCase="'localKey'">
+                  *ngIf="authType === 'localKey'">
             Choose...
           </button>
           <button type="button" class="btn btn-outline-secondary" (click)="authInfoHelp()">
@@ -62,6 +63,13 @@
           Please input passphrase
         </div>
       </ng-container>
+    </div>
+    <div class="col-12 input-group mt-1"
+         *ngIf="formGroup.controls.sshAuth.controls.type.getRawValue() === 'appKey' && (appSshPubKey$ | async) as pubKey">
+      <input type="text" class="form-control" [value]="pubKey" readonly>
+      <button type="button" class="btn btn-outline-secondary" (click)="copyText(pubKey)">
+        <i class="bi bi-copy"></i>
+      </button>
     </div>
     <div class="col-md-12">
       <label for="deviceDescription">Description</label>

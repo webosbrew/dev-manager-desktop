@@ -8,5 +8,7 @@ permissions = [
   "allow-novacom-getkey",
   "allow-localkey-verify",
   "allow-privkey-read",
-  "allow-check-connection"
+  "allow-check-connection",
+  "allow-app-ssh-key-path",
+  "allow-app-ssh-pubkey",
 ]

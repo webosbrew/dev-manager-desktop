@@ -12,7 +12,7 @@ links = "devman"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
-name = "app_lib"
+name = "devman"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -53,7 +53,7 @@ default-features = false
 features = ["wry"]
 
 [dependencies.reqwest]
-version = "0.12.2"
+version = "0.12.4"
 features = ["json"]
 
 [dependencies.native-dialog]
@@ -67,6 +67,10 @@ version = "2.0.0-beta"
 [dependencies.tauri-plugin-single-instance]
 version = "2.0.0-beta"
 optional = true
+
+[dependencies.ssh-key]
+version = "0.6.6"
+features = ["ed25519"]
 
 [features]
 # by default Tauri runs in production mode

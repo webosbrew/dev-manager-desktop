@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeBuildCommand": "npm run ng build",
-    "beforeDevCommand": "npm run ng serve -- --port 4280",
+    "beforeDevCommand": "npm run ng serve -- --port 4280 --host 0.0.0.0",
     "devUrl": "http://localhost:4280",
     "frontendDist": "../dist"
   },
@@ -21,7 +21,7 @@
         "height": 720,
         "label": "main",
         "minHeight": 600,
-        "minWidth": 576,
+        "minWidth": 420,
         "resizable": true,
         "title": "webOS Dev Manager",
         "visible": true,

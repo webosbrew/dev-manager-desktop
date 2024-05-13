@@ -15,6 +15,8 @@ fn main() {
                     "localkey_verify",
                     "privkey_read",
                     "check_connection",
+                    "app_ssh_key_path",
+                    "app_ssh_pubkey",
                 ]),
             )
             .plugin(
@@ -41,4 +43,9 @@ fn main() {
             ),
     )
     .expect("failed to run tauri-build");
+
+    #[cfg(target_os = "android")]
+    {
+    }
+    println!("cargo:rustc-link-lib=atomic");
 }

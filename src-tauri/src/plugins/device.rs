@@ -1,12 +1,12 @@
-use tauri::{AppHandle, State};
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Runtime,
 };
+use tauri::{AppHandle, State};
 
+use crate::app_dirs::{GetAppSshKeyDir, GetSshDir};
 use crate::device_manager::{Device, DeviceCheckConnection, DeviceManager};
 use crate::error::Error;
-use crate::app_dirs::GetSshDir;
 
 #[tauri::command]
 async fn list(manager: State<'_, DeviceManager>) -> Result<Vec<Device>, Error> {
@@ -66,8 +66,21 @@ async fn privkey_read<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<S
 }
 
 #[tauri::command]
-async fn check_connection(manager: State<'_, DeviceManager>, host: String) -> Result<DeviceCheckConnection, Error> {
+async fn check_connection(
+    manager: State<'_, DeviceManager>,
+    host: String,
+) -> Result<DeviceCheckConnection, Error> {
     return manager.check_connection(&host).await;
+}
+
+#[tauri::command]
+async fn app_ssh_key_path<R: Runtime>(app: AppHandle<R>) -> Result<String, Error> {
+    return Ok(app.ensure_app_ssh_key_path()?.to_string_lossy().to_string());
+}
+
+#[tauri::command]
+async fn app_ssh_pubkey<R: Runtime>(app: AppHandle<R>) -> Result<String, Error> {
+    return Ok(app.get_app_ssh_pubkey()?);
 }
 
 /// Initializes the plugin.
@@ -82,6 +95,8 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
             localkey_verify,
             privkey_read,
             check_connection,
+            app_ssh_key_path,
+            app_ssh_pubkey,
         ])
         .build()
 }

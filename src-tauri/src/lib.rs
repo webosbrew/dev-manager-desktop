@@ -7,11 +7,13 @@ use std::path::PathBuf;
 use log::LevelFilter;
 #[cfg(feature = "mobile")]
 use native_dialog::{MessageDialog, MessageType};
-use tauri::{AppHandle, Manager, RunEvent, Runtime};
+use ssh_key::PrivateKey;
 use tauri::webview::PageLoadEvent;
+use tauri::{AppHandle, Manager, RunEvent, Runtime};
 
-use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
+use crate::app_dirs::{GetAppSshKeyDir, GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::DeviceManager;
+use crate::error::Error;
 use crate::session_manager::SessionManager;
 use crate::shell_manager::ShellManager;
 use crate::spawn_manager::SpawnManager;
@@ -122,11 +124,36 @@ impl<R: Runtime> GetSshDir for AppHandle<R> {
     }
 }
 
+impl<R: Runtime> GetAppSshKeyDir for AppHandle<R> {
+    fn get_app_ssh_key_path(&self) -> Result<PathBuf, Error> {
+        let config_dir = self.path().app_config_dir().map_err(|e| Error::Message {
+            message: format!("Failed to get config directory: {:?}", e),
+            unhandled: true,
+        })?;
+        return Ok(config_dir.join("id_devman"));
+    }
+
+    fn get_app_ssh_pubkey(&self) -> Result<String, Error> {
+        let priv_key = self.ensure_app_ssh_key_path()?;
+        return PrivateKey::read_openssh_file(&priv_key)
+            .map_err(|e| Error::BadPrivateKey {
+                message: format!("{:?}", e),
+            })
+            .and_then(|key| {
+                key.public_key()
+                    .to_openssh()
+                    .map_err(|e| Error::BadPrivateKey {
+                        message: format!("{:?}", e),
+                    })
+            });
+    }
+}
+
 impl<R: Runtime> GetConfDir for AppHandle<R> {
     fn get_conf_dir(&self) -> Option<PathBuf> {
-        let home: Option<PathBuf>;
         #[cfg(not(mobile))]
         {
+            let home: Option<PathBuf>;
             #[cfg(target_family = "windows")]
             {
                 home = env::var("APPDATA")
@@ -138,11 +165,11 @@ impl<R: Runtime> GetConfDir for AppHandle<R> {
             {
                 home = self.path().home_dir().ok();
             }
+            return home.map(|d| d.join(".webos").join("ose"));
         }
         #[cfg(mobile)]
         {
-            home = self.path().data_dir().ok();
+            return self.path().data_dir().ok();
         }
-        return home.map(|d| d.join(".webos").join("ose"));
     }
 }
