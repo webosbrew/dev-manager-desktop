@@ -1,28 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="192"
    height="192"
    viewBox="0 0 50.799998 50.800002"
    version="1.1"
    id="svg8"
-   inkscape:version="1.0.2 (e86c870879, 2021-01-15, custom)"
-   sodipodi:docname="icon.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   sodipodi:docname="icon_desktop.svg"
    inkscape:export-filename="C:\Users\Mariotaku\Projects\webosbrew\dev-manager-desktop\src\assets\icons\favicon.png"
    inkscape:export-xdpi="128"
-   inkscape:export-ydpi="128">
+   inkscape:export-ydpi="128"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs2">
     <filter
        style="color-interpolation-filters:sRGB;"
        inkscape:label="Drop Shadow"
-       id="filter949">
+       id="filter949"
+       x="-0.093927249"
+       y="-0.093367979"
+       width="1.1878198"
+       height="1.2029096">
       <feFlood
          flood-opacity="0.301961"
          flood-color="rgb(0,0,0)"
@@ -54,7 +58,11 @@
     <filter
        style="color-interpolation-filters:sRGB;"
        inkscape:label="Drop Shadow"
-       id="filter973">
+       id="filter973"
+       x="-0.056692914"
+       y="-0.056692916"
+       width="1.1133858"
+       height="1.1251969">
       <feFlood
          flood-opacity="0.301961"
          flood-color="rgb(0,0,0)"
@@ -94,18 +102,18 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.6191098"
-     inkscape:cx="56.590457"
-     inkscape:cy="109.33108"
+     inkscape:cx="56.507749"
+     inkscape:cy="109.19741"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
      units="px"
      inkscape:pagecheckerboard="true"
-     inkscape:window-width="2560"
-     inkscape:window-height="1361"
-     inkscape:window-x="-9"
-     inkscape:window-y="232"
+     inkscape:window-width="1920"
+     inkscape:window-height="1010"
+     inkscape:window-x="-6"
+     inkscape:window-y="318"
      inkscape:window-maximized="1"
      fit-margin-top="16"
      fit-margin-left="16"
@@ -113,12 +121,18 @@
      fit-margin-bottom="16"
      lock-margins="true"
      guidehicolor="#000000"
-     guidehiopacity="0">
+     guidehiopacity="0"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1">
     <inkscape:grid
        type="xygrid"
        id="grid833"
        originx="1.4999999e-07"
-       originy="-1.5000001e-07" />
+       originy="-1.5000001e-07"
+       spacingy="1"
+       spacingx="1"
+       units="px"
+       visible="false" />
   </sodipodi:namedview>
   <metadata
      id="metadata5">
@@ -128,7 +142,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -140,18 +154,13 @@
        d="M 4.2333333,25.399999 C 4.2333333,8.2550003 8.2550003,4.2333333 25.4,4.2333333 c 17.145,0 21.166666,4.021667 21.166666,21.1666657 0,17.145 -4.021666,21.166666 -21.166666,21.166666 -17.1449997,0 -21.1666667,-4.021666 -21.1666667,-21.166666"
        fill="#03a9f4"
        id="path2"
-       style="stroke-width:0.251983;filter:url(#filter973)" />
-    <rect
-       style="opacity:1;fill:#cf0652;fill-opacity:0;stroke:none;stroke-width:1.758;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect1776"
-       width="50.799999"
-       height="50.799999"
-       x="0"
-       y="0" />
+       style="display:inline;stroke-width:0.251983;filter:url(#filter973)"
+       inkscape:label="Background" />
     <g
        id="g1125"
        transform="matrix(0.90201474,0,0,0.90201412,8.3236468,5.2406774)"
-       style="filter:url(#filter949)">
+       style="display:inline;filter:url(#filter949)"
+       inkscape:label="Content">
       <path
          id="path1094"
          d="m 31.11119,13.841579 c 0,0 5.460793,-1.640575 5.503764,3.943705 0.04297,5.58428 -2.726817,3.716846 -5.877266,4.167908"
