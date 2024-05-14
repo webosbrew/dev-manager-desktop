@@ -6,5 +6,7 @@
 
 .app-details-icon {
   max-width: 25vw;
+  max-height: 25vw;
   height: auto;
+  object-fit: contain;
 }

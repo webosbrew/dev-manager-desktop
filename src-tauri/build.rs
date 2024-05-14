@@ -43,9 +43,4 @@ fn main() {
             ),
     )
     .expect("failed to run tauri-build");
-
-    #[cfg(target_os = "android")]
-    {
-    }
-    println!("cargo:rustc-link-lib=atomic");
 }

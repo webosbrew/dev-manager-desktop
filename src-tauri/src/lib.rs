@@ -1,6 +1,6 @@
 extern crate core;
 
-#[cfg(target_family = "windows")]
+#[cfg(any(target_family = "windows", target_os = "android"))]
 use std::env;
 use std::path::PathBuf;
 

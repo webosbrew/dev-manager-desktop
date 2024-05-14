@@ -1,4 +1,5 @@
 {
+  "$schema": "../gen/schemas/capabilities.json",
   "identifier": "app-caps",
   "windows": [
     "main"
