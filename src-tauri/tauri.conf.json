@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeBuildCommand": "npm run ng build",
-    "beforeDevCommand": "npm run ng serve -- --port 4280 --host 0.0.0.0",
+    "beforeDevCommand": "npm run ng serve -- --port 4280 --host 0.0.0.0 --disable-host-check",
     "devUrl": "http://localhost:4280",
     "frontendDist": "../dist"
   },
@@ -102,7 +102,7 @@
       }
     },
     "android": {
-      "minSdkVersion": 24
+      "minSdkVersion": 28
     }
   }
 }

@@ -65,3 +65,16 @@ import '@angular/localize/init';
 
 // Fixing "global is not defined"
 (window as any).global = window;
+
+
+function replaceChildren(this: Element, ...new_children: (Node | string)[]): void {
+    const {childNodes} = this;
+    while (childNodes.length) {
+        childNodes[0].remove();
+    }
+    this.append(...new_children);
+}
+
+Document.prototype.replaceChildren ||= replaceChildren;
+DocumentFragment.prototype.replaceChildren ||= replaceChildren;
+Element.prototype.replaceChildren ||= replaceChildren;
