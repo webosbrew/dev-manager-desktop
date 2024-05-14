@@ -4,7 +4,7 @@
 if (process.platform === 'win32' && process.argv[2] === 'android') {
   process.env['PERL'] = 'C:/msys64/usr/bin/perl.exe';
 
-  var ndkPath = process.env['NDK_HOME'] + '\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin';
+  const ndkPath = process.env['NDK_HOME'] + '\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin';
   process.env['Path'] = process.env['Path'] + ';C:/msys64/usr/bin;' + ndkPath;
 }
 
