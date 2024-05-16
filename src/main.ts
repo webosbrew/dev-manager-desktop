@@ -29,6 +29,11 @@ Sentry.init({
     },
     beforeSend: (event, hint) => {
         const originalException: any = hint.originalException;
+        // Temporary workaround for https://github.com/tauri-apps/tauri/issues/9502
+        if (typeof originalException === 'string' && originalException.includes('not allowed on window main, webview main, allowed windows:')) {
+            location.reload();
+            return null;
+        }
         if (originalException && originalException['reason']) {
             if (originalException['unhandled'] !== true) {
                 return null;
