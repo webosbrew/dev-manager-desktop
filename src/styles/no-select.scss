@@ -33,7 +33,7 @@ a[href^="ftp://"] {
   user-drag: auto;
 }
 
-.user-select-text {
+.user-select-text * {
   user-select: text !important;
   cursor: text !important;
 }

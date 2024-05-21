@@ -8,7 +8,7 @@ import {ProgressDialogComponent} from './components/progress-dialog/progress-dia
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {MessageTraceComponent} from './components/message-dialog/message-trace/message-trace.component';
 import {ErrorCardComponent} from './components/error-card/error-card.component';
-import {ExternalLinkDirective} from "./directives";
+import {ExternalLinkDirective, SearchBarDirective} from "./directives";
 import {SizeCalculatorComponent} from "./components/term-size-calculator/size-calculator.component";
 import {LoadingCardComponent} from './components/loading-card/loading-card.component';
 import {StatStorageInfoComponent} from './components/stat-storage-info/stat-storage-info.component';
@@ -24,6 +24,7 @@ import {FilesizePipe} from "./pipes/filesize.pipe";
         MessageTraceComponent,
         ErrorCardComponent,
         ExternalLinkDirective,
+        SearchBarDirective,
         SizeCalculatorComponent,
         LoadingCardComponent,
         StatStorageInfoComponent,
@@ -38,6 +39,7 @@ import {FilesizePipe} from "./pipes/filesize.pipe";
         MessageTraceComponent,
         ErrorCardComponent,
         ExternalLinkDirective,
+        SearchBarDirective,
         SizeCalculatorComponent,
         LoadingCardComponent,
         StatStorageInfoComponent

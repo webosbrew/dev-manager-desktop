@@ -14,7 +14,12 @@ import {SetContextComponent} from './pmlog/set-context/set-context.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {DetailsComponent} from './crashes/details/details.component';
 import {LsMonitorComponent} from "./ls-monitor/ls-monitor.component";
+import {DetailsComponent as LsMonitorDetailsComponent} from "./ls-monitor/details/details.component";
 
+import {ObjectHighlightPipe} from "./ls-monitor/object-highlight.pipe";
+
+import hljs from 'highlight.js/lib/core';
+import json from 'highlight.js/lib/languages/json';
 
 @NgModule({
     declarations: [
@@ -27,6 +32,8 @@ import {LsMonitorComponent} from "./ls-monitor/ls-monitor.component";
         SetContextComponent,
         DetailsComponent,
         LsMonitorComponent,
+        LsMonitorDetailsComponent,
+        ObjectHighlightPipe,
     ],
     imports: [
         CommonModule,
@@ -36,8 +43,11 @@ import {LsMonitorComponent} from "./ls-monitor/ls-monitor.component";
         SharedModule,
         TerminalModule,
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
     ]
 })
 export class DebugModule {
+    constructor() {
+        hljs.registerLanguage('json', json);
+    }
 }

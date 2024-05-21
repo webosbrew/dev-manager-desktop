@@ -8,6 +8,10 @@
 @import './styles/terminal';
 @import './styles/shared';
 
+
+@import 'highlight.js/scss/github.scss' screen and (prefers-color-scheme: light);
+@import 'highlight.js/scss/github-dark.scss' screen and (prefers-color-scheme: dark);
+
 /*
  * Content
  */

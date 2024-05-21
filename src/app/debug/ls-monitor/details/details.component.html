@@ -1,0 +1,37 @@
+<div class="d-flex flex-column w-100 h-100" *ngIf="detailsField as details">
+  <div class="border-bottom">
+    <button class="btn btn-link" (click)="closeClick.emit()"><i class="bi bi-x"></i></button>
+  </div>
+  <div class="flex-fill overflow-x-hidden overflow-y-auto">
+    <table class="table table-sm table-striped table-hover">
+      <thead>
+      <tr>
+        <th>Data</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr (click)="selectedMessage = message" *ngFor="let message of details.messages">
+        <td class="text-nowrap">
+          <small [ngSwitch]="message.type">
+            <i class="bi bi-arrow-right" *ngSwitchCase="'call'"></i>
+            <i class="bi bi-arrow-left" *ngSwitchCase="'return'"></i>
+            <i class="bi bi-x-lg" *ngSwitchCase="'callCancel'"></i>
+          </small>
+          {{ message.information }}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="border-top h-50 overflow-auto message-selected user-select-text" *ngIf="selectedMessage as selected">
+    <div class="small p-2 border-bottom">
+      <div><b>Type</b>: {{ selected.type }}</div>
+      <div><b>Sender</b>: {{ selected.sender }}</div>
+      <div><b>Destination</b>: {{ selected.destination }}<span
+        *ngIf="selected.methodCategory !== '/'">{{ selected.methodCategory }}</span><span
+        *ngIf="selected.method">/{{ selected.method }}</span></div>
+    </div>
+    <pre class="p-2" *ngIf="selected.payload as payload"><code [innerHtml]="payload | objectHighlight"></code></pre>
+    <pre class="p-2" *ngIf="selected.rawPayload as raw"><code>{{ raw }}</code></pre>
+  </div>
+</div>

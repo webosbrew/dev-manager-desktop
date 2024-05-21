@@ -1,9 +1,32 @@
+.ls-monitor {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+
+  .top-bar {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .side-bar {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+  }
+
+  .table-container {
+    grid-row: 2;
+    grid-column: 2;
+  }
+}
+
 .table-container {
   align-items: start;
 }
 
 .details-opened {
   width: 23em;
+  min-width: 23em;
+  max-width: 23em;
 }
 
 
