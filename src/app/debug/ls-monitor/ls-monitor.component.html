@@ -1,6 +1,25 @@
-<div class="w-100 h-100 d-flex flex-column">
-  <div class="table-container overflow-hidden flex-fill d-flex flex-row">
-    <div class="flex-grow-1 overflow-x-hidden overflow-y-auto h-100" [class.details-opened]="selectedRow">
+<div class="w-100 h-100 ls-monitor">
+  <div class="top-bar border-bottom p-2">
+    <input type="search" class="form-control form-control-sm"
+           appSearchBar keywords="sender,destination" (query)="queryUpdated($event)">
+  </div>
+  <div class="side-bar border-end h-100 d-flex flex-column p-2">
+    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Capture" (click)="beginCapture()" [disabled]="!device"
+            [ngSwitch]="isCapturing">
+      <i class="bi bi-record-fill larger" *ngSwitchCase="false"></i>
+      <i class="bi bi-stop-fill" *ngSwitchDefault></i>
+    </button>
+    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Open" (click)="openFromFile()" [disabled]="isCapturing">
+      <i class="bi bi-folder-fill"></i>
+    </button>
+    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Save" *ngIf="isCapture">
+      <i class="bi bi-floppy2-fill"></i>
+    </button>
+    <hr>
+  </div>
+  <div class="table-container overflow-hidden d-flex flex-row">
+    <div class="overflow-x-hidden overflow-y-auto h-100" [class.w-100]="!selectedRow"
+         [class.details-opened]="selectedRow">
       <table class="table table-sm table-striped table-hover">
         <thead>
         <tr>
@@ -17,29 +36,8 @@
         </tbody>
       </table>
     </div>
-    <div class="flex-fill d-flex flex-column w-100 h-100 border-start" *ngIf="selectedRow as selected">
-      <div class="border-bottom">
-        <button class="btn btn-link" (click)="selectedRow = undefined"><i class="bi bi-x"></i></button>
-      </div>
-      <table class="table table-sm">
-        <thead>
-        <tr>
-          <th>Data</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let message of selected.messages">
-          <td class="text-nowrap">
-            <small [ngSwitch]="message.type">
-              <i class="bi bi-arrow-right" *ngSwitchCase="'call'"></i>
-              <i class="bi bi-arrow-left" *ngSwitchCase="'return'"></i>
-              <i class="bi bi-x-lg" *ngSwitchCase="'callCancel'"></i>
-            </small>
-            {{ message.information }}
-          </td>
-        </tr>
-        </tbody>
-      </table>
+    <div class="flex-fill h-100 border-start overflow-hidden" *ngIf="selectedRow as selected">
+      <app-ls-monitor-details [details]="selected" (closeClick)="selectedRow = undefined"></app-ls-monitor-details>
     </div>
   </div>
 </div>
