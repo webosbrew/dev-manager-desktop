@@ -76,7 +76,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK Packages
-        run: "sdkmanager 'build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33'"
+        run: sdkmanager 'build-tools;34.0.0' 'ndk;${{ env.ANDROID_NDK_VERSION }}' 'platforms;android-33'
 
       - name: Check lint
         run: npm run ng lint
