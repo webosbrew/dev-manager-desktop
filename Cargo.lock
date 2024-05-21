@@ -534,8 +534,8 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.97"
-source = "git+https://github.com/mariotaku/cc-rs.git?rev=7d13f41#7d13f41b7d950bcfc9789f7af4a8507b2b7337c6"
+version = "1.0.98"
+source = "git+https://github.com/mariotaku/cc-rs.git?rev=01a3414#01a3414502efc71b4b4ca56809a02cfe96ab92d2"
 
 [[package]]
 name = "cesu8"
