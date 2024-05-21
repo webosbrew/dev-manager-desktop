@@ -17,6 +17,7 @@ on:
         default: 'ubuntu-22.04'
         options:
           - 'ubuntu-22.04'
+          - 'macos-latest'
           - 'debian-arm64-latest'
       build-for:
         type: choice
@@ -96,6 +97,6 @@ jobs:
         if: env.CI_BUILD_FOR == 'android'
         run: |
           npm run tauri android init
-          npm run tauri android build
+          npm run tauri android build -- --aab
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
