@@ -12,6 +12,7 @@ env:
   SENTRY_ORG: webosbrew
   SENTRY_PROJECT: dev-manager-desktop-ui
   SENTRY_ENVIRONMENT: "${{ github.event_name == 'release' && 'release' || 'development' }}"
+  ANDROID_NDK_VERSION: '26.3.11579264'
 
 jobs:
   sentry-create-release:
@@ -76,17 +77,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache Node Modules
-        uses: actions/cache@v4
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: "${{ matrix.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}"
-          restore-keys: |
-            ${{ matrix.os }}-node_modules
-
       - name: Install Required Packages (Linux)
-        if: runner.os == 'Linux'
+        if: startsWith(matrix.target, 'linux')
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential curl wget file libssl-dev libayatana-appindicator3-dev \
@@ -95,10 +87,32 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        if: startsWith(matrix.target, 'android')
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        if: startsWith(matrix.target, 'android')
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
+
+      - name: Add NDK to PATH
+        if: env.CI_BUILD_FOR == 'android'
+        shell: bash
+        run: |
+          echo ${NDK_HOME}/toolchains/llvm/prebuilt/*/bin >> $GITHUB_PATH
+        env:
+          NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
+          cache: 'npm'
 
       - name: Write Version
         uses: actions/github-script@v6
@@ -140,9 +154,10 @@ jobs:
         if: startsWith(matrix.target, 'android')
         shell: bash
         run: |
-          rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
           npm run tauri android init
           npm run tauri android build -- --aab
+        env:
+          NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
 
       - name: Upload Source Maps
         run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
