@@ -74,8 +74,9 @@ jobs:
       - name: Setup Android SDK
         if: env.CI_BUILD_FOR == 'android'
         uses: android-actions/setup-android@v3
-        with:
-          packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
+
+      - name: Install Android SDK Packages
+        run: "sdkmanager 'build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33'"
 
       - name: Check lint
         run: npm run ng lint
