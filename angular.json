@@ -53,6 +53,7 @@
               "find-matching-bracket",
               "filesize",
               "process/browser",
+              "localforage",
               "@xterm/xterm",
               "@xterm/addon-fit",
               "@xterm/addon-search"
