@@ -152,11 +152,12 @@ jobs:
         if: startsWith(matrix.target, 'android')
         with:
           name: android-bundle
-          path: src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
+          path: |
+            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
-        if: !startsWith(matrix.target, 'android') && github.event_name != 'release'
+        if: ${{ !startsWith(matrix.target, 'android') && github.event_name != 'release' }}
         with:
           name: ${{ matrix.target }}-snapshot
           path: |
@@ -167,7 +168,7 @@ jobs:
 
       - name: Create Release
         uses: ncipollo/release-action@v1
-        if: !startsWith(matrix.target, 'android') && github.event_name == 'release'
+        if: ${{ !startsWith(matrix.target, 'android') && github.event_name == 'release' }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: Dev Manager ${{ github.ref_name }}
