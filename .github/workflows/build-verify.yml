@@ -70,7 +70,7 @@ jobs:
 
       - name: Setup Android SDK
         if: github.event.inputs.build-for == 'android'
-        uses: nttld/setup-android@v3
+        uses: android-actions/setup-android@v3
         with:
           packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
 
