@@ -34,7 +34,7 @@ env:
 
 jobs:
   build:
-    runs-on: ${{ env.CI_RUNNER_TYPE }}
+    runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
 
     steps:
       - uses: actions/checkout@v4
