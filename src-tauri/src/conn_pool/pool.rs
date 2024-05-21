@@ -81,9 +81,6 @@ impl HandleError<Error> for DeviceConnectionErrorHandler {
     }
 }
 
-#[derive(Debug)]
-struct DeviceConnectionCustomizer {}
-
 impl Clone for DeviceConnectionPool {
     fn clone(&self) -> Self {
         return DeviceConnectionPool {
