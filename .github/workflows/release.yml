@@ -28,7 +28,7 @@ jobs:
 
       - name: Extract Version
         id: pkg-version
-        uses: Saionaro/extract-package-version@v1.2.1
+        uses: saionaro/extract-package-version@v1.3.0
 
       - name: Generate Sentry Release Name
         id: release-info
@@ -87,7 +87,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup JDK
+      - name: Setup JDK (Android)
         uses: actions/setup-java@v4
         if: startsWith(matrix.target, 'android')
         with:
@@ -100,7 +100,7 @@ jobs:
         with:
           packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
 
-      - name: Add NDK to PATH
+      - name: Add NDK to PATH (Android)
         if: startsWith(matrix.target, 'android')
         shell: bash
         run: |
@@ -115,7 +115,7 @@ jobs:
           cache: 'npm'
 
       - name: Write Version
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const release = "${{ needs.sentry-create-release.outputs.release }}".trim();
@@ -162,7 +162,7 @@ jobs:
       - name: Upload Source Maps
         run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
 
-      - name: Upload Android Bundle
+      - name: Upload Artifact (Android)
         uses: actions/upload-artifact@v4
         if: startsWith(matrix.target, 'android')
         with:
@@ -170,15 +170,30 @@ jobs:
           path: |
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
 
-      - name: Upload Artifact
+      - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@v4
-        if: ${{ !startsWith(matrix.target, 'android') && github.event_name != 'release' }}
+        if: ${{ startsWith(matrix.target, 'linux') && github.event_name != 'release' }}
         with:
           name: ${{ matrix.target }}-snapshot
           path: |
             target/**/bundle/deb/*.deb
+            target/**/bundle/rpm/*.rpm
             target/**/bundle/appimage/*.AppImage
+
+      - name: Upload Artifact (Windows)
+        uses: actions/upload-artifact@v4
+        if: ${{ !startsWith(matrix.target, 'windows') && github.event_name != 'release' }}
+        with:
+          name: ${{ matrix.target }}-snapshot
+          path: |
             target/**/bundle/msi/*.msi
+
+      - name: Upload Artifact (macOS)
+        uses: actions/upload-artifact@v4
+        if: ${{ !startsWith(matrix.target, 'macos') && github.event_name != 'release' }}
+        with:
+          name: ${{ matrix.target }}-snapshot
+          path: |
             target/**/bundle/dmg/*.dmg
 
       - name: Create Release
