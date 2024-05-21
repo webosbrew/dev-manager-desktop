@@ -1,9 +1,6 @@
-# This is a basic workflow to help you get started with Actions
-name: 'Linux Build'
+name: 'Build Test'
 
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     branches:
       - main
@@ -11,7 +8,6 @@ on:
     branches:
       - main
 
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       runner-type:
@@ -22,31 +18,26 @@ on:
         options:
           - 'ubuntu-22.04'
           - 'debian-arm64-latest'
+      build-for:
+        type: choice
+        description: 'The target to build for'
+        required: true
+        default: 'desktop'
+        options:
+          - 'desktop'
+          - 'android'
+env:
+  ANDROID_NDK_VERSION: 'r26d'
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [ 20.x ]
-
-    # The type of runner that the job will run on
     runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache Node Modules
-        uses: actions/cache@v4
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-${{ github.event.inputs.runner-type }}-node_modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ github.event.inputs.runner-type }}-node_modules
-
       - name: Install Required Packages
+        if: runner.os == 'Linux' && github.event.inputs.build-for == 'desktop'
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential curl wget file libssl-dev libayatana-appindicator3-dev \
@@ -65,12 +56,35 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
 
       - name: Install NPM Dependencies
         run: npm ci
 
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        if: github.event.inputs.build-for == 'android'
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        if: github.event.inputs.build-for == 'android'
+        uses: nttld/setup-android@v3
+        with:
+          packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
+
       - name: Check lint
         run: npm run ng lint
 
-      - name: Build the app
+      - name: Build the app (desktop)
+        if: github.event.inputs.build-for == 'desktop'
         run: npm run build -- --features=vendored-openssl
+
+      - name: Build the app (android)
+        if: github.event.inputs.build-for == 'android'
+        run: |
+          npm run tauri android init
+          npm run tauri android build
+        env:
+          NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
