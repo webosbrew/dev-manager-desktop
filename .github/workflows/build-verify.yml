@@ -28,16 +28,19 @@ on:
           - 'android'
 env:
   ANDROID_NDK_VERSION: 'r26d'
+  NODE_VERSION: '20.x'
+  CI_BUILD_FOR: ${{ github.event.inputs.build-for || 'desktop' }}
+  CI_RUNNER_TYPE: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
 
 jobs:
   build:
-    runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
+    runs-on: ${{ env.CI_RUNNER_TYPE }}
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Required Packages
-        if: runner.os == 'Linux' && github.event.inputs.build-for == 'desktop'
+        if: ${{ runner.os == 'Linux' && env.CI_BUILD_FOR == 'desktop' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential curl wget file libssl-dev libayatana-appindicator3-dev \
@@ -52,10 +55,10 @@ jobs:
           prefix-key: ${{ runner.os }}-${{ github.event.inputs.runner-type }}-rust
           workspaces: src-tauri
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install NPM Dependencies
@@ -63,13 +66,13 @@ jobs:
 
       - name: Setup JDK
         uses: actions/setup-java@v4
-        if: github.event.inputs.build-for == 'android'
+        if: env.CI_BUILD_FOR == 'android'
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Setup Android SDK
-        if: github.event.inputs.build-for == 'android'
+        if: env.CI_BUILD_FOR == 'android'
         uses: android-actions/setup-android@v3
         with:
           packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
@@ -77,12 +80,12 @@ jobs:
       - name: Check lint
         run: npm run ng lint
 
-      - name: Build the app (desktop)
-        if: github.event.inputs.build-for == 'desktop'
+      - name: Build for Desktop
+        if: env.CI_BUILD_FOR == 'desktop'
         run: npm run build -- --features=vendored-openssl
 
-      - name: Build the app (android)
-        if: github.event.inputs.build-for == 'android'
+      - name: Build for Android
+        if: env.CI_BUILD_FOR == 'android'
         run: |
           npm run tauri android init
           npm run tauri android build
