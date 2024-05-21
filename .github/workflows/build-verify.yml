@@ -27,7 +27,7 @@ on:
           - 'desktop'
           - 'android'
 env:
-  ANDROID_NDK_VERSION: 'r26d'
+  ANDROID_NDK_VERSION: '26.3.11579264'
   NODE_VERSION: '20.x'
   CI_BUILD_FOR: ${{ github.event.inputs.build-for || 'desktop' }}
   CI_RUNNER_TYPE: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
