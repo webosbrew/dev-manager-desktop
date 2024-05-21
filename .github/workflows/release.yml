@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
@@ -57,7 +57,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, ubuntu-22.04, macos-latest, debian-arm64-latest ]
+        include:
+          - target: windows
+            os: windows-latest
+          - target: linux-x86_64
+            os: ubuntu-22.04
+          - target: linux-arm64
+            os: debian-arm64-latest
+          - target: macos
+            os: macos-latest
+          - target: android
+            os: ubuntu-22.04
 
     runs-on: ${{ matrix.os }}
 
@@ -71,7 +81,7 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ matrix.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}
+          key: "${{ matrix.os }}-node_modules-${{ hashFiles('**/package-lock.json') }}"
           restore-keys: |
             ${{ matrix.os }}-node_modules
 
@@ -85,7 +95,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
@@ -108,32 +118,47 @@ jobs:
         run: npm ci
 
       - name: Build the app (Windows)
-        if: runner.os == 'Windows'
+        if: startsWith(matrix.target, 'windows')
         run: |
           rustup target add i686-pc-windows-msvc
           npm run build -- --features=vendored-openssl --target x86_64-pc-windows-msvc ${{ env.TAURI_BUILD_FLAGS }}
           npm run build -- --features=vendored-openssl --target i686-pc-windows-msvc ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Build the app (Linux)
-        if: runner.os == 'Linux'
+        if: startsWith(matrix.target, 'linux')
         run: npm run build -- --features=vendored-openssl ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Build the app (macOS)
-        if: runner.os == 'macOS'
+        if: startsWith(matrix.target, 'macos')
         run: |
           # Blocked by https://github.com/webosbrew/dev-manager-desktop/issues/116
           # rustup target add aarch64-apple-darwin
           # npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
           npm run build -- --features=vendored-openssl ${{ env.TAURI_BUILD_FLAGS }}
 
+      - name: Build the app (Android)
+        if: startsWith(matrix.target, 'android')
+        shell: bash
+        run: |
+          rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+          npm run tauri android init
+          npm run tauri android build -- --aab
+
       - name: Upload Source Maps
         run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
 
+      - name: Upload Android Bundle
+        uses: actions/upload-artifact@v4
+        if: startsWith(matrix.target, 'android')
+        with:
+          name: android-bundle
+          path: src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
-        if: github.event_name != 'release'
+        if: !startsWith(matrix.target, 'android') && github.event_name != 'release'
         with:
-          name: ${{ matrix.os }}-snapshot
+          name: ${{ matrix.target }}-snapshot
           path: |
             target/**/bundle/deb/*.deb
             target/**/bundle/appimage/*.AppImage
@@ -142,7 +167,7 @@ jobs:
 
       - name: Create Release
         uses: ncipollo/release-action@v1
-        if: github.event_name == 'release'
+        if: !startsWith(matrix.target, 'android') && github.event_name == 'release'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           name: Dev Manager ${{ github.ref_name }}
