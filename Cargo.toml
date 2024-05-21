@@ -7,4 +7,4 @@ members = [
 [patch.crates-io]
 cc = { git = "https://github.com/mariotaku/cc-rs.git", rev = "7d13f41" }
 r2d2 = { git = "https://github.com/mariotaku/r2d2.git", rev = "aaa2a2b" }
-tauri-build = { git = "https://github.com/mariotaku/tauri.git", rev = "3061853" }
+tauri-build = { git = "https://github.com/mariotaku/tauri.git", branch = "feature/android-version-info" }

@@ -4437,7 +4437,7 @@ dependencies = [
 [[package]]
 name = "tauri-build"
 version = "2.0.0-beta.15"
-source = "git+https://github.com/mariotaku/tauri.git?rev=3061853#3061853d6af7bfee138e0282f6a0378e1f290a62"
+source = "git+https://github.com/mariotaku/tauri.git?branch=feature/android-version-info#378995ff35d5de09b0f9d305c42d49e9301671c5"
 dependencies = [
  "anyhow",
  "cargo_toml",
@@ -4450,8 +4450,8 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "tauri-codegen 2.0.0-beta.15 (git+https://github.com/mariotaku/tauri.git?rev=3061853)",
- "tauri-utils 2.0.0-beta.15 (git+https://github.com/mariotaku/tauri.git?rev=3061853)",
+ "tauri-codegen 2.0.0-beta.15 (git+https://github.com/mariotaku/tauri.git?branch=feature/android-version-info)",
+ "tauri-utils 2.0.0-beta.15 (git+https://github.com/mariotaku/tauri.git?branch=feature/android-version-info)",
  "tauri-winres",
  "toml 0.8.2",
  "walkdir",
@@ -4487,7 +4487,7 @@ dependencies = [
 [[package]]
 name = "tauri-codegen"
 version = "2.0.0-beta.15"
-source = "git+https://github.com/mariotaku/tauri.git?rev=3061853#3061853d6af7bfee138e0282f6a0378e1f290a62"
+source = "git+https://github.com/mariotaku/tauri.git?branch=feature/android-version-info#378995ff35d5de09b0f9d305c42d49e9301671c5"
 dependencies = [
  "base64 0.22.1",
  "brotli",
@@ -4502,7 +4502,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "syn 2.0.65",
- "tauri-utils 2.0.0-beta.15 (git+https://github.com/mariotaku/tauri.git?rev=3061853)",
+ "tauri-utils 2.0.0-beta.15 (git+https://github.com/mariotaku/tauri.git?branch=feature/android-version-info)",
  "thiserror",
  "time",
  "url",
@@ -4714,7 +4714,7 @@ dependencies = [
 [[package]]
 name = "tauri-utils"
 version = "2.0.0-beta.15"
-source = "git+https://github.com/mariotaku/tauri.git?rev=3061853#3061853d6af7bfee138e0282f6a0378e1f290a62"
+source = "git+https://github.com/mariotaku/tauri.git?branch=feature/android-version-info#378995ff35d5de09b0f9d305c42d49e9301671c5"
 dependencies = [
  "brotli",
  "cargo_metadata",
