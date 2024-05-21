@@ -1,11 +1,14 @@
 import {Component, Input, OnDestroy} from '@angular/core';
 import {Device} from "../../types";
-import {from, identity, mergeMap, Observable, Subscription} from "rxjs";
+import {finalize, from, Observable, Subscription} from "rxjs";
 import {ExecutionError, RemoteCommandService} from "../../core/services/remote-command.service";
 import {map} from "rxjs/operators";
-import {trimEnd, trimStart, truncate} from "lodash-es";
+import {trimEnd} from "lodash-es";
+import {readTextFileLines} from '@tauri-apps/plugin-fs'
+import {open as showOpenDialog} from '@tauri-apps/plugin-dialog'
+import {TokenizedSearchParserResult} from "../../shared/directives";
 
-declare interface MonitorMessage {
+export declare interface MonitorMessage {
     senderUniqueName: string;
     destinationUniqueName: string;
     type: 'call' | 'callCancel' | 'return' | 'signal' | 'error' | string;
@@ -20,16 +23,23 @@ declare interface MonitorMessage {
     rawPayload?: string;
 }
 
-declare interface MonitorMessageItem extends MonitorMessage {
+export declare interface MonitorMessageItem extends MonitorMessage {
     information: string;
 }
 
-declare interface CallEntry {
+export declare interface CallEntry {
     name: string;
     sender: string;
     destination: string;
     information: string;
     messages: MonitorMessageItem[];
+}
+
+declare interface SearchQuery {
+    text?: string[];
+    sender?: string[];
+    destination?: string[];
+    exclude?: Omit<SearchQuery, 'exclude'>;
 }
 
 @Component({
@@ -39,45 +49,84 @@ declare interface CallEntry {
 })
 export class LsMonitorComponent implements OnDestroy {
 
+    @Input()
+    device: Device | null = null;
+
     messages?: Observable<MonitorMessage>;
+    isCapture: boolean = false;
+    isCapturing: boolean = false;
     rows: CallEntry[] = [];
     selectedRow?: CallEntry;
     private entriesMap: Record<string, CallEntry> = {};
 
-    private deviceField: Device | null = null;
     private unsubscribe?: Subscription;
+    private searchQuery: SearchQuery = {};
 
     constructor(private cmd: RemoteCommandService) {
-    }
-
-    get device(): Device | null {
-        return this.deviceField;
-    }
-
-    @Input()
-    set device(device: Device | null) {
-        this.deviceField = device;
-        this.messages = undefined;
-        if (device) {
-            this.reload(device);
-        }
     }
 
     ngOnDestroy() {
         this.unsubscribe?.unsubscribe();
     }
 
-    private reload(device: Device) {
-        this.messages = from(this.createMonitor(device)).pipe(mergeMap(identity));
-        this.unsubscribe = this.messages.subscribe({
+    queryUpdated(query: TokenizedSearchParserResult) {
+        this.searchQuery = query;
+        console.log('ls-monitor search query', query);
+        const messages = this.messages;
+        if (!messages) {
+            return;
+        }
+        this.reload(messages);
+    }
+
+    async beginCapture() {
+        const device = this.device;
+        if (!device) {
+            return;
+        }
+        const proc = await this.cmd.popen(device, "ls-monitor -j", "utf-8");
+        this.isCapture = true;
+        this.isCapturing = true;
+        this.messages = proc.pipe(
+            map(line => JSON.parse(line.data) as MonitorMessage),
+            finalize(() => {
+                this.isCapturing = false;
+                proc.write();
+            })
+        );
+        this.reload(this.messages);
+    }
+
+    async openFromFile() {
+        const selected = await showOpenDialog({filters: [{name: 'JSON', extensions: ['jsonl']}]})
+            .catch(() => null);
+        if (!selected) {
+            return;
+        }
+        this.isCapture = false;
+        this.messages = from(await readTextFileLines(selected.path)).pipe(
+            map(line => JSON.parse(line) as MonitorMessage)
+        );
+        this.reload(this.messages);
+    }
+
+    private reload(messages: Observable<MonitorMessage>) {
+        this.unsubscribe?.unsubscribe();
+        this.rows = [];
+        this.selectedRow = undefined;
+        this.entriesMap = {};
+        this.unsubscribe = messages.subscribe({
             next: message => {
                 if (message.transport == 'TX') {
                     switch (message.type) {
-                        case 'call':
+                        case 'call': {
+                            if (!LsMonitorComponent.messageMatches(message, this.searchQuery)) {
+                                return;
+                            }
                             const name = LsMonitorComponent.callName(message);
                             const item = {
                                 name,
-                                sender: LsMonitorComponent.shortServiceName(message.sender),
+                                sender: message.sender,
                                 destination: message.destination,
                                 payload: message.payload,
                                 information: LsMonitorComponent.messageInformation(message),
@@ -86,6 +135,7 @@ export class LsMonitorComponent implements OnDestroy {
                             this.rows.push(item);
                             this.entriesMap[LsMonitorComponent.messageKey(message)] = item;
                             break;
+                        }
                         case 'return':
                         case 'callCancel':
                             const entry = this.entriesMap[LsMonitorComponent.messageKey(message)];
@@ -112,13 +162,8 @@ export class LsMonitorComponent implements OnDestroy {
         });
     }
 
-    private async createMonitor(device: Device): Promise<Observable<MonitorMessage>> {
-        return (await this.cmd.popen(device, "ls-monitor -j", "utf-8"))
-            .pipe(map(line => JSON.parse(line.data) as MonitorMessage));
-    }
-
     private static callName(message: MonitorMessage): string {
-        return `${this.shortServiceName(message.destination)}${trimEnd(message.methodCategory, '/')}/${message.method}`;
+        return `${message.destination}${trimEnd(message.methodCategory, '/')}/${message.method}`;
     }
 
     private static shortServiceName(service: string): string {
@@ -128,7 +173,7 @@ export class LsMonitorComponent implements OnDestroy {
     }
 
     private static messageInformation(message: MonitorMessage): string {
-        return truncate(message.rawPayload || JSON.stringify(message.payload), {length: 100});
+        return message.rawPayload || JSON.stringify(message.payload);
     }
 
     private static messageKey(message: MonitorMessage): string {
@@ -141,4 +186,23 @@ export class LsMonitorComponent implements OnDestroy {
                 return `${message.senderUniqueName}:${message.destinationUniqueName}:${message.token}`;
         }
     }
+
+    private static messageMatches(message: MonitorMessage, query: SearchQuery): boolean {
+        if (query.exclude) {
+            if (query.exclude.sender?.includes(message.sender)) {
+                return false;
+            }
+            if (query.exclude.destination?.includes(message.destination)) {
+                return false;
+            }
+        }
+        if (query.sender && !query.sender.includes(message.sender)) {
+            return false;
+        }
+        if (query.destination && !query.destination.includes(message.destination)) {
+            return false;
+        }
+        return true;
+    }
+
 }
