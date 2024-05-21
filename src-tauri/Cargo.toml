@@ -30,8 +30,6 @@ vt100 = "0.15.2"
 tokio = "1.37.0"
 uuid = { version = "1.8.0", features = ["v1"] }
 hex = "0.4.3"
-file-mode = "0.1.2"
-posix-errors = "1.2.1"
 path-slash = "0.2.1"
 httparse = "1.8.0"
 r2d2 = "0.8.10"

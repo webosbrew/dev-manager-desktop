@@ -56,6 +56,11 @@ async fn status<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<DevMode
                 remaining: Some(session.error_msg.unwrap_or(String::from(""))),
             });
         }
+        log::info!(
+            "DevMode session non-success status: errorCode={:?}, errorMsg={:?}",
+            session.error_code,
+            session.error_msg
+        );
         return Ok(DevModeStatus {
             token: Some(token),
             remaining: None,

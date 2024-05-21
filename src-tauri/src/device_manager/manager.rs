@@ -13,14 +13,14 @@ use crate::error::Error;
 
 impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
-        let devices = read(self.get_conf_dir().as_deref()).await?;
+        let devices = read(&self.ensure_conf_dir()?).await?;
         *self.devices.lock().unwrap() = devices.clone();
         return Ok(devices);
     }
 
     pub async fn set_default(&self, name: &str) -> Result<Option<Device>, Error> {
-        let conf_dir = self.get_conf_dir();
-        let mut devices = read(conf_dir.as_deref()).await?;
+        let conf_dir = self.ensure_conf_dir()?;
+        let mut devices = read(&conf_dir).await?;
         let mut result: Option<Device> = None;
         for device in &mut devices {
             if device.name == name {
@@ -31,12 +31,12 @@ impl DeviceManager {
             }
         }
         log::trace!("{:?}", devices);
-        write(devices, conf_dir.as_deref()).await?;
+        write(devices, &conf_dir).await?;
         return Ok(result);
     }
 
     pub async fn add(&self, device: &Device) -> Result<Device, Error> {
-        let conf_dir = self.get_conf_dir();
+        let conf_dir = self.ensure_conf_dir()?;
         let mut device = device.clone();
         if let Some(key) = &device.private_key {
             match key {
@@ -61,15 +61,15 @@ impl DeviceManager {
             }
         }
         log::info!("Save device {}", device.name);
-        let mut devices = read(conf_dir.as_deref()).await?;
+        let mut devices = read(&conf_dir).await?;
         devices.push(device.clone());
-        write(devices.clone(), conf_dir.as_deref()).await?;
+        write(devices.clone(), &conf_dir).await?;
         return Ok(device);
     }
 
     pub async fn remove(&self, name: &str, remove_key: bool) -> Result<(), Error> {
-        let conf_dir = self.get_conf_dir();
-        let devices = read(conf_dir.as_deref()).await?;
+        let conf_dir = self.ensure_conf_dir()?;
+        let devices = read(&conf_dir).await?;
         let (will_delete, mut will_keep): (Vec<Device>, Vec<Device>) =
             devices.into_iter().partition(|d| d.name == name);
         let mut need_new_default = false;
@@ -93,7 +93,7 @@ impl DeviceManager {
         if need_new_default && !will_keep.is_empty() {
             will_keep.first_mut().unwrap().default = Some(true);
         }
-        write(will_keep, conf_dir.as_deref()).await?;
+        write(will_keep, &conf_dir).await?;
         return Ok(());
     }
 

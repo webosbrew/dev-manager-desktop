@@ -5,7 +5,7 @@ use std::env;
 use std::path::PathBuf;
 
 use log::LevelFilter;
-#[cfg(feature = "mobile")]
+#[cfg(feature = "desktop")]
 use native_dialog::{MessageDialog, MessageType};
 use ssh_key::PrivateKey;
 use tauri::webview::PageLoadEvent;
@@ -82,7 +82,7 @@ pub fn run() {
             });
             return Ok(());
         });
-    #[cfg(feature = "mobile")]
+    #[cfg(feature = "desktop")]
     if let Err(e) = result {
         #[cfg(windows)]
         if let tauri::Error::Runtime(ref e) = e {
@@ -96,12 +96,6 @@ pub fn run() {
                 return;
             }
         }
-        MessageDialog::new()
-            .set_type(MessageType::Error)
-            .set_title("webOS Dev Manager")
-            .set_text(&format!("Unexpected error occurred: {:?}", e))
-            .show_alert()
-            .expect("Unexpected error occurred while processing unexpected error :(");
     }
 }
 

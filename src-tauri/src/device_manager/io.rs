@@ -8,10 +8,10 @@ use serde_json::Value;
 use crate::device_manager::Device;
 use crate::error::Error;
 
-pub(crate) async fn read(conf_dir: Option<&Path>) -> Result<Vec<Device>, Error> {
-    let conf_dir = conf_dir.map(|conf_dir| conf_dir.to_path_buf());
+pub(crate) async fn read(conf_dir: &Path) -> Result<Vec<Device>, Error> {
+    let conf_dir = conf_dir.to_path_buf();
     return tokio::task::spawn_blocking(move || -> Result<Vec<Device>, Error> {
-        let path = devices_file_path(conf_dir.as_deref())?;
+        let path = devices_file_path(&conf_dir);
         let file = match File::open(path.as_path()) {
             Ok(file) => file,
             Err(e) => {
@@ -29,14 +29,14 @@ pub(crate) async fn read(conf_dir: Option<&Path>) -> Result<Vec<Device>, Error> 
             .filter_map(|v| serde_json::from_value::<Device>(v.clone()).ok())
             .collect());
     })
-        .await
-        .expect("critical failure in app::io::read task");
+    .await
+    .expect("critical failure in app::io::read task");
 }
 
-pub(crate) async fn write(devices: Vec<Device>, conf_dir: Option<&Path>) -> Result<(), Error> {
-    let conf_dir = conf_dir.map(|conf_dir| conf_dir.to_path_buf());
+pub(crate) async fn write(devices: Vec<Device>, conf_dir: &Path) -> Result<(), Error> {
+    let conf_dir = conf_dir.to_path_buf();
     return tokio::task::spawn_blocking(move || -> Result<(), Error> {
-        let path = devices_file_path(conf_dir.as_deref())?;
+        let path = devices_file_path(&conf_dir);
         let file = match File::create(path.as_path()) {
             Ok(file) => file,
             Err(e) => {
@@ -59,14 +59,12 @@ pub(crate) async fn write(devices: Vec<Device>, conf_dir: Option<&Path>) -> Resu
         serde_json::to_writer_pretty(writer, &devices)?;
         return Ok(());
     })
-        .await
-        .expect("critical failure in app::io::write task");
+    .await
+    .expect("critical failure in app::io::write task");
 }
 
-fn devices_file_path(conf_dir: Option<&Path>) -> Result<PathBuf, Error> {
-    return conf_dir
-        .map(|conf_dir| conf_dir.join("novacom-devices.json"))
-        .ok_or_else(|| Error::bad_config());
+fn devices_file_path(conf_dir: &Path) -> PathBuf {
+    return conf_dir.join("novacom-devices.json");
 }
 
 #[cfg(not(unix))]
