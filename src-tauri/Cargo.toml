@@ -24,7 +24,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_repr = "0.1.18"
 log = "0.4.21"
-env_logger = "0.11.3"
 rand = "0.8.5"
 vt100 = "0.15.2"
 tokio = "1.37.0"
@@ -70,6 +69,10 @@ optional = true
 version = "0.6.6"
 features = ["ed25519"]
 
+[dependencies.env_logger]
+version = "0.11.3"
+optional = true
+
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
@@ -78,4 +81,4 @@ default = ["custom-protocol", "vendored-openssl"]
 # DO NOT remove this
 custom-protocol = ["tauri/custom-protocol"]
 vendored-openssl = ["libssh-rs-sys/vendored-openssl", "reqwest/native-tls-vendored"]
-desktop = ["tauri-plugin-single-instance", "native-dialog"]
+desktop = ["tauri-plugin-single-instance", "native-dialog", "env_logger"]

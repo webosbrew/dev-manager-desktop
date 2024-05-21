@@ -31,9 +31,6 @@ mod spawn_manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    env_logger::builder()
-        .filter_level(LevelFilter::Debug)
-        .init();
     let mut builder = tauri::Builder::default();
     #[cfg(feature = "single-instance")]
     {
