@@ -175,7 +175,7 @@ jobs:
         uses: tj-actions/glob@v22
         id: glob
         with:
-          separator: '\n'
+          separator: "\n"
           read-gitignore: false
           files: |
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
