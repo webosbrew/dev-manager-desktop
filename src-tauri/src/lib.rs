@@ -4,12 +4,14 @@ extern crate core;
 use std::env;
 use std::path::PathBuf;
 
-use log::LevelFilter;
 #[cfg(feature = "desktop")]
 use native_dialog::{MessageDialog, MessageType};
 use ssh_key::PrivateKey;
 use tauri::webview::PageLoadEvent;
 use tauri::{AppHandle, Manager, RunEvent, Runtime};
+
+#[cfg(target_os = "android")]
+use android_logger::Config;
 
 use crate::app_dirs::{GetAppSshKeyDir, GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::DeviceManager;
@@ -31,6 +33,10 @@ mod spawn_manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(target_os = "android")]
+    {
+        android_logger::init_once(Config::default().with_max_level(log::LevelFilter::Debug));
+    }
     let mut builder = tauri::Builder::default();
     #[cfg(feature = "single-instance")]
     {
