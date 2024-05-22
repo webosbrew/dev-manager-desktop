@@ -174,7 +174,7 @@ jobs:
         with:
           separator: '\n'
           read-gitignore: false
-          files:
+          files: |
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
             target/**/bundle/deb/*.deb
             target/**/bundle/rpm/*.rpm
