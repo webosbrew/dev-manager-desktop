@@ -100,11 +100,12 @@ jobs:
         with:
           packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
 
-      - name: Add NDK to PATH (Android)
+      - name: Add Android SDK Paths
         if: startsWith(matrix.target, 'android')
         shell: bash
         run: |
           echo ${NDK_HOME}/toolchains/llvm/prebuilt/*/bin >> $GITHUB_PATH
+          echo ${ANDROID_HOME}/build-tools/*/ >> $GITHUB_PATH
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
 
