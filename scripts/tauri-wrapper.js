@@ -68,8 +68,28 @@ async function run() {
   if (process.platform === 'win32' && process.argv[2] === 'android') {
     await prepareOpenSSL();
   }
+  const hasCargoTauri = await (new Promise((resolve, reject) => {
+    child_process.exec('cargo tauri -V', (err, stdout) => {
+      if (err) {
+        reject(new Error('Tauri is not installed'));
+      } else {
+        resolve();
+      }
+    });
+  }).then(() => true).catch(() => false));
+  if (hasCargoTauri) {
+    return new Promise((resolve, reject) => {
+      const child = child_process.spawn('cargo', ['tauri', ...process.argv.slice(2)], {stdio: 'inherit'});
+      child.on('exit', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Tauri CLI exited with code ${code}`));
+        }
+      });
+    });
+  }
   await cli.run(process.argv.slice(2), null);
-
 }
 
 run().then(async () => {
