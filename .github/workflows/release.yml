@@ -164,6 +164,8 @@ jobs:
           fi
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
+          AAB_SIGNING_KEYSTORE: ${{ secrets.AAB_SIGNING_KEYSTORE }}
+          AAB_SIGNING_PASSWORD: ${{ secrets.AAB_SIGNING_PASSWORD }}
 
       - name: Upload Source Maps
         run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
