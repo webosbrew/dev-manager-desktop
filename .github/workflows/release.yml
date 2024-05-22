@@ -145,10 +145,8 @@ jobs:
       - name: Build the app (macOS)
         if: startsWith(matrix.target, 'macos')
         run: |
-          # Blocked by https://github.com/webosbrew/dev-manager-desktop/issues/116
-          # rustup target add aarch64-apple-darwin
-          # npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
-          npm run build -- --features=vendored-openssl ${{ env.TAURI_BUILD_FLAGS }}
+          rustup target add x86_64-apple-darwin aarch64-apple-darwin
+          npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
 
       - name: Build the app (Android)
         if: startsWith(matrix.target, 'android')
