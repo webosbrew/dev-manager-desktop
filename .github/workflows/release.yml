@@ -13,6 +13,7 @@ env:
   SENTRY_PROJECT: dev-manager-desktop-ui
   SENTRY_ENVIRONMENT: "${{ github.event_name == 'release' && 'release' || 'development' }}"
   ANDROID_NDK_VERSION: '26.3.11579264'
+  ANDROID_BUILD_TOOLS_VERSION: '34.0.0'
 
 jobs:
   sentry-create-release:
@@ -98,14 +99,14 @@ jobs:
         if: startsWith(matrix.target, 'android')
         uses: android-actions/setup-android@v3
         with:
-          packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
+          packages: "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION}} ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
 
       - name: Add Android SDK Paths
         if: startsWith(matrix.target, 'android')
         shell: bash
         run: |
           echo ${NDK_HOME}/toolchains/llvm/prebuilt/*/bin >> $GITHUB_PATH
-          echo ${ANDROID_HOME}/build-tools/*/ >> $GITHUB_PATH
+          echo ${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION} >> $GITHUB_PATH
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
 
