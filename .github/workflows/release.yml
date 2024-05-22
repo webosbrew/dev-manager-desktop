@@ -156,45 +156,38 @@ jobs:
         run: |
           npm run tauri android init
           npm run tauri android build -- --aab
+          if [ -n "$AAB_SIGNING_KEYSTORE" ]; then
+            echo "$AAB_SIGNING_KEYSTORE" | base64 -d | apksigner sign --ks /dev/stdin \
+              --ks-pass env:AAB_SIGNING_PASSWORD \
+              --min-sdk-version 28 \
+              src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
+          fi
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
 
       - name: Upload Source Maps
         run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
 
-      - name: Upload Artifact (Android)
-        uses: actions/upload-artifact@v4
-        if: startsWith(matrix.target, 'android')
+      - name: Glob Build Artifacts
+        uses: tj-actions/glob@v22
+        id: glob
         with:
-          name: android-bundle
-          path: |
+          separator: '\n'
+          files:
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
-
-      - name: Upload Artifact (Linux)
-        uses: actions/upload-artifact@v4
-        if: ${{ startsWith(matrix.target, 'linux') && github.event_name != 'release' }}
-        with:
-          name: ${{ matrix.target }}-snapshot
-          path: |
             target/**/bundle/deb/*.deb
             target/**/bundle/rpm/*.rpm
             target/**/bundle/appimage/*.AppImage
-
-      - name: Upload Artifact (Windows)
-        uses: actions/upload-artifact@v4
-        if: ${{ !startsWith(matrix.target, 'windows') && github.event_name != 'release' }}
-        with:
-          name: ${{ matrix.target }}-snapshot
-          path: |
             target/**/bundle/msi/*.msi
-
-      - name: Upload Artifact (macOS)
-        uses: actions/upload-artifact@v4
-        if: ${{ !startsWith(matrix.target, 'macos') && github.event_name != 'release' }}
-        with:
-          name: ${{ matrix.target }}-snapshot
-          path: |
             target/**/bundle/dmg/*.dmg
+
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        if: ${{ startsWith(matrix.target, 'android') || github.event_name != 'release' }}
+        with:
+          name: ${{ matrix.target }}-package
+          path: ${{ steps.glob.outputs.paths }}
 
       - name: Create Release
         uses: ncipollo/release-action@v1
@@ -206,10 +199,7 @@ jobs:
           omitNameDuringUpdate: true
           omitBodyDuringUpdate: true
           omitPrereleaseDuringUpdate: true
-          artifacts: "target/**/bundle/deb/*.deb,\
-            target/**/bundle/appimage/*.AppImage,\
-            target/**/bundle/msi/*.msi,\
-            target/**/bundle/dmg/*.dmg"
+          artifacts: ${{ steps.glob.outputs.paths }}
 
   sentry-finalize-release:
     name: Finalize Sentry Release
