@@ -147,6 +147,8 @@ jobs:
         run: |
           rustup target add x86_64-apple-darwin aarch64-apple-darwin
           npm run build -- --features=vendored-openssl --target universal-apple-darwin ${{ env.TAURI_BUILD_FLAGS }}
+        env:
+          CI: true
 
       - name: Build the app (Android)
         if: startsWith(matrix.target, 'android')
@@ -171,6 +173,7 @@ jobs:
         id: glob
         with:
           separator: '\n'
+          read-gitignore: false
           files:
             src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
             target/**/bundle/deb/*.deb
