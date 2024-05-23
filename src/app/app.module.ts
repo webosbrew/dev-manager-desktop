@@ -14,11 +14,13 @@ import {SharedModule} from './shared/shared.module';
 import {UpdateDetailsComponent} from './update-details/update-details.component';
 import {
     NgbAccordionModule,
-    NgbDropdown, NgbDropdownItem,
+    NgbDropdown,
+    NgbDropdownItem,
     NgbDropdownMenu,
     NgbDropdownToggle,
     NgbNavModule,
-    NgbTooltip
+    NgbTooltipConfig,
+    NgbTooltipModule
 } from "@ng-bootstrap/ng-bootstrap";
 import {RemoveDeviceComponent} from './remove-device/remove-device.component';
 import {AddDeviceModule} from "./add-device/add-device.module";
@@ -27,15 +29,15 @@ import {Router} from "@angular/router";
 import * as Sentry from "@sentry/angular-ivy";
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    HomeComponent,
-    KeyserverHintComponent,
-    ConnHintComponent,
-    RenewScriptComponent,
-    UpdateDetailsComponent,
-    RemoveDeviceComponent,
-  ],
+    declarations: [
+        AppComponent,
+        HomeComponent,
+        KeyserverHintComponent,
+        ConnHintComponent,
+        RenewScriptComponent,
+        UpdateDetailsComponent,
+        RemoveDeviceComponent,
+    ],
     imports: [
         BrowserModule,
         BrowserAnimationsModule,
@@ -49,30 +51,37 @@ import * as Sentry from "@sentry/angular-ivy";
         NgbAccordionModule,
         AddDeviceModule,
         NgOptimizedImage,
-        NgbTooltip,
+        NgbTooltipModule,
         NgbDropdown,
         NgbDropdownToggle,
         NgbDropdownMenu,
         NgbDropdownItem,
     ],
-  providers: [{
-    provide: ErrorHandler,
-    useValue: Sentry.createErrorHandler({
-      showDialog: false,
-    }),
-  },
-    {
-      provide: Sentry.TraceService,
-      deps: [Router],
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: () => () => {
-      },
-      deps: [Sentry.TraceService],
-      multi: true,
-    },],
-  bootstrap: [AppComponent]
+    providers: [
+        {
+            provide: ErrorHandler,
+            useValue: Sentry.createErrorHandler({
+                showDialog: false,
+            }),
+        },
+        {
+            provide: Sentry.TraceService,
+            deps: [Router],
+        },
+        {
+            provide: APP_INITIALIZER,
+            useFactory: () => () => {
+            },
+            deps: [Sentry.TraceService],
+            multi: true,
+        },
+        NgbTooltipConfig,
+    ],
+    bootstrap: [AppComponent]
 })
 export class AppModule {
+    constructor(tooltipConfig: NgbTooltipConfig) {
+        // Only show tooltips on hover, not on focus
+        tooltipConfig.triggers = 'hover';
+    }
 }
