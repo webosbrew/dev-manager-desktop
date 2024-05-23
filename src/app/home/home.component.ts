@@ -1,4 +1,4 @@
-import {Component, Injector} from '@angular/core';
+import {Component, ElementRef, HostListener, Injector, OnInit, ViewChild} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../types';
 import {DeviceManagerService} from '../core/services';
@@ -16,11 +16,13 @@ import {DeviceChooserComponent} from "./device-chooser/device-chooser.component"
     templateUrl: './home.component.html',
     styleUrls: ['./home.component.scss']
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
 
     selectedDevice?: Device;
-    activeItem: string = 'apps';
     appVersion: string;
+    @ViewChild('appNav', {static: true})
+    appNav?: ElementRef<HTMLElement>;
+    appNavTooltipDirection: string = 'right';
 
     constructor(
         public deviceManager: DeviceManagerService,
@@ -98,5 +100,22 @@ export class HomeComponent {
             size: 'sm',
             centered: true,
         }).result.then((device) => this.markDefault(device)).catch(noop);
+    }
+
+    ngOnInit(): void {
+        this.updateTooltipDirection();
+    }
+
+    @HostListener('window:resize')
+    onResize(): void {
+        this.updateTooltipDirection();
+    }
+
+    private updateTooltipDirection(): void {
+        const flexDirection = this.appNav?.nativeElement?.computedStyleMap().get('flex-direction');
+        if (!(flexDirection instanceof CSSKeywordValue)) {
+            return;
+        }
+        this.appNavTooltipDirection = flexDirection.value === 'row' ? 'top' : 'right';
     }
 }
