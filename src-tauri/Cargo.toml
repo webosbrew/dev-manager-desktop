@@ -76,9 +76,6 @@ optional = true
 [target.'cfg(target_os="android")'.dependencies]
 android_logger = "0.13.3"
 
-# Temporary workaround for https://github.com/tauri-apps/tauri/issues/9502
-wry = { git = "https://github.com/mariotaku/wry.git", rev = "0f4b8490" }
-
 [features]
 # by default Tauri runs in production mode
 # when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL

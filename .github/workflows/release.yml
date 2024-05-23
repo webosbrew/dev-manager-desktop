@@ -157,7 +157,7 @@ jobs:
         shell: bash
         run: |
           # TODO: Remove this once patches are merged
-          cargo install --git https://github.com/mariotaku/tauri.git --branch devman tauri-cli
+          cargo install --git https://github.com/mariotaku/tauri.git --rev 1ec4cb57 tauri-cli --force
           npm run tauri android init
           npm run tauri android build -- --aab
           if [ -n "$AAB_SIGNING_KEYSTORE" ]; then
