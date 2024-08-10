@@ -7,7 +7,3 @@ members = [
 [patch.crates-io]
 cc = { git = "https://github.com/mariotaku/cc-rs.git", rev = "01a3414" }
 r2d2 = { git = "https://github.com/mariotaku/r2d2.git", rev = "aaa2a2b" }
-# TODO: remove following patches when the changes are merged
-wry = { git = "https://github.com/tauri-apps/wry.git", rev = "50ec050" }
-tauri-build = { git = "https://github.com/mariotaku/tauri.git", branch = "feature/android-version-info" }
-tauri-plugin-shell = { git = "https://github.com/tauri-apps/plugins-workspace.git", branch = "v2" }

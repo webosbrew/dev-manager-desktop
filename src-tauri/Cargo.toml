@@ -16,41 +16,41 @@ name = "devman"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-beta", features = ["codegen"] }
-tauri-plugin = { version = "2.0.0-beta", features = ["build"] }
+tauri-build = { version = "2.0.0-rc", features = ["codegen"] }
+tauri-plugin = { version = "2.0.0-rc", features = ["build"] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-serde_repr = "0.1.18"
-log = "0.4.21"
+serde_repr = "0.1.19"
+log = "0.4.22"
 rand = "0.8.5"
 vt100 = "0.15.2"
 tokio = "1.37.0"
-uuid = { version = "1.8.0", features = ["v1"] }
+uuid = { version = "1.10.0", features = ["v1"] }
 hex = "0.4.3"
 path-slash = "0.2.1"
-httparse = "1.8.0"
+httparse = "1.9.4"
 r2d2 = "0.8.10"
 unix_mode = "0.1.4"
 sha256 = "1.5.0"
 pathdiff = "0.2.1"
-libssh-rs = { version = "0.3.2", features = ["vendored"] }
-libssh-rs-sys = "0.2.2"
+libssh-rs = { version = "0.3.3", features = ["vendored"] }
+libssh-rs-sys = "0.2.4"
 flate2 = "1.0"
-tauri-plugin-shell = "2.0.0-beta"
-tauri-plugin-dialog = "2.0.0-beta"
-tauri-plugin-fs = "2.0.0-beta"
-regex = "1.10.4"
-libc = "0.2.153"
+tauri-plugin-shell = "2.0.0-rc"
+tauri-plugin-dialog = "2.0.0-rc"
+tauri-plugin-fs = "2.0.0-rc"
+regex = "1.10.6"
+libc = "0.2.155"
 
 [dependencies.tauri]
-version = "2.0.0-beta"
+version = "2.0.0-rc"
 default-features = false
 features = ["wry"]
 
 [dependencies.reqwest]
-version = "0.12.4"
+version = "0.12.5"
 features = ["json"]
 
 [dependencies.native-dialog]
@@ -59,10 +59,10 @@ features = ["windows_dpi_awareness", "windows_visual_styles"]
 optional = true
 
 [dependencies.tauri-plugin-upload]
-version = "2.0.0-beta"
+version = "2.0.0-rc"
 
 [dependencies.tauri-plugin-single-instance]
-version = "2.0.0-beta"
+version = "2.0.0-rc"
 optional = true
 
 [dependencies.ssh-key]
@@ -70,11 +70,11 @@ version = "0.6.6"
 features = ["ed25519"]
 
 [dependencies.env_logger]
-version = "0.11.3"
+version = "0.11.5"
 optional = true
 
 [target.'cfg(target_os="android")'.dependencies]
-android_logger = "0.13.3"
+android_logger = "0.14.1"
 
 [features]
 # by default Tauri runs in production mode
