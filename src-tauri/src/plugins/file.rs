@@ -6,18 +6,18 @@ use std::path::Path;
 use flate2::read::GzDecoder;
 use libssh_rs::OpenFlags;
 use serde::Serialize;
-use tauri::ipc::Channel;
-use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime};
+use tauri::ipc::{Channel, IpcResponse};
+use tauri::plugin::{Builder, TauriPlugin};
 use uuid::Uuid;
 
 use crate::device_manager::Device;
 use crate::error::Error;
-use crate::remote_files::serve;
 use crate::remote_files::{FileItem, PermInfo};
+use crate::remote_files::serve;
 use crate::session_manager::SessionManager;
 
-#[derive(Clone, Serialize)]
+#[derive(Copy, Clone, Serialize)]
 struct CopyProgress {
     copied: usize,
     total: usize,
@@ -91,8 +91,11 @@ async fn write<R: Runtime>(
         let sessions = app.state::<SessionManager>();
         return Ok(sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
-            let mut file =
-                sftp.open(&path,  OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE, 0o644)?;
+            let mut file = sftp.open(
+                &path,
+                OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE,
+                0o644,
+            )?;
             file.write_all(&content)?;
             return Ok(());
         })?);
@@ -107,7 +110,7 @@ async fn get<R: Runtime>(
     device: Device,
     path: String,
     target: String,
-    on_progress: Channel,
+    on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
@@ -131,7 +134,7 @@ async fn put<R: Runtime>(
     device: Device,
     path: String,
     source: String,
-    on_progress: Channel,
+    on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
@@ -139,7 +142,11 @@ async fn put<R: Runtime>(
         return sessions.with_session(device, move |session| {
             let sftp = session.sftp()?;
             let mut sfile = sftp
-                .open(&path, OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE, 0o644)
+                .open(
+                    &path,
+                    OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE,
+                    0o644,
+                )
                 .map_err(|e| {
                     let e: Error = e.into();
                     return match e {
@@ -175,7 +182,7 @@ fn copy<R: ?Sized, W: ?Sized>(
     reader: &mut R,
     writer: &mut W,
     total: usize,
-    progress: &Channel,
+    progress: &Channel<CopyProgress>,
 ) -> std::io::Result<usize>
 where
     R: Read,
@@ -208,7 +215,7 @@ async fn get_temp<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     path: String,
-    on_progress: Channel,
+    on_progress: Channel<CopyProgress>,
 ) -> Result<String, Error> {
     let source = Path::new(&path);
     let extension = source

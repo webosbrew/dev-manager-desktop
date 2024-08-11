@@ -1,8 +1,10 @@
-use crate::event_channel::{EventChannel, EventHandler};
-use serde::Serialize;
 use std::sync::{Arc, Mutex};
-use tauri::{AppHandle, Manager, Runtime};
+
+use serde::Serialize;
+use tauri::{AppHandle, Emitter, Listener, Runtime};
 use uuid::Uuid;
+
+use crate::event_channel::{EventChannel, EventHandler};
 
 impl<R, H> EventChannel<R, H>
 where

@@ -1,5 +1,5 @@
 use tauri::plugin::{Builder, TauriPlugin};
-use tauri::{AppHandle, Manager, Runtime, State};
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 
 use crate::device_manager::Device;
 use crate::error::Error;
@@ -102,8 +102,6 @@ impl<R: Runtime> ShellCallback for PluginShellCb<R> {
                 .emit("shell-removed", self.token.clone())
                 .unwrap_or(());
         }
-        self.app
-            .emit("shells-updated", shells.list())
-            .unwrap_or(());
+        self.app.emit("shells-updated", shells.list()).unwrap_or(());
     }
 }

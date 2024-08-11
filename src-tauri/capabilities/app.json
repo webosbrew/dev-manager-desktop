@@ -5,10 +5,10 @@
     "main"
   ],
   "permissions": [
-    "event:default",
-    "webview:default",
-    "path:default",
-    "path:allow-resolve-directory",
+    "core:event:default",
+    "core:webview:default",
+    "core:path:default",
+    "core:path:allow-resolve-directory",
     "fs:default",
     "shell:allow-open",
     "dialog:allow-open",
