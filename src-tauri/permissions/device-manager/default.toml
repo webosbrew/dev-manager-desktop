@@ -11,4 +11,5 @@ permissions = [
   "allow-check-connection",
   "allow-app-ssh-key-path",
   "allow-app-ssh-pubkey",
+  "allow-ssh-key-dir",
 ]

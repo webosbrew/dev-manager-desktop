@@ -20,31 +20,34 @@ import { RetryFailedComponent } from './retry-failed/retry-failed.component';
 
 
 @NgModule({
-  declarations: [
-    DeviceEditorComponent,
-    WizardComponent,
-    ModeSelectComponent,
-    AddDeviceComponent,
-    DevmodeSetupComponent,
-    StepHeaderComponent,
-    SshAuthValueDirective,
-    KeyPassphrasePromptComponent,
-    DevmodePassphraseHintComponent,
-    SshPrivkeyHintComponent,
-    SshPasswordHintComponent,
-    RetryFailedComponent,
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    SharedModule,
-    NgbNavModule,
-    NgbAccordionModule,
-    NgbTooltipModule,
-    FormsModule,
-    NgbCollapse,
-    NgOptimizedImage,
-  ]
+    declarations: [
+        DeviceEditorComponent,
+        WizardComponent,
+        ModeSelectComponent,
+        AddDeviceComponent,
+        DevmodeSetupComponent,
+        StepHeaderComponent,
+        SshAuthValueDirective,
+        KeyPassphrasePromptComponent,
+        DevmodePassphraseHintComponent,
+        SshPrivkeyHintComponent,
+        SshPasswordHintComponent,
+        RetryFailedComponent,
+    ],
+    exports: [
+        DeviceEditorComponent
+    ],
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        SharedModule,
+        NgbNavModule,
+        NgbAccordionModule,
+        NgbTooltipModule,
+        FormsModule,
+        NgbCollapse,
+        NgOptimizedImage,
+    ]
 })
 export class AddDeviceModule {
 }

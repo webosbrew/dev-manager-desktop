@@ -43,20 +43,10 @@
     <ul class="nav flex-column mb-sm-2 d-none d-sm-block">
       <li class="nav-item" ngbDropdown placement="auto">
         <a class="nav-link" ngbDropdownToggle>
-          <i class="bi bi-tv"></i>
+          <i class="bi bi-gear"></i>
         </a>
         <div ngbDropdownMenu>
-          <ng-container *ngIf="(deviceManager.devices$ | async) as devices">
-            <button [class.active]="device === selectedDevice" ngbDropdownItem (click)="markDefault(device)"
-                    *ngFor="let device of devices">
-              {{ device.name }}
-            </button>
-          </ng-container>
-          <div class="dropdown-divider"></div>
-          <button ngbDropdownItem (click)="openSetupDevice(true)">Add new device...</button>
-          <button class="dropdown-item text-danger" (click)="removeDevice(selected)" *ngIf="selectedDevice as selected">
-            Remove {{ selected.name }}...
-          </button>
+          <a ngbDropdownItem routerLink="devices" replaceUrl>Devices</a>
         </div>
       </li>
     </ul>

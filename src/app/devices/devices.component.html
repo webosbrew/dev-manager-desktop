@@ -1,0 +1,21 @@
+<div class="p-3">
+  <h4 class="">Devices</h4>
+  <ul class="list-group mt-3">
+    @for (device of devices$ | async; track device.name) {
+      <li class="list-group-item" [class.list-group-item-action]="!editingDevice" (click)="editingDevice = device">
+        <div>
+          {{ device.name }}
+        </div>
+        <div class="mt-2" [ngbCollapse]="editingDevice !== device">
+          @defer {
+            <app-device-inline-editor [device]="device" (closed)="editingDevice = undefined"
+                                      (save)="saveDevice($event)"></app-device-inline-editor>
+          }
+        </div>
+      </li>
+    }
+    <li class="list-group-item list-group-item-action" (click)="addDevice()">
+      Add new device...
+    </li>
+  </ul>
+</div>

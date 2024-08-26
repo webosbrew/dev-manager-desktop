@@ -5,6 +5,7 @@ import {HomeComponent} from "../home.component";
 import ReleaseInfo from '../../../release.json';
 import {SharedModule} from "../../shared/shared.module";
 import {NgLetModule} from "ng-let";
+import {DevicesComponent} from "../../devices/devices.component";
 
 @Component({
     selector: 'app-nav-more',
@@ -13,7 +14,8 @@ import {NgLetModule} from "ng-let";
         RouterLink,
         NgIf,
         NgLetModule,
-        SharedModule
+        SharedModule,
+        DevicesComponent
     ],
     templateUrl: './nav-more.component.html',
     styleUrl: './nav-more.component.scss'

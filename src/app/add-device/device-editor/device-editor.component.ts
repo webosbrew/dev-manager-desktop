@@ -5,7 +5,7 @@ import {DeviceManagerService} from '../../core/services';
 import {MessageDialogComponent} from '../../shared/components/message-dialog/message-dialog.component';
 import {KeyserverHintComponent} from '../keyserver-hint/keyserver-hint.component';
 import {NewDevice, NewDeviceAuthentication, NewDeviceBase} from "../../types";
-import {firstValueFrom, noop, Observable, of} from "rxjs";
+import {noop, Observable, of} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {open as showOpenDialog} from '@tauri-apps/plugin-dialog';
 import {BackendError} from "../../core/services/backend-client";
@@ -26,15 +26,27 @@ export class DeviceEditorComponent implements OnInit {
     formGroup!: FormGroup<SetupInfoFormControls>;
 
     @Input()
+    name?: string;
+    @Input()
+    host?: string;
+    @Input()
     port?: number;
+    @Input()
+    portDisabled?: boolean;
     @Input()
     username?: string;
     @Input()
-    auth?: NewDeviceAuthentication;
+    usernameDisabled?: boolean;
+    @Input()
+    auth?: SetupAuthInfoUnion;
+    @Input()
+    authDisabled?: boolean;
     @Input()
     checkName?: boolean;
     @Input()
     hideDevModeAuth?: boolean;
+    @Input()
+    description?: string;
 
     appSshPubKey$: Observable<string>;
 
@@ -44,7 +56,7 @@ export class DeviceEditorComponent implements OnInit {
 
     ngOnInit(): void {
         this.formGroup = new FormGroup<SetupInfoFormControls>({
-            name: new FormControl<string>('tv', {
+            name: new FormControl<string>(this.name || '', {
                 nonNullable: true,
                 validators: [
                     Validators.required,
@@ -52,7 +64,7 @@ export class DeviceEditorComponent implements OnInit {
                 ],
                 asyncValidators: (control) => this.validateDeviceName(control.value)
             }),
-            address: new FormControl<string>('', {
+            address: new FormControl<string>(this.host || '', {
                 nonNullable: true,
                 validators: [
                     Validators.required,
@@ -67,7 +79,7 @@ export class DeviceEditorComponent implements OnInit {
                     Validators.max(65535)
                 ]
             }),
-            description: new FormControl<string>('', {
+            description: new FormControl<string>(this.description ?? '', {
                 nonNullable: true
             }),
             // Unix username Regex: https://unix.stackexchange.com/a/435120/277731
@@ -79,25 +91,25 @@ export class DeviceEditorComponent implements OnInit {
                 ]
             }),
             sshAuth: new FormGroup<SetupAuthInfoFormControls>({
-                type: new FormControl<NewDeviceAuthentication>(this.auth ?? NewDeviceAuthentication.LocalKey, {
+                type: new FormControl<NewDeviceAuthentication>(this.auth?.type ?? NewDeviceAuthentication.LocalKey, {
                     nonNullable: true
                 }),
-                value: new FormControl<string | SetupAuthInfoLocalKey['value'] | null>(null),
+                value: new FormControl<SetupAuthInfoUnion['value']>(this.auth?.value ?? null),
             }, {
                 asyncValidators: (c) => this.validateAuthInfo(c.value),
             }),
         });
-        if (this.username) {
+        if (this.usernameDisabled) {
             this.formGroup.controls.sshUsername.disable();
         }
-        if (this.port) {
+        if (this.portDisabled) {
             this.formGroup.controls.port.disable();
         }
-        if (this.auth) {
+        if (this.authDisabled) {
             this.formGroup.controls.sshAuth.controls.type.disable();
         }
         this.formGroup.controls.sshAuth.controls.type.valueChanges.subscribe(() => {
-            this.formGroup.controls.sshAuth.controls.value.reset(null);
+            this.formGroup.controls.sshAuth.controls.value.reset(undefined);
         });
     }
 
@@ -218,7 +230,7 @@ export class DeviceEditorComponent implements OnInit {
                 return {
                     ...base,
                     privateKey: {
-                        openSsh: await this.deviceManager.getAppSshKeyPath(),
+                        openSsh: 'id_devman',
                     }
                 }
             }
@@ -233,7 +245,7 @@ export class DeviceEditorComponent implements OnInit {
             return of(null);
         }
         return fromPromise(this.deviceManager.list()
-            .then(devices => devices.find(device => device.name === name))
+            .then(devices => devices.find(device => device.name === name && (!this.name || device.name !== this.name)))
             .then(device => device ? {nameExists: true} : null));
     }
 
@@ -268,7 +280,7 @@ export class DeviceEditorComponent implements OnInit {
     }
 
     async chooseSshPrivKey(): Promise<void> {
-        const sshDir = await join(await homeDir().catch(() => documentDir()), '.ssh');
+        const sshDir = await this.deviceManager.getSshKeyDir();
         const file = await showOpenDialog({
             multiple: false,
             defaultPath: sshDir,
@@ -295,9 +307,7 @@ export class DeviceEditorComponent implements OnInit {
                 return;
             }
         }
-        this.formGroup.controls.sshAuth.controls.value.setValue({
-            path: file, passphrase
-        });
+        this.formGroup.controls.sshAuth.controls.value.setValue(new OpenSshLocalKeyValue(file, passphrase));
     }
 
     authInfoHelp() {
@@ -350,6 +360,11 @@ interface SetupAuthInfoBase {
     type: NewDeviceAuthentication;
 }
 
+interface LocalKeyValue {
+    path: string;
+    passphrase?: string;
+}
+
 export interface SetupAuthInfoPassword extends SetupAuthInfoBase {
     type: NewDeviceAuthentication.Password;
     value: string;
@@ -357,14 +372,12 @@ export interface SetupAuthInfoPassword extends SetupAuthInfoBase {
 
 export interface SetupAuthInfoLocalKey extends SetupAuthInfoBase {
     type: NewDeviceAuthentication.LocalKey;
-    value: {
-        path: string;
-        passphrase?: string;
-    };
+    value: LocalKeyValue;
 }
 
 export interface SetupAuthInfoAppKey extends SetupAuthInfoBase {
     type: NewDeviceAuthentication.AppKey;
+    value: null;
 }
 
 export interface SetupAuthInfoDevMode extends SetupAuthInfoBase {
@@ -380,5 +393,19 @@ export type SetupAuthInfoUnion =
 
 export type SetupAuthInfoFormControls = {
     type: FormControl<NewDeviceAuthentication>;
-    value: FormControl<string | SetupAuthInfoLocalKey['value'] | null>;
+    value: FormControl<SetupAuthInfoUnion['value']>;
 };
+
+export class OpenSshLocalKeyValue implements LocalKeyValue {
+    path: string;
+    passphrase?: string;
+
+    constructor(path: string, passphrase?: string) {
+        this.path = path;
+        this.passphrase = passphrase
+    }
+
+    toString(): string {
+        return this.path;
+    }
+}

@@ -16,7 +16,7 @@ pub trait GetSshDir {
         if !dir.exists() {
             create_dir_all(&dir)?;
         }
-        return Ok(dir);
+        Ok(dir)
     }
 }
 
@@ -65,6 +65,6 @@ pub trait GetAppSshKeyDir {
                     message: format!("{:?}", e),
                 })?;
         }
-        return Ok(path);
+        Ok(path)
     }
 }

@@ -10,6 +10,7 @@ import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
 import ReleaseInfo from '../../release.json';
 import {DeviceChooserComponent} from "./device-chooser/device-chooser.component";
+import {DevicesComponent} from "../devices/devices.component";
 
 @Component({
     selector: 'app-home',
@@ -117,5 +118,11 @@ export class HomeComponent implements OnInit {
             return;
         }
         this.appNavTooltipDirection = flexDirection.value === 'row' ? 'top' : 'right';
+    }
+
+    openDevices() {
+        this.modalService.open(DevicesComponent, {
+            scrollable: true
+        });
     }
 }

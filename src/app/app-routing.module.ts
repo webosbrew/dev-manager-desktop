@@ -18,6 +18,7 @@ const routes: Routes = [
             {path: 'terminal', loadChildren: () => import('./terminal').then(m => m.TerminalModule)},
             {path: 'debug', loadChildren: () => import('./debug').then(m => m.DebugModule)},
             {path: 'info', loadChildren: () => import('./info').then(m => m.InfoModule)},
+            {path: 'devices', loadComponent: () => import('./devices/devices.component').then(m => m.DevicesComponent)},
             {path: 'nav-more', component: NavMoreComponent},
             {path: '', redirectTo: 'apps', pathMatch: 'full'},
         ]

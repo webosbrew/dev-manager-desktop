@@ -104,35 +104,30 @@ pub fn run() {
 
 impl<R: Runtime> GetSshDir for AppHandle<R> {
     fn get_ssh_dir(&self) -> Option<PathBuf> {
-        let home: Option<PathBuf>;
         #[cfg(mobile)]
         {
-            home = self.path().data_dir().ok();
+            self.path().app_config_dir().ok()
         }
         #[cfg(not(mobile))]
         {
-            home = self
-                .path()
+            self.path()
                 .home_dir()
+                .map(|home| home.join(".ssh"))
                 .or_else(|_| self.path().data_dir())
-                .ok();
+                .ok()
         }
-        return home.map(|d| d.join(".ssh"));
     }
 }
 
 impl<R: Runtime> GetAppSshKeyDir for AppHandle<R> {
     fn get_app_ssh_key_path(&self) -> Result<PathBuf, Error> {
-        let config_dir = self.path().app_config_dir().map_err(|e| Error::Message {
-            message: format!("Failed to get config directory: {:?}", e),
-            unhandled: true,
-        })?;
-        return Ok(config_dir.join("id_devman"));
+        let config_dir = self.get_ssh_dir().ok_or(Error::bad_config())?;
+        Ok(config_dir.join("id_devman"))
     }
 
     fn get_app_ssh_pubkey(&self) -> Result<String, Error> {
         let priv_key = self.ensure_app_ssh_key_path()?;
-        return PrivateKey::read_openssh_file(&priv_key)
+        PrivateKey::read_openssh_file(&priv_key)
             .map_err(|e| Error::BadPrivateKey {
                 message: format!("{:?}", e),
             })
@@ -142,7 +137,7 @@ impl<R: Runtime> GetAppSshKeyDir for AppHandle<R> {
                     .map_err(|e| Error::BadPrivateKey {
                         message: format!("{:?}", e),
                     })
-            });
+            })
     }
 }
 
