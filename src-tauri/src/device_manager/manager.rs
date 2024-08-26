@@ -15,7 +15,7 @@ impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
         let devices = read(&self.ensure_conf_dir()?).await?;
         *self.devices.lock().unwrap() = devices.clone();
-        return Ok(devices);
+        Ok(devices)
     }
 
     pub async fn set_default(&self, name: &str) -> Result<Option<Device>, Error> {
@@ -32,7 +32,7 @@ impl DeviceManager {
         }
         log::trace!("{:?}", devices);
         write(devices, &conf_dir).await?;
-        return Ok(result);
+        Ok(result)
     }
 
     pub async fn add(&self, device: &Device) -> Result<Device, Error> {
@@ -62,9 +62,13 @@ impl DeviceManager {
         }
         log::info!("Save device {}", device.name);
         let mut devices = read(&conf_dir).await?;
-        devices.push(device.clone());
+        if let Some(existing) = devices.iter_mut().find(|ref d| d.name == device.name) {
+            *existing = device.clone();
+        } else {
+            devices.push(device.clone());
+        }
         write(devices.clone(), &conf_dir).await?;
-        return Ok(device);
+        Ok(device)
     }
 
     pub async fn remove(&self, name: &str, remove_key: bool) -> Result<(), Error> {
@@ -94,7 +98,7 @@ impl DeviceManager {
             will_keep.first_mut().unwrap().default = Some(true);
         }
         write(will_keep, &conf_dir).await?;
-        return Ok(());
+        Ok(())
     }
 
     //noinspection HttpUrlsUsage
@@ -104,14 +108,14 @@ impl DeviceManager {
             .error_for_status()?;
         let content = resp.text().await?;
 
-        return match SshKey::from_privkey_base64(&content, Some(passphrase)) {
+        match SshKey::from_privkey_base64(&content, Some(passphrase)) {
             Ok(_) => Ok(content),
             _ => Err(if passphrase.is_empty() {
                 Error::PassphraseRequired
             } else {
                 Error::BadPassphrase
             }),
-        };
+        }
     }
 
     pub async fn localkey_verify(&self, name: &str, passphrase: &str) -> Result<(), Error> {
@@ -119,23 +123,23 @@ impl DeviceManager {
         let ssh_key_path = if name_path.is_absolute() {
             name_path.to_path_buf()
         } else {
-            fs::canonicalize(self.ensure_ssh_dir()?)?
+            fs::canonicalize(self.ensure_ssh_dir()?.join(name_path))?
         };
-        return match SshKey::from_privkey_file(ssh_key_path.to_str().unwrap(), Some(passphrase)) {
+        match SshKey::from_privkey_file(ssh_key_path.to_str().unwrap(), Some(passphrase)) {
             Ok(_) => Ok(()),
             _ => Err(if passphrase.is_empty() {
                 Error::PassphraseRequired
             } else {
                 Error::BadPassphrase
             }),
-        };
+        }
     }
 
     pub async fn check_connection(&self, host: &str) -> Result<DeviceCheckConnection, Error> {
         async fn ssh_probe(host: &str, port: u16, user: &str) -> Result<String, Error> {
             let host = host.to_string();
             let user = user.to_string();
-            return tokio::task::spawn_blocking(move || {
+            tokio::task::spawn_blocking(move || {
                 let ssh_sess = Session::new()?;
                 DeviceConnection::session_init(&ssh_sess)?;
                 ssh_sess.set_option(libssh_rs::SshOption::Hostname(host))?;
@@ -145,28 +149,28 @@ impl DeviceManager {
                 return Ok(ssh_sess.get_server_banner()?);
             })
             .await
-            .expect("Failed to spawn_blocking");
+            .expect("Failed to spawn_blocking")
         }
         //noinspection HttpUrlsUsage
         async fn key_server_probe(host: &str) -> Result<String, Error> {
-            return reqwest::get(format!("http://{host}:9991/webos_rsa"))
+            reqwest::get(format!("http://{host}:9991/webos_rsa"))
                 .await?
                 .error_for_status()?
                 .text()
                 .await
-                .map_err(Error::from);
+                .map_err(Error::from)
         }
-        return Ok(DeviceCheckConnection {
+        Ok(DeviceCheckConnection {
             ssh_22: ssh_probe(host, 22, "root").await.ok(),
             ssh_9922: ssh_probe(host, 9922, "prisoner").await.ok(),
             key_server: key_server_probe(host).await.is_ok(),
-        });
+        })
     }
 }
 
 impl GetSshDir for DeviceManager {
     fn get_ssh_dir(&self) -> Option<PathBuf> {
-        return self.ssh_dir.lock().unwrap().clone();
+        self.ssh_dir.lock().unwrap().clone()
     }
 }
 
@@ -178,7 +182,7 @@ impl SetSshDir for DeviceManager {
 
 impl GetConfDir for DeviceManager {
     fn get_conf_dir(&self) -> Option<PathBuf> {
-        return self.conf_dir.lock().unwrap().clone();
+        self.conf_dir.lock().unwrap().clone()
     }
 }
 

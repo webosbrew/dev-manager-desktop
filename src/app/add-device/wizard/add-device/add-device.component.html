@@ -1,3 +1,3 @@
-<app-device-editor [username]="username" [port]="port" [auth]="auth" [hideDevModeAuth]="mode === 'rooted'"
-                   [checkName]="true"
+<app-device-editor name="tv" [username]="username" [usernameDisabled]="!!username" [port]="port" [portDisabled]="!!port"
+                   [auth]="auth" [authDisabled]="!!auth" [hideDevModeAuth]="mode === 'rooted'" [checkName]="true"
                    #deviceEditor></app-device-editor>

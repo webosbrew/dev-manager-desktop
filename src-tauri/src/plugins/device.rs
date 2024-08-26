@@ -10,7 +10,7 @@ use crate::error::Error;
 
 #[tauri::command]
 async fn list(manager: State<'_, DeviceManager>) -> Result<Vec<Device>, Error> {
-    return manager.list().await;
+    manager.list().await
 }
 
 #[tauri::command]
@@ -18,12 +18,12 @@ async fn set_default(
     manager: State<'_, DeviceManager>,
     name: String,
 ) -> Result<Option<Device>, Error> {
-    return manager.set_default(&name).await;
+    manager.set_default(&name).await
 }
 
 #[tauri::command]
 async fn add(manager: State<'_, DeviceManager>, device: Device) -> Result<Device, Error> {
-    return manager.add(&device).await;
+    manager.add(&device).await
 }
 
 #[tauri::command]
@@ -32,7 +32,7 @@ async fn remove(
     name: String,
     remove_key: bool,
 ) -> Result<(), Error> {
-    return manager.remove(&name, remove_key).await;
+    manager.remove(&name, remove_key).await
 }
 
 #[tauri::command]
@@ -41,9 +41,9 @@ async fn novacom_getkey(
     address: String,
     passphrase: Option<String>,
 ) -> Result<String, Error> {
-    return manager
+    manager
         .novacom_getkey(&address, passphrase.as_deref().unwrap_or(""))
-        .await;
+        .await
 }
 
 #[tauri::command]
@@ -52,9 +52,9 @@ async fn localkey_verify(
     name: String,
     passphrase: Option<String>,
 ) -> Result<(), Error> {
-    return manager
+    manager
         .localkey_verify(&name, passphrase.as_deref().unwrap_or(""))
-        .await;
+        .await
 }
 
 #[tauri::command]
@@ -70,7 +70,7 @@ async fn check_connection(
     manager: State<'_, DeviceManager>,
     host: String,
 ) -> Result<DeviceCheckConnection, Error> {
-    return manager.check_connection(&host).await;
+    manager.check_connection(&host).await
 }
 
 #[tauri::command]
@@ -81,6 +81,11 @@ async fn app_ssh_key_path<R: Runtime>(app: AppHandle<R>) -> Result<String, Error
 #[tauri::command]
 async fn app_ssh_pubkey<R: Runtime>(app: AppHandle<R>) -> Result<String, Error> {
     return Ok(app.get_app_ssh_pubkey()?);
+}
+
+#[tauri::command]
+async fn ssh_key_dir<R: Runtime>(app: AppHandle<R>) -> Result<String, Error> {
+    Ok(app.get_ssh_dir().unwrap().to_string_lossy().to_string())
 }
 
 /// Initializes the plugin.
@@ -97,6 +102,7 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
             check_connection,
             app_ssh_key_path,
             app_ssh_pubkey,
+            ssh_key_dir,
         ])
         .build()
 }

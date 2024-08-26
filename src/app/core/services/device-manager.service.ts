@@ -173,6 +173,10 @@ export class DeviceManagerService extends BackendClient {
         return await this.invoke<string>('app_ssh_pubkey');
     }
 
+    async getSshKeyDir(): Promise<string> {
+        return await this.invoke<string>('ssh_key_dir');
+    }
+
     fileSession(device: Device): FileSession {
         return new FileSessionImpl(this.cmd, this.file, device);
     }

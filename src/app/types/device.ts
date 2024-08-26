@@ -20,6 +20,8 @@ export enum NewDeviceAuthentication {
     DevKey = 'devKey',
 }
 
+export const AppPrivKeyName = 'id_devman';
+
 export declare interface NewDeviceBase extends Omit<Device, 'privateKey' | 'passphrase' | 'password'> {
     new: true;
     name: string;
@@ -40,6 +42,13 @@ export declare interface NewDeviceWithLocalPrivateKey extends NewDeviceBase {
     passphrase?: string;
 }
 
+export declare interface NewDeviceWithAppPrivateKey extends NewDeviceBase {
+    privateKey: {
+        openSsh: typeof AppPrivKeyName;
+    };
+    passphrase?: string;
+}
+
 export declare interface NewDeviceWithDevicePrivateKey extends NewDeviceBase {
     privateKey: {
         openSshData: string;
@@ -47,6 +56,10 @@ export declare interface NewDeviceWithDevicePrivateKey extends NewDeviceBase {
     passphrase: string;
 }
 
-export type NewDevice = NewDeviceWithPassword | NewDeviceWithLocalPrivateKey | NewDeviceWithDevicePrivateKey;
+export type NewDevice =
+    NewDeviceWithPassword
+    | NewDeviceWithLocalPrivateKey
+    | NewDeviceWithAppPrivateKey
+    | NewDeviceWithDevicePrivateKey;
 
 export type DeviceLike = Device | NewDevice;
