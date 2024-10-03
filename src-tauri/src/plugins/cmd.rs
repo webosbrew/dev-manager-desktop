@@ -1,25 +1,27 @@
 use std::io::{Read, Write};
 use std::sync::Arc;
 
-use serde::{Deserialize};
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    AppHandle, Manager, Runtime, State,
-};
-
+use crate::byte_string::{ByteString, Encoding};
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
 use crate::session_manager::{Proc, ProcCallback, ProcData, SessionManager};
 use crate::spawn_manager::SpawnManager;
+use serde::Deserialize;
+use tauri::{
+    plugin::{Builder, TauriPlugin},
+    AppHandle, Manager, Runtime, State,
+};
 
 #[tauri::command]
 async fn exec<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     command: String,
-    stdin: Option<Vec<u8>>,
-) -> Result<Vec<u8>, Error> {
+    stdin: Option<ByteString>,
+    encoding: Option<Encoding>,
+) -> Result<ByteString, Error> {
+    let encoding = encoding.unwrap_or(Encoding::Binary);
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
@@ -27,7 +29,7 @@ async fn exec<R: Runtime>(
             ch.open_session()?;
             ch.request_exec(&command)?;
             if let Some(stdin) = stdin.clone() {
-                ch.stdin().write_all(&stdin)?;
+                ch.stdin().write_all(&stdin.as_ref())?;
                 ch.send_eof()?;
             }
             let mut buf = Vec::<u8>::new();
@@ -39,14 +41,14 @@ async fn exec<R: Runtime>(
             session.mark_last_ok();
             if exit_code != 0 {
                 return Err(Error::ExitStatus {
-                    message: format!(""),
+                    message: "".to_string(),
                     command: command.clone(),
                     exit_code,
                     stderr,
                     unhandled: true,
                 });
             }
-            return Ok(buf);
+            return Ok(ByteString::parse(&buf, encoding).unwrap());
         });
     })
     .await

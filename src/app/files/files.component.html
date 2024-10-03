@@ -10,17 +10,30 @@
           <i class="bi bi-chevron-right"></i>
         </button>
       </div>
-      <div class="flex-fill mx-2 breadcrumb-bar border rounded overflow-hidden">
+      <div class="flex-fill mx-2 breadcrumb-bar border rounded">
         <nav aria-label="breadcrumb">
-          <ol class="breadcrumb my-0 btn-group flex-nowrap" *ngIf="history else locationConnectingAndError">
-            <li
-              class="breadcrumb-item btn btn-sm btn-outline-secondary text-nowrap border-top-0 border-bottom-0 rounded-0"
-              [class.border-start-0]="idx === 0"
-              (click)="breadcrumbNav(state.breadcrumb.slice(0, idx + 1))"
-              *ngFor="let dir of state.breadcrumb; index as idx">
-              <span *ngIf="idx > 0; else rootLabel">{{ dir }}</span>
-              <ng-template #rootLabel><i class="bi-hdd-fill me-1"></i>/</ng-template>
+          <ol class="breadcrumb my-0 btn-group flex-nowrap">
+            <li>
+              <select class="breadcrumb-item form-select form-select-sm border-0 border-end rounded-end-0"
+                      [value]="device.name" (change)="deviceManager.setDefault(deviceSelect.value)" #deviceSelect>
+                @for (item of (deviceManager.devices$ | async); track item.name) {
+                  <option [value]="item.name">{{ item.name }}</option>
+                }
+              </select>
             </li>
+            @if (history) {
+              @for (dir of state.breadcrumb; track $index) {
+                <li
+                  class="breadcrumb-item btn btn-sm btn-outline-secondary text-nowrap border-top-0 border-bottom-0 rounded-0"
+                  [class.border-start-0]="$index === 0"
+                  (click)="breadcrumbNav(state.breadcrumb.slice(0, $index + 1))">
+                  <span *ngIf="$index > 0; else rootLabel">{{ dir }}</span>
+                  <ng-template #rootLabel><i class="bi-hdd-fill me-1"></i>/</ng-template>
+                </li>
+              }
+            } @else {
+              <ng-container *ngTemplateOutlet="locationConnectingAndError"></ng-container>
+            }
           </ol>
           <ng-template #locationConnectingAndError>
             <ul class="breadcrumb my-0 btn-group flex-nowrap">

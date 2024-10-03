@@ -30,6 +30,7 @@ mod remote_files;
 mod session_manager;
 mod shell_manager;
 mod spawn_manager;
+mod byte_string;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

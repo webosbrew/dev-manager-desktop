@@ -39,8 +39,8 @@ export class RemoteCommandService extends BackendClient {
         Promise<T> {
         const stdin = typeof stdinData === 'string' ? [...this.encoder.encode(stdinData)] : stdinData;
         try {
-            const stdout: number[] = await this.invoke('exec', {device, command, stdin});
-            return convertOutput(stdout, outputEncoding as any) as any;
+            const encoding = RemoteCommandService.byteStringEncoding(outputEncoding);
+            return await this.invoke('exec', {device, command, stdin, encoding});
         } catch (e) {
             if (BackendError.isCompatible(e)) {
                 if (e.reason === 'ExitStatus') {
@@ -58,6 +58,15 @@ export class RemoteCommandService extends BackendClient {
         Promise<CommandSubject<T>> {
         const token: string = await this.invoke('spawn', {device, command});
         return new CommandSubject<T>(this.zone, token, command, outputEncoding ?? 'buffer');
+    }
+
+    private static byteStringEncoding(encoding?: 'buffer' | 'utf-8') {
+        switch (encoding) {
+            case 'utf-8':
+                return 'string';
+            default:
+                return 'binary';
+        }
     }
 
 }
