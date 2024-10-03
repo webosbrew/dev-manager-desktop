@@ -16,8 +16,8 @@ name = "devman"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc", features = ["codegen"] }
-tauri-plugin = { version = "2.0.0-rc", features = ["build"] }
+tauri-build = { version = "2.0.0", features = ["codegen"] }
+tauri-plugin = { version = "2.0.0", features = ["build"] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -25,8 +25,8 @@ serde_json = "1.0"
 serde_repr = "0.1.19"
 log = "0.4.22"
 rand = "0.8.5"
-vt100 = "0.15.2"
-tokio = "1.37.0"
+vt100 = "0.15"
+tokio = "1.40"
 uuid = { version = "1.10.0", features = ["v1"] }
 hex = "0.4.3"
 path-slash = "0.2.1"
@@ -38,14 +38,14 @@ pathdiff = "0.2.1"
 libssh-rs = { version = "0.3.3", features = ["vendored"] }
 libssh-rs-sys = "0.2.4"
 flate2 = "1.0"
-tauri-plugin-shell = "2.0.0-rc"
-tauri-plugin-dialog = "2.0.0-rc"
-tauri-plugin-fs = "2.0.0-rc"
+tauri-plugin-shell = "2.0.0"
+tauri-plugin-dialog = "2.0.0"
+tauri-plugin-fs = "2.0.0"
 regex = "1.10.6"
 libc = "0.2.155"
 
 [dependencies.tauri]
-version = "2.0.0-rc"
+version = "2.0.0"
 default-features = false
 features = ["wry"]
 
@@ -59,10 +59,10 @@ features = ["windows_dpi_awareness", "windows_visual_styles"]
 optional = true
 
 [dependencies.tauri-plugin-upload]
-version = "2.0.0-rc"
+version = "2.0.0"
 
 [dependencies.tauri-plugin-single-instance]
-version = "2.0.0-rc"
+version = "2.0.0"
 optional = true
 
 [dependencies.ssh-key]

@@ -41,7 +41,7 @@ export class FilesComponent implements OnInit, OnDestroy {
 
     constructor(
         private modalService: NgbModal,
-        private deviceManager: DeviceManagerService,
+        public deviceManager: DeviceManagerService,
         private cmd: RemoteCommandService,
     ) {
         this.filesSubject = new BehaviorSubject<FilesState>(new FilesState(''));
