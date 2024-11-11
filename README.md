@@ -11,7 +11,7 @@ your system
 | Operating System      | x86_64                                      | arm64                                                                           | x86                                       |
 |-----------------------|---------------------------------------------|---------------------------------------------------------------------------------|-------------------------------------------|
 | Windows               | webOS.Dev.Manager_[VERSION]_x64_en-US.msi   | Not available                                                                   | webOS.Dev.Manager_[VERSION]_x86_en-US.msi |
-| macOS                 | webOS.Dev.Manager_[VERSION]_x64.dmg         | Broken, see [#116](https://github.com/webosbrew/dev-manager-desktop/issues/116) | Not available                             |
+| macOS                 | webOS.Dev.Manager_[VERSION]_x64.dmg         | webOS.Dev.Manager_1.99.3_universal.dmg                                          | Not available                             |
 | Linux (Debian/Ubuntu) | web-os-dev-manager_[VERSION]_amd64.deb      | web-os-dev-manager_[VERSION]_arm64.deb                                          | Not available                             |
 | Linux (Other distros) | web-os-dev-manager_[VERSION]_amd64.AppImage | web-os-dev-manager_[VERSION]_aarch64.AppImage                                   | Not available                             |
 
