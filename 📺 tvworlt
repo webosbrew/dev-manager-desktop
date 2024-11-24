@@ -1,0 +1,16 @@
+{
+  "files": ["streams/*.m3u"],
+  "rules": {
+    "no-empty-lines": true,
+    "require-header": true,
+    "attribute-quotes": true,
+    "require-info": true,
+    "require-title": true,
+    "no-trailing-spaces": false,
+    "no-whitespace-before-title": true,
+    "no-multi-spaces": true,
+    "no-extra-comma": true,
+    "space-before-paren": true,
+    "no-dash": true
+  }
+}
