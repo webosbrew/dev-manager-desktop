@@ -63,6 +63,35 @@
           </ul>
         </ng-template>
       </li>
+      <li ngbNavItem="piratevodka">
+        <a class="text-nowrap" ngbNavLink>Pirate Vodka</a>
+        <ng-template ngbNavContent>
+          <div>
+            <ul>
+              <li>
+                Copy your developer mode token:
+                <div class="overflow-auto bg-panel p-2">
+                  <code class="text-nowrap">{{ devMode.token }}</code>
+                </div>
+              </li>
+              <li>
+                Visit <a href="https://lg.pirate.vodka" target="_blank" rel="noopener noreferrer">https://lg.pirate.vodka</a>
+              </li>
+              <li>
+                Paste your token into the provided field and click <b>Add Token</b>.
+              </li>
+            </ul>
+            <p>
+              Once completed, your token will be automatically renewed every 24 hours.
+            </p>
+            <small>
+              See how lg.pirate.vodka works on <a href="https://github.com/LucifersCircle/webOS-Token-Refresh" target="_blank" rel="noopener noreferrer">
+                Github
+              </a>
+            </small>
+          </div>
+        </ng-template>
+      </li>
     </ul>
 
     <div [ngbNavOutlet]="nav" class="flex-fill overflow-hidden"></div>
