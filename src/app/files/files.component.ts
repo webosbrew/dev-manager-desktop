@@ -1,15 +1,13 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DeviceManagerService} from "../core/services";
 import {Device, FileItem, FileSession} from "../types";
-import {BehaviorSubject, Observable, Subject, Subscription} from "rxjs";
+import {from, Observable, Subscription, tap} from "rxjs";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
 import {open as openPath} from '@tauri-apps/plugin-shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/plugin-dialog';
 import * as path from "path";
-import {RemoteCommandService} from "../core/services/remote-command.service";
-import {trimEnd} from "lodash-es";
 import {downloadDir} from "@tauri-apps/api/path";
 import {CreateDirectoryMessageComponent} from "./create-directory-message/create-directory-message.component";
 
@@ -19,6 +17,10 @@ class FilesState {
 
     constructor(public dir: string, public items?: FileItem[], public error?: Error) {
         this.breadcrumb = dir === '/' ? [''] : dir.split('/');
+    }
+
+    get completed(): boolean {
+        return !!this.items || !!this.error;
     }
 }
 
@@ -30,29 +32,23 @@ class FilesState {
 export class FilesComponent implements OnInit, OnDestroy {
     device: Device | null = null;
     session: FileSession | null = null;
-    home?: string;
     history?: HistoryStack;
-    files$: Observable<FilesState>;
+    files$?: Observable<FilesState>;
 
     selectedItems: FileItem[] | null = null;
 
-    private filesSubject: Subject<FilesState>;
     private subscription?: Subscription;
 
     constructor(
         private modalService: NgbModal,
-        public deviceManager: DeviceManagerService,
-        private cmd: RemoteCommandService,
+        public deviceManager: DeviceManagerService
     ) {
-        this.filesSubject = new BehaviorSubject<FilesState>(new FilesState(''));
-        this.files$ = this.filesSubject.asObservable();
     }
 
     ngOnInit(): void {
         this.subscription = this.deviceManager.selected$.subscribe(async (selected) => {
-            this.filesSubject.next(new FilesState(''));
+            this.files$ = undefined;
             this.history = undefined;
-            this.home = undefined;
             this.device = selected;
             this.session = selected && this.deviceManager.fileSession(selected);
             if (!selected) {
@@ -74,39 +70,39 @@ export class FilesComponent implements OnInit, OnDestroy {
         return this.history?.current || null;
     }
 
+    ls(dir: string = ''): Observable<FilesState> {
+        const session = this.session;
+        const comparator = this.compareName;
+
+        async function* task() {
+            if (!session) {
+                throw new Error('No device selected');
+            }
+            if (!dir) {
+                yield new FilesState('');
+                dir = await session.home();
+            }
+            yield new FilesState(dir);
+            console.log('ls', dir);
+            let list = await session!.ls(dir);
+            yield new FilesState(dir, list.sort(comparator), undefined);
+        }
+
+        return from(task());
+    }
+
     async cd(dir: string = '', pushHistory: boolean = false): Promise<void> {
         if (!this.device) return;
-        if (!dir) {
-            console.log('cd ~');
-            this.filesSubject.next(new FilesState(''));
-            if (!this.home) {
-                try {
-                    this.home = await this.homeDir();
-                } catch (e) {
-                    this.filesSubject.next(new FilesState('', undefined, e as Error));
-                    return;
-                }
+        this.files$ = this.ls(dir).pipe(tap((state) => {
+            if (!pushHistory || !state.completed || this.history?.current === state.dir) {
+                return;
             }
-            dir = this.home;
-        } else {
-            console.log('cd', dir);
-            this.filesSubject.next(new FilesState(dir));
-        }
-        let list: FileItem[];
-        try {
-            list = await this.session!.ls(dir);
-        } catch (e) {
-            this.filesSubject.next(new FilesState(dir, undefined, e as Error));
-            return;
-        }
-        if (pushHistory && this.history?.current !== dir) {
             if (!this.history) {
-                this.history = new HistoryStack(dir);
+                this.history = new HistoryStack(state.dir);
             } else {
-                this.history.push(dir);
+                this.history.push(state.dir);
             }
-        }
-        this.filesSubject.next(new FilesState(dir, list.sort(this.compareName), undefined));
+        }));
         this.selectedItems = null;
     }
 
@@ -124,13 +120,6 @@ export class FilesComponent implements OnInit, OnDestroy {
             return;
         }
         await this.cd(path);
-    }
-
-    async homeDir(): Promise<string> {
-        const def = '/media/developer';
-        if (!this.device) return def;
-        let path = await this.cmd.exec(this.device, 'echo -n $HOME', 'utf-8');
-        return trimEnd(path, ' /') || def;
     }
 
     compareName(this: void, a: FileItem, b: FileItem): number {
@@ -301,7 +290,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         const returnValue = await showOpenDialog({
             multiple: true,
             defaultPath: await downloadDir(),
-        }).then(resp => resp?.map(v => v.path));
+        });
         if (!returnValue) return;
         const progressRef = ProgressDialogComponent.open(this.modalService);
         const progress: ProgressDialogComponent = progressRef.componentInstance;

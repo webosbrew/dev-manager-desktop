@@ -9,6 +9,7 @@ import {NgbDropdownModule, NgbNavModule, NgbPaginationModule, NgbProgressbar} fr
 import {SharedModule} from "../shared/shared.module";
 import {NgLetModule} from "ng-let";
 import {HbchannelRemoveComponent} from './hbchannel-remove/hbchannel-remove.component';
+import {FormsModule} from "@angular/forms";
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import {HbchannelRemoveComponent} from './hbchannel-remove/hbchannel-remove.comp
         NgbDropdownModule,
         NgbProgressbar,
         NgOptimizedImage,
+        FormsModule,
     ]
 })
 export class AppsModule {

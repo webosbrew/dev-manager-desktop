@@ -1,7 +1,13 @@
 <div class="w-100 h-100 d-flex flex-column overflow-hidden" xmlns="http://www.w3.org/1999/html">
   <nav class="manager-toolbar navbar bg-panel border-bottom px-2">
-    <div class="me-auto">
-      <ul ngbNav #nav="ngbNav" class="nav-pills" [(activeId)]="tabId">
+    <div class="d-flex flex-row w-100">
+      <select class="form-select w-auto" [value]="device?.name" (change)="deviceManager.setDefault(deviceSelect.value)"
+              #deviceSelect>
+        @for (dev of devices$ | async; track dev.name) {
+          <option [ngValue]="dev.name" [selected]="dev.name === device?.name">{{ dev.name }}</option>
+        }
+      </select>
+      <ul ngbNav #nav="ngbNav" class="nav-pills flex-nowrap ms-2" [(activeId)]="tabId">
         <li ngbNavItem="installed">
           <a ngbNavLink>Installed</a>
           <ng-template ngbNavContent>
@@ -15,9 +21,7 @@
           </ng-template>
         </li>
       </ul>
-    </div>
-    <div>
-      <button class="btn btn-primary" (click)="openInstallChooser()">
+      <button class="btn btn-primary text-nowrap ms-auto" (click)="openInstallChooser()">
         <i class="bi bi-folder-fill me-2"></i>Install
       </button>
     </div>

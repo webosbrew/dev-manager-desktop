@@ -4,8 +4,12 @@ import * as path from 'path';
 import {basename} from '@tauri-apps/api/path'
 import {ProgressCallback, RemoteFileService} from "./remote-file.service";
 import {IOError} from "./backend-client";
+import {trimEnd} from "lodash-es";
 
 export class FileSessionImpl implements FileSession {
+
+    private cachedHome?: string;
+
     constructor(private cmd: RemoteCommandService, private file: RemoteFileService, private device: Device) {
     }
 
@@ -66,6 +70,15 @@ export class FileSessionImpl implements FileSession {
                 }
             } while (retry);
         }
+    }
+
+    async home(): Promise<string> {
+        if (!this.cachedHome) {
+            const def = '/media/developer';
+            let path = await this.cmd.exec(this.device, 'echo -n $HOME', 'utf-8');
+            this.cachedHome = trimEnd(path, ' /') || def;
+        }
+        return this.cachedHome;
     }
 
 }
