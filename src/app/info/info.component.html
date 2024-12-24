@@ -1,3 +1,11 @@
+<div class="manager-toolbar navbar bg-panel border-bottom d-flex flex-row flex-nowrap px-2">
+  <select class="form-select" [value]="device?.name" (change)="deviceManager.setDefault(deviceSelect.value)"
+          #deviceSelect>
+    @for (item of (deviceManager.devices$ | async); track item.name) {
+      <option [ngValue]="item.name" [selected]="item.name === device?.name">{{ item.name }}</option>
+    }
+  </select>
+</div>
 <div class="p-3" *ngIf="device as device">
   <app-error-card [error]="infoError" title="Unable to get device info" (retry)="loadInfo()"
                   *ngIf="device && infoError">
@@ -63,7 +71,7 @@
     <div class="card-body">
       <h5 class="card-title">Homebrew Channel</h5>
       <p class="card-text" *ngIf="homebrewAppInfo">
-        <strong>Version: </strong><span>{{homebrewAppInfo.version}}</span>
+        <strong>Version: </strong><span>{{ homebrewAppInfo.version }}</span>
         <ng-container *ngIf="homebrewAppConfig as config">
           <br>
           <strong>Rooted: </strong><span *ngIf="config.root else unrooted">Yes</span>

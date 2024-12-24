@@ -284,7 +284,7 @@ export class DeviceEditorComponent implements OnInit {
         const file = await showOpenDialog({
             multiple: false,
             defaultPath: sshDir,
-        }).then(result => result?.path);
+        }).then(result => result);
         if (typeof (file) !== 'string' || !file) {
             return;
         }

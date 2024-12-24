@@ -23,6 +23,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     packages$?: Observable<PackageInfo[] | null>;
     instPackages?: Record<string, RawPackageInfo>;
     device: Device | null = null;
+    devices$?: Observable<Device[]|null>;
     tabId: string = 'installed';
 
     @ViewChild('storageInfo') storageInfo?: StatStorageInfoComponent;
@@ -31,13 +32,14 @@ export class AppsComponent implements OnInit, OnDestroy {
     private packagesSubscription?: Subscription;
 
     constructor(
+        public deviceManager: DeviceManagerService,
         private modalService: NgbModal,
-        private deviceManager: DeviceManagerService,
         private appManager: AppManagerService,
     ) {
     }
 
     ngOnInit(): void {
+        this.devices$ = this.deviceManager.devices$;
         this.deviceSubscription = this.deviceManager.selected$.subscribe((device) => {
             this.device = device;
             if (device) {
@@ -77,7 +79,7 @@ export class AppsComponent implements OnInit, OnDestroy {
             filters: [{name: 'IPK package', extensions: ['ipk']}],
             multiple: false,
             defaultPath: await downloadDir(),
-        }).then(result => result?.path);
+        }).then(result => result);
         if (!path) {
             return;
         }

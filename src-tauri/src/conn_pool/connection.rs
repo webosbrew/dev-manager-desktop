@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::Mutex;
 use std::time::Duration;
 
-use libssh_rs::{AuthStatus, Session, SshKey, SshOption};
+use libssh_rs::{AuthStatus, LogLevel, Session, SshKey, SshOption};
 use regex::Regex;
 use uuid::Uuid;
 
@@ -21,6 +21,7 @@ impl DeviceConnection {
         session.set_option(SshOption::Hostname(device.host.clone()))?;
         session.set_option(SshOption::Port(device.port.clone()))?;
         session.set_option(SshOption::User(Some(device.username.clone())))?;
+        session.set_option(SshOption::LogLevel(LogLevel::Protocol))?;
 
         session.connect()?;
 

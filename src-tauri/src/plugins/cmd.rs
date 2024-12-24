@@ -7,7 +7,7 @@ use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
 use crate::session_manager::{Proc, ProcCallback, ProcData, SessionManager};
 use crate::spawn_manager::SpawnManager;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Manager, Runtime, State,
@@ -20,7 +20,7 @@ async fn exec<R: Runtime>(
     command: String,
     stdin: Option<ByteString>,
     encoding: Option<Encoding>,
-) -> Result<ByteString, Error> {
+) -> Result<ExecOutput, Error> {
     let encoding = encoding.unwrap_or(Encoding::Binary);
     return tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
@@ -32,8 +32,8 @@ async fn exec<R: Runtime>(
                 ch.stdin().write_all(&stdin.as_ref())?;
                 ch.send_eof()?;
             }
-            let mut buf = Vec::<u8>::new();
-            ch.stdout().read_to_end(&mut buf)?;
+            let mut stdout = Vec::<u8>::new();
+            ch.stdout().read_to_end(&mut stdout)?;
             let mut stderr = Vec::<u8>::new();
             ch.stderr().read_to_end(&mut stderr)?;
             let exit_code = ch.get_exit_status().unwrap_or(0);
@@ -48,7 +48,10 @@ async fn exec<R: Runtime>(
                     unhandled: true,
                 });
             }
-            return Ok(ByteString::parse(&buf, encoding).unwrap());
+            return Ok(ExecOutput {
+                stdout: ByteString::parse(&stdout, encoding).unwrap(),
+                stderr: ByteString::parse(&stderr, encoding).unwrap(),
+            });
         });
     })
     .await
@@ -111,6 +114,12 @@ struct ProcCallbackImpl<R: Runtime> {
 #[derive(Deserialize)]
 struct TxPayload {
     data: Option<Vec<u8>>,
+}
+
+#[derive(Serialize, Debug)]
+struct ExecOutput {
+    stdout: ByteString,
+    stderr: ByteString,
 }
 
 impl<R: Runtime> ProcCallback for ProcCallbackImpl<R> {

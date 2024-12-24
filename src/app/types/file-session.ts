@@ -41,4 +41,6 @@ export declare interface FileSession {
 
     uploadBatch(strings: string[], pwd: string, fileCb: (name: string, index: number, total: number) => void,
                 progressCb: ProgressCallback, failCb: (name: string, e: Error) => Promise<boolean>): Promise<void>;
+
+    home(): Promise<string>;
 }

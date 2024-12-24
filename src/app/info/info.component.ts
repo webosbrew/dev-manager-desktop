@@ -1,6 +1,6 @@
-import {Component, Injector} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {noop} from 'rxjs';
+import {noop, Subscription} from 'rxjs';
 import {Device, RawPackageInfo} from '../types';
 import {
     AppManagerService,
@@ -19,13 +19,14 @@ import {MessageDialogComponent} from "../shared/components/message-dialog/messag
 import {RemoteFileService} from "../core/services/remote-file.service";
 import {open as openPath} from "@tauri-apps/plugin-shell";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
+import {fromPromise} from "rxjs/internal/observable/innerFrom";
 
 @Component({
     selector: 'app-info',
     templateUrl: './info.component.html',
     styleUrls: ['./info.component.scss']
 })
-export class InfoComponent {
+export class InfoComponent implements OnInit, OnDestroy {
     device: Device | null = null;
     deviceInfo: DeviceInfo | null = null;
     devModeInfo: DevModeStatus | null = null;
@@ -34,16 +35,21 @@ export class InfoComponent {
     homebrewRepoManifest?: RepositoryItem;
     homebrewRepoHasUpdate: boolean = false;
     infoError: any;
+    deviceSubscription!: Subscription;
+    infoSubscription?: Subscription;
 
     constructor(
         private modalService: NgbModal,
-        private deviceManager: DeviceManagerService,
+        public deviceManager: DeviceManagerService,
         private files: RemoteFileService,
         private appManager: AppManagerService,
         private appsRepo: AppsRepoService,
         private devMode: DevModeService
     ) {
-        deviceManager.selected$.subscribe((selected) => {
+    }
+
+    ngOnInit(): void {
+        this.deviceSubscription = this.deviceManager.selected$.subscribe((selected) => {
             this.device = selected;
             this.deviceInfo = null;
             this.devModeInfo = null;
@@ -53,18 +59,25 @@ export class InfoComponent {
         });
     }
 
+    ngOnDestroy() {
+        this.deviceSubscription.unsubscribe();
+        this.infoSubscription?.unsubscribe();
+    }
+
     loadInfo(): void {
         const device = this.device;
         if (!device) return;
         this.infoError = null;
-        this.deviceManager.getDeviceInfo(device)
-            .then((info) => {
+        this.infoSubscription?.unsubscribe();
+        this.infoSubscription = fromPromise(this.deviceManager.getDeviceInfo(device)).subscribe({
+            next: (info) => {
                 this.deviceInfo = info;
-                return Promise.allSettled([this.loadDevModeInfo(device), this.loadHomebrewInfo(device)]);
-            })
-            .catch((e) => {
+                Promise.allSettled([this.loadDevModeInfo(device), this.loadHomebrewInfo(device)]).then(noop);
+            },
+            error: (e) => {
                 this.infoError = e;
-            });
+            }
+        });
     }
 
     async renewDevMode(): Promise<void> {

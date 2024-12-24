@@ -35,12 +35,17 @@ export class RemoteCommandService extends BackendClient {
      */
     public async exec(device: DeviceLike, command: string, outputEncoding: 'utf-8', stdinData?: string | Uint8Array): Promise<string>;
 
-    public async exec<T = Buffer | string>(device: DeviceLike, command: string, outputEncoding?: 'buffer' | 'utf-8', stdinData?: string | Uint8Array):
-        Promise<T> {
+    public async exec(device: DeviceLike, command: string, outputEncoding?: 'utf-8', stdinData?: string | Uint8Array,
+                      wantStderr?: true): Promise<ExecOutput<string>>;
+
+    public async exec<T = Buffer | string>(device: DeviceLike, command: string, outputEncoding?: 'buffer' | 'utf-8',
+                                           stdinData?: string | Uint8Array, wantStderr: boolean = false):
+        Promise<T | ExecOutput<T>> {
         const stdin = typeof stdinData === 'string' ? [...this.encoder.encode(stdinData)] : stdinData;
         try {
             const encoding = RemoteCommandService.byteStringEncoding(outputEncoding);
-            return await this.invoke('exec', {device, command, stdin, encoding});
+            const output: ExecOutput<T> = await this.invoke('exec', {device, command, stdin, encoding});
+            return wantStderr ? output : output.stdout;
         } catch (e) {
             if (BackendError.isCompatible(e)) {
                 if (e.reason === 'ExitStatus') {
@@ -184,6 +189,11 @@ declare interface SpawnSignaled {
 
 declare interface SpawnClosed {
     type: 'Closed';
+}
+
+declare interface ExecOutput<T> {
+    stdout: T;
+    stderr: T;
 }
 
 type SpawnResult = SpawnExited | SpawnSignaled | SpawnClosed;

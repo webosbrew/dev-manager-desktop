@@ -6,6 +6,7 @@ import {InfoComponent} from "./info.component";
 import {SharedModule} from "../shared/shared.module";
 import {DevmodeCountdownPipe} from './devmode-countdown.pipe';
 import {NgbDropdownModule} from "@ng-bootstrap/ng-bootstrap";
+import {FormsModule} from "@angular/forms";
 
 
 @NgModule({
@@ -18,6 +19,7 @@ import {NgbDropdownModule} from "@ng-bootstrap/ng-bootstrap";
         InfoRoutingModule,
         SharedModule,
         NgbDropdownModule,
+        FormsModule,
     ]
 })
 export class InfoModule {
