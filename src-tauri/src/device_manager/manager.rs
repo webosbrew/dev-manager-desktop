@@ -18,6 +18,11 @@ impl DeviceManager {
         Ok(devices)
     }
 
+    pub async fn find(&self, name: &str) -> Result<Option<Device>, Error> {
+        let devices = self.list().await?;
+        Ok(devices.into_iter().find(|d| d.name == name))
+    }
+
     pub async fn set_default(&self, name: &str) -> Result<Option<Device>, Error> {
         let conf_dir = self.ensure_conf_dir()?;
         let mut devices = read(&conf_dir).await?;

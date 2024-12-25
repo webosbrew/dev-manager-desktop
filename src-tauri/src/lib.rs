@@ -21,6 +21,7 @@ use crate::shell_manager::ShellManager;
 use crate::spawn_manager::SpawnManager;
 
 mod app_dirs;
+mod byte_string;
 mod conn_pool;
 mod device_manager;
 mod error;
@@ -30,16 +31,19 @@ mod remote_files;
 mod session_manager;
 mod shell_manager;
 mod spawn_manager;
-mod byte_string;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+#[tokio::main]
+pub async fn run() {
     #[cfg(target_os = "android")]
     {
         android_logger::init_once(Config::default().with_max_level(log::LevelFilter::Debug));
     }
+
+    tauri::async_runtime::set(tokio::runtime::Handle::current());
+
     let mut builder = tauri::Builder::default();
-    #[cfg(feature = "single-instance")]
+    #[cfg(feature = "tauri-plugin-single-instance")]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             if let Some(wnd) = app.get_window("main") {
@@ -63,6 +67,7 @@ pub fn run() {
         .manage(SessionManager::default())
         .manage(SpawnManager::default())
         .manage(ShellManager::default())
+        .register_asynchronous_uri_scheme_protocol("remote-file", plugins::file::protocol)
         .on_page_load(|wnd, payload| {
             if payload.event() == PageLoadEvent::Started {
                 let spawns = wnd.state::<SpawnManager>();
