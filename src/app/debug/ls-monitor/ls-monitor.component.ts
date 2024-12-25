@@ -104,7 +104,7 @@ export class LsMonitorComponent implements OnDestroy {
             return;
         }
         this.isCapture = false;
-        this.messages = from(await readTextFileLines(selected.path)).pipe(
+        this.messages = from(await readTextFileLines(selected)).pipe(
             map(line => JSON.parse(line) as MonitorMessage)
         );
         this.reload(this.messages);
