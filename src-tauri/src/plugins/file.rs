@@ -34,7 +34,7 @@ async fn ls<R: Runtime>(
         return Err(Error::new("Absolute path required"));
     }
     log::info!("ls {}", path);
-    return tokio::task::spawn_blocking(move || {
+    tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
@@ -48,7 +48,7 @@ async fn ls<R: Runtime>(
         });
     })
     .await
-    .expect("critical failure in file::ls task");
+    .expect("critical failure in file::ls task")
 }
 
 #[tauri::command]
@@ -58,7 +58,7 @@ async fn read<R: Runtime>(
     path: String,
     encoding: Option<String>,
 ) -> Result<Vec<u8>, Error> {
-    return tokio::task::spawn_blocking(move || {
+    tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
@@ -78,7 +78,7 @@ async fn read<R: Runtime>(
         });
     })
     .await
-    .expect("critical failure in file::read task");
+    .expect("critical failure in file::read task")
 }
 
 #[tauri::command]
@@ -88,7 +88,7 @@ async fn write<R: Runtime>(
     path: String,
     content: Vec<u8>,
 ) -> Result<(), Error> {
-    return tokio::task::spawn_blocking(move || {
+    tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return Ok(sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
@@ -102,7 +102,7 @@ async fn write<R: Runtime>(
         })?);
     })
     .await
-    .expect("critical failure in file::write task");
+    .expect("critical failure in file::write task")
 }
 
 #[tauri::command]
@@ -113,7 +113,7 @@ async fn get<R: Runtime>(
     target: String,
     on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
-    return tokio::task::spawn_blocking(move || {
+    tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
@@ -126,7 +126,7 @@ async fn get<R: Runtime>(
         });
     })
     .await
-    .expect("critical failure in file::get task");
+    .expect("critical failure in file::get task")
 }
 
 #[tauri::command]
@@ -137,7 +137,7 @@ async fn put<R: Runtime>(
     source: String,
     on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
-    return tokio::task::spawn_blocking(move || {
+    tokio::task::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
@@ -176,7 +176,7 @@ async fn put<R: Runtime>(
         });
     })
     .await
-    .expect("critical failure in file::put task");
+    .expect("critical failure in file::put task")
 }
 
 fn copy<R: ?Sized, W: ?Sized>(
@@ -229,7 +229,7 @@ async fn get_temp<R: Runtime>(
             .expect(&format!("Bad temp_path {:?}", temp_path)),
     );
     get(app, device, path, target.clone(), on_progress).await?;
-    return Ok(target);
+    Ok(target)
 }
 
 #[tauri::command]
@@ -238,7 +238,7 @@ async fn serve<R: Runtime>(
     device: Device,
     path: String,
 ) -> Result<String, Error> {
-    return serve::exec(app, device, path).await;
+    serve::exec(app, device, path).await
 }
 
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
