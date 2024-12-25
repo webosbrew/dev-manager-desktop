@@ -18,7 +18,7 @@ import {DetailsComponent as LsMonitorDetailsComponent} from "./ls-monitor/detail
 
 import {ObjectHighlightPipe} from "./ls-monitor/object-highlight.pipe";
 
-import hljs from 'highlight.js/lib/core';
+import hljs from 'highlight.js'
 import json from 'highlight.js/lib/languages/json';
 
 @NgModule({
