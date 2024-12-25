@@ -25,8 +25,8 @@ serde_json = "1.0"
 serde_repr = "0.1.19"
 log = "0.4.22"
 rand = "0.8.5"
-vt100 = "0.15"
-tokio = "1.40"
+vt100 = "0.15.2"
+tokio = { version = "1.42.0", features = ["rt", "rt-multi-thread", "macros"] }
 uuid = { version = "1.10.0", features = ["v1"] }
 hex = "0.4.3"
 path-slash = "0.2.1"

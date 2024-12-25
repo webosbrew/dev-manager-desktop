@@ -60,17 +60,12 @@ export class AppManagerService {
                 throw e;
             })
             .then(resp => resp['apps'] as RawPackageInfo[])
-            .then((result) => Promise.all(result.map(item => this.completeIcon(device, item))));
+            .then((result) => result.map(item => this.completeIcon(device, item)));
     }
 
-    private async completeIcon(device: Device, info: RawPackageInfo): Promise<PackageInfo> {
-        const data = await this.file.read(device, path.join(info.folderPath, info.icon))
-            .then(d => d.length > 0 ? d : undefined)
-            .catch((e) => {
-                console.warn('failed to fetch app icon', e);
-                return undefined;
-            });
-        return {iconUri: data && `data:application/octet-stream;base64,${data.toString('base64')}`, ...info}
+    private completeIcon(device: Device, info: RawPackageInfo): PackageInfo {
+        const iconPath = path.join(info.folderPath, info.icon);
+        return {iconUri: `http://remote-file.localhost/${device.name}${iconPath}`, ...info};
     }
 
     async info(device: Device, id: string): Promise<PackageInfo | null> {

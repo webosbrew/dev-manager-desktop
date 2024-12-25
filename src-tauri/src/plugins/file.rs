@@ -1,4 +1,5 @@
 use std::env::temp_dir;
+use std::fmt::format;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -6,15 +7,15 @@ use std::path::Path;
 use flate2::read::GzDecoder;
 use libssh_rs::OpenFlags;
 use serde::Serialize;
-use tauri::{AppHandle, Manager, Runtime};
-use tauri::ipc::{Channel, IpcResponse};
+use tauri::ipc::Channel;
 use tauri::plugin::{Builder, TauriPlugin};
+use tauri::{http, AppHandle, Manager, Runtime, UriSchemeContext, UriSchemeResponder};
 use uuid::Uuid;
 
-use crate::device_manager::Device;
+use crate::device_manager::{Device, DeviceManager};
 use crate::error::Error;
-use crate::remote_files::{FileItem, PermInfo};
 use crate::remote_files::serve;
+use crate::remote_files::{FileItem, PermInfo};
 use crate::session_manager::SessionManager;
 
 #[derive(Copy, Clone, Serialize)]
@@ -246,4 +247,66 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
             ls, read, write, get, put, get_temp, serve
         ])
         .build()
+}
+
+pub fn protocol<R: Runtime>(
+    ctx: UriSchemeContext<'_, R>,
+    req: http::Request<Vec<u8>>,
+    resp: UriSchemeResponder,
+) {
+    let app = ctx.app_handle().clone();
+    let Some((device_name, path)) = req.uri().path()[1..].split_once('/') else {
+        resp.respond(http::Response::builder().status(404).body(vec![]).unwrap());
+        return;
+    };
+    let device_name = device_name.to_string();
+    let path = format!("/{path}");
+    tokio::task::spawn(async move {
+        let devices = app.state::<DeviceManager>();
+        let Some(device) = devices.find(&device_name).await.ok().flatten() else {
+            resp.respond(
+                http::Response::builder()
+                    .status(404)
+                    .body(format!("Device {device_name} not found!").into_bytes())
+                    .unwrap(),
+            );
+            return;
+        };
+        let app = app.clone();
+        match tokio::task::spawn_blocking(move || {
+            let sessions = app.state::<SessionManager>();
+            return sessions.with_session(device, |session| {
+                let sftp = session.sftp()?;
+                let mut file = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
+                let mut buf = Vec::<u8>::new();
+                file.read_to_end(&mut buf)?;
+                return Ok(buf);
+            });
+        })
+        .await
+        {
+            Ok(Ok(data)) => {
+                resp.respond(http::Response::builder().status(200).body(data).unwrap());
+                return;
+            }
+            Ok(Err(e)) => {
+                resp.respond(
+                    http::Response::builder()
+                        .status(500)
+                        .body(format!("{e}").into_bytes())
+                        .unwrap(),
+                );
+                return;
+            }
+            Err(e) => {
+                resp.respond(
+                    http::Response::builder()
+                        .status(500)
+                        .body(format!("Internal error: {e:?}").into_bytes())
+                        .unwrap(),
+                );
+                return;
+            }
+        }
+    });
 }
