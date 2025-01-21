@@ -22,7 +22,7 @@ async fn exec<R: Runtime>(
     encoding: Option<Encoding>,
 ) -> Result<ExecOutput, Error> {
     let encoding = encoding.unwrap_or(Encoding::Binary);
-    return tokio::task::spawn_blocking(move || {
+    return tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let ch = session.new_channel()?;
@@ -70,7 +70,7 @@ async fn spawn<R: Runtime>(
     let token = channel.token();
     let proc = Arc::new(sessions.spawn(device, &command));
     channel.listen(ProcEventHandler { proc: proc.clone() });
-    tokio::task::spawn_blocking(move || proc_worker(app, proc, channel, managed.unwrap_or(true)));
+    tauri::async_runtime::spawn_blocking(move || proc_worker(app, proc, channel, managed.unwrap_or(true)));
     return Ok(token);
 }
 

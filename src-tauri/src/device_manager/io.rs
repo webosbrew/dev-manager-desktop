@@ -10,7 +10,7 @@ use crate::error::Error;
 
 pub(crate) async fn read(conf_dir: &Path) -> Result<Vec<Device>, Error> {
     let conf_dir = conf_dir.to_path_buf();
-    return tokio::task::spawn_blocking(move || -> Result<Vec<Device>, Error> {
+    return tauri::async_runtime::spawn_blocking(move || -> Result<Vec<Device>, Error> {
         let path = devices_file_path(&conf_dir);
         let file = match File::open(path.as_path()) {
             Ok(file) => file,
@@ -35,7 +35,7 @@ pub(crate) async fn read(conf_dir: &Path) -> Result<Vec<Device>, Error> {
 
 pub(crate) async fn write(devices: Vec<Device>, conf_dir: &Path) -> Result<(), Error> {
     let conf_dir = conf_dir.to_path_buf();
-    return tokio::task::spawn_blocking(move || -> Result<(), Error> {
+    return tauri::async_runtime::spawn_blocking(move || -> Result<(), Error> {
         let path = devices_file_path(&conf_dir);
         let file = match File::create(path.as_path()) {
             Ok(file) => file,

@@ -28,13 +28,13 @@ pub(crate) async fn exec<R: Runtime>(
     };
     channel.listen(handler);
     let token = channel.token();
-    tokio::spawn(async move {
-        tokio::task::spawn_blocking(move || serve_worker(app, device, channel, path))
+    tauri::async_runtime::spawn(async move {
+        tauri::async_runtime::spawn_blocking(move || serve_worker(app, device, channel, path))
             .await
             .unwrap()
             .unwrap_or(());
     });
-    return Ok(token);
+    Ok(token)
 }
 
 fn serve_worker<R: Runtime>(

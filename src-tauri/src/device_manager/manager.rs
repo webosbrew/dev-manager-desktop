@@ -144,7 +144,7 @@ impl DeviceManager {
         async fn ssh_probe(host: &str, port: u16, user: &str) -> Result<String, Error> {
             let host = host.to_string();
             let user = user.to_string();
-            tokio::task::spawn_blocking(move || {
+            tauri::async_runtime::spawn_blocking(move || {
                 let ssh_sess = Session::new()?;
                 DeviceConnection::session_init(&ssh_sess)?;
                 ssh_sess.set_option(libssh_rs::SshOption::Hostname(host))?;
