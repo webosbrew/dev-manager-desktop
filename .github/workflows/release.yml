@@ -65,7 +65,7 @@ jobs:
           - target: linux-x86_64
             os: ubuntu-22.04
           - target: linux-arm64
-            os: debian-arm64-latest
+            os: ubuntu-22.04-arm
           - target: macos
             os: macos-latest
           - target: android
