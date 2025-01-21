@@ -42,7 +42,7 @@ tauri-plugin-fs = "2.0.3"
 regex = "1.11.1"
 
 [dependencies.tauri]
-version = "2.0.6"
+version = "2.1.1"
 default-features = false
 features = ["wry"]
 
