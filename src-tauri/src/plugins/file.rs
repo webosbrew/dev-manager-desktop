@@ -34,7 +34,7 @@ async fn ls<R: Runtime>(
         return Err(Error::new("Absolute path required"));
     }
     log::info!("ls {}", path);
-    tokio::task::spawn_blocking(move || {
+    tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
@@ -58,7 +58,7 @@ async fn read<R: Runtime>(
     path: String,
     encoding: Option<String>,
 ) -> Result<Vec<u8>, Error> {
-    tokio::task::spawn_blocking(move || {
+    tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
@@ -88,7 +88,7 @@ async fn write<R: Runtime>(
     path: String,
     content: Vec<u8>,
 ) -> Result<(), Error> {
-    tokio::task::spawn_blocking(move || {
+    tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return Ok(sessions.with_session(device, |session| {
             let sftp = session.sftp()?;
@@ -113,7 +113,7 @@ async fn get<R: Runtime>(
     target: String,
     on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
-    tokio::task::spawn_blocking(move || {
+    tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
@@ -137,7 +137,7 @@ async fn put<R: Runtime>(
     source: String,
     on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
-    tokio::task::spawn_blocking(move || {
+    tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
@@ -261,7 +261,7 @@ pub fn protocol<R: Runtime>(
     };
     let device_name = device_name.to_string();
     let path = format!("/{path}");
-    tokio::task::spawn(async move {
+    tauri::async_runtime::spawn(async move {
         let devices = app.state::<DeviceManager>();
         let Some(device) = devices.find(&device_name).await.ok().flatten() else {
             resp.respond(
@@ -273,7 +273,7 @@ pub fn protocol<R: Runtime>(
             return;
         };
         let app = app.clone();
-        match tokio::task::spawn_blocking(move || {
+        match tauri::async_runtime::spawn_blocking(move || {
             let sessions = app.state::<SessionManager>();
             return sessions.with_session(device, |session| {
                 let sftp = session.sftp()?;

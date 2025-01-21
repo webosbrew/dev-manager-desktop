@@ -76,7 +76,7 @@ async fn valid_token<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
 ) -> Result<Option<String>, Error> {
-    let data = tokio::task::spawn_blocking(move || {
+    let data = tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let sftp = session.sftp()?;

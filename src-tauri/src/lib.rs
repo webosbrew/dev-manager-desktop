@@ -4,14 +4,9 @@ extern crate core;
 use std::env;
 use std::path::PathBuf;
 
-#[cfg(feature = "desktop")]
-use native_dialog::{MessageDialog, MessageType};
 use ssh_key::PrivateKey;
 use tauri::webview::PageLoadEvent;
 use tauri::{AppHandle, Manager, RunEvent, Runtime};
-
-#[cfg(target_os = "android")]
-use android_logger::Config;
 
 use crate::app_dirs::{GetAppSshKeyDir, GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::DeviceManager;
@@ -33,14 +28,12 @@ mod shell_manager;
 mod spawn_manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-#[tokio::main]
-pub async fn run() {
+pub fn run() {
     #[cfg(target_os = "android")]
     {
+        use android_logger::Config;
         android_logger::init_once(Config::default().with_max_level(log::LevelFilter::Debug));
     }
-
-    tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     let mut builder = tauri::Builder::default();
     #[cfg(feature = "tauri-plugin-single-instance")]
@@ -92,17 +85,20 @@ pub async fn run() {
             return Ok(());
         });
     #[cfg(feature = "desktop")]
-    if let Err(e) = result {
-        #[cfg(windows)]
-        if let tauri::Error::Runtime(ref e) = e {
-            if format!("{:?}", e).starts_with("CreateWebview(") {
-                MessageDialog::new()
-                    .set_type(MessageType::Error)
-                    .set_title("webOS Dev Manager")
-                    .set_text(&format!("Unexpected error occurred: {:?}\nThis may be due to broken installation of WebView2 Runtime. You may need to reinstall WebView2 Runtime as administrator.", e))
-                    .show_alert()
-                    .expect("Unexpected error occurred while processing unexpected error :(");
-                return;
+    {
+        use native_dialog::{MessageDialog, MessageType};
+        if let Err(e) = result {
+            #[cfg(windows)]
+            if let tauri::Error::Runtime(ref e) = e {
+                if format!("{:?}", e).starts_with("CreateWebview(") {
+                    MessageDialog::new()
+                        .set_type(MessageType::Error)
+                        .set_title("webOS Dev Manager")
+                        .set_text(&format!("Unexpected error occurred: {:?}\nThis may be due to broken installation of WebView2 Runtime. You may need to reinstall WebView2 Runtime as administrator.", e))
+                        .show_alert()
+                        .expect("Unexpected error occurred while processing unexpected error :(");
+                    return;
+                }
             }
         }
     }
