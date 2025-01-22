@@ -19,7 +19,7 @@ pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
 
 impl Shell {
     pub fn write(&self, data: &[u8]) -> Result<(), Error> {
-        return self.queue_message(ShellMessage::Data(Vec::from(data)));
+        self.queue_message(ShellMessage::Data(Vec::from(data)))
     }
 
     pub fn resize(&self, rows: u16, cols: u16) -> Result<(), Error> {
@@ -28,7 +28,7 @@ impl Shell {
         }
         self.parser.lock().unwrap().set_size(rows, cols);
         log::info!("{self:?} resized. rows = {}, cols = {}", rows, cols);
-        return self.queue_message(ShellMessage::Resize { rows, cols });
+        self.queue_message(ShellMessage::Resize { rows, cols })
     }
 
     pub fn screen(&self, cols: u16) -> Result<ShellScreen, Error> {
@@ -54,16 +54,16 @@ impl Shell {
         for x in &mut rows {
             x.extend(b"\x1b\x5b\x30\x6d");
         }
-        return Ok(ShellScreen {
+        Ok(ShellScreen {
             rows: Some(rows),
             data: None,
             cursor: screen.cursor_position(),
-        });
+        })
     }
 
     pub fn close(&self) -> Result<(), Error> {
         self.queue_message(ShellMessage::Close)?;
-        return Ok(());
+        Ok(())
     }
 
     pub fn info(&self) -> ShellInfo {
@@ -74,13 +74,13 @@ impl Shell {
         } else {
             ShellState::Connecting
         };
-        return ShellInfo {
+        ShellInfo {
             token: self.token.clone(),
             title: self.title(),
             has_pty: self.has_pty.lock().unwrap().clone(),
             state,
             created_at: self.created_at,
-        };
+        }
     }
 
     pub(crate) fn new(
@@ -104,7 +104,7 @@ impl Shell {
             shells,
         };
         log::info!("{shell:?} created: rows={rows}, cols={cols}");
-        return shell;
+        shell
     }
 
     fn process(&self, data: &[u8]) -> bool {
@@ -114,7 +114,7 @@ impl Shell {
         let mut parser = self.parser.lock().unwrap();
         let old = parser.screen().clone();
         parser.process(data);
-        return !parser.screen().title_diff(&old).is_empty();
+        !parser.screen().title_diff(&old).is_empty()
     }
 
     fn title(&self) -> String {
@@ -123,7 +123,7 @@ impl Shell {
         if title.is_empty() {
             return format!("{}@{}", self.device.username, self.device.host);
         }
-        return String::from(title);
+        String::from(title)
     }
 
     fn queue_message(&self, message: ShellMessage) -> Result<(), Error> {
@@ -132,7 +132,7 @@ impl Shell {
                 return Ok(());
             }
         }
-        return Err(Error::Disconnected);
+        Err(Error::Disconnected)
     }
 
     fn worker(&self) -> Result<i32, Error> {
@@ -198,7 +198,7 @@ impl Shell {
                 }
             }
         }
-        return Ok(channel.get_exit_status().unwrap_or(0));
+        Ok(channel.get_exit_status().unwrap_or(0))
     }
 
     fn closed(&self, result: Result<i32, Error>) -> bool {
@@ -216,12 +216,12 @@ impl Shell {
             callback.closed(removed);
             return true;
         }
-        return false;
+        false
     }
 
     pub(crate) fn thread(shell: Arc<Shell>) -> JoinHandle<()> {
         log::info!("Starting thread for {shell:?}");
-        return std::thread::spawn(move || {
+        std::thread::spawn(move || {
             let result = shell.worker();
             log::info!("{shell:?} worker exited with {result:?}");
             if let Ok(0) = result {
@@ -230,7 +230,7 @@ impl Shell {
                 }
             }
             shell.closed(result);
-        });
+        })
     }
 }
 

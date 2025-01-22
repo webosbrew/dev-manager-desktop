@@ -10,7 +10,7 @@ use crate::error::Error;
 
 pub(crate) async fn read(conf_dir: &Path) -> Result<Vec<Device>, Error> {
     let conf_dir = conf_dir.to_path_buf();
-    return tauri::async_runtime::spawn_blocking(move || -> Result<Vec<Device>, Error> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<Vec<Device>, Error> {
         let path = devices_file_path(&conf_dir);
         let file = match File::open(path.as_path()) {
             Ok(file) => file,
@@ -30,12 +30,12 @@ pub(crate) async fn read(conf_dir: &Path) -> Result<Vec<Device>, Error> {
             .collect());
     })
     .await
-    .expect("critical failure in app::io::read task");
+    .expect("critical failure in app::io::read task")
 }
 
 pub(crate) async fn write(devices: Vec<Device>, conf_dir: &Path) -> Result<(), Error> {
     let conf_dir = conf_dir.to_path_buf();
-    return tauri::async_runtime::spawn_blocking(move || -> Result<(), Error> {
+    tauri::async_runtime::spawn_blocking(move || -> Result<(), Error> {
         let path = devices_file_path(&conf_dir);
         let file = match File::create(path.as_path()) {
             Ok(file) => file,
@@ -60,11 +60,11 @@ pub(crate) async fn write(devices: Vec<Device>, conf_dir: &Path) -> Result<(), E
         return Ok(());
     })
     .await
-    .expect("critical failure in app::io::write task");
+    .expect("critical failure in app::io::write task")
 }
 
 fn devices_file_path(conf_dir: &Path) -> PathBuf {
-    return conf_dir.join("novacom-devices.json");
+    conf_dir.join("novacom-devices.json")
 }
 
 #[cfg(not(unix))]
@@ -72,7 +72,7 @@ fn fix_devices_json_perm(path: PathBuf) -> Result<(), Error> {
     let mut perm = fs::metadata(path.clone())?.permissions();
     perm.set_readonly(false);
     fs::set_permissions(path, perm)?;
-    return Ok(());
+    Ok(())
 }
 
 #[cfg(unix)]
@@ -80,5 +80,5 @@ fn fix_devices_json_perm(path: PathBuf) -> Result<(), Error> {
     use std::os::unix::fs::PermissionsExt;
     let perm = fs::Permissions::from_mode(0o644);
     fs::set_permissions(path, perm)?;
-    return Ok(());
+    Ok(())
 }

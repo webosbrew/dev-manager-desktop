@@ -22,7 +22,7 @@ async fn exec<R: Runtime>(
     encoding: Option<Encoding>,
 ) -> Result<ExecOutput, Error> {
     let encoding = encoding.unwrap_or(Encoding::Binary);
-    return tauri::async_runtime::spawn_blocking(move || {
+    tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
             let ch = session.new_channel()?;
@@ -48,14 +48,14 @@ async fn exec<R: Runtime>(
                     unhandled: true,
                 });
             }
-            return Ok(ExecOutput {
+            Ok(ExecOutput {
                 stdout: ByteString::parse(&stdout, encoding).unwrap(),
                 stderr: ByteString::parse(&stderr, encoding).unwrap(),
-            });
+            })
         });
     })
     .await
-    .unwrap();
+    .unwrap()
 }
 
 #[tauri::command]
@@ -70,8 +70,10 @@ async fn spawn<R: Runtime>(
     let token = channel.token();
     let proc = Arc::new(sessions.spawn(device, &command));
     channel.listen(ProcEventHandler { proc: proc.clone() });
-    tauri::async_runtime::spawn_blocking(move || proc_worker(app, proc, channel, managed.unwrap_or(true)));
-    return Ok(token);
+    tauri::async_runtime::spawn_blocking(move || {
+        proc_worker(app, proc, channel, managed.unwrap_or(true))
+    });
+    Ok(token)
 }
 
 fn proc_worker<R: Runtime>(
@@ -100,7 +102,7 @@ fn proc_worker<R: Runtime>(
         }
     }
     proc.callback.lock().unwrap().take();
-    return Ok(());
+    Ok(())
 }
 
 struct ProcEventHandler {

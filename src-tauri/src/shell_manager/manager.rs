@@ -21,11 +21,11 @@ impl ShellManager {
             .unwrap()
             .insert(shell.token.clone(), shell.clone());
         Shell::thread(shell.clone());
-        return shell;
+        shell
     }
 
     pub fn find(&self, token: &ShellToken) -> Option<Arc<Shell>> {
-        return self.shells.lock().unwrap().get(token).map(|a| a.clone());
+        self.shells.lock().unwrap().get(token).map(|a| a.clone())
     }
 
     pub fn close(&self, token: &ShellToken) -> Result<(), Error> {
@@ -33,7 +33,7 @@ impl ShellManager {
         if let Some(shell) = shell {
             shell.close().unwrap_or(());
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn list(&self) -> Vec<ShellInfo> {
@@ -45,13 +45,13 @@ impl ShellManager {
             .map(|(_, shell)| shell.info())
             .collect();
         list.sort_by_key(|v| v.created_at);
-        return list;
+        list
     }
 }
 
 impl GetSshDir for ShellManager {
     fn get_ssh_dir(&self) -> Option<PathBuf> {
-        return self.ssh_dir.lock().unwrap().clone();
+        self.ssh_dir.lock().unwrap().clone()
     }
 }
 

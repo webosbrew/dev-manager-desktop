@@ -34,42 +34,42 @@ async fn token<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<String, 
     if let Some(token) = valid_token(app, device).await? {
         return Ok(token);
     }
-    return Err(Error::Unsupported);
+    Err(Error::Unsupported)
 }
 
 #[tauri::command]
 async fn status<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<DevModeStatus, Error> {
-    if let Some(token) = valid_token(app, device).await? {
-        let resp = reqwest::get(
-            Url::parse_with_params(
-                "https://developer.lge.com/secure/CheckDevModeSession.dev",
-                &[("sessionToken", &token)],
-            )
-            .expect("Illegal HTTP URL"),
-        )
-        .await?
-        .error_for_status()?;
-        let session = resp.json::<DevModeSession>().await?;
-        if session.result == "success" {
-            return Ok(DevModeStatus {
-                token: Some(token),
-                remaining: Some(session.error_msg.unwrap_or(String::from(""))),
-            });
-        }
-        log::info!(
-            "DevMode session non-success status: errorCode={:?}, errorMsg={:?}",
-            session.error_code,
-            session.error_msg
-        );
+    let Some(token) = valid_token(app, device).await? else {
         return Ok(DevModeStatus {
-            token: Some(token),
+            token: None,
             remaining: None,
         });
+    };
+    let resp = reqwest::get(
+        Url::parse_with_params(
+            "https://developer.lge.com/secure/CheckDevModeSession.dev",
+            &[("sessionToken", &token)],
+        )
+        .expect("Illegal HTTP URL"),
+    )
+    .await?
+    .error_for_status()?;
+    let session = resp.json::<DevModeSession>().await?;
+    if session.result == "success" {
+        return Ok(DevModeStatus {
+            token: Some(token),
+            remaining: Some(session.error_msg.unwrap_or(String::from(""))),
+        });
     }
-    return Ok(DevModeStatus {
-        token: None,
+    log::info!(
+        "DevMode session non-success status: errorCode={:?}, errorMsg={:?}",
+        session.error_code,
+        session.error_msg
+    );
+    Ok(DevModeStatus {
+        token: Some(token),
         remaining: None,
-    });
+    })
 }
 
 async fn valid_token<R: Runtime>(
@@ -107,7 +107,7 @@ async fn valid_token<R: Runtime>(
         log::warn!("Token `{}` doesn't look like a valid DevMode token", token);
         return Ok(None);
     }
-    return Ok(Some(token));
+    Ok(Some(token))
 }
 
 /// Initializes the plugin.

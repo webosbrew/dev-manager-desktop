@@ -92,7 +92,7 @@ fn serve_worker<R: Runtime>(
         device.name
     );
     channel.closed(None::<String>);
-    return Ok(());
+    Ok(())
 }
 
 fn serve_handler(path: &String, ch: Channel) -> Result<(), Error> {
@@ -139,7 +139,7 @@ fn serve_handler(path: &String, ch: Channel) -> Result<(), Error> {
             return Ok(());
         }
     };
-    let meta = file.metadata().unwrap();
+    let meta = file.metadata()?;
     let file_len = meta.len();
     out.write(b"HTTP/1.1 200\r\n")?;
     out.write(b"Content-Type: application/octet-stream\r\n")?;
@@ -148,7 +148,7 @@ fn serve_handler(path: &String, ch: Channel) -> Result<(), Error> {
         out.write(b"\r\n")?;
         copy(&mut file, &mut out)?;
     }
-    return Ok(());
+    Ok(())
 }
 
 #[derive(Serialize)]
@@ -187,6 +187,6 @@ impl ServeChannelHandler {
     }
 
     fn closed(&self) -> bool {
-        return self.closed_lock.lock().unwrap().clone();
+        self.closed_lock.lock().unwrap().clone()
     }
 }

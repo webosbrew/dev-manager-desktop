@@ -1,15 +1,15 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex};
 
+use crate::app_dirs::{GetSshDir, SetSshDir};
 use crate::conn_pool::{DeviceConnectionPool, ManagedDeviceConnection};
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::session_manager::{Proc, SessionManager};
-use crate::app_dirs::{GetSshDir, SetSshDir};
 
 impl SessionManager {
     pub fn session(&self, device: Device) -> Result<ManagedDeviceConnection, Error> {
-        return self.pool(device).get();
+        self.pool(device).get()
     }
 
     pub fn with_session<T, F>(&self, device: Device, action: F) -> Result<T, Error>
@@ -33,14 +33,14 @@ impl SessionManager {
     }
 
     pub fn spawn(&self, device: Device, command: &str) -> Proc {
-        return Proc {
+        Proc {
             device,
             command: String::from(command),
             callback: Mutex::default(),
             ready: Arc::new((Mutex::default(), Condvar::new())),
             sender: Mutex::default(),
             interrupted: Mutex::new(false),
-        };
+        }
     }
 
     fn pool(&self, device: Device) -> DeviceConnectionPool {
@@ -61,13 +61,13 @@ impl SessionManager {
             .lock()
             .expect("Failed to lock SessionManager::pools")
             .insert(key, pool.clone());
-        return pool;
+        pool
     }
 }
 
 impl GetSshDir for SessionManager {
     fn get_ssh_dir(&self) -> Option<PathBuf> {
-        return self.ssh_dir.lock().unwrap().clone();
+        self.ssh_dir.lock().unwrap().clone()
     }
 }
 

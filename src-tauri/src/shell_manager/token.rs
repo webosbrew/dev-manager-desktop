@@ -2,15 +2,15 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde::de::Visitor;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use uuid::Uuid;
 
 use crate::shell_manager::ShellToken;
 
 impl ShellToken {
     pub(crate) fn new() -> Self {
-        return ShellToken(Uuid::new_v4());
+        ShellToken(Uuid::new_v4())
     }
 }
 impl Serialize for ShellToken {
@@ -18,7 +18,7 @@ impl Serialize for ShellToken {
     where
         S: Serializer,
     {
-        return serializer.serialize_str(&format!("{}", self.0));
+        serializer.serialize_str(&format!("{}", self.0))
     }
 }
 
@@ -27,7 +27,7 @@ impl<'de> Deserialize<'de> for ShellToken {
     where
         D: Deserializer<'de>,
     {
-        return deserializer.deserialize_string(ShellTokenVisitor);
+        deserializer.deserialize_string(ShellTokenVisitor)
     }
 }
 
@@ -45,12 +45,12 @@ impl<'de> Visitor<'de> for ShellTokenVisitor {
     where
         E: std::error::Error,
     {
-        return Ok(ShellToken(Uuid::from_str(value).unwrap()));
+        Ok(ShellToken(Uuid::from_str(value).unwrap()))
     }
 }
 
 impl Display for ShellToken {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        return f.write_str(&self.0.to_string());
+        f.write_str(&self.0.to_string())
     }
 }

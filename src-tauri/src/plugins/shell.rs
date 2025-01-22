@@ -22,7 +22,7 @@ fn open<R: Runtime>(
         app: app.clone(),
     }));
     app.emit("shell-opened", &shell.token).unwrap_or(());
-    return Ok(shell.info());
+    Ok(shell.info())
 }
 
 #[tauri::command]
@@ -33,13 +33,13 @@ async fn close<R: Runtime>(
 ) -> Result<(), Error> {
     manager.close(&token)?;
     app.emit("shells-updated", manager.list()).unwrap_or(());
-    return Ok(());
+    Ok(())
 }
 
 #[tauri::command]
 fn write(manager: State<'_, ShellManager>, token: ShellToken, data: Vec<u8>) -> Result<(), Error> {
     let shell = manager.find(&token).ok_or(Error::NotFound)?;
-    return shell.write(&data);
+    shell.write(&data)
 }
 
 #[tauri::command]
@@ -50,7 +50,7 @@ async fn resize(
     cols: u16,
 ) -> Result<(), Error> {
     let shell = manager.find(&token).ok_or(Error::NotFound)?;
-    return shell.resize(rows, cols);
+    shell.resize(rows, cols)
 }
 
 #[tauri::command]
@@ -60,12 +60,12 @@ async fn screen(
     cols: u16,
 ) -> Result<ShellScreen, Error> {
     let shell = manager.find(&token).ok_or(Error::NotFound)?;
-    return shell.screen(cols);
+    shell.screen(cols)
 }
 
 #[tauri::command]
 async fn list(manager: State<'_, ShellManager>) -> Result<Vec<ShellInfo>, Error> {
-    return Ok(manager.list());
+    Ok(manager.list())
 }
 
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {

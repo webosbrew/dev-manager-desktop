@@ -1,5 +1,4 @@
 use std::env::temp_dir;
-use std::fmt::format;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -179,7 +178,7 @@ async fn put<R: Runtime>(
     .expect("critical failure in file::put task")
 }
 
-fn copy<R: ?Sized, W: ?Sized>(
+fn copy<R, W>(
     reader: &mut R,
     writer: &mut W,
     total: usize,
