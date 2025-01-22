@@ -7,13 +7,13 @@ use crate::remote_files::{FileItem, LinkInfo, PermInfo};
 
 impl From<&Metadata> for FileItem {
     fn from(stat: &Metadata) -> Self {
-        return FileItem::new(stat, None, None);
+        FileItem::new(stat, None, None)
     }
 }
 
 impl FileItem {
     pub(crate) fn new(stat: &Metadata, link: Option<LinkInfo>, access: Option<PermInfo>) -> Self {
-        return FileItem {
+        FileItem {
             filename: String::from(stat.name().unwrap()),
             r#type: format!(
                 "{}",
@@ -31,7 +31,7 @@ impl FileItem {
                 .as_secs_f64(),
             link,
             access,
-        };
+        }
     }
 }
 
@@ -54,20 +54,20 @@ impl PermInfo {
                 };
             }
         }
-        return PermInfo {
+        PermInfo {
             read: (perms & 0o004) != 0,
             write: (perms & 0o002) != 0,
             execute: (perms & 0o001) != 0,
-        };
+        }
     }
 }
 
 fn abbrev_type(value: FileType) -> char {
-    return match value {
+    match value {
         FileType::Special => 'b',
         FileType::Directory => 'd',
         FileType::Regular => '-',
         FileType::Symlink => 'l',
         FileType::Unknown => ' ',
-    };
+    }
 }

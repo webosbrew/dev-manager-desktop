@@ -44,23 +44,23 @@ pub enum Error {
 
 impl Error {
     pub fn new<S: Into<String>>(message: S) -> Error {
-        return Error::Message {
+        Error::Message {
             message: message.into(),
             unhandled: false,
-        };
+        }
     }
     pub fn bad_config() -> Error {
-        return Error::Message {
+        Error::Message {
             message: String::from("Bad configuration"),
             unhandled: true,
-        };
+        }
     }
     pub fn io(kind: ErrorKind) -> Error {
-        return Error::IO {
+        Error::IO {
             code: kind,
             message: kind.to_string(),
             unhandled: false,
-        };
+        }
     }
 }
 
@@ -68,7 +68,7 @@ impl ErrorTrait for Error {}
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        return f.write_fmt(format_args!("AppError: {:?}", self));
+        f.write_fmt(format_args!("AppError: {:?}", self))
     }
 }
 
@@ -83,20 +83,20 @@ impl From<std::io::Error> for Error {
         {
             return from_sftp_error_code(code, message);
         }
-        return Error::IO {
+        Error::IO {
             code: value.kind(),
             message,
             unhandled: true,
-        };
+        }
     }
 }
 
 impl From<serde_json::Error> for Error {
     fn from(value: serde_json::Error) -> Self {
-        return Error::Message {
+        Error::Message {
             message: format!("JSON Error: {:?}", value),
             unhandled: false,
-        };
+        }
     }
 }
 
@@ -127,17 +127,17 @@ impl From<reqwest::Error> for Error {
                 unhandled: false,
             };
         }
-        return Error::IO {
+        Error::IO {
             code: ErrorKind::Other,
             message: value.to_string(),
             unhandled: true,
-        };
+        }
     }
 }
 
 impl From<SshError> for Error {
     fn from(value: SshError) -> Self {
-        return match value {
+        match value {
             SshError::RequestDenied(s) => Error::Message {
                 message: format!("SSH Error: {s}"),
                 unhandled: false,
@@ -177,7 +177,7 @@ impl From<SshError> for Error {
                 }
             }
             SshError::Sftp(e) => e.into(),
-        };
+        }
     }
 }
 
@@ -190,21 +190,21 @@ impl From<SftpError> for Error {
         {
             return from_sftp_error_code(code, message);
         }
-        return Error::Message {
+        Error::Message {
             message,
             unhandled: false,
-        };
+        }
     }
 }
 
 impl From<Box<dyn ErrorTrait>> for Error {
     fn from(value: Box<dyn ErrorTrait>) -> Self {
-        return Error::new(format!("{:?}", value));
+        Error::new(format!("{:?}", value))
     }
 }
 
 fn from_sftp_error_code(code: u32, message: String) -> Error {
-    return match code {
+    match code {
         libssh_rs_sys::SSH_FX_EOF => Error::io(ErrorKind::UnexpectedEof),
         libssh_rs_sys::SSH_FX_NO_SUCH_FILE => Error::io(ErrorKind::NotFound),
         libssh_rs_sys::SSH_FX_PERMISSION_DENIED => Error::io(ErrorKind::PermissionDenied),
@@ -222,7 +222,7 @@ fn from_sftp_error_code(code: u32, message: String) -> Error {
             message,
             unhandled: false,
         },
-    };
+    }
 }
 
 fn as_debug_string<T, S>(v: &T, serializer: S) -> Result<S::Ok, S::Error>
@@ -230,5 +230,5 @@ where
     T: Debug,
     S: Serializer,
 {
-    return serializer.serialize_str(&format!("{v:?}"));
+    serializer.serialize_str(&format!("{v:?}"))
 }

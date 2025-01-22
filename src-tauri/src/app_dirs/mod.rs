@@ -33,7 +33,7 @@ pub trait GetConfDir {
         if !dir.exists() {
             create_dir_all(&dir)?;
         }
-        return Ok(dir);
+        Ok(dir)
     }
 }
 

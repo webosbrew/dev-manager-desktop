@@ -12,7 +12,7 @@ use crate::session_manager::{Proc, ProcResult, SessionManager};
 impl Proc {
     pub fn is_ready(&self) -> bool {
         let (lock, _cvar) = &*self.ready;
-        return lock.lock().unwrap().clone();
+        lock.lock().unwrap().clone()
     }
 
     pub fn notify_ready(&self) {
@@ -28,7 +28,7 @@ impl Proc {
         while !*ready {
             ready = cvar.wait(ready).unwrap();
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn interrupt(&self) {
@@ -40,7 +40,7 @@ impl Proc {
             cb.rx(fd, data);
             return Ok(());
         }
-        return Err(Error::Disconnected);
+        Err(Error::Disconnected)
     }
 
     pub fn write(&self, data: Vec<u8>) -> Result<(), Error> {
@@ -50,7 +50,7 @@ impl Proc {
             }
             return Ok(());
         }
-        return Err(Error::Disconnected);
+        Err(Error::Disconnected)
     }
 
     pub fn wait_close(&self, sessions: &SessionManager) -> Result<ProcResult, Error> {
@@ -119,7 +119,7 @@ impl Proc {
             log::debug!("{self:?} channel closed with unknown status");
         }
         session.mark_last_ok();
-        return Ok(result);
+        Ok(result)
     }
 }
 

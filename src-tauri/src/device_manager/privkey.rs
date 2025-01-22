@@ -8,7 +8,7 @@ use crate::error::Error;
 
 impl PrivateKey {
     pub fn content(&self, ssh_dir: Option<&Path>) -> Result<String, Error> {
-        return match self {
+        match self {
             PrivateKey::Path { name } => {
                 let mut secret_file =
                     std::fs::File::open(ssh_dir.ok_or(Error::bad_config())?.join(name))?;
@@ -17,11 +17,11 @@ impl PrivateKey {
                 Ok(secret)
             }
             PrivateKey::Data { data } => Ok(data.clone()),
-        };
+        }
     }
 
     pub fn name(&self, passphrase: Option<String>) -> Result<String, Error> {
-        return match self {
+        match self {
             PrivateKey::Path { name } => Ok(name.clone()),
             PrivateKey::Data { data } => Ok(String::from(
                 &hex::encode(
@@ -29,6 +29,6 @@ impl PrivateKey {
                         .get_public_key_hash(PublicKeyHashType::Sha256)?,
                 )[..10],
             )),
-        };
+        }
     }
 }

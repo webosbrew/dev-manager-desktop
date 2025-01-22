@@ -22,11 +22,11 @@ impl DeviceConnectionPool {
                 last_error: last_error.clone(),
             }))
             .build_unchecked(DeviceConnectionManager { device, ssh_dir });
-        return DeviceConnectionPool { inner, last_error };
+        DeviceConnectionPool { inner, last_error }
     }
 
     pub fn get(&self) -> Result<ManagedDeviceConnection, Error> {
-        return match self.inner.get() {
+        match self.inner.get() {
             Ok(c) => {
                 c.reset_last_ok();
                 Ok(c)
@@ -39,7 +39,7 @@ impl DeviceConnectionPool {
                     }
                 }));
             }
-        };
+        }
     }
 }
 
@@ -48,18 +48,18 @@ impl ManageConnection for DeviceConnectionManager {
     type Error = Error;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        return DeviceConnection::new(self.device.clone(), self.ssh_dir.as_deref());
+        DeviceConnection::new(self.device.clone(), self.ssh_dir.as_deref())
     }
 
     fn is_valid(&self, _: &mut Self::Connection) -> Result<(), Self::Error> {
-        return Ok(());
+        Ok(())
     }
 
     fn has_broken(&self, conn: &mut Self::Connection) -> bool {
         if !conn.is_connected() {
             return true;
         }
-        return conn.last_ok.lock().unwrap().eq(&false);
+        conn.last_ok.lock().unwrap().eq(&false)
     }
 }
 
@@ -77,15 +77,15 @@ impl HandleError<Error> for DeviceConnectionErrorHandler {
         if *error == Error::Disconnected {
             return num_retries < 3;
         }
-        return false;
+        false
     }
 }
 
 impl Clone for DeviceConnectionPool {
     fn clone(&self) -> Self {
-        return DeviceConnectionPool {
+        DeviceConnectionPool {
             inner: self.inner.clone(),
             last_error: self.last_error.clone(),
-        };
+        }
     }
 }

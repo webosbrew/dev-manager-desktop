@@ -152,7 +152,7 @@ impl<R: Runtime> GetConfDir for AppHandle<R> {
             {
                 home = env::var("APPDATA")
                     .or_else(|_| env::var("USERPROFILE"))
-                    .map(|d| PathBuf::from(d))
+                    .map(PathBuf::from)
                     .ok();
             }
             #[cfg(not(target_family = "windows"))]

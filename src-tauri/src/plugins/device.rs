@@ -59,10 +59,10 @@ async fn localkey_verify(
 
 #[tauri::command]
 async fn privkey_read<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<String, Error> {
-    return Ok(device
+    Ok(device
         .private_key
         .ok_or_else(|| Error::bad_config())?
-        .content(app.get_ssh_dir().as_deref())?);
+        .content(app.get_ssh_dir().as_deref())?)
 }
 
 #[tauri::command]
@@ -75,12 +75,12 @@ async fn check_connection(
 
 #[tauri::command]
 async fn app_ssh_key_path<R: Runtime>(app: AppHandle<R>) -> Result<String, Error> {
-    return Ok(app.ensure_app_ssh_key_path()?.to_string_lossy().to_string());
+    Ok(app.ensure_app_ssh_key_path()?.to_string_lossy().to_string())
 }
 
 #[tauri::command]
 async fn app_ssh_pubkey<R: Runtime>(app: AppHandle<R>) -> Result<String, Error> {
-    return Ok(app.get_app_ssh_pubkey()?);
+    Ok(app.get_app_ssh_pubkey()?)
 }
 
 #[tauri::command]

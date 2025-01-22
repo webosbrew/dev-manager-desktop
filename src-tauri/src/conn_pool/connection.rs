@@ -53,7 +53,7 @@ impl DeviceConnection {
             last_ok: Mutex::new(true),
         };
         log::info!("{:?} created", connection);
-        return Ok(connection);
+        Ok(connection)
     }
 
     pub(super) fn reset_last_ok(&self) {
@@ -71,7 +71,7 @@ impl DeviceConnection {
     }
 
     pub(crate) fn session_init(session: &Session) -> Result<(), Error> {
-        let kex = vec![
+        let kex = [
             "curve25519-sha256",
             "curve25519-sha256@libssh.org",
             "ecdh-sha2-nistp256",
@@ -84,7 +84,7 @@ impl DeviceConnection {
             "diffie-hellman-group1-sha1",
             "diffie-hellman-group14-sha1",
         ];
-        let hmac = vec![
+        let hmac = [
             "hmac-sha2-256-etm@openssh.com",
             "hmac-sha2-512-etm@openssh.com",
             "hmac-sha2-256",
@@ -93,7 +93,7 @@ impl DeviceConnection {
             "hmac-sha1",
             "hmac-md5",
         ];
-        let key_types = vec![
+        let key_types = [
             "ssh-ed25519",
             "ecdsa-sha2-nistp521",
             "ecdsa-sha2-nistp384",
@@ -120,7 +120,7 @@ impl DeviceConnection {
             session.set_option(SshOption::KnownHosts(Some(format!("/dev/null"))))?;
             session.set_option(SshOption::GlobalKnownHosts(Some(format!("/dev/null"))))?;
         }
-        return Ok(());
+        Ok(())
     }
 }
 
@@ -128,13 +128,13 @@ impl Deref for DeviceConnection {
     type Target = Session;
 
     fn deref(&self) -> &Self::Target {
-        return &self.session;
+        &self.session
     }
 }
 
 impl DerefMut for DeviceConnection {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        return &mut self.session;
+        &mut self.session
     }
 }
 
@@ -174,7 +174,7 @@ impl DeviceConnectionUserInfo {
                 unhandled: false,
             });
         }
-        return Ok(DeviceConnectionUserInfo::parse(&buf));
+        Ok(DeviceConnectionUserInfo::parse(&buf))
     }
 
     fn parse(s: &str) -> Option<DeviceConnectionUserInfo> {
@@ -205,7 +205,7 @@ impl DeviceConnectionUserInfo {
         let (Some(uid), Some(gid)) = (uid, gid) else {
             return None;
         };
-        return Some(DeviceConnectionUserInfo { uid, gid, groups });
+        Some(DeviceConnectionUserInfo { uid, gid, groups })
     }
 }
 
@@ -224,13 +224,13 @@ impl Id {
         let Some(caps) = regex.captures(s) else {
             return None;
         };
-        return Some(Self {
+        Some(Self {
             id: u32::from_str_radix(caps.get(1).unwrap().as_str(), 10).unwrap(),
             name: caps.get(2).map(|s| {
                 s.as_str()
                     .trim_matches(|c| c == '(' || c == ')')
                     .to_string()
             }),
-        });
+        })
     }
 }
