@@ -81,7 +81,7 @@ impl Proc {
         while !channel.is_closed() && !channel.is_eof() {
             if self.interrupted.lock().unwrap().eq(&true) {
                 channel.send_eof()?;
-                log::info!("interrupting luna-send");
+                log::info!("interrupting {}", &self.command);
                 channel.request_send_signal("TERM")?;
                 channel.close()?;
                 interrupted = true;
@@ -90,11 +90,20 @@ impl Proc {
                 channel.stdin().write_all(&msg)?;
             }
             let buf_size =
-                channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10)))?;
+                match channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10))) {
+                    Ok(size) => size,
+                    Err(libssh_rs::Error::TryAgain) => 0,
+                    Err(e) => return Err(Error::from(e)),
+                };
             if buf_size > 0 {
                 self.data(0, &buf[..buf_size])?;
             }
-            let buf_size = channel.read_timeout(&mut buf, true, Some(Duration::from_millis(10)))?;
+            let buf_size =
+                match channel.read_timeout(&mut buf, true, Some(Duration::from_millis(10))) {
+                    Ok(size) => size,
+                    Err(libssh_rs::Error::TryAgain) => 0,
+                    Err(e) => return Err(Error::from(e)),
+                };
             if buf_size > 0 {
                 self.data(1, &buf[..buf_size])?;
             }
