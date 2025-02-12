@@ -1,8 +1,7 @@
+use ssh_key::private::{Ed25519Keypair, KeypairData};
+use ssh_key::{rand_core::OsRng, LineEnding, PrivateKey};
 use std::fs::create_dir_all;
 use std::path::PathBuf;
-
-use ssh_key::private::{Ed25519Keypair, KeypairData};
-use ssh_key::{LineEnding, PrivateKey};
 
 use crate::error::Error;
 
@@ -49,8 +48,7 @@ pub trait GetAppSshKeyDir {
     fn ensure_app_ssh_key_path(&self) -> Result<PathBuf, Error> {
         let path = self.get_app_ssh_key_path()?;
         if !path.exists() || !PrivateKey::read_openssh_file(&path).is_ok() {
-            let mut rng = rand::thread_rng();
-            let keypair = Ed25519Keypair::random(&mut rng);
+            let keypair = Ed25519Keypair::random(&mut OsRng);
             let key_comment = String::from(&format!("devman_{:x}", keypair.public)[0..15]);
             log::info!(
                 "Generating new SSH key `{}` and saving to {}",
