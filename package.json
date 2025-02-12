@@ -5,7 +5,7 @@
   "homepage": "https://github.com/webosbrew/dev-manager-desktop",
   "author": {
     "name": "webOS Homebrew Team",
-    "email": "mariotaku.lee@gmail.com"
+    "email": "app@webosbrew.org"
   },
   "keywords": [
     "webos",
@@ -80,7 +80,7 @@
     "@angular-eslint/template-parser": "17.4.0",
     "@angular/cli": "17.3.6",
     "@angular/compiler-cli": "17.3.7",
-    "@tauri-apps/cli": "^2.2.5",
+    "@tauri-apps/cli": "^2.2.7",
     "@types/jasmine": "4.6.4",
     "@types/jest": "29.5.10",
     "@types/lodash-es": "4.17.12",
