@@ -19,6 +19,7 @@
     "remote-shell:default",
     "remote-file:default",
     "dev-mode:default",
-    "local-file:default"
+    "local-file:default",
+    "log:default"
   ]
 }

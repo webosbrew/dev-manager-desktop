@@ -35,8 +35,13 @@ pub struct ProcData {
 #[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(tag = "type")]
 pub enum ProcResult {
-    Exit { status: i32 },
-    Signal { signal: Option<String>, core_dumped: bool },
+    Exit {
+        status: i32,
+    },
+    Signal {
+        signal: Option<String>,
+        core_dumped: bool,
+    },
     Closed,
 }
 

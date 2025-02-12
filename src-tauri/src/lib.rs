@@ -29,12 +29,6 @@ mod spawn_manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    #[cfg(target_os = "android")]
-    {
-        use android_logger::Config;
-        android_logger::init_once(Config::default().with_max_level(log::LevelFilter::Debug));
-    }
-
     let mut builder = tauri::Builder::default();
     #[cfg(feature = "tauri-plugin-single-instance")]
     {
@@ -46,6 +40,7 @@ pub fn run() {
         }));
     }
     let result = builder
+        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_fs::init())
