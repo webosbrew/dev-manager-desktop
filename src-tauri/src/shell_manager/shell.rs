@@ -178,7 +178,11 @@ impl Shell {
                     }
                 }
             }
-            let size = channel.read_timeout(&mut buf, false, Some(Duration::from_micros(5)))?;
+            let size = match channel.read_timeout(&mut buf, false, Some(Duration::from_micros(5))) {
+                Ok(size) => size,
+                Err(libssh_rs::Error::TryAgain) => 0,
+                Err(e) => return Err(Error::from(e)),
+            };
             if size != 0 {
                 if let Some(callback) = self.callback.lock().unwrap().as_ref() {
                     callback.rx(0, &buf[..size]);
@@ -190,7 +194,12 @@ impl Shell {
                 }
             }
             if !has_pty {
-                let size = channel.read_timeout(&mut buf, true, Some(Duration::from_micros(5)))?;
+                let size =
+                    match channel.read_timeout(&mut buf, true, Some(Duration::from_micros(5))) {
+                        Ok(size) => size,
+                        Err(libssh_rs::Error::TryAgain) => 0,
+                        Err(e) => return Err(Error::from(e)),
+                    };
                 if size != 0 {
                     if let Some(callback) = self.callback.lock().unwrap().as_ref() {
                         callback.rx(1, &buf[..size]);
