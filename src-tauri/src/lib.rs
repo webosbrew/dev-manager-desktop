@@ -29,7 +29,7 @@ mod spawn_manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let mut builder = tauri::Builder::default();
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_os::init());
     #[cfg(feature = "tauri-plugin-single-instance")]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
@@ -55,7 +55,10 @@ pub fn run() {
         .manage(SessionManager::default())
         .manage(SpawnManager::default())
         .manage(ShellManager::default())
-        .register_asynchronous_uri_scheme_protocol("remote-file", plugins::file::protocol)
+        .register_asynchronous_uri_scheme_protocol(
+            plugins::file::URI_SCHEME,
+            plugins::file::protocol,
+        )
         .on_page_load(|wnd, payload| {
             if payload.event() == PageLoadEvent::Started {
                 let spawns = wnd.state::<SpawnManager>();

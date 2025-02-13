@@ -248,18 +248,25 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
         .build()
 }
 
+pub const URI_SCHEME: &str = "remote-file";
+
 pub fn protocol<R: Runtime>(
     ctx: UriSchemeContext<'_, R>,
     req: http::Request<Vec<u8>>,
     resp: UriSchemeResponder,
 ) {
     let app = ctx.app_handle().clone();
-    let Some((device_name, path)) = req.uri().path()[1..].split_once('/') else {
+    let uri = req.uri();
+    let Some((device_name, path)) = (match cfg!(target_os = "windows") {
+        true => uri.path()[1..]
+            .split_once('/')
+            .map(|(device, path)| (device, format!("/{path}"))),
+        _ => uri.host().map(|host| (host, uri.path().to_string())),
+    }) else {
         resp.respond(http::Response::builder().status(404).body(vec![]).unwrap());
         return;
     };
     let device_name = device_name.to_string();
-    let path = format!("/{path}");
     tauri::async_runtime::spawn(async move {
         let devices = app.state::<DeviceManager>();
         let Some(device) = devices.find(&device_name).await.ok().flatten() else {
