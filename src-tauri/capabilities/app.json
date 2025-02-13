@@ -20,6 +20,7 @@
     "remote-file:default",
     "dev-mode:default",
     "local-file:default",
-    "log:default"
+    "log:default",
+    "os:default"
   ]
 }
