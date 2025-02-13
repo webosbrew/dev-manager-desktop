@@ -55,7 +55,10 @@ pub fn run() {
         .manage(SessionManager::default())
         .manage(SpawnManager::default())
         .manage(ShellManager::default())
-        .register_asynchronous_uri_scheme_protocol("remote-file", plugins::file::protocol)
+        .register_asynchronous_uri_scheme_protocol(
+            plugins::file::URI_SCHEME,
+            plugins::file::protocol,
+        )
         .on_page_load(|wnd, payload| {
             if payload.event() == PageLoadEvent::Started {
                 let spawns = wnd.state::<SpawnManager>();
