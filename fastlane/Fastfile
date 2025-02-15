@@ -30,7 +30,7 @@ class TauriDevServer
       "STUDIO_ENVFILE" => envfile,
     }
     pid = Process.spawn(env, "npm", "--prefix", "..", "run", "tauri", "android", "dev", "--", "--open",
-                        :new_pgroup => true, [:out, :err] => File::NULL)
+                        [:out, :err] => File::NULL)
     Timeout::timeout(30) do
       loop do
         break if self.is_dev_server_running?(package_name) and File.exist?(envfile)
@@ -98,8 +98,6 @@ platform :android do
 
   desc "Download the signed universal APK from the Google Play"
   lane :download_apk do
-    require 'json'
-
     version = Gem::Version::create(JSON.load_file('../package.json')['version'])
     version_code = version.segments[0] * 1000000 + version.segments[1] * 1000 + version.segments[2]
 
