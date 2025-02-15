@@ -1,5 +1,5 @@
 [package]
-name = "webos-dev-manager"
+name = "devman"
 version = "0.2.0"
 description = "Device Manager for LG webOS"
 authors = ["Ningyuan Li"]
@@ -10,6 +10,10 @@ rust-version = "1.80.1"
 links = "devman"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "webos-dev-manager"
+path = "src/main.rs"
 
 [lib]
 name = "devman"
