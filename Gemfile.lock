@@ -119,7 +119,6 @@ GEM
       xcpretty (~> 0.4.0)
       xcpretty-travis-formatter (>= 0.0.3, < 2.0.0)
     fastlane-plugin-unzip (1.0.1)
-    fastlane-plugin-versioning_android (0.1.1)
     fastlane-sirp (1.0.0)
       sysrandom (~> 1.0)
     gh_inspector (1.1.3)
@@ -223,12 +222,12 @@ GEM
 
 PLATFORMS
   x64-mingw-ucrt
+  x86_64-linux
 
 DEPENDENCIES
   fastlane
   fastlane-plugin-download_file!
   fastlane-plugin-unzip
-  fastlane-plugin-versioning_android
 
 BUNDLED WITH
    2.4.6
