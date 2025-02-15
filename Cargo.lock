@@ -981,6 +981,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "devman"
+version = "0.2.0"
+dependencies = [
+ "flate2",
+ "hex",
+ "httparse",
+ "libssh-rs",
+ "libssh-rs-sys",
+ "log",
+ "native-dialog",
+ "path-slash",
+ "pathdiff",
+ "r2d2",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha256",
+ "ssh-key",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-fs",
+ "tauri-plugin-log",
+ "tauri-plugin-os",
+ "tauri-plugin-shell",
+ "tauri-plugin-single-instance",
+ "tauri-plugin-upload",
+ "tokio",
+ "unix_mode",
+ "uuid",
+ "vt100",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6083,41 +6118,6 @@ dependencies = [
  "pkg-config",
  "soup3-sys",
  "system-deps",
-]
-
-[[package]]
-name = "webos-dev-manager"
-version = "0.2.0"
-dependencies = [
- "flate2",
- "hex",
- "httparse",
- "libssh-rs",
- "libssh-rs-sys",
- "log",
- "native-dialog",
- "path-slash",
- "pathdiff",
- "r2d2",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "sha256",
- "ssh-key",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-fs",
- "tauri-plugin-log",
- "tauri-plugin-os",
- "tauri-plugin-shell",
- "tauri-plugin-single-instance",
- "tauri-plugin-upload",
- "tokio",
- "unix_mode",
- "uuid",
- "vt100",
 ]
 
 [[package]]
