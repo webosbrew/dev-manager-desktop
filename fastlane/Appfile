@@ -1,2 +1,3 @@
-json_key_file ENV['GOOGLE_JSON_KEY_FILE']
+json_key_file ENV['GOOGLE_JSON_KEY_FILE'] if ENV['GOOGLE_JSON_KEY_FILE']
+json_key_data_raw ENV['GOOGLE_JSON_KEY_DATA'] if ENV['GOOGLE_JSON_KEY_DATA']
 package_name "org.webosbrew.devman"

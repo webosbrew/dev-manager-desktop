@@ -4,3 +4,4 @@
 
 gem 'fastlane-plugin-download_file', :github => 'ricca509/fastlane-plugin-download_file', :ref => 'cb2aa03'
 gem 'fastlane-plugin-unzip'
+gem 'fastlane-plugin-versioning_android'

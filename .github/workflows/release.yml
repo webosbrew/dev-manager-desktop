@@ -152,22 +152,29 @@ jobs:
         env:
           CI: true
 
+      - name: Setup Ruby (Android)
+        if: startsWith(matrix.target, 'android')
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: 'true'
+
+      - name: Save Signing Key (Android)
+        if: startsWith(matrix.target, 'android')
+        run: echo "${{ secrets.ANDROID_SIGNING_KEY }}" | base64 -d > $GITHUB_WORKSPACE/android.jks
+
       - name: Build the app (Android)
         if: startsWith(matrix.target, 'android')
-        shell: bash
-        run: |
-          npm run tauri android init
-          npm run tauri android build -- --aab
-          if [ -n "$AAB_SIGNING_KEYSTORE" ]; then
-            echo "$AAB_SIGNING_KEYSTORE" | base64 -d | apksigner sign --ks /dev/stdin \
-              --ks-pass env:AAB_SIGNING_PASSWORD \
-              --min-sdk-version 28 \
-              src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
-          fi
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          lane: deploy
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
-          AAB_SIGNING_KEYSTORE: ${{ secrets.AAB_SIGNING_KEYSTORE }}
-          AAB_SIGNING_PASSWORD: ${{ secrets.AAB_SIGNING_PASSWORD }}
+          GOOGLE_JSON_KEY_DATA: ${{ secrets.GOOGLE_JSON_KEY_DATA }}
+          ANDROID_SIGNING_STORE_FILE: ${{ github.workspace }}/android.jks
+          ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+          ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+          ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
 
       - name: Upload Source Maps
         run: npx --yes @sentry/cli sourcemaps upload -r ${{ needs.sentry-create-release.outputs.release }} dist
@@ -186,10 +193,9 @@ jobs:
             target/**/bundle/msi/*.msi
             target/**/bundle/dmg/*.dmg
 
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
-        if: ${{ startsWith(matrix.target, 'android') || github.event_name != 'release' }}
+        if: ${{ github.event_name != 'release' }}
         with:
           name: ${{ matrix.target }}-package
           path: ${{ steps.glob.outputs.paths }}
