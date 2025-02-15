@@ -161,7 +161,7 @@ jobs:
 
       - name: Save Signing Key (Android)
         if: startsWith(matrix.target, 'android')
-        run: echo "${{ secrets.ANDROID_SIGNING_KEY }}" | base64 -d > $GITHUB_WORKSPACE/android.jks
+        run: echo "${{ secrets.ANDROID_SIGNING_STORE_DATA }}" | base64 -d > $GITHUB_WORKSPACE/android.jks
 
       - name: Build the app (Android)
         if: startsWith(matrix.target, 'android')
@@ -186,7 +186,6 @@ jobs:
           separator: "\n"
           read-gitignore: false
           files: |
-            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
             target/**/bundle/deb/*.deb
             target/**/bundle/rpm/*.rpm
             target/**/bundle/appimage/*.AppImage
