@@ -152,6 +152,10 @@ jobs:
         env:
           CI: true
 
+      - name: Tauri init (Android)
+        if: startsWith(matrix.target, 'android')
+        run: npm run tauri android init
+
       - name: Setup Ruby (Android)
         if: startsWith(matrix.target, 'android')
         uses: ruby/setup-ruby@v1
