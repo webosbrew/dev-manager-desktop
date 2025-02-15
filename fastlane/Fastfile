@@ -1,0 +1,84 @@
+File.file?('.env') and File.readlines('.env', chomp: true).each do |line|
+  ENV[$1] = $2 if line =~ /\A([^=]+)=(.*)\z/
+end
+
+default_platform(:android)
+
+def use_prebuilt_openssl
+  openssl_path = File.join(Dir.getwd, 'downloads', 'android_openssl-master', 'ssl_1.1')
+  unless File.directory?(openssl_path)
+    zip_path = File.join(Dir.getwd, 'downloads', 'android_openssl-master.tar.gz')
+    download_file(url: 'https://github.com/KDAB/android_openssl/archive/refs/heads/master.tar.gz',
+                  destination_path: zip_path)
+    sh("tar", "-xzf", zip_path, "-C", "downloads")
+  end
+  ENV['OPENSSL_NO_VENDOR'] = '1'
+  ENV['OPENSSL_INCLUDE_DIR'] = File.join(openssl_path, 'include')
+  ENV['AARCH64_LINUX_ANDROID_OPENSSL_LIB_DIR'] = File.join(openssl_path, 'arm64-v8a')
+  ENV['ARMV7_LINUX_ANDROIDEABI_OPENSSL_LIB_DIR'] = File.join(openssl_path, 'armeabi-v7a')
+  ENV['I686_LINUX_ANDROID_OPENSSL_LIB_DIR'] = File.join(openssl_path, 'x86')
+  ENV['X86_64_LINUX_ANDROID_OPENSSL_LIB_DIR'] = File.join(openssl_path, 'x86_64')
+end
+
+class TauriDevServer
+  def self.run
+    package_name = CredentialsManager::AppfileConfig.try_fetch_value(:package_name)
+    envfile = Dir::Tmpname.create(%w[studio- .env]) {}
+    env = {
+      "PATH" => "#{File.join(Dir.getwd, 'studio')}#{File::PATH_SEPARATOR}#{ENV["PATH"]}",
+      "STUDIO_ENVFILE" => envfile,
+    }
+    pid = Process.spawn(env, "npm", "--prefix", "..", "run", "tauri", "android", "dev", "--", "--open",
+                        :new_pgroup => true, [:out, :err] => File::NULL)
+    Timeout::timeout(30) do
+      loop do
+        break if self.is_dev_server_running?(package_name) and File.exist?(envfile)
+        sleep 1
+      end
+    end
+    task_env = {}
+    File.readlines(envfile, chomp: true).each do |line|
+      task_env[$1] = $2 if line =~ /\A([^=]+)=(.*)\z/
+    end
+    yield task_env
+  ensure
+    if Gem.win_platform?
+      system("taskkill /F /T /PID #{pid}")
+    else
+      Process.kill(:SIGTERM, pid)
+    end
+    Process.wait(pid)
+  end
+
+  def self.is_dev_server_running?(package_name)
+    begin
+      addr = File.read(File.join(Dir.tmpdir, "#{package_name}-server-addr")).split(':')
+      TCPSocket.new(addr[0], addr[1].to_i, :connect_timeout => 1)
+      return true
+    rescue
+      return false
+    end
+  end
+end
+
+platform :android do
+  desc "Deploy a new version to the Google Play"
+  lane :deploy do
+    use_prebuilt_openssl
+
+    TauriDevServer.run do |env|
+      env.each do |key, value|
+        ENV[key] = value
+      end
+      gradle(
+        task: "bundleUniversalRelease",
+        project_dir: "src-tauri/gen/android",
+        properties: {
+          "android.injected.signing.store.file" => ENV["ANDROID_SIGNING_STORE_FILE"],
+          "android.injected.signing.store.password" => ENV["ANDROID_SIGNING_STORE_PASSWORD"],
+          "android.injected.signing.key.alias" => ENV["ANDROID_SIGNING_KEY_ALIAS"],
+          "android.injected.signing.key.password" => ENV["ANDROID_SIGNING_KEY_PASSWORD"],
+        })
+    end
+  end
+end
