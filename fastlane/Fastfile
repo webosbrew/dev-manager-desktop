@@ -48,7 +48,7 @@ class TauriDevServer
     if Gem.win_platform?
       system("taskkill /F /T /PID #{pid}", [:out, :err] => File::NULL)
     else
-      Process.kill(:SIGTERM, pid)
+      Process.kill(:SIGTERM, -pid)
     end
     Process.wait(pid)
   end
@@ -79,12 +79,12 @@ platform :android do
         build_type: "Release",
         project_dir: "src-tauri/gen/android",
         print_command: false,
-        properties: {
+        properties: ENV["ANDROID_SIGNING_STORE_FILE"] ? {
           "android.injected.signing.store.file" => ENV["ANDROID_SIGNING_STORE_FILE"],
           "android.injected.signing.store.password" => ENV["ANDROID_SIGNING_STORE_PASSWORD"],
           "android.injected.signing.key.alias" => ENV["ANDROID_SIGNING_KEY_ALIAS"],
           "android.injected.signing.key.password" => ENV["ANDROID_SIGNING_KEY_PASSWORD"],
-        }
+        } : {},
       )
     end
 
