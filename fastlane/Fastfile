@@ -26,6 +26,7 @@ class TauriDevServer
     envfile = Dir::Tmpname.create(%w[studio- .env]) {}
     env = {
       "PATH" => "#{File.join(Dir.getwd, 'studio')}#{File::PATH_SEPARATOR}#{ENV["PATH"]}",
+      "XDG_DATA_HOME" => File.join(Dir.getwd, 'studio'),
       "STUDIO_ENVFILE" => envfile,
     }
     pid = Process.spawn(env, "npm", "--prefix", "..", "run", "tauri", "android", "dev", "--", "--open",
@@ -65,14 +66,16 @@ end
 platform :android do
   desc "Deploy a new version to the Google Play"
   lane :deploy do
-    use_prebuilt_openssl
+    use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
 
     TauriDevServer.run do |env|
       env.each do |key, value|
         ENV[key] = value
       end
       gradle(
-        task: "bundleUniversalRelease",
+        task: "bundle",
+        flavor: "Universal",
+        build_type: "Release",
         project_dir: "src-tauri/gen/android",
         print_command: false,
         properties: {
@@ -80,7 +83,28 @@ platform :android do
           "android.injected.signing.store.password" => ENV["ANDROID_SIGNING_STORE_PASSWORD"],
           "android.injected.signing.key.alias" => ENV["ANDROID_SIGNING_KEY_ALIAS"],
           "android.injected.signing.key.password" => ENV["ANDROID_SIGNING_KEY_PASSWORD"],
-        })
+        }
+      )
     end
+
+    upload_to_play_store(
+      track: "internal",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+
+  desc "Download the signed universal APK from the Google Play"
+  lane :download_apk do
+    require 'json'
+
+    version = Gem::Version::create(JSON.load_file('../package.json')['version'])
+    version_code = version.segments[0] * 1000000 + version.segments[1] * 1000 + version.segments[2]
+
+    download_universal_apk_from_google_play(
+      version_code: version_code,
+      destination: File.join(Dir.getwd, "downloads", "webOS.Dev.Manager_#{version}_universal.apk"))
   end
 end

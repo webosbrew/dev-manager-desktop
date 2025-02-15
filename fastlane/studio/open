@@ -1,0 +1,3 @@
+#!/bin/sh
+
+env | grep CARGO_TARGET_ > "$STUDIO_ENVFILE"
