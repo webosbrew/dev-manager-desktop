@@ -1,6 +1,6 @@
-File.file?('.env') and File.readlines('.env', chomp: true).each do |line|
+File.readlines('.env', chomp: true).each do |line|
   ENV[$1] = $2 if line =~ /\A([^=]+)=(.*)\z/
-end
+end if File.exist?('.env')
 
 default_platform(:android)
 
@@ -42,8 +42,9 @@ class TauriDevServer
     end
     yield task_env
   ensure
+    File.delete(envfile) if File.exist?(envfile)
     if Gem.win_platform?
-      system("taskkill /F /T /PID #{pid}")
+      system("taskkill /F /T /PID #{pid}", [:out, :err] => File::NULL)
     else
       Process.kill(:SIGTERM, pid)
     end
@@ -73,6 +74,7 @@ platform :android do
       gradle(
         task: "bundleUniversalRelease",
         project_dir: "src-tauri/gen/android",
+        print_command: false,
         properties: {
           "android.injected.signing.store.file" => ENV["ANDROID_SIGNING_STORE_FILE"],
           "android.injected.signing.store.password" => ENV["ANDROID_SIGNING_STORE_PASSWORD"],
