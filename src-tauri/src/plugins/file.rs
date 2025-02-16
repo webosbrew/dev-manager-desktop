@@ -257,7 +257,6 @@ pub fn protocol<R: Runtime>(
 ) {
     let app = ctx.app_handle().clone();
     let uri = req.uri();
-    log::info!("remote-file {:?}", uri);
     let Some((device_name, path)) = (match cfg!(any(target_os = "windows", target_os = "android")) {
         true => uri.path()[1..]
             .split_once('/')

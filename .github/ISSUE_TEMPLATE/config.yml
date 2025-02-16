@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Request A New App
+    url: https://github.com/webosbrew/apps-repo/issues/new/choose
+    about: For requests and suggestions for new apps, create issue in webosbrew/apps-repo
+  - name: Report Issue of An App
+    url: https://repo.webosbrew.org/
+    about: For reporting issues of an app, visit the app's page in webosbrew/apps-repo, and follow the link to the app's issue tracker
