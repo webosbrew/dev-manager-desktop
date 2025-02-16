@@ -6,16 +6,20 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Device Information
+        ## Computer/Mobile Device Information
+        Please provide information about the device you are using to run Dev Manager.
+        We need this information to reproduce the issue.
   - type: dropdown
     attributes:
-      label: Computer/Mobile Device Type
+      label: Device Type
       description: What type of device are you using to run Dev Manager?
       options:
         - 'Windows'
         - 'macOS'
         - 'Linux'
         - 'Android'
+    validations:
+      required: true
   - type: input
     attributes:
       label: Dev Manager Version
@@ -23,9 +27,14 @@ body:
       placeholder: "Example: 1.99.8"
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## webOS Device Information
+        Please provide information about the device (TV, monitor, etc...) you are using.
   - type: input
     attributes:
-      label: webOS Model
+      label: Model
       description: What is the model of your webOS device?
       placeholder: "Example: OLEDG4"
     validations:
@@ -46,12 +55,6 @@ body:
         - 'No (with Dev Mode)'
     validations:
       required: true
-  - type: markdown
-    attributes:
-      value: |
-        ## Host Information
-        Please provide information about the computer you are streaming from.
-        This information is important to reproduce the issue.
   - type: markdown
     attributes:
       value: |
