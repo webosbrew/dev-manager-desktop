@@ -257,16 +257,18 @@ pub fn protocol<R: Runtime>(
 ) {
     let app = ctx.app_handle().clone();
     let uri = req.uri();
-    let Some((device_name, path)) = (match cfg!(target_os = "windows") {
+    log::info!("remote-file {:?}", uri);
+    let Some((device_name, path)) = (match cfg!(any(target_os = "windows", target_os = "android")) {
         true => uri.path()[1..]
             .split_once('/')
-            .map(|(device, path)| (device, format!("/{path}"))),
-        _ => uri.host().map(|host| (host, uri.path().to_string())),
+            .map(|(device, path)| (device.to_string(), format!("/{path}"))),
+        _ => uri
+            .host()
+            .map(|host| (host.to_string(), uri.path().to_string())),
     }) else {
         resp.respond(http::Response::builder().status(404).body(vec![]).unwrap());
         return;
     };
-    let device_name = device_name.to_string();
     tauri::async_runtime::spawn(async move {
         let devices = app.state::<DeviceManager>();
         let Some(device) = devices.find(&device_name).await.ok().flatten() else {
