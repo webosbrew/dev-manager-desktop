@@ -53,7 +53,7 @@ export class AppManagerService {
     }
 
     async list(device: Device): Promise<PackageInfo[]> {
-        const completeIcon = platform() === 'windows' ? this.completeIconWin : this.completeIcon;
+        const completeIcon = ['windows', 'android'].includes(platform()) ? this.completeIconChromium : this.completeIcon;
         return this.luna.call(device, 'luna://com.webos.applicationManager/dev/listApps')
             .catch((e) => {
                 if (e instanceof LunaUnknownMethodError) {
@@ -70,7 +70,7 @@ export class AppManagerService {
         return {iconUri: `remote-file://${device.name}${iconPath}`, ...info};
     }
 
-    private completeIconWin(device: Device, info: RawPackageInfo): PackageInfo {
+    private completeIconChromium(device: Device, info: RawPackageInfo): PackageInfo {
         const iconPath = path.join(info.folderPath, info.icon);
         return {iconUri: `http://remote-file.localhost/${device.name}${iconPath}`, ...info};
     }
