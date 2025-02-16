@@ -7,6 +7,15 @@ body:
     attributes:
       value: |
         ## Device Information
+  - type: dropdown
+    attributes:
+      label: Computer/Mobile Device Type
+      description: What type of device are you using to run Dev Manager?
+      options:
+        - 'Windows'
+        - 'macOS'
+        - 'Linux'
+        - 'Android'
   - type: input
     attributes:
       label: Dev Manager Version
@@ -16,8 +25,8 @@ body:
       required: true
   - type: input
     attributes:
-      label: Device Model
-      description: What is the model of your device?
+      label: webOS Model
+      description: What is the model of your webOS device?
       placeholder: "Example: OLEDG4"
     validations:
       required: true
@@ -31,10 +40,10 @@ body:
   - type: dropdown
     attributes:
       label: Rooted
-      description: Is your device rooted?
+      description: Is your webOS device rooted?
       options:
         - 'Yes'
-        - 'No'
+        - 'No (with Dev Mode)'
     validations:
       required: true
   - type: markdown
