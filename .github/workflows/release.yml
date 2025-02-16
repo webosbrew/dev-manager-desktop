@@ -155,6 +155,8 @@ jobs:
       - name: Tauri init (Android)
         if: startsWith(matrix.target, 'android')
         run: npm run tauri android init
+        env:
+          NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
 
       - name: Setup Ruby (Android)
         if: startsWith(matrix.target, 'android')
