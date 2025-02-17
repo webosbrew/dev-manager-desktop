@@ -27,7 +27,7 @@ platform :android do
   lane :build do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
 
-    Process.exec("npm", "--prefix", "..", "run", "ng", "build", [:out, :err] => File::NULL)
+    Process.exec("npm", "--prefix", "..", "run", "ng", "build")
 
     TauriDevServer.run do |env|
       env.each do |key, value|
@@ -53,7 +53,7 @@ platform :android do
   lane :deploy do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
 
-    Process.exec("npm", "--prefix", "..", "run", "ng", "build", [:out, :err] => File::NULL)
+    Process.exec("npm", "--prefix", "..", "run", "ng", "build")
 
     TauriDevServer.run do |env|
       env.each do |key, value|
