@@ -32,7 +32,7 @@ class TauriDevServer
     spawn_options = Gem.win_platform? ? { new_pgroup: true } : { pgroup: true }
     pid = Process.spawn(env, "npm", "--prefix", "..", "run", "tauri", "android", "dev", "--", "--open",
                         [:out, :err] => File::NULL, **spawn_options)
-    Timeout::timeout(30) do
+    Timeout::timeout(180) do
       loop do
         break if self.is_dev_server_running?(package_name) and File.exist?(envfile)
         sleep 1
