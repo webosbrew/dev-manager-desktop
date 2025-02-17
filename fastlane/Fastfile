@@ -36,7 +36,7 @@ platform :android do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
     set_signing_properties if ENV["ANDROID_SIGNING_STORE_FILE"]
 
-    Tauri::Android.build(aab: true)
+    Tauri::Android.build(aab: true, apk: false)
   end
 
   desc "Deploy a new version to the Google Play"
@@ -44,7 +44,7 @@ platform :android do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
     set_signing_properties if ENV["ANDROID_SIGNING_STORE_FILE"]
 
-    Tauri::Android.build(aab: true)
+    Tauri::Android.build(aab: true, apk: false)
 
     upload_to_play_store(
       track: "internal",
