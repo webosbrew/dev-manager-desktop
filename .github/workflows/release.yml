@@ -57,6 +57,7 @@ jobs:
 
   release:
     name: Build & Release
+    if: always()
     strategy:
       fail-fast: false
       matrix:
@@ -70,7 +71,7 @@ jobs:
           - target: macos
             os: macos-latest
           - target: android
-            os: ubuntu-22.04
+            os: ubuntu-latest
 
     runs-on: ${{ matrix.os }}
 
@@ -218,6 +219,12 @@ jobs:
           omitBodyDuringUpdate: true
           omitPrereleaseDuringUpdate: true
           artifacts: ${{ steps.glob.outputs.paths }}
+
+      - name: Request APK Release
+        if: ${{ startsWith(matrix.target, 'android') && github.event_name == 'release' }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          event-type: release-apk
 
   sentry-finalize-release:
     name: Finalize Sentry Release

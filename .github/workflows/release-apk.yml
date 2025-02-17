@@ -1,0 +1,47 @@
+name: 'Release APK'
+
+on:
+  repository_dispatch:
+    types: [ release-apk ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to fetch from Google Play'
+        required: true
+
+jobs:
+  upload-signed-apk:
+    name: Upload Signed APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract Version
+        id: pkg-version
+        uses: saionaro/extract-package-version@v1.3.0
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: 'true'
+
+      - name: Download APK
+        id: download-apk
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          lane: download_apk
+          verbose: ${{ runner.debug }}
+        env:
+          GOOGLE_JSON_KEY_DATA: ${{ secrets.GOOGLE_JSON_KEY_DATA }}
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          name: Dev Manager ${{ steps.pkg-version.outputs.version }}
+          tag: v${{ steps.pkg-version.outputs.version }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifacts: fastlane/downloads/*.apk
