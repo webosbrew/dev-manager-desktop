@@ -5,7 +5,7 @@ module Tauri
       output_args << "--aab" if aab
       output_args << "--apk" if apk
       Dir.chdir("..") do
-        # Fastlane::Actions::sh("npm", "run", "tauri", "android", "build", "--", *output_args)
+        Fastlane::Actions::sh("npm", "run", "tauri", "android", "build", "--", *output_args)
 
         project_dir = File.join('src-tauri', 'gen', 'android')
 
@@ -44,7 +44,7 @@ module Tauri
         Fastlane::Actions.lane_context[:GRADLE_MAPPING_TXT_OUTPUT_PATH] = File.expand_path(last_mapping_txt_path) if last_mapping_txt_path
 
         # Give a helpful message in case there were no new apks or aabs. Remember we're only running this code when assembling, in which case we certainly expect there to be an apk or aab
-        UI.message('Couldn\'t find any new signed apk files...') if new_apks.empty? && new_aabs.empty?
+        Fastlane::UI.message('Couldn\'t find any new signed apk files...') if new_apks.empty? && new_aabs.empty?
       end
     end
   end
