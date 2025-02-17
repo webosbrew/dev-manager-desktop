@@ -67,3 +67,5 @@ local.properties
 
 # scan temporary files
 **/fastlane/test_output
+
+.secrets
