@@ -77,7 +77,7 @@ jobs:
         if: env.CI_BUILD_FOR == 'android'
         uses: android-actions/setup-android@v3
         with:
-          packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
+          packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-34"
 
       - name: Add NDK to PATH
         if: env.CI_BUILD_FOR == 'android'

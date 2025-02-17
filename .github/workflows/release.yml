@@ -100,7 +100,7 @@ jobs:
         if: startsWith(matrix.target, 'android')
         uses: android-actions/setup-android@v3
         with:
-          packages: "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION}} ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
+          packages: "build-tools;${{ env.ANDROID_BUILD_TOOLS_VERSION}} ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-34"
 
       - name: Add Android SDK Paths
         if: startsWith(matrix.target, 'android')
