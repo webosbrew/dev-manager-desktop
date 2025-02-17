@@ -1,5 +1,4 @@
 require_relative 'util/tauri'
-require_relative 'util/npm'
 
 File.readlines('.env', chomp: true).each do |line|
   ENV[$1] = $2 if line =~ /\A([^=]+)=(.*)\z/
@@ -23,57 +22,29 @@ def use_prebuilt_openssl
   ENV['X86_64_LINUX_ANDROID_OPENSSL_LIB_DIR'] = File.join(openssl_path, 'x86_64')
 end
 
+def set_signing_properties
+  ENV["ORG_GRADLE_PROJECT_android.injected.signing.store.file"] = ENV["ANDROID_SIGNING_STORE_FILE"]
+  ENV["ORG_GRADLE_PROJECT_android.injected.signing.store.password"] = ENV["ANDROID_SIGNING_STORE_PASSWORD"]
+  ENV["ORG_GRADLE_PROJECT_android.injected.signing.key.alias"] = ENV["ANDROID_SIGNING_KEY_ALIAS"]
+  ENV["ORG_GRADLE_PROJECT_android.injected.signing.key.password"] = ENV["ANDROID_SIGNING_KEY_PASSWORD"]
+end
+
 platform :android do
+
   desc "Build bundle only"
   lane :build do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
+    set_signing_properties if ENV["ANDROID_SIGNING_STORE_FILE"]
 
-    NPM.run("ng", "build")
-
-    TauriDevServer.run do |env|
-      env.each do |key, value|
-        ENV[key] = value
-      end
-      gradle(
-        task: "bundle",
-        flavor: "Universal",
-        build_type: "Release",
-        project_dir: "src-tauri/gen/android",
-        print_command: false,
-        properties: ENV["ANDROID_SIGNING_STORE_FILE"] ? {
-          "android.injected.signing.store.file" => ENV["ANDROID_SIGNING_STORE_FILE"],
-          "android.injected.signing.store.password" => ENV["ANDROID_SIGNING_STORE_PASSWORD"],
-          "android.injected.signing.key.alias" => ENV["ANDROID_SIGNING_KEY_ALIAS"],
-          "android.injected.signing.key.password" => ENV["ANDROID_SIGNING_KEY_PASSWORD"],
-        } : {},
-      )
-    end
+    Tauri::Android.build(aab: true)
   end
 
   desc "Deploy a new version to the Google Play"
   lane :deploy do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
+    set_signing_properties if ENV["ANDROID_SIGNING_STORE_FILE"]
 
-    NPM.run("ng", "build")
-
-    TauriDevServer.run do |env|
-      env.each do |key, value|
-        ENV[key] = value
-      end
-      gradle(
-        task: "bundle",
-        flavor: "Universal",
-        build_type: "Release",
-        project_dir: "src-tauri/gen/android",
-        print_command: false,
-        properties: ENV["ANDROID_SIGNING_STORE_FILE"] ? {
-          "android.injected.signing.store.file" => ENV["ANDROID_SIGNING_STORE_FILE"],
-          "android.injected.signing.store.password" => ENV["ANDROID_SIGNING_STORE_PASSWORD"],
-          "android.injected.signing.key.alias" => ENV["ANDROID_SIGNING_KEY_ALIAS"],
-          "android.injected.signing.key.password" => ENV["ANDROID_SIGNING_KEY_PASSWORD"],
-        } : {},
-      )
-    end
+    Tauri::Android.build(aab: true)
 
     upload_to_play_store(
       track: "internal",
