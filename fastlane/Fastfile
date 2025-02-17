@@ -1,4 +1,5 @@
 require_relative 'util/tauri'
+require_relative 'util/npm'
 
 File.readlines('.env', chomp: true).each do |line|
   ENV[$1] = $2 if line =~ /\A([^=]+)=(.*)\z/
@@ -27,7 +28,7 @@ platform :android do
   lane :build do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
 
-    Process.exec("npm", "--prefix", "..", "run", "ng", "build")
+    NPM.run("ng", "build")
 
     TauriDevServer.run do |env|
       env.each do |key, value|
@@ -53,7 +54,7 @@ platform :android do
   lane :deploy do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
 
-    Process.exec("npm", "--prefix", "..", "run", "ng", "build")
+    NPM.run("ng", "build")
 
     TauriDevServer.run do |env|
       env.each do |key, value|

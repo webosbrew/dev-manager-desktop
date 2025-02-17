@@ -8,9 +8,9 @@ module TauriDevServer
       "STUDIO_ENVFILE" => envfile,
     }
 
-    spawn_options = { Gem.win_platform? ? :new_pgroup : :pgroup => true }
     pid = Process.spawn(env, "npm", "--prefix", "..", "run", "tauri", "android", "dev", "--", "--open",
-                        [:out, :err] => File::NULL, **spawn_options)
+                        [:out, :err] => FastlaneCore::Globals.verbose? ? :out : File::NULL,
+                        Gem.win_platform? ? :new_pgroup : :pgroup => true)
     loop do
       begin
         pid = nil
