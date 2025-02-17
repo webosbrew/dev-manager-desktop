@@ -1,3 +1,5 @@
+require_relative 'util/tauri'
+
 File.readlines('.env', chomp: true).each do |line|
   ENV[$1] = $2 if line =~ /\A([^=]+)=(.*)\z/
 end if File.exist?('.env')
@@ -20,54 +22,38 @@ def use_prebuilt_openssl
   ENV['X86_64_LINUX_ANDROID_OPENSSL_LIB_DIR'] = File.join(openssl_path, 'x86_64')
 end
 
-class TauriDevServer
-  def self.run
-    package_name = CredentialsManager::AppfileConfig.try_fetch_value(:package_name)
-    envfile = Dir::Tmpname.create(%w[studio- .env]) {}
-    env = {
-      "PATH" => "#{File.join(Dir.getwd, 'studio')}#{File::PATH_SEPARATOR}#{ENV["PATH"]}",
-      "XDG_DATA_HOME" => File.join(Dir.getwd, 'studio'),
-      "STUDIO_ENVFILE" => envfile,
-    }
-    spawn_options = Gem.win_platform? ? { new_pgroup: true } : { pgroup: true }
-    pid = Process.spawn(env, "npm", "--prefix", "..", "run", "tauri", "android", "dev", "--", "--open",
-                        [:out, :err] => File::NULL, **spawn_options)
-    Timeout::timeout(180) do
-      loop do
-        break if self.is_dev_server_running?(package_name) and File.exist?(envfile)
-        sleep 1
-      end
-    end
-    task_env = {}
-    File.readlines(envfile, chomp: true).each do |line|
-      task_env[$1] = $2 if line =~ /\A([^=]+)=(.*)\z/
-    end
-    yield task_env
-  ensure
-    File.delete(envfile) if File.exist?(envfile)
-    if Gem.win_platform?
-      system("taskkill /F /T /PID #{pid}", [:out, :err] => File::NULL)
-    else
-      Process.kill(:SIGTERM, -pid)
-    end
-    Process.wait(pid)
-  end
-
-  def self.is_dev_server_running?(package_name)
-    begin
-      addr = File.read(File.join(Dir.tmpdir, "#{package_name}-server-addr")).split(':')
-      TCPSocket.new(addr[0], addr[1].to_i, :connect_timeout => 1)
-      return true
-    rescue
-      return false
-    end
-  end
-end
-
 platform :android do
+  desc "Build bundle only"
+  lane :build do
+    use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
+
+    Process.exec("npm", "--prefix", "..", "run", "ng", "build", [:out, :err] => File::NULL)
+
+    TauriDevServer.run do |env|
+      env.each do |key, value|
+        ENV[key] = value
+      end
+      gradle(
+        task: "bundle",
+        flavor: "Universal",
+        build_type: "Release",
+        project_dir: "src-tauri/gen/android",
+        print_command: false,
+        properties: ENV["ANDROID_SIGNING_STORE_FILE"] ? {
+          "android.injected.signing.store.file" => ENV["ANDROID_SIGNING_STORE_FILE"],
+          "android.injected.signing.store.password" => ENV["ANDROID_SIGNING_STORE_PASSWORD"],
+          "android.injected.signing.key.alias" => ENV["ANDROID_SIGNING_KEY_ALIAS"],
+          "android.injected.signing.key.password" => ENV["ANDROID_SIGNING_KEY_PASSWORD"],
+        } : {},
+      )
+    end
+  end
+
   desc "Deploy a new version to the Google Play"
   lane :deploy do
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
+
+    Process.exec("npm", "--prefix", "..", "run", "ng", "build", [:out, :err] => File::NULL)
 
     TauriDevServer.run do |env|
       env.each do |key, value|

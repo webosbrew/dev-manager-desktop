@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeBuildCommand": "npm run ng build",
-    "beforeDevCommand": "npm run ng serve -- --port 4280 --host 0.0.0.0 --disable-host-check",
+    "beforeDevCommand": "npm run ng serve -- --port 4280",
     "devUrl": "http://localhost:4280",
     "frontendDist": "../dist"
   },

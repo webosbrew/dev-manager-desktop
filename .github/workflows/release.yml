@@ -54,8 +54,8 @@ jobs:
     outputs:
       release: ${{ steps.release-info.outputs.result }}
 
-  build:
-    name: Build Package
+  release:
+    name: Build & Release
     strategy:
       fail-fast: false
       matrix:
@@ -220,7 +220,7 @@ jobs:
   sentry-finalize-release:
     name: Finalize Sentry Release
     runs-on: ubuntu-latest
-    needs: [ sentry-create-release, build ]
+    needs: [ sentry-create-release, release ]
     steps:
       - uses: actions/checkout@v4
 

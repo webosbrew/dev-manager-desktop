@@ -34,14 +34,15 @@ env:
   CI_RUNNER_TYPE: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
 
 jobs:
-  build:
+  build-desktop:
+    if: ${{ github.event.inputs.build-for == 'desktop' }}
     runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Required Packages
-        if: ${{ runner.os == 'Linux' && env.CI_BUILD_FOR == 'desktop' }}
+        if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential curl wget file libssl-dev libayatana-appindicator3-dev \
@@ -90,13 +91,65 @@ jobs:
         run: npm run ng lint
 
       - name: Build for Desktop
-        if: env.CI_BUILD_FOR == 'desktop'
         run: npm run build -- --features=vendored-openssl
 
-      - name: Build for Android
-        if: env.CI_BUILD_FOR == 'android'
+  build-android:
+    if: ${{ github.event.inputs.build-for == 'android' }}
+    runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust Project
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: ${{ runner.os }}-${{ github.event.inputs.runner-type }}-rust
+          workspaces: src-tauri
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
+
+      - name: Add NDK to PATH
+        shell: bash
         run: |
-          npm run tauri android init
-          npm run tauri android build -- --aab
+          echo ${NDK_HOME}/toolchains/llvm/prebuilt/*/bin >> $GITHUB_PATH
+        env:
+          NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
+
+      - name: Tauri init
+        run: npm run tauri android init
+        env:
+          NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: 'true'
+
+      - name: Build for Android
+        uses: maierj/fastlane-action@v3.1.0
+        with:
+          lane: build
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
