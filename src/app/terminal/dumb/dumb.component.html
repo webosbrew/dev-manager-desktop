@@ -4,14 +4,14 @@
     href="https://github.com/webosbrew/dev-manager-desktop/wiki/About-Dumb-Shell" appExternalLink>here</a> for
     more info.
   </div>
-  <div *ngFor="let item of logs" (click)="$event.stopPropagation()">
+  <div class="user-select-text" *ngFor="let item of logs" (click)="$event.stopPropagation()">
     <div class="d-flex flex-row align-items-baseline">
       <label class="mx-1 text-secondary">&gt;</label>
-      <pre class="w-100 mb-0 user-select-text">{{item.input}}</pre>
+      <pre class="w-100 mb-0 user-select-text">{{ item.input }}</pre>
     </div>
     <div class="d-flex flex-row align-items-baseline">
       <label class="mx-1" [class.text-primary]="item.status === 0" [class.text-danger]="item.status">&lt;</label>
-      <pre class="w-100 mb-0 user-select-text">{{item.output}}</pre>
+      <pre class="w-100 mb-0 user-select-text">{{ item.output }}</pre>
     </div>
     <hr class="w-100">
   </div>
