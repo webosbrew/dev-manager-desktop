@@ -109,7 +109,6 @@ impl DeviceManager {
         Ok(())
     }
 
-    //noinspection HttpUrlsUsage
     pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
         let content = Self::key_server_fetch(address).await?;
 
@@ -164,7 +163,6 @@ impl DeviceManager {
         })
     }
 
-    //noinspection HttpUrlsUsage
     async fn key_server_fetch(host: &str) -> Result<String, Error> {
         let address = format!("{host}:9991");
         tauri::async_runtime::spawn_blocking(move || {
@@ -174,12 +172,12 @@ impl DeviceManager {
             stream.write(b"Connection: close\r\n")?;
             stream.write(b"\r\n")?;
 
-            let mut data = Vec::new();
-            stream.read_to_end(&mut data)?;
+            let mut buffer = [0u8; 65536];
+            let buffer_size = stream.read(&mut buffer)?;
             let mut headers = [httparse::EMPTY_HEADER; 64];
             let mut response = Response::new(&mut headers);
             let Status::Complete(size_to_skip) = response
-                .parse(&data)
+                .parse(&buffer[..buffer_size])
                 .map_err(|e| IoError::new(std::io::ErrorKind::InvalidData, e))?
             else {
                 return Err(Error::NotFound);
@@ -187,7 +185,7 @@ impl DeviceManager {
             if response.code.unwrap() != 200 {
                 return Err(Error::NotFound);
             }
-            Ok(String::from_utf8_lossy(&data[size_to_skip..]).to_string())
+            Ok(String::from_utf8_lossy(&buffer[size_to_skip..buffer_size]).to_string())
         })
         .await
         .unwrap()
