@@ -33,20 +33,19 @@ end
 
 platform :android do
 
-  desc "Build bundle only"
-  lane :build do
+  desc "Build apk or aab"
+  lane :build do |options|
     use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
     set_signing_properties if ENV["ANDROID_SIGNING_STORE_FILE"]
 
-    Tauri::Android.build(aab: true, apk: false)
+    puts "options: #{options}"
+
+    Tauri::Android.build(aab: options[:aab] != false, apk: options[:apk], targets: options[:targets]&.split(',') || [])
   end
 
   desc "Deploy a new version to the Google Play"
   lane :deploy do
-    use_prebuilt_openssl if ENV["OPENSSL_USE_PREBUILT"] == "1"
-    set_signing_properties if ENV["ANDROID_SIGNING_STORE_FILE"]
-
-    Tauri::Android.build(aab: true, apk: false)
+    build(aab: true, apk: false)
 
     upload_to_play_store(
       track: "internal",

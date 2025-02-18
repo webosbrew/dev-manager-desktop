@@ -1,9 +1,13 @@
 module Tauri
   module Android
-    def self.build(aab: true, apk: true)
+    def self.build(aab: true, apk: true, targets: [])
       output_args = []
       output_args << "--aab" if aab
       output_args << "--apk" if apk
+      targets.each { |target|
+        output_args << "--target"
+        output_args << target
+      }
       Dir.chdir("..") do
         Fastlane::Actions::sh("npm", "run", "tauri", "android", "build", "--", *output_args)
 
