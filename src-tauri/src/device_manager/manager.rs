@@ -1,15 +1,18 @@
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use libssh_rs::{Session, SshKey};
-use tokio::fs::{remove_file, File};
-use tokio::io::AsyncWriteExt;
-
 use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::conn_pool::DeviceConnection;
 use crate::device_manager::io::{read, write};
 use crate::device_manager::{Device, DeviceCheckConnection, DeviceManager, PrivateKey};
 use crate::error::Error;
+use httparse::{Response, Status};
+use libssh_rs::{Session, SshKey};
+use std::fs;
+use std::io::{Error as IoError, Read, Write};
+use std::net::ToSocketAddrs;
+use std::net::{SocketAddr, TcpStream};
+use std::path::{Path, PathBuf};
+use std::time::Duration;
+use tokio::fs::{remove_file, File};
+use tokio::io::AsyncWriteExt;
 
 impl DeviceManager {
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
@@ -108,10 +111,7 @@ impl DeviceManager {
 
     //noinspection HttpUrlsUsage
     pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
-        let resp = reqwest::get(format!("http://{address}:9991/webos_rsa"))
-            .await?
-            .error_for_status()?;
-        let content = resp.text().await?;
+        let content = Self::key_server_fetch(address).await?;
 
         match SshKey::from_privkey_base64(&content, Some(passphrase)) {
             Ok(_) => Ok(content),
@@ -156,20 +156,41 @@ impl DeviceManager {
             .await
             .expect("Failed to spawn_blocking")
         }
-        //noinspection HttpUrlsUsage
-        async fn key_server_probe(host: &str) -> Result<String, Error> {
-            reqwest::get(format!("http://{host}:9991/webos_rsa"))
-                .await?
-                .error_for_status()?
-                .text()
-                .await
-                .map_err(Error::from)
-        }
+
         Ok(DeviceCheckConnection {
             ssh_22: ssh_probe(host, 22, "root").await.ok(),
             ssh_9922: ssh_probe(host, 9922, "prisoner").await.ok(),
-            key_server: key_server_probe(host).await.is_ok(),
+            key_server: Self::key_server_fetch(host).await.is_ok(),
         })
+    }
+
+    //noinspection HttpUrlsUsage
+    async fn key_server_fetch(host: &str) -> Result<String, Error> {
+        let address = format!("{host}:9991");
+        tauri::async_runtime::spawn_blocking(move || {
+            let address = address.to_socket_addrs()?.next().ok_or(Error::NotFound)?;
+            let mut stream = TcpStream::connect_timeout(&address, Duration::from_secs(5))?;
+            stream.write(b"GET /webos_rsa HTTP/1.0\r\n")?;
+            stream.write(b"Connection: close\r\n")?;
+            stream.write(b"\r\n")?;
+
+            let mut data = Vec::new();
+            stream.read_to_end(&mut data)?;
+            let mut headers = [httparse::EMPTY_HEADER; 64];
+            let mut response = Response::new(&mut headers);
+            let Status::Complete(size_to_skip) = response
+                .parse(&data)
+                .map_err(|e| IoError::new(std::io::ErrorKind::InvalidData, e))?
+            else {
+                return Err(Error::NotFound);
+            };
+            if response.code.unwrap() != 200 {
+                return Err(Error::NotFound);
+            }
+            Ok(String::from_utf8_lossy(&data[size_to_skip..]).to_string())
+        })
+        .await
+        .unwrap()
     }
 }
 
