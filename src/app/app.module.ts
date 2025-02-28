@@ -1,4 +1,4 @@
-import {HttpClientModule} from '@angular/common/http';
+import {provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import {APP_INITIALIZER, ErrorHandler, NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
@@ -42,7 +42,6 @@ import * as Sentry from "@sentry/angular-ivy";
         BrowserModule,
         BrowserAnimationsModule,
         FormsModule,
-        HttpClientModule,
         CoreModule,
         SharedModule,
         ReactiveFormsModule,
@@ -76,6 +75,7 @@ import * as Sentry from "@sentry/angular-ivy";
             multi: true,
         },
         NgbTooltipConfig,
+        provideHttpClient(withInterceptorsFromDi()),
     ],
     bootstrap: [AppComponent]
 })
