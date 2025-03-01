@@ -26,7 +26,7 @@ import {RemoveDeviceComponent} from './remove-device/remove-device.component';
 import {AddDeviceModule} from "./add-device/add-device.module";
 import {NgOptimizedImage} from "@angular/common";
 import {Router} from "@angular/router";
-import * as Sentry from "@sentry/angular-ivy";
+import {createErrorHandler, TraceService} from "@sentry/angular";
 
 @NgModule({
     declarations: [
@@ -59,19 +59,19 @@ import * as Sentry from "@sentry/angular-ivy";
     providers: [
         {
             provide: ErrorHandler,
-            useValue: Sentry.createErrorHandler({
+            useValue: createErrorHandler({
                 showDialog: false,
             }),
         },
         {
-            provide: Sentry.TraceService,
+            provide: TraceService,
             deps: [Router],
         },
         {
             provide: APP_INITIALIZER,
             useFactory: () => () => {
             },
-            deps: [Sentry.TraceService],
+            deps: [TraceService],
             multi: true,
         },
         NgbTooltipConfig,
