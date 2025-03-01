@@ -60,7 +60,7 @@
     "luxon": "3.4.4",
     "marked": "5.1.2",
     "mustache": "4.2.0",
-    "ng-let": "16.0.2",
+    "ng-let": "18.0.3",
     "ngx-autosize": "2.0.4",
     "path-browserify": "1.0.1",
     "process": "0.11.10",
