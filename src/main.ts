@@ -4,10 +4,9 @@ import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 import {AppModule} from './app/app.module';
 import {AppConfig} from './environments/environment';
 import ReleaseInfo from './release.json';
-import * as Sentry from "@sentry/angular-ivy";
-import {browserTracingIntegration, defaultStackParser} from "@sentry/angular-ivy";
+import {browserTracingIntegration, defaultStackParser, init as initSentry} from "@sentry/angular";
 
-Sentry.init({
+initSentry({
     dsn: "https://93c623f5a47940f0b7bac7d0d5f6a91f@o4504977150377984.ingest.sentry.io/4504978685689856",
     tracePropagationTargets: [],
     integrations: [
