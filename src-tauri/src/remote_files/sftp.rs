@@ -54,6 +54,13 @@ impl PermInfo {
                 };
             }
         }
+        if user.gid.id == stat.gid().unwrap_or(0) {
+            return PermInfo {
+                read: (perms & 0o040) != 0,
+                write: (perms & 0o020) != 0,
+                execute: (perms & 0o010) != 0,
+            };
+        }
         PermInfo {
             read: (perms & 0o004) != 0,
             write: (perms & 0o002) != 0,

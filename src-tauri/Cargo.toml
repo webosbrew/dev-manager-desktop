@@ -45,6 +45,7 @@ tauri-plugin-fs = "2.2.0"
 regex = "1.11.1"
 tauri-plugin-log = "2.2.1"
 tauri-plugin-os = "2.2.0"
+port_check = "0.2.1"
 
 [dependencies.tauri]
 version = "2.2.5"
@@ -70,6 +71,9 @@ optional = true
 [dependencies.ssh-key]
 version = "0.6.6"
 features = ["ed25519", "getrandom"]
+
+[dev-dependencies]
+httptest = "0.16.3"
 
 [features]
 # by default Tauri runs in production mode

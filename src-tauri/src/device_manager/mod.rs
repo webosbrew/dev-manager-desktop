@@ -7,6 +7,7 @@ mod device;
 mod io;
 mod manager;
 mod privkey;
+mod novacom;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct DeviceSessionToken {
@@ -80,7 +81,7 @@ pub enum DeviceFileTransfer {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DeviceCheckConnection {
-    pub ssh_22: Option<String>,
-    pub ssh_9922: Option<String>,
+    pub ssh_22: bool,
+    pub ssh_9922: bool,
     pub key_server: bool,
 }

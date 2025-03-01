@@ -1,14 +1,11 @@
 use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
-use crate::conn_pool::DeviceConnection;
 use crate::device_manager::io::{read, write};
-use crate::device_manager::{Device, DeviceCheckConnection, DeviceManager, PrivateKey};
+use crate::device_manager::{novacom, Device, DeviceCheckConnection, DeviceManager, PrivateKey};
 use crate::error::Error;
-use httparse::{Response, Status};
-use libssh_rs::{Session, SshKey};
+use libssh_rs::SshKey;
+use port_check::is_port_reachable_with_timeout;
 use std::fs;
-use std::io::{Error as IoError, Read, Write};
-use std::net::ToSocketAddrs;
-use std::net::{SocketAddr, TcpStream};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tokio::fs::{remove_file, File};
@@ -110,7 +107,10 @@ impl DeviceManager {
     }
 
     pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
-        let content = Self::key_server_fetch(address).await?;
+        let host = address.to_string();
+        let content = tauri::async_runtime::spawn_blocking(move || novacom::fetch_key(&host, 9991))
+            .await
+            .unwrap()?;
 
         match SshKey::from_privkey_base64(&content, Some(passphrase)) {
             Ok(_) => Ok(content),
@@ -140,55 +140,17 @@ impl DeviceManager {
     }
 
     pub async fn check_connection(&self, host: &str) -> Result<DeviceCheckConnection, Error> {
-        async fn ssh_probe(host: &str, port: u16, user: &str) -> Result<String, Error> {
-            let host = host.to_string();
-            let user = user.to_string();
-            tauri::async_runtime::spawn_blocking(move || {
-                let ssh_sess = Session::new()?;
-                DeviceConnection::session_init(&ssh_sess)?;
-                ssh_sess.set_option(libssh_rs::SshOption::Hostname(host))?;
-                ssh_sess.set_option(libssh_rs::SshOption::Port(port))?;
-                ssh_sess.set_option(libssh_rs::SshOption::User(Some(user)))?;
-                ssh_sess.connect()?;
-                return Ok(ssh_sess.get_server_banner()?);
-            })
-            .await
-            .expect("Failed to spawn_blocking")
-        }
-
         Ok(DeviceCheckConnection {
-            ssh_22: ssh_probe(host, 22, "root").await.ok(),
-            ssh_9922: ssh_probe(host, 9922, "prisoner").await.ok(),
-            key_server: Self::key_server_fetch(host).await.is_ok(),
+            ssh_22: is_port_reachable_with_timeout(format!("{host}:22"), Duration::from_secs(10)),
+            ssh_9922: is_port_reachable_with_timeout(
+                format!("{host}:9922"),
+                Duration::from_secs(10),
+            ),
+            key_server: is_port_reachable_with_timeout(
+                format!("{host}:9991"),
+                Duration::from_secs(10),
+            ),
         })
-    }
-
-    async fn key_server_fetch(host: &str) -> Result<String, Error> {
-        let address = format!("{host}:9991");
-        tauri::async_runtime::spawn_blocking(move || {
-            let address = address.to_socket_addrs()?.next().ok_or(Error::NotFound)?;
-            let mut stream = TcpStream::connect_timeout(&address, Duration::from_secs(5))?;
-            stream.write(b"GET /webos_rsa HTTP/1.0\r\n")?;
-            stream.write(b"Connection: close\r\n")?;
-            stream.write(b"\r\n")?;
-
-            let mut buffer = [0u8; 65536];
-            let buffer_size = stream.read(&mut buffer)?;
-            let mut headers = [httparse::EMPTY_HEADER; 64];
-            let mut response = Response::new(&mut headers);
-            let Status::Complete(size_to_skip) = response
-                .parse(&buffer[..buffer_size])
-                .map_err(|e| IoError::new(std::io::ErrorKind::InvalidData, e))?
-            else {
-                return Err(Error::NotFound);
-            };
-            if response.code.unwrap() != 200 {
-                return Err(Error::NotFound);
-            }
-            Ok(String::from_utf8_lossy(&buffer[size_to_skip..buffer_size]).to_string())
-        })
-        .await
-        .unwrap()
     }
 }
 
