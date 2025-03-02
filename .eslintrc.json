@@ -8,6 +8,9 @@
       "files": [
         "*.ts"
       ],
+      "excludedFiles": [
+        "*.spec.ts"
+      ],
       "parserOptions": {
         "project": [
           "tsconfig.json"

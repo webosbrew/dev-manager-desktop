@@ -10,7 +10,6 @@ import {
 } from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {filter, map} from "rxjs/operators";
-import * as path from "path";
 import {RemoteFileService, ServeInstance} from "./remote-file.service";
 import {IncompatibleReason, PackageManifest, RepositoryItem} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
@@ -66,12 +65,12 @@ export class AppManagerService {
     }
 
     private completeIcon(device: Device, info: RawPackageInfo): PackageInfo {
-        const iconPath = path.join(info.folderPath, info.icon);
+        const iconPath = [info.folderPath, info.icon].join('/');
         return {iconUri: `remote-file://${device.name}${iconPath}`, ...info};
     }
 
     private completeIconChromium(device: Device, info: RawPackageInfo): PackageInfo {
-        const iconPath = path.join(info.folderPath, info.icon);
+        const iconPath = [info.folderPath, info.icon].join('/');
         return {iconUri: `http://remote-file.localhost/${device.name}${iconPath}`, ...info};
     }
 

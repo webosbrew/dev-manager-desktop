@@ -60,7 +60,7 @@ export class DumbComponent implements OnInit, AfterViewInit, OnDestroy, ITermina
     if (!command) {
       return;
     }
-    const id = crypto.getRandomValues(Buffer.alloc(16)).toString('hex');
+    const id = crypto.randomUUID();
     this.logs.push({
       id: id,
       input: command,

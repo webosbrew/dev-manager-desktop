@@ -20,6 +20,7 @@ import {ObjectHighlightPipe} from "./ls-monitor/object-highlight.pipe";
 
 import hljs from 'highlight.js'
 import json from 'highlight.js/lib/languages/json';
+import {SearchBarDirective} from "../shared/directives";
 
 @NgModule({
     declarations: [
@@ -44,6 +45,7 @@ import json from 'highlight.js/lib/languages/json';
         TerminalModule,
         FormsModule,
         ReactiveFormsModule,
+        SearchBarDirective,
     ]
 })
 export class DebugModule {
