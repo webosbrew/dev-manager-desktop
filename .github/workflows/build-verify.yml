@@ -87,9 +87,6 @@ jobs:
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
 
-      - name: Check lint
-        run: npm run ng lint
-
       - name: Build for Desktop
         run: npm run build -- --features=vendored-openssl
 
