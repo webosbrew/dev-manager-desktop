@@ -4,6 +4,7 @@ import {debounceTime, Subject, Subscription} from "rxjs";
 
 @Directive({
     selector: 'input[appSearchBar]',
+    standalone: true,
 })
 export class SearchBarDirective implements OnInit, OnDestroy {
 

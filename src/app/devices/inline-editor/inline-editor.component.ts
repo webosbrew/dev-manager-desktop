@@ -10,10 +10,10 @@ import {
 @Component({
     selector: 'app-device-inline-editor',
     standalone: true,
-    imports: [
-        AddDeviceModule
-    ],
     templateUrl: './inline-editor.component.html',
+    imports: [
+        DeviceEditorComponent
+    ],
     styleUrl: './inline-editor.component.scss'
 })
 export class InlineEditorComponent {

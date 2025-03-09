@@ -1,6 +1,5 @@
 import {Device, FileItem, FileSession} from '../../types';
 import {RemoteCommandService} from './remote-command.service';
-import * as path from 'path';
 import {basename} from '@tauri-apps/api/path'
 import {ProgressCallback, RemoteFileService} from "./remote-file.service";
 import {IOError} from "./backend-client";
@@ -55,7 +54,7 @@ export class FileSessionImpl implements FileSession {
         for (let i = 0; i < sources.length; i++) {
             const source = sources[i];
             const name = await basename(source);
-            const target = path.join(pwd, name);
+            const target = `${pwd}/${name}`;
             fileCb(name, i, sources.length);
             let retry = false;
             do {

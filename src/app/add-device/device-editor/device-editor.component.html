@@ -37,7 +37,8 @@
       <label class="form-label d-none d-md-block invisible">Authentication Info</label>
       <div class="input-group auth-input" [formGroup]="formGroup.controls.sshAuth"
            [ngSwitch]="formGroup.value.sshAuth?.type">
-        <ng-container *ngIf="formGroup.controls.sshAuth.controls.type.getRawValue() as authType">
+        @let authType = formGroup.controls.sshAuth.controls.type.getRawValue();
+        @if(authType) {
           <input type="text" class="form-control" id="authValue" formControlName="value" [appSshAuthValue]="authType"
                  autocomplete="off">
           <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()"
@@ -47,7 +48,7 @@
           <button type="button" class="btn btn-outline-secondary" (click)="authInfoHelp()">
             <i class="bi bi-question-circle-fill"></i>
           </button>
-        </ng-container>
+        }
       </div>
 
       <ng-container *ngIf="formGroup.errors as errors">

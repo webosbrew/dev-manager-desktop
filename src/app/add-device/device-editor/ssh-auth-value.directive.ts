@@ -4,6 +4,7 @@ import {NewDeviceAuthentication} from "../../types";
 
 @Directive({
     selector: 'input[appSshAuthValue]',
+    standalone: true,
 })
 export class SshAuthValueDirective {
 

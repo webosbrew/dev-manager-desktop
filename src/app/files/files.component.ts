@@ -7,7 +7,6 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
 import {open as openPath} from '@tauri-apps/plugin-shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/plugin-dialog';
-import * as path from "path";
 import {downloadDir} from "@tauri-apps/api/path";
 import {CreateDirectoryMessageComponent} from "./create-directory-message/create-directory-message.component";
 
@@ -46,7 +45,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
-        this.subscription = this.deviceManager.selected$.subscribe(async (selected) => {
+        this.subscription = this.deviceManager.selected$.subscribe(async selected => {
             this.files$ = undefined;
             this.history = undefined;
             this.device = selected;
@@ -93,7 +92,7 @@ export class FilesComponent implements OnInit, OnDestroy {
 
     async cd(dir: string = '', pushHistory: boolean = false): Promise<void> {
         if (!this.device) return;
-        this.files$ = this.ls(dir).pipe(tap((state) => {
+        this.files$ = this.ls(dir).pipe(tap(state => {
             if (!pushHistory || !state.completed || this.history?.current === state.dir) {
                 return;
             }
@@ -129,7 +128,7 @@ export class FilesComponent implements OnInit, OnDestroy {
     }
 
     compareSize(this: void, a: FileItem, b: FileItem): number {
-        return (a.type == '-' ? (a.size ?? 0) : 0) - (b.type == '-' ? (b.size ?? 0) : 0);
+        return (a.type == '-' ? a.size ?? 0 : 0) - (b.type == '-' ? b.size ?? 0 : 0);
     }
 
     compareMtime(this: void, a: FileItem, b: FileItem): number {
@@ -141,7 +140,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         if (!cwd) return;
         switch (file.type) {
             case 'd': {
-                await this.cd(path.join(cwd, file.filename), true);
+                await this.cd(`${cwd}/${file.filename}`, true);
                 break;
             }
             case '-': {
@@ -163,7 +162,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         let tempPath: string | null = null;
         do {
             try {
-                tempPath = await this.session!.getTemp(path.join(cwd, file.filename), (current, total) => {
+                tempPath = await this.session!.getTemp(`${cwd}/${file.filename}`, (current, total) => {
                     progress.update('Pulling file from device', total ? current / total * 100 : undefined)
                 });
             } catch (e) {
@@ -202,7 +201,7 @@ export class FilesComponent implements OnInit, OnDestroy {
             let result = false;
             do {
                 try {
-                    await this.session!.get(path.join(cwd, file.filename), target);
+                    await this.session!.get(`${cwd}/${file.filename}`, target);
                 } catch (e) {
                     result = await MessageDialogComponent.open(this.modalService, {
                         title: `Failed to download file ${file.filename}`,
@@ -239,7 +238,7 @@ export class FilesComponent implements OnInit, OnDestroy {
             let result = false;
             do {
                 try {
-                    await this.session!.rm(path.posix.join(cwd, file.filename), true);
+                    await this.session!.rm(`${cwd}/${file.filename}`, true);
                 } catch (e) {
                     result = await MessageDialogComponent.open(this.modalService, {
                         title: `Failed to delete ${file.filename}`,
@@ -269,7 +268,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         let result = false;
         do {
             try {
-                await this.session!.get(path.join(cwd, file.filename), returnValue);
+                await this.session!.get(`${cwd}/${file.filename}`, returnValue);
             } catch (e) {
                 result = await MessageDialogComponent.open(this.modalService, {
                     title: `Failed to download file ${file.filename}`,
@@ -337,7 +336,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         const progress = ProgressDialogComponent.open(this.modalService);
         try {
             try {
-                await this.session!.mkdir(path.join(cwd, filename));
+                await this.session!.mkdir(`${cwd}/${filename}`);
             } catch (e) {
                 await MessageDialogComponent.open(this.modalService, {
                     title: `Failed to create directory ${filename}`,
@@ -355,8 +354,8 @@ export class FilesComponent implements OnInit, OnDestroy {
     }
 
     async breadcrumbNav(segs: string[]): Promise<void> {
-        segs[0] = '/';
-        await this.cd(path.join(...segs), true);
+        segs[0] = '';
+        await this.cd(segs.join('/'), true);
     }
 
 }

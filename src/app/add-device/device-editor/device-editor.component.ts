@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {FormControl, FormGroup, ValidationErrors, Validators} from '@angular/forms';
+import {FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {DeviceManagerService} from '../../core/services';
 import {MessageDialogComponent} from '../../shared/components/message-dialog/message-dialog.component';
@@ -15,11 +15,21 @@ import {DevmodePassphraseHintComponent} from "./devmode-passphrase-hint/devmode-
 import {SshPasswordHintComponent} from "./ssh-password-hint/ssh-password-hint.component";
 import {RetryFailedComponent} from "../retry-failed/retry-failed.component";
 import {documentDir, homeDir, join} from "@tauri-apps/api/path";
+import {AsyncPipe, NgIf, NgSwitch} from "@angular/common";
+import {SshAuthValueDirective} from "./ssh-auth-value.directive";
 
 @Component({
     selector: 'app-device-editor',
     templateUrl: './device-editor.component.html',
-    styleUrls: ['./device-editor.component.scss']
+    styleUrls: ['./device-editor.component.scss'],
+    standalone: true,
+    imports: [
+        ReactiveFormsModule,
+        NgSwitch,
+        NgIf,
+        SshAuthValueDirective,
+        AsyncPipe
+    ]
 })
 export class DeviceEditorComponent implements OnInit {
 

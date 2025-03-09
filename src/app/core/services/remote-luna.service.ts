@@ -11,7 +11,6 @@ import {lastValueFrom, noop, Observable, ReplaySubject, Subject, Subscription} f
 import {filter, map} from "rxjs/operators";
 import {omit} from "lodash-es";
 import {isNonNull} from "../../shared/operators";
-import {randomBytes} from "crypto";
 
 export declare interface LunaResponse extends Record<string, any> {
     returnValue?: boolean,
@@ -28,7 +27,7 @@ export class RemoteLunaService {
     async call<T extends LunaResponse>(device: DeviceLike, uri: string, param: Record<string, unknown> = {}, pub: boolean = true,
                                        falseAsError: boolean = true): Promise<T> {
         const sendCmd = pub ? 'luna-send-pub' : 'luna-send';
-        const nonce = randomBytes(4).toString('hex');
+        const nonce = self.crypto.randomUUID();
         console.debug('remote-luna call', nonce, 'send', uri, param);
         return this.commands.exec(device, `${sendCmd} -n 1 ${uri} ${escapeSingleQuoteString(JSON.stringify(param))}`, 'utf-8')
             .catch(e => {
@@ -66,7 +65,7 @@ export class RemoteLunaService {
                                             pub: boolean = true): Promise<LunaSubscription<T>> {
         const sendCmd = pub ? 'luna-send-pub' : 'luna-send';
         const command = `${sendCmd} -i ${uri} ${escapeSingleQuoteString(JSON.stringify(param))}`;
-        const nonce = randomBytes(4).toString('hex');
+        const nonce = self.crypto.randomUUID();
         try {
             console.debug('remote-luna subscribe', nonce, 'send', uri, param);
             const subject = await this.commands.popen(device, command, 'utf-8');

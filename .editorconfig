@@ -12,6 +12,9 @@ trim_trailing_whitespace = true
 indent_size = 4
 quote_type = single
 
+[*.spec.ts]
+indent_size = 2
+
 [*.{rs,py}]
 indent_size = 4
 
