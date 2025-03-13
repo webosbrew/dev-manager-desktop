@@ -63,10 +63,11 @@ mod tests {
         let bytes = ByteString::Binary(vec![1, 2, 3]);
         let string = ByteString::String("hello".to_string());
         let bytes_ser = serde_json::to_value(&bytes).unwrap();
-        let string_ser = serde_json::to_value(&string).unwrap();
+        let string_ser = serde_json::to_string(&string).unwrap();
         let bytes_de: ByteString = serde_json::from_str("[1,2,3]").unwrap();
         let string_de: ByteString = serde_json::from_str("\"hello\"").unwrap();
         assert_eq!(bytes_de, bytes);
         assert_eq!(string_de, string);
+        assert_eq!(string_ser, "\"hello\"");
     }
 }

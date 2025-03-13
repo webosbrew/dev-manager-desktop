@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 pub mod connection;
 pub mod pool;
+mod cmd;
 
 pub struct DeviceConnection {
     id: Uuid,
@@ -40,3 +41,5 @@ pub struct DeviceConnectionManager {
     device: Device,
     ssh_dir: Option<PathBuf>,
 }
+
+pub use cmd::ExecuteCommand;

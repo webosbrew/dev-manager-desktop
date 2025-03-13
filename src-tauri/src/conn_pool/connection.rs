@@ -218,6 +218,7 @@ impl Debug for Id {
         }
     }
 }
+
 impl Id {
     fn parse(s: &str) -> Option<Self> {
         let regex = Regex::new("(\\d+)(\\(\\w+\\))?").unwrap();

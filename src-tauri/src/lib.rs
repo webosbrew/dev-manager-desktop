@@ -26,6 +26,8 @@ mod remote_files;
 mod session_manager;
 mod shell_manager;
 mod spawn_manager;
+#[cfg(test)]
+mod tests;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -86,18 +88,22 @@ pub fn run() {
     {
         use native_dialog::{MessageDialog, MessageType};
         if let Err(e) = result {
-            #[cfg(windows)]
-            if let tauri::Error::Runtime(ref e) = e {
-                if format!("{:?}", e).starts_with("CreateWebview(") {
-                    MessageDialog::new()
-                        .set_type(MessageType::Error)
-                        .set_title("webOS Dev Manager")
-                        .set_text(&format!("Unexpected error occurred: {:?}\nThis may be due to broken installation of WebView2 Runtime. You may need to reinstall WebView2 Runtime as administrator.", e))
-                        .show_alert()
-                        .expect("Unexpected error occurred while processing unexpected error :(");
-                    return;
+            fn error_message(err: &tauri::Error) -> String {
+                #[cfg(windows)]
+                if let tauri::Error::Runtime(ref e) = *err {
+                    if format!("{:?}", e).starts_with("CreateWebview(") {
+                        return format!("Unexpected error occurred: {:?}\nThis may be due to broken installation of WebView2 Runtime. You may need to reinstall WebView2 Runtime as administrator.", e);
+                    }
                 }
+                format!("Unexpected error occurred: {:?}", err)
             }
+            let msg = error_message(&e);
+            MessageDialog::new()
+                .set_type(MessageType::Error)
+                .set_title("webOS Dev Manager")
+                .set_text(&msg)
+                .show_alert()
+                .expect("Unexpected error occurred while processing unexpected error :(");
         }
     }
 }

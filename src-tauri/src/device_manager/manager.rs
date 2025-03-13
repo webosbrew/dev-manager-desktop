@@ -5,7 +5,6 @@ use crate::error::Error;
 use libssh_rs::SshKey;
 use port_check::is_port_reachable_with_timeout;
 use std::fs;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tokio::fs::{remove_file, File};

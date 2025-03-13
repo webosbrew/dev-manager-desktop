@@ -1,7 +1,7 @@
-use std::io::{Read, Write};
 use std::sync::Arc;
 
 use crate::byte_string::{ByteString, Encoding};
+use crate::conn_pool::ExecuteCommand;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
@@ -24,34 +24,8 @@ async fn exec<R: Runtime>(
     let encoding = encoding.unwrap_or(Encoding::Binary);
     tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
-        return sessions.with_session(device, |session| {
-            let ch = session.new_channel()?;
-            ch.open_session()?;
-            ch.request_exec(&command)?;
-            if let Some(stdin) = stdin.clone() {
-                ch.stdin().write_all(&stdin.as_ref())?;
-                ch.send_eof()?;
-            }
-            let mut stdout = Vec::<u8>::new();
-            ch.stdout().read_to_end(&mut stdout)?;
-            let mut stderr = Vec::<u8>::new();
-            ch.stderr().read_to_end(&mut stderr)?;
-            let exit_code = ch.get_exit_status().unwrap_or(0);
-            ch.close()?;
-            session.mark_last_ok();
-            if exit_code != 0 {
-                return Err(Error::ExitStatus {
-                    message: "".to_string(),
-                    command: command.clone(),
-                    exit_code,
-                    stderr,
-                    unhandled: true,
-                });
-            }
-            Ok(ExecOutput {
-                stdout: ByteString::parse(&stdout, encoding).unwrap(),
-                stderr: ByteString::parse(&stderr, encoding).unwrap(),
-            })
+        return sessions.with_session(device, move |session| {
+            session.execute_command(&command, stdin.as_ref(), encoding)
         });
     })
     .await
@@ -119,9 +93,9 @@ struct TxPayload {
 }
 
 #[derive(Serialize, Debug)]
-struct ExecOutput {
-    stdout: ByteString,
-    stderr: ByteString,
+pub(crate) struct ExecOutput {
+    pub stdout: ByteString,
+    pub stderr: ByteString,
 }
 
 impl<R: Runtime> ProcCallback for ProcCallbackImpl<R> {

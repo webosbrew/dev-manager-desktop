@@ -154,7 +154,7 @@ impl From<SshError> for Error {
                     } else {
                         Error::IO {
                             code: ErrorKind::Other,
-                            message: String::from(socket_error),
+                            message: s,
                             unhandled: false,
                         }
                     };
