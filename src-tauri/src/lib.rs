@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use ssh_key::PrivateKey;
 use tauri::webview::PageLoadEvent;
-use tauri::{AppHandle, Manager, RunEvent, Runtime};
+use tauri::{AppHandle, Builder, Manager, RunEvent, Runtime};
 
 use crate::app_dirs::{GetAppSshKeyDir, GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::DeviceManager;
@@ -31,20 +31,13 @@ mod tests;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let mut builder = tauri::Builder::default().plugin(tauri_plugin_os::init());
-    #[cfg(feature = "tauri-plugin-single-instance")]
-    {
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            if let Some(wnd) = app.get_window("main") {
-                wnd.unminimize().unwrap_or(());
-                wnd.set_focus().unwrap_or(());
-            }
-        }));
-    }
+    let mut builder = tauri::Builder::default();
+    builder = optional_setup(builder);
     let result = builder
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_upload::init())
         .plugin(plugins::device::plugin("device-manager"))
@@ -84,27 +77,51 @@ pub fn run() {
             });
             return Ok(());
         });
-    #[cfg(feature = "desktop")]
-    {
-        use native_dialog::{MessageDialog, MessageType};
-        if let Err(e) = result {
-            fn error_message(err: &tauri::Error) -> String {
-                #[cfg(windows)]
-                if let tauri::Error::Runtime(ref e) = *err {
-                    if format!("{:?}", e).starts_with("CreateWebview(") {
-                        return format!("Unexpected error occurred: {:?}\nThis may be due to broken installation of WebView2 Runtime. You may need to reinstall WebView2 Runtime as administrator.", e);
-                    }
-                }
-                format!("Unexpected error occurred: {:?}", err)
+    if let Err(e) = result {
+        handle_error(&e);
+    }
+}
+
+#[cfg(feature = "desktop")]
+fn handle_error(e: &tauri::Error) {
+    use native_dialog::{MessageDialog, MessageType};
+    fn error_message(err: &tauri::Error) -> String {
+        #[cfg(windows)]
+        if let tauri::Error::Runtime(ref e) = *err {
+            if format!("{:?}", e).starts_with("CreateWebview(") {
+                return format!("Unexpected error occurred: {:?}\nThis may be due to broken installation of WebView2 Runtime. You may need to reinstall WebView2 Runtime as administrator.", e);
             }
-            let msg = error_message(&e);
-            MessageDialog::new()
-                .set_type(MessageType::Error)
-                .set_title("webOS Dev Manager")
-                .set_text(&msg)
-                .show_alert()
-                .expect("Unexpected error occurred while processing unexpected error :(");
         }
+        format!("Unexpected error occurred: {:?}", err)
+    }
+    let msg = error_message(e);
+    MessageDialog::new()
+        .set_type(MessageType::Error)
+        .set_title("webOS Dev Manager")
+        .set_text(&msg)
+        .show_alert()
+        .expect("Unexpected error occurred while processing unexpected error :(");
+}
+
+#[cfg(not(feature = "desktop"))]
+fn handle_error(e: &tauri::Error) {
+    log::error!("Unexpected error occurred: {:?}", e);
+}
+
+#[must_use]
+fn optional_setup<R: Runtime>(builder: Builder<R>) -> Builder<R> {
+    #[cfg(feature = "tauri-plugin-single-instance")]
+    {
+        builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            if let Some(wnd) = app.get_webview_window("main") {
+                wnd.unminimize().unwrap_or(());
+                wnd.set_focus().unwrap_or(());
+            }
+        }))
+    }
+    #[cfg(not(feature = "tauri-plugin-single-instance"))]
+    {
+        builder
     }
 }
 
