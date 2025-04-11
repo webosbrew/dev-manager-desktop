@@ -2,7 +2,6 @@ import {Component, ElementRef, HostListener, Injector, OnInit, ViewChild} from '
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../types';
 import {DeviceManagerService} from '../core/services';
-import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove-device.component";
 import packageInfo from '../../../package.json';
 import {WizardComponent} from "../add-device/wizard/wizard.component";
 import {noop} from "rxjs";
@@ -36,20 +35,6 @@ export class HomeComponent implements OnInit {
             }
         });
         this.appVersion = ReleaseInfo.version || packageInfo.version;
-    }
-
-    async removeDevice(device: Device): Promise<void> {
-        let answer: RemoveConfirmation;
-        try {
-            let a = await RemoveDeviceComponent.confirm(this.modalService, device);
-            if (!a) {
-                return;
-            }
-            answer = a;
-        } catch (e) {
-            return;
-        }
-        await this.deviceManager.removeDevice(device.name, answer.deleteSshKey);
     }
 
     markDefault(device: Device): void {

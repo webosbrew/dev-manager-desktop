@@ -2,8 +2,11 @@
                    [port]="device.port" [host]="device.host" [description]="device.description"
                    #deviceEditor>
 </app-device-editor>
-<div class="mt-2 float-end">
-  <button class="btn btn-sm btn-secondary" (click)="$event.stopPropagation(); closed.emit()">
+<div class="mt-2 w-100 d-flex flex-row">
+  <button class="btn btn-sm btn-danger" (click)="$event.stopPropagation(); remove.emit(device)">
+    Delete
+  </button>
+  <button class="btn btn-sm btn-secondary ms-auto" (click)="$event.stopPropagation(); closed.emit()">
     Cancel
   </button>
   <button class="btn btn-sm btn-primary ms-2" (click)="$event.stopPropagation(); doSave(deviceEditor)"
