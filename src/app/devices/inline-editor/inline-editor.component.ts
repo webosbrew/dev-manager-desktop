@@ -1,5 +1,4 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {AddDeviceModule} from "../../add-device/add-device.module";
 import {AppPrivKeyName, Device, NewDevice, NewDeviceAuthentication} from "../../types";
 import {
     DeviceEditorComponent,
@@ -22,6 +21,9 @@ export class InlineEditorComponent {
 
     @Output()
     save: EventEmitter<NewDevice> = new EventEmitter();
+
+    @Output()
+    remove: EventEmitter<Device> = new EventEmitter();
 
     @Output()
     closed: EventEmitter<void> = new EventEmitter();

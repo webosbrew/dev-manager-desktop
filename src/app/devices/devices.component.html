@@ -9,7 +9,7 @@
         <div class="mt-2" [ngbCollapse]="editingDevice !== device">
           @defer {
             <app-device-inline-editor [device]="device" (closed)="editingDevice = undefined"
-                                      (save)="saveDevice($event)"></app-device-inline-editor>
+                                      (remove)="deleteDevice($event)" (save)="saveDevice($event)"/>
           }
         </div>
       </li>
