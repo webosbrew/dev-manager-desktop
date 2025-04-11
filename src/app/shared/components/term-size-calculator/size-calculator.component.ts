@@ -21,6 +21,7 @@ import {TERMINAL_CONFIG} from "../../xterm/config";
     selector: 'app-terminal-size-calculator',
     templateUrl: './size-calculator.component.html',
     styleUrls: ['./size-calculator.component.scss'],
+    standalone: true
 })
 export class SizeCalculatorComponent implements OnInit, AfterViewInit, OnDestroy {
 

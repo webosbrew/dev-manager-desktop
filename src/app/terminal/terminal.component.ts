@@ -6,10 +6,25 @@ import {filter} from "rxjs/operators";
 import {isNonNull} from "../shared/operators";
 import {RemoteShellService, ShellInfo, ShellToken} from "../core/services/remote-shell.service";
 import {ITerminalDimensions} from "@xterm/addon-fit";
-import {listen, UnlistenFn, Event} from "@tauri-apps/api/event";
+import {Event, listen, UnlistenFn} from "@tauri-apps/api/event";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
-import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {
+    NgbDropdown,
+    NgbDropdownItem,
+    NgbDropdownMenu,
+    NgbDropdownToggle,
+    NgbModal,
+    NgbNav,
+    NgbNavContent,
+    NgbNavItem,
+    NgbNavLink,
+    NgbNavOutlet
+} from "@ng-bootstrap/ng-bootstrap";
 import {MessageDialogComponent} from "../shared/components/message-dialog/message-dialog.component";
+import {AsyncPipe} from "@angular/common";
+import {SizeCalculatorComponent} from "../shared/components/term-size-calculator/size-calculator.component";
+import {DumbComponent} from "./dumb/dumb.component";
+import {PtyComponent} from "./pty/pty.component";
 
 
 @Component({
@@ -17,6 +32,22 @@ import {MessageDialogComponent} from "../shared/components/message-dialog/messag
     templateUrl: './terminal.component.html',
     styleUrls: ['./terminal.component.scss'],
     encapsulation: ViewEncapsulation.None,
+    standalone: true,
+    imports: [
+        NgbNavContent,
+        NgbNav,
+        NgbNavItem,
+        NgbNavLink,
+        AsyncPipe,
+        NgbDropdown,
+        NgbDropdownToggle,
+        NgbDropdownMenu,
+        NgbDropdownItem,
+        SizeCalculatorComponent,
+        NgbNavOutlet,
+        DumbComponent,
+        PtyComponent
+    ]
 })
 export class TerminalComponent implements OnInit, OnDestroy {
 

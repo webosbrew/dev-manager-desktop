@@ -21,6 +21,7 @@ import {ObjectHighlightPipe} from "./ls-monitor/object-highlight.pipe";
 import hljs from 'highlight.js'
 import json from 'highlight.js/lib/languages/json';
 import {SearchBarDirective} from "../shared/directives";
+import {SizeCalculatorComponent} from "../shared/components/term-size-calculator/size-calculator.component";
 
 @NgModule({
     declarations: [
@@ -46,6 +47,7 @@ import {SearchBarDirective} from "../shared/directives";
         FormsModule,
         ReactiveFormsModule,
         SearchBarDirective,
+        SizeCalculatorComponent,
     ]
 })
 export class DebugModule {

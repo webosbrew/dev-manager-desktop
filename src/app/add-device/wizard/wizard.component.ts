@@ -1,7 +1,7 @@
 import {
     AfterContentChecked,
     ChangeDetectorRef,
-    Component,
+    Component, Directive,
     Inject,
     OnDestroy,
     OnInit,
@@ -53,7 +53,7 @@ export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {
         this.subscriptions.unsubscribe();
     }
 
-    @ViewChild('footerTemplate')
+    @ViewChild(WizardFooterTemplateDirective, {read: TemplateRef})
     set footerTemplateAssigned(ref: TemplateRef<any> | null) {
         this.footerTemplate = ref;
         this.changeDetector.detectChanges();
@@ -96,4 +96,11 @@ export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {
         return linkElem?.innerText;
     }
 
+}
+
+@Directive({
+    selector: '[appWizardFooterTemplate]',
+    standalone: true,
+})
+export class WizardFooterTemplateDirective {
 }

@@ -10,16 +10,9 @@ export class ErrorCardComponent {
   title?: string;
 
   @Input()
-  error?: Error;
+  error!: Error;
 
   @Output()
   retry: EventEmitter<void> = new EventEmitter<void>();
-
-  constructor() {
-  }
-
-  get details(): string | undefined {
-    return (this.error as any)?.details;
-  }
 
 }

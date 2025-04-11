@@ -2,11 +2,13 @@
   <h5 class="modal-title">Remove Device</h5>
 </div>
 <div class="modal-body">
-  <p>Delete "{{device.name}}"?</p>
-  <div class="form-check" *ngIf="canDeleteSshKey">
-    <input type="checkbox" class="form-check-input" id="deleteSshKey" [(ngModel)]="deleteSshKey">
-    <label for="deleteSshKey" class="form-check-label">Delete SSH private key</label>
-  </div>
+  <p>Delete "{{ device.name }}"?</p>
+  @if (canDeleteSshKey) {
+    <div class="form-check">
+      <input type="checkbox" class="form-check-input" id="deleteSshKey" [(ngModel)]="deleteSshKey">
+      <label for="deleteSshKey" class="form-check-label">Delete SSH private key</label>
+    </div>
+  }
 </div>
 <div class="modal-footer">
   <button type="button" class="btn btn-secondary" (click)="modal.close(null)">Cancel</button>

@@ -1,7 +1,7 @@
 import {NgModule} from '@angular/core';
 import {CommonModule, NgOptimizedImage} from '@angular/common';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
-import {WizardComponent} from './wizard/wizard.component';
+import {WizardComponent, WizardFooterTemplateDirective} from './wizard/wizard.component';
 import {SharedModule} from "../shared/shared.module";
 import {NgbAccordionModule, NgbCollapse, NgbNavModule, NgbTooltipModule} from "@ng-bootstrap/ng-bootstrap";
 import {ModeSelectComponent} from './wizard/mode-select/mode-select.component';
@@ -44,6 +44,7 @@ import {DeviceEditorComponent} from "./device-editor/device-editor.component";
         NgOptimizedImage,
         SshAuthValueDirective,
         DeviceEditorComponent,
+        WizardFooterTemplateDirective,
     ]
 })
 export class AddDeviceModule {

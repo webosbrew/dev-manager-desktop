@@ -1,4 +1,4 @@
-<div class="w-100 h-100 d-flex flex-column" *ngIf="device as device">
+<div class="w-100 h-100 d-flex flex-column">
   <ul ngbNav class="nav-tabs pt-2 px-2 bg-panel" #nav="ngbNav" (navChange)="tabChange($event)" [activeId]="activeTab"
       [destroyOnHide]="true">
     <li ngbNavItem="crashes">
@@ -7,24 +7,26 @@
         <app-crashes [device]="device"></app-crashes>
       </ng-template>
     </li>
-    <li ngbNavItem="pmlog" *ngIf="device.username !== 'prisoner'">
-      <a ngbNavLink>Syslog</a>
-      <ng-template ngbNavContent>
-        <app-pmlog [device]="device"></app-pmlog>
-      </ng-template>
-    </li>
-    <li ngbNavItem="dmesg" *ngIf="device.username !== 'prisoner'">
-      <a ngbNavLink>dmesg</a>
-      <ng-template ngbNavContent>
-        <app-dmesg [device]="device"></app-dmesg>
-      </ng-template>
-    </li>
-    <li ngbNavItem="ls-monitor" *ngIf="device.username !== 'prisoner'">
-      <a ngbNavLink>ls-monitor</a>
-      <ng-template ngbNavContent>
-        <app-ls-monitor [device]="device"></app-ls-monitor>
-      </ng-template>
-    </li>
+    @if (device && device.username !== 'prisoner') {
+      <li ngbNavItem="pmlog">
+        <a ngbNavLink>Syslog</a>
+        <ng-template ngbNavContent>
+          <app-pmlog [device]="device"></app-pmlog>
+        </ng-template>
+      </li>
+      <li ngbNavItem="dmesg">
+        <a ngbNavLink>dmesg</a>
+        <ng-template ngbNavContent>
+          <app-dmesg [device]="device"></app-dmesg>
+        </ng-template>
+      </li>
+      <li ngbNavItem="ls-monitor">
+        <a ngbNavLink>ls-monitor</a>
+        <ng-template ngbNavContent>
+          <app-ls-monitor [device]="device"></app-ls-monitor>
+        </ng-template>
+      </li>
+    }
   </ul>
 
   <div class="flex-fill overflow-hidden debug-content" [ngbNavOutlet]="nav"></div>

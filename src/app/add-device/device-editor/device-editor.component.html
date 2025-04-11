@@ -3,11 +3,14 @@
     <div class="col-12">
       <label class="form-label" for="deviceAddress">Device Name</label>
       <input type="text" class="form-control" id="deviceName" formControlName="name" autocomplete="off" required>
-      <ng-container *ngIf="formGroup.controls.name.errors as errors">
-        <div class="invalid-feedback" *ngIf="errors['nameExists']">
-          Device with this name already exists
-        </div>
-      </ng-container>
+      @let nameErrors = formGroup.controls.name.errors;
+      @if (nameErrors) {
+        @if (nameErrors['nameExists']) {
+          <div class="invalid-feedback">
+            Device with this name already exists
+          </div>
+        }
+      }
     </div>
     <div class="col-12 col-md-4">
       <label class="form-label" for="sshUsername">Username</label>
@@ -35,48 +38,48 @@
     </div>
     <div class="col-12 col-md-8">
       <label class="form-label d-none d-md-block invisible">Authentication Info</label>
-      <div class="input-group auth-input" [formGroup]="formGroup.controls.sshAuth"
-           [ngSwitch]="formGroup.value.sshAuth?.type">
+      <div class="input-group auth-input" [formGroup]="formGroup.controls.sshAuth">
         @let authType = formGroup.controls.sshAuth.controls.type.getRawValue();
-        @if(authType) {
+        @if (authType) {
           <input type="text" class="form-control" id="authValue" formControlName="value" [appSshAuthValue]="authType"
                  autocomplete="off">
-          <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()"
-                  *ngIf="authType === 'localKey'">
-            Choose...
-          </button>
+          @if (authType === 'localKey') {
+            <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()">
+              Choose...
+            </button>
+          }
           <button type="button" class="btn btn-outline-secondary" (click)="authInfoHelp()">
             <i class="bi bi-question-circle-fill"></i>
           </button>
         }
       </div>
 
-      <ng-container *ngIf="formGroup.errors as errors">
-        <div class="ng-invalid"></div>
-        <div class="invalid-feedback" *ngIf="errors['UnsupportedKey']">
-          Unsupported private key.
+      @let sshAuthErrors = formGroup.controls.sshAuth.errors;
+      @if (sshAuthErrors) {
+        <div class="invalid-feedback">
+          @if (sshAuthErrors['UnsupportedKey']) {
+            Unsupported private key.
+          } @else if (sshAuthErrors['IO']) {
+            Can't find private key
+          } @else if (sshAuthErrors['PassphraseRequired']) {
+            This private key requires passphrase
+          } @else if (sshAuthErrors['BadPassphrase']) {
+            Wrong passphrase
+          } @else if (sshAuthErrors['PassphraseRequired']) {
+            Please input passphrase
+          }
         </div>
-        <div class="invalid-feedback" *ngIf="errors['IO']">
-          Can't find private key
-        </div>
-        <div class="invalid-feedback" *ngIf="errors['PassphraseRequired']">
-          This private key requires passphrase
-        </div>
-        <div class="invalid-feedback" *ngIf="errors['BadPassphrase']">
-          Wrong passphrase
-        </div>
-        <div class="invalid-feedback" *ngIf="errors['PassphraseRequired']">
-          Please input passphrase
-        </div>
-      </ng-container>
+      }
     </div>
-    <div class="col-12 input-group mt-1"
-         *ngIf="formGroup.controls.sshAuth.controls.type.getRawValue() === 'appKey' && (appSshPubKey$ | async) as pubKey">
-      <input type="text" class="form-control" [value]="pubKey" readonly>
-      <button type="button" class="btn btn-outline-secondary" (click)="copyText(pubKey)">
-        <i class="bi bi-copy"></i>
-      </button>
-    </div>
+    @if (formGroup.controls.sshAuth.controls.type.getRawValue() === 'appKey') {
+      @let appPubKey = appSshPubKey$ | async;
+      <div class="col-12 input-group mt-1">
+        <input type="text" class="form-control" [value]="appPubKey" readonly>
+        <button type="button" class="btn btn-outline-secondary" (click)="appPubKey && copyText(appPubKey)">
+          <i class="bi bi-copy"></i>
+        </button>
+      </div>
+    }
     <div class="col-md-12">
       <label class="form-label" for="deviceDescription">Description</label>
       <textarea class="form-control" id="deviceDescription" formControlName="description" maxlength="100"

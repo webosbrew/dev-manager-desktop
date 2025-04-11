@@ -1,9 +1,11 @@
 <div class="modal-body">
   <label class="form-label" for="sshPassphrasePrompt">SSH Private Key Passphrase</label>
   <input class="form-control" type="text" id="sshPassphrasePrompt" [formControl]="formControl">
-  <div class="invalid-feedback" *ngIf="formControl.errors?.['BadPassphrase']">
-    Wrong passphrase
-  </div>
+  @if (formControl.errors?.['BadPassphrase']) {
+    <div class="invalid-feedback">
+      Wrong passphrase
+    </div>
+  }
 </div>
 <div class="modal-footer">
   <button class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>

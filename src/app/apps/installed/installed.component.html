@@ -1,5 +1,8 @@
 <div *ngIf="device">
-  <div *ngIf="!installedError; else error">
+  @if (installedError) {
+    <app-error-card title="Unable to get installed apps" [error]="installedError" (retry)="loadPackages()">
+    </app-error-card>
+  } @else {
     <ul class="list-group list-group-flush" *ngIf="(installed$ | async) as installed else loading">
       <li class="list-group-item app-item d-flex flex-row align-items-center"
           (click)="repoPackages?.[pkg.id] && parent.openDetails(repoPackages![pkg.id])"
@@ -25,11 +28,7 @@
         </button>
       </li>
     </ul>
-  </div>
-  <ng-template #error>
-    <app-error-card title="Unable to get installed apps" [error]="installedError" (retry)="loadPackages()">
-    </app-error-card>
-  </ng-template>
+  }
   <ng-template #loading>
     <app-loading-card></app-loading-card>
   </ng-template>

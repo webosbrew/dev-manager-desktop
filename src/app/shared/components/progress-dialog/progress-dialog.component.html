@@ -1,11 +1,14 @@
 <div class="modal-body">
-  <div *ngIf="message else defaultMessage">{{ message }}</div>
-  <ng-template #defaultMessage>
-    <div>Please wait</div>
-  </ng-template>
+  <div>@if (message) {
+    {{ message }}
+  } @else {
+    Please wait
+  }</div>
   <ngb-progressbar type="info" [value]="progress ?? 100" [max]="100" [striped]="progress === undefined"
                    [animated]="progress === undefined || progress > 0" class="mt-2"></ngb-progressbar>
-  <ngb-progressbar type="info" [value]="secondaryProgress" [max]="100" [striped]="isNaN(secondaryProgress)"
-                   [animated]="secondaryProgress > 0" class="mt-2" *ngIf="secondaryProgress !== undefined">
-  </ngb-progressbar>
+  @if (secondaryProgress !== undefined) {
+    <ngb-progressbar type="info" [value]="secondaryProgress" [max]="100" [striped]="isNaN(secondaryProgress)"
+                     [animated]="secondaryProgress > 0" class="mt-2">
+    </ngb-progressbar>
+  }
 </div>

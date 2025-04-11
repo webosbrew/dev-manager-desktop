@@ -73,12 +73,14 @@
       </app-files-table>
     </div>
     <ng-template #loadingAndError>
-      <div class="p-3" [ngSwitch]="!!state.error">
-        <app-error-card title="Unable to list directory" [error]="state.error" (retry)="cd(state.dir)"
-                        *ngSwitchCase="true">
-        </app-error-card>
-        <app-loading-card *ngSwitchDefault></app-loading-card>
-      </div>
+      @if (state.error) {
+        <div class="p-3">
+          <app-error-card title="Unable to list directory" [error]="state.error" (retry)="cd(state.dir)"
+                          *ngSwitchCase="true"/>
+        </div>
+      } @else {
+        <app-loading-card/>
+      }
     </ng-template>
     <div class="stat-bar d-flex flex-row align-items-center border-top bottom-0 mt-auto">
       <small class="px-2" *ngIf="state.items as items">

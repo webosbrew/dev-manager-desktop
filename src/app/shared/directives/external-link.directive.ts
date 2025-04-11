@@ -3,7 +3,8 @@ import {open} from "@tauri-apps/plugin-shell";
 import {noop} from "rxjs";
 
 @Directive({
-    selector: '[appExternalLink]'
+    selector: '[appExternalLink]',
+    standalone: true
 })
 export class ExternalLinkDirective {
 

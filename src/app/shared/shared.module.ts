@@ -9,7 +9,6 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {MessageTraceComponent} from './components/message-dialog/message-trace/message-trace.component';
 import {ErrorCardComponent} from './components/error-card/error-card.component';
 import {ExternalLinkDirective} from "./directives";
-import {SizeCalculatorComponent} from "./components/term-size-calculator/size-calculator.component";
 import {LoadingCardComponent} from './components/loading-card/loading-card.component';
 import {StatStorageInfoComponent} from './components/stat-storage-info/stat-storage-info.component';
 import {FilesizePipe} from "./pipes/filesize.pipe";
@@ -23,12 +22,11 @@ import {FilesizePipe} from "./pipes/filesize.pipe";
         ProgressDialogComponent,
         MessageTraceComponent,
         ErrorCardComponent,
-        ExternalLinkDirective,
-        SizeCalculatorComponent,
         LoadingCardComponent,
         StatStorageInfoComponent,
     ],
-    imports: [CommonModule, FormsModule, NgbModule],
+    imports: [CommonModule, FormsModule, NgbModule,
+        ExternalLinkDirective],
     exports: [
         PageNotFoundComponent,
         TrustUriPipe,
@@ -37,8 +35,6 @@ import {FilesizePipe} from "./pipes/filesize.pipe";
         ProgressDialogComponent,
         MessageTraceComponent,
         ErrorCardComponent,
-        ExternalLinkDirective,
-        SizeCalculatorComponent,
         LoadingCardComponent,
         StatStorageInfoComponent
     ]

@@ -1,65 +1,87 @@
 <div class="position-relative w-100 h-100">
+  @let devices = (deviceManager.devices$ | async);
   <div class="w-100 h-100 position-absolute d-flex flex-column" [class.opacity-0]="shells.length === 0">
     <div class="d-flex flex-row overflow-hidden pt-2 w-100 flex-nowrap border-bottom bg-panel">
       <ul ngbNav #nav="ngbNav" class="terminal-tabs nav-tabs flex-shrink-1 flex-nowrap border-bottom-0 px-2"
           [animation]="false" [(activeId)]="currentShell">
-        <li *ngFor="let shell of shells; trackBy:shellTracker" [ngbNavItem]="shell.token" [destroyOnHide]="false"
-            (shown)="focusShell(shell)">
-          <a class="text-nowrap" ngbNavLink>
-            <div class="spinner-border spinner-border-sm text-primary" role="status"
-                 *ngIf="shell.state.which === 'Connecting'">
-              <span class="visually-hidden">Connecting...</span>
-            </div>
-            {{shell.title}}
-            <span class="close position-relative ps-2 font-weight-light"
-                  (click)="closeTab(shell.token);$event.preventDefault();$event.stopImmediatePropagation();">×</span>
-          </a>
-          <ng-template ngbNavContent [ngSwitch]="shell.state.which === 'Connecting'">
-            <ng-container *ngSwitchCase="false" [ngSwitch]="shell.hasPty">
-              <ng-container *ngSwitchCase="true">
-                <app-terminal-pty class="terminal-tab-page" [token]="shell.token" [size]="termSize"
-                                  [readonly]="shell.state.which !== 'Connected'" *ngIf="termSize"
-                                  #terminal></app-terminal-pty>
-                <div class="terminal-resize" *ngIf="pendingResize">
-                  {{pendingResize.rows}} &times; {{pendingResize.cols}}
+        @for (shell of shells; track shell.token) {
+          <li [ngbNavItem]="shell.token" [destroyOnHide]="false"
+              (shown)="focusShell(shell)">
+            <a class="text-nowrap" ngbNavLink>
+              @if (shell.state.which === 'Connecting') {
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                  <span class="visually-hidden">Connecting...</span>
                 </div>
-              </ng-container>
-              <!--suppress JSUnusedGlobalSymbols -->
-              <app-terminal-dumb class="terminal-tab-page" [token]="shell.token"
-                                 [readonly]="shell.state.which !== 'Connected'"
-                                 *ngSwitchCase="false" #terminal></app-terminal-dumb>
-            </ng-container>
-            <div class="terminal-tab-page p-1" *ngSwitchCase="true">
-              Connecting to {{shell.title}}...
-            </div>
-            <div class="terminal-closed p-1" *ngIf="shell.state.which === 'Error' && shell.state as state">
-              <div>Error: {{state.error.reason}}</div>
-            </div>
-            <div class="terminal-closed p-1" *ngIf="shell.state.which === 'Exited' && shell.state as state">
-              <div>Shell exited with: {{state.returnCode}}</div>
-            </div>
-          </ng-template>
-        </li>
-        <li>
-        </li>
+              }
+              {{ shell.title }}
+              <span class="close position-relative ps-2 font-weight-light"
+                    (click)="closeTab(shell.token);$event.preventDefault();$event.stopImmediatePropagation();">×</span>
+            </a>
+            <ng-template ngbNavContent>
+              @switch (shell.state.which) {
+                @case ('Connecting') {
+                  <div class="terminal-tab-page p-1">
+                    Connecting to {{ shell.title }}...
+                  </div>
+                }
+                @case ('Error') {
+                  <div class="terminal-closed p-1">
+                    <div>Error: {{ shell.state.error.reason }}</div>
+                  </div>
+                }
+                @case ('Exited') {
+                  <div class="terminal-closed p-1">
+                    <div>Shell exited with: {{ shell.state.returnCode }}</div>
+                  </div>
+                }
+                @case ('Connected') {
+                  @if (shell.hasPty) {
+                    @if (termSize) {
+                      <!--suppress JSUnusedGlobalSymbols -->
+                      <app-terminal-pty class="terminal-tab-page" [token]="shell.token" [size]="termSize"
+                                        [readonly]="shell.state.which !== 'Connected'"
+                                        #terminal></app-terminal-pty>
+                    }
+                    @if (pendingResize) {
+                      <div class="terminal-resize">
+                        {{ pendingResize.rows }} &times; {{ pendingResize.cols }}
+                      </div>
+                    }
+                  } @else {
+                    <!--suppress JSUnusedGlobalSymbols -->
+                    <app-terminal-dumb class="terminal-tab-page" [token]="shell.token"
+                                       [readonly]="shell.state.which !== 'Connected'"
+                                       #terminal></app-terminal-dumb>
+                  }
+                }
+              }
+            </ng-template>
+          </li>
+          <li>
+          </li>
+        }
       </ul>
-      <div class="btn-group btn-group-sm my-1 mx-2 flex-shrink-0 flex-nowrap" role="group" aria-label="New Tab"
-           *ngIf="deviceManager.devices$ | async as devices">
-        <button type="button" class="btn btn-secondary" (click)="newTab()">
-          <i class="bi bi-plus-lg"></i>
-        </button>
-        <div class="btn-group btn-group-sm" ngbDropdown role="group" container="body"
-             aria-label="Button group with nested dropdown">
-          <button type="button" class="btn btn-secondary" ngbDropdownToggle>
+      @if (devices) {
+        <div class="btn-group btn-group-sm my-1 mx-2 flex-shrink-0 flex-nowrap" role="group" aria-label="New Tab">
+          <button type="button" class="btn btn-secondary" (click)="newTab()">
+            <i class="bi bi-plus-lg"></i>
           </button>
-          <div class="dropdown-menu" ngbDropdownMenu>
-            <button ngbDropdownItem *ngFor="let device of devices"
-                    (click)="newTab(device)">{{device.name}}</button>
-            <!--            <div class="dropdown-divider"></div>-->
-            <!--            <button ngbDropdownItem>Open in system terminal...<i class="bi bi-box-arrow-up-right ms-2"></i></button>-->
+          <div class="btn-group btn-group-sm" ngbDropdown role="group" container="body"
+               aria-label="Button group with nested dropdown">
+            <button type="button" class="btn btn-secondary" ngbDropdownToggle>
+            </button>
+            <div class="dropdown-menu" ngbDropdownMenu>
+              @for (device of devices; track device.name) {
+                <button ngbDropdownItem
+                        (click)="newTab(device)">{{ device.name }}
+                </button>
+                <!--            <div class="dropdown-divider"></div>-->
+                  <!--            <button ngbDropdownItem>Open in system terminal...<i class="bi bi-box-arrow-up-right ms-2"></i></button>-->
+              }
+            </div>
           </div>
         </div>
-      </div>
+      }
     </div>
     <div class="overflow-hidden flex-fill position-relative">
       <div class="position-absolute w-100 h-100">
@@ -70,14 +92,19 @@
     </div>
   </div>
 
-  <div class="position-absolute w-100 h-100 p-3" *ngIf="shells.length === 0">
-    <h4>Select a device to start terminal session</h4>
-    <div class="list-group mt-3" *ngIf="deviceManager.devices$ | async as devices">
-      <button class="list-group-item list-group-item-action" type="button" (click)="newTab(device)"
-              *ngFor="let device of devices">
-        {{device.name}}
-        <span class="float-end text-secondary">{{device.username}}</span>
-      </button>
+  @if (shells.length === 0) {
+    <div class="position-absolute w-100 h-100 p-3">
+      <h4>Select a device to start terminal session</h4>
+      @if (devices) {
+        <div class="list-group mt-3">
+          @for (device of devices; track device.name) {
+            <button class="list-group-item list-group-item-action" type="button" (click)="newTab(device)">
+              {{ device.name }}
+              <span class="float-end text-secondary">{{ device.username }}</span>
+            </button>
+          }
+        </div>
+      }
     </div>
-  </div>
+  }
 </div>
