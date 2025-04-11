@@ -8,7 +8,7 @@ module Tauri
         output_args << "--target"
         output_args << target
       }
-      unless features.empty? do
+      unless features.empty?
         output_args << "--features"
         output_args << features.join(",")
       end
