@@ -40,7 +40,8 @@ platform :android do
 
     puts "options: #{options}"
 
-    Tauri::Android.build(aab: options[:aab] != false, apk: options[:apk], targets: options[:targets]&.split(',') || [])
+    Tauri::Android.build(aab: options[:aab] != false, apk: options[:apk], targets: options[:targets]&.split(',') || [],
+                         features: use_prebuilt_openssl ? [] : ["vendored-openssl"])
   end
 
   desc "Deploy a new version to the Google Play"
