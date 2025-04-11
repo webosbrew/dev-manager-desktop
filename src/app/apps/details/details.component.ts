@@ -1,10 +1,8 @@
 import {Component, ElementRef, Inject, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation} from '@angular/core';
 import {AppManagerService, IncompatibleReason, PackageManifest, RepositoryItem} from "../../core/services";
-import {HttpClient} from "@angular/common/http";
 import {noop, Observable, of} from "rxjs";
 import {AsyncPipe, NgForOf, NgIf, NgOptimizedImage, NgSwitch, NgSwitchCase, NgSwitchDefault} from "@angular/common";
 import {open as openPath} from "@tauri-apps/plugin-shell";
-import {NgLetModule} from "ng-let";
 import {
     NgbActiveModal,
     NgbDropdown,
@@ -24,7 +22,6 @@ import {AppsComponent} from "../apps.component";
         AsyncPipe,
         NgOptimizedImage,
         NgIf,
-        NgLetModule,
         NgSwitchCase,
         NgbDropdown,
         NgbDropdownItem,
@@ -59,14 +56,12 @@ export class DetailsComponent implements OnInit, OnDestroy {
         public item: RepositoryItem,
         @Inject('device') public device: Device,
         private appManager: AppManagerService,
-        private http: HttpClient,
         private renderer2: Renderer2
     ) {
         this.manifest = item.manifest!;
         this.incompatible$ = fromPromise(this.appManager.checkIncompatibility(device, item));
-        this.fullDescriptionHtml$ = item.fullDescriptionUrl ? this.http.get(item.fullDescriptionUrl, {
-            responseType: 'text'
-        }) : of('');
+        this.fullDescriptionHtml$ = item.fullDescriptionUrl ? fromPromise(fetch(item.fullDescriptionUrl)
+            .then(resp => resp.text())) : of('');
         this.reloadInstalledInfo();
     }
 

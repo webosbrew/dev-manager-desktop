@@ -17,7 +17,8 @@
         <ng-container *ngSwitchCase="'optional'">Root is optional</ng-container>
       </label>
     </div>
-    <div class="d-flex flex-column justify-content-center ms-auto" *ngLet="(installedInfo$ | async) as installed">
+    @let installed = installedInfo$ | async;
+    <div class="d-flex flex-column justify-content-center ms-auto">
       <ng-container>
         <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
           <ng-container [ngSwitch]="installed && manifest.hasUpdate(installed.version)">

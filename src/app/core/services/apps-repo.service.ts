@@ -1,12 +1,12 @@
-import {HttpClient} from '@angular/common/http';
+import {fetch} from '@tauri-apps/plugin-http';
 import {Injectable} from '@angular/core';
-import {firstValueFrom, Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {Observable} from 'rxjs';
 import {eq as semverEq, gt as semverGt} from 'semver';
 import {keyBy} from "lodash-es";
 import {DeviceInfo} from "./device-manager.service";
 import semver from "semver/preload";
 import {HomebrewChannelConfiguration} from "../../types/luna-apis";
+import {fromPromise} from "rxjs/internal/observable/innerFrom";
 
 const baseUrl = 'https://repo.webosbrew.org/api';
 
@@ -15,29 +15,29 @@ const baseUrl = 'https://repo.webosbrew.org/api';
 })
 export class AppsRepoService {
 
-    constructor(private http: HttpClient) {
+    constructor() {
     }
 
-    async showApp(id: string): Promise<RepositoryItem> {
+    async showApp(id: string): Promise<RepositoryItem | undefined> {
         const url = `${baseUrl}/apps/${id}/releases/latest.json`;
-        return firstValueFrom(this.http.get<Partial<RepositoryItem>>(url)
-            .pipe(map((body) => new RepositoryItem(body, url))));
+        return fetch(url).then(async response => new RepositoryItem(await response.json(), url))
+            .catch(() => undefined);
     }
 
     async showApps(...ids: string[]): Promise<Record<string, RepositoryItem>> {
-        function assertFulfilled(item: PromiseSettledResult<RepositoryItem>): item is PromiseFulfilledResult<RepositoryItem> {
+        function assertFulfilled(item: PromiseSettledResult<RepositoryItem | undefined>): item is PromiseFulfilledResult<RepositoryItem> {
             return item.status === 'fulfilled';
         }
 
         return await Promise.allSettled(ids.map(id => this.showApp(id)))
-            .then(list => list.filter(assertFulfilled).map(result => result.value))
+            .then(list => list.filter(assertFulfilled).map(result => result.value).filter(v => v))
             .then((list: RepositoryItem[]) => keyBy(list, pkg => pkg.id));
     }
 
     allApps$(page = 0): Observable<RepositoryPage> {
         const suffix = page > 1 ? `apps/${page}.json` : 'apps.json';
         const url = `${baseUrl}/${suffix}`;
-        return this.http.get(url).pipe(map((body) => new RepositoryPage(body, url)));
+        return fromPromise(fetch(url).then(async response => new RepositoryPage(await response.json(), url)));
     }
 }
 

@@ -7,24 +7,22 @@ import {ChannelComponent} from "./channel/channel.component";
 import {InstalledComponent} from "./installed/installed.component";
 import {NgbDropdownModule, NgbNavModule, NgbPaginationModule, NgbProgressbar} from "@ng-bootstrap/ng-bootstrap";
 import {SharedModule} from "../shared/shared.module";
-import {NgLetModule} from "ng-let";
 import {HbchannelRemoveComponent} from './hbchannel-remove/hbchannel-remove.component';
 import {FormsModule} from "@angular/forms";
 
 @NgModule({
-  declarations: [
-    AppsComponent,
-    InstalledComponent,
-    ChannelComponent,
-    HbchannelRemoveComponent,
-  ],
+    declarations: [
+        AppsComponent,
+        InstalledComponent,
+        ChannelComponent,
+        HbchannelRemoveComponent,
+    ],
     imports: [
         CommonModule,
         NgbNavModule,
         NgbPaginationModule,
         AppsRoutingModule,
         SharedModule,
-        NgLetModule,
         NgbDropdownModule,
         NgbProgressbar,
         NgOptimizedImage,

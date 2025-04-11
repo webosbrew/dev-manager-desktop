@@ -1,4 +1,5 @@
-<div *ngIf="repoPage$ | async as repoPage; else loading">
+@let repoPage = repoPage$ | async;
+@if (repoPage) {
   <ul class="list-group list-group-flush">
     <li class="list-group-item app-item d-flex flex-row align-items-center" (click)="parent.openDetails(item)"
         *ngFor="let item of repoPage.packages">
@@ -19,8 +20,6 @@
                     [pageSize]="1" aria-label="Default pagination" (pageChange)="loadPage($event)">
     </ngb-pagination>
   </div>
-</div>
-
-<ng-template #loading>
-  <app-loading-card></app-loading-card>
-</ng-template>
+} @else {
+  <app-loading-card/>
+}

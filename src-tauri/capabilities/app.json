@@ -21,6 +21,14 @@
     "dev-mode:default",
     "local-file:default",
     "log:default",
-    "os:default"
+    "os:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://*"
+        }
+      ]
+    }
   ]
 }

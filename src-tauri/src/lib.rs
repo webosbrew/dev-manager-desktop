@@ -40,6 +40,7 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_upload::init())
+        .plugin(tauri_plugin_http::init())
         .plugin(plugins::device::plugin("device-manager"))
         .plugin(plugins::cmd::plugin("remote-command"))
         .plugin(plugins::shell::plugin("remote-shell"))

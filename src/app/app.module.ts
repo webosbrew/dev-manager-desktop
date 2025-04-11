@@ -1,4 +1,3 @@
-import {provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import {APP_INITIALIZER, ErrorHandler, NgModule} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
@@ -75,7 +74,6 @@ import {createErrorHandler, TraceService} from "@sentry/angular";
             multi: true,
         },
         NgbTooltipConfig,
-        provideHttpClient(withInterceptorsFromDi()),
     ],
     bootstrap: [AppComponent]
 })

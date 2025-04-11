@@ -11,7 +11,6 @@ import {
     NgbDropdownToggle,
     NgbTooltipModule
 } from "@ng-bootstrap/ng-bootstrap";
-import {NgLetModule} from "ng-let";
 import {FilesTableComponent} from './files-table/files-table.component';
 import {SharedModule} from "../shared/shared.module";
 import {CreateDirectoryMessageComponent} from './create-directory-message/create-directory-message.component';
@@ -29,7 +28,6 @@ import {ReactiveFormsModule} from "@angular/forms";
     CommonModule,
     FilesRoutingModule,
     NgbTooltipModule,
-    NgLetModule,
     SharedModule,
     NgbDropdown,
     NgbDropdownItem,

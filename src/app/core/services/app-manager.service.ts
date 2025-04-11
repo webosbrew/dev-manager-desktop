@@ -19,7 +19,7 @@ import {APP_ID_HBCHANNEL} from "../../shared/constants";
 import {DeviceManagerService} from "./device-manager.service";
 import {HomebrewChannelConfiguration} from "../../types/luna-apis";
 import {download} from "@tauri-apps/plugin-upload";
-import {platform} from "@tauri-apps/plugin-os";
+import {convertFileSrc} from "@tauri-apps/api/core";
 
 @Injectable({
     providedIn: 'root'
@@ -52,7 +52,6 @@ export class AppManagerService {
     }
 
     async list(device: Device): Promise<PackageInfo[]> {
-        const completeIcon = ['windows', 'android'].includes(platform()) ? this.completeIconChromium : this.completeIcon;
         return this.luna.call(device, 'luna://com.webos.applicationManager/dev/listApps')
             .catch((e) => {
                 if (e instanceof LunaUnknownMethodError) {
@@ -61,17 +60,10 @@ export class AppManagerService {
                 throw e;
             })
             .then(resp => resp['apps'] as RawPackageInfo[])
-            .then((result) => result.map(item => completeIcon(device, item)));
-    }
-
-    private completeIcon(device: Device, info: RawPackageInfo): PackageInfo {
-        const iconPath = [info.folderPath, info.icon].join('/');
-        return {iconUri: `remote-file://${device.name}${iconPath}`, ...info};
-    }
-
-    private completeIconChromium(device: Device, info: RawPackageInfo): PackageInfo {
-        const iconPath = [info.folderPath, info.icon].join('/');
-        return {iconUri: `http://remote-file.localhost/${device.name}${iconPath}`, ...info};
+            .then((result) => result.map(info => {
+                const iconPath = [info.folderPath, info.icon].join('/');
+                return {iconUri: `${convertFileSrc('', 'remote-file')}${device.name}${iconPath}`, ...info};
+            }));
     }
 
     async info(device: Device, id: string): Promise<PackageInfo | null> {
