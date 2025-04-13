@@ -1,8 +1,10 @@
 use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::io::{read, write};
-use crate::device_manager::{novacom, Device, DeviceCheckConnection, DeviceManager, PrivateKey};
+use crate::device_manager::{
+    novacom, Device, DeviceCheckConnection, DeviceManager, PrivateKey, PrivateKeyInfo,
+};
 use crate::error::Error;
-use libssh_rs::SshKey;
+use libssh_rs::{PublicKeyHashType, SshKey};
 use port_check::is_port_reachable_with_timeout;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -121,15 +123,16 @@ impl DeviceManager {
         }
     }
 
-    pub async fn localkey_verify(&self, name: &str, passphrase: &str) -> Result<(), Error> {
-        let name_path = Path::new(name);
-        let ssh_key_path = if name_path.is_absolute() {
-            name_path.to_path_buf()
-        } else {
-            fs::canonicalize(self.ensure_ssh_dir()?.join(name_path))?
-        };
-        match SshKey::from_privkey_file(ssh_key_path.to_str().unwrap(), Some(passphrase)) {
-            Ok(_) => Ok(()),
+    pub async fn key_verify(
+        &self,
+        content: &str,
+        passphrase: &str,
+    ) -> Result<PrivateKeyInfo, Error> {
+        match SshKey::from_privkey_base64(content, Some(passphrase)) {
+            Ok(key) => Ok(PrivateKeyInfo {
+                sha1: key.get_public_key_hash_hexa(PublicKeyHashType::Sha1)?,
+                sha256: key.get_public_key_hash_hexa(PublicKeyHashType::Sha256)?,
+            }),
             _ => Err(if passphrase.is_empty() {
                 Error::PassphraseRequired
             } else {

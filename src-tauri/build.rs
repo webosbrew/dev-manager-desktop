@@ -40,7 +40,7 @@ fn main() {
             )
             .plugin(
                 "local-file",
-                InlinedPlugin::new().commands(&["checksum", "download", "remove", "temp_path"]),
+                InlinedPlugin::new().commands(&["checksum", "remove", "copy", "temp_path"]),
             ),
     )
     .expect("failed to run tauri-build");

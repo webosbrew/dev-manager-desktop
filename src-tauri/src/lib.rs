@@ -4,16 +4,15 @@ extern crate core;
 use std::env;
 use std::path::PathBuf;
 
-use ssh_key::PrivateKey;
-use tauri::webview::PageLoadEvent;
-use tauri::{AppHandle, Builder, Manager, RunEvent, Runtime};
-
 use crate::app_dirs::{GetAppSshKeyDir, GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::DeviceManager;
 use crate::error::Error;
 use crate::session_manager::SessionManager;
 use crate::shell_manager::ShellManager;
 use crate::spawn_manager::SpawnManager;
+use ssh_key::PrivateKey;
+use tauri::webview::PageLoadEvent;
+use tauri::{AppHandle, Builder, Manager, RunEvent, Runtime, State};
 
 mod app_dirs;
 mod byte_string;
@@ -128,23 +127,38 @@ fn optional_setup<R: Runtime>(builder: Builder<R>) -> Builder<R> {
 
 impl<R: Runtime> GetSshDir for AppHandle<R> {
     fn get_ssh_dir(&self) -> Option<PathBuf> {
-        #[cfg(mobile)]
-        {
-            self.path().app_config_dir().ok()
-        }
-        #[cfg(not(mobile))]
-        {
-            self.path()
-                .home_dir()
-                .map(|home| home.join(".ssh"))
-                .or_else(|_| self.path().data_dir())
-                .ok()
-        }
+        let home_dir = if cfg!(mobile) {
+            self.path().app_config_dir()
+        } else {
+            self.path().home_dir()
+        };
+        home_dir
+            .map(|home| home.join(".ssh"))
+            .and_then(|path| {
+                std::fs::create_dir_all(&path)?;
+                #[cfg(target_family = "unix")]
+                {
+                    use std::fs::Permissions;
+                    use std::os::unix::fs::PermissionsExt;
+                    std::fs::set_permissions(&path, Permissions::from_mode(0o700))?;
+                }
+                Ok(path)
+            })
+            .or_else(|_| self.path().data_dir())
+            .ok()
     }
 }
 
 impl<R: Runtime> GetAppSshKeyDir for AppHandle<R> {
     fn get_app_ssh_key_path(&self) -> Result<PathBuf, Error> {
+        if cfg!(mobile) {
+            if let Ok(conf_dir) = self.path().app_config_dir() {
+                let old_idfile = conf_dir.join("id_devman");
+                if old_idfile.exists() {
+                    return Ok(old_idfile);
+                }
+            }
+        }
         let config_dir = self.get_ssh_dir().ok_or(Error::bad_config())?;
         Ok(config_dir.join("id_devman"))
     }

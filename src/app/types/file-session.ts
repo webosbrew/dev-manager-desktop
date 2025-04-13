@@ -1,4 +1,4 @@
-import {ProgressCallback} from "../core/services/remote-file.service";
+import {ProgressCallback} from "../core/services/progress-callback";
 
 export type FileType = '-' | 'd' | 'c' | 'b' | 's' | 'p' | 'l' | '';
 

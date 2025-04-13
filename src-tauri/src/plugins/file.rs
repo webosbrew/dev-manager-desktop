@@ -18,7 +18,7 @@ use crate::remote_files::{FileItem, PermInfo};
 use crate::session_manager::SessionManager;
 
 #[derive(Copy, Clone, Serialize)]
-struct CopyProgress {
+pub(crate) struct CopyProgress {
     copied: usize,
     total: usize,
 }
@@ -178,7 +178,7 @@ async fn put<R: Runtime>(
     .expect("critical failure in file::put task")
 }
 
-fn copy<R, W>(
+pub(crate) fn copy<R, W>(
     reader: &mut R,
     writer: &mut W,
     total: usize,
