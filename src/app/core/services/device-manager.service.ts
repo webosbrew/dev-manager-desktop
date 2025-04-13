@@ -7,6 +7,7 @@ import {HomebrewChannelConfiguration, OsInfo, SystemInfo} from "../../types/luna
 import {LunaResponseError, RemoteLunaService} from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {RemoteFileService} from "./remote-file.service";
+import * as path from "@tauri-apps/api/path";
 
 export type ScreenshotMethod = 'DISPLAY' | 'VIDEO' | 'GRAPHIC';
 
@@ -65,8 +66,8 @@ export class DeviceManagerService extends BackendClient {
         return await this.invoke('novacom_getkey', {address, passphrase});
     }
 
-    async verifyLocalPrivateKey(name: string, passphrase?: string): Promise<void> {
-        await this.invoke('localkey_verify', {name, passphrase});
+    async verifyLocalPrivateKey(path: string, passphrase?: string): Promise<PrivateKeyInfo> {
+        return await this.invoke('localkey_verify', {path, passphrase});
     }
 
     async checkConnection(host: string): Promise<DeviceCheckConnection> {
@@ -177,6 +178,13 @@ export class DeviceManagerService extends BackendClient {
         return await this.invoke<string>('ssh_key_dir');
     }
 
+    async sshKeyPath(basename: string): Promise<string> {
+        if (basename.includes(path.sep())) {
+            return basename;
+        }
+        return path.join(await this.getSshKeyDir(), basename);
+    }
+
     fileSession(device: Device): FileSession {
         return new FileSessionImpl(this.cmd, this.file, device);
     }
@@ -257,4 +265,9 @@ export declare interface DeviceCheckConnection {
     keyServer: boolean;
     ssh22?: string;
     ssh9922?: string;
+}
+
+export declare interface PrivateKeyInfo {
+    sha1: string;
+    sha256: string;
 }

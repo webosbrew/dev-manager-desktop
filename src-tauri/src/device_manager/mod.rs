@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 mod device;
 mod io;
 mod manager;
-mod privkey;
 mod novacom;
+mod privkey;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct DeviceSessionToken {
@@ -33,6 +33,12 @@ pub enum PrivateKey {
         #[serde(rename = "openSshData")]
         data: String,
     },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct PrivateKeyInfo {
+    pub sha1: String,
+    pub sha256: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

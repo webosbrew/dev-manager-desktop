@@ -6,15 +6,7 @@ import {RemoteCommandService} from "./remote-command.service";
 import {finalize, firstValueFrom, lastValueFrom, Observable, Subject} from "rxjs";
 import {EventChannel} from "../event-channel";
 import {map} from "rxjs/operators";
-import {Channel} from "@tauri-apps/api/core";
-
-export type ProgressCallback = (copied: number, total: number) => void;
-
-interface ProgressPayload {
-    copied: number;
-    total: number;
-
-}
+import {ProgressCallback, progressChannel} from "./progress-callback";
 
 @Injectable({
     providedIn: 'root'
@@ -51,12 +43,12 @@ export class RemoteFileService extends BackendClient {
     }
 
     public async get(device: Device, path: string, target: string, progress?: ProgressCallback): Promise<void> {
-        const onProgress = RemoteFileService.progressChannel(progress);
+        const onProgress = progressChannel(progress);
         await this.invoke('get', {device, path, target, onProgress});
     }
 
     public async put(device: Device, path: string, source: string, progress?: ProgressCallback): Promise<void> {
-        const onProgress = RemoteFileService.progressChannel(progress);
+        const onProgress = progressChannel(progress);
         await this.invoke('put', {device, path, source, onProgress});
     }
 
@@ -65,16 +57,8 @@ export class RemoteFileService extends BackendClient {
     }
 
     public async getTemp(device: Device, path: string, progress?: ProgressCallback): Promise<string> {
-        const onProgress = RemoteFileService.progressChannel(progress);
+        const onProgress = progressChannel(progress);
         return await this.invoke<string>('get_temp', {device, path, onProgress});
-    }
-
-    private static progressChannel(progress?: ProgressCallback) {
-        const onProgress = new Channel<ProgressPayload>();
-        onProgress.onmessage = (e: ProgressPayload) => {
-            progress?.(e.copied, e.total);
-        }
-        return onProgress;
     }
 
     public async serveLocal(device: Device, localPath: string): Promise<ServeInstance> {

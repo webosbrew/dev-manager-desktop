@@ -1,12 +1,13 @@
+use crate::app_dirs::{GetAppSshKeyDir, GetSshDir};
+use crate::device_manager::{Device, DeviceCheckConnection, DeviceManager, PrivateKeyInfo};
+use crate::error::Error;
+use std::io::Read;
 use tauri::{
     plugin::{Builder, TauriPlugin},
-    Runtime,
+    Manager, Runtime,
 };
 use tauri::{AppHandle, State};
-
-use crate::app_dirs::{GetAppSshKeyDir, GetSshDir};
-use crate::device_manager::{Device, DeviceCheckConnection, DeviceManager};
-use crate::error::Error;
+use tauri_plugin_fs::{FilePath, Fs, OpenOptions};
 
 #[tauri::command]
 async fn list(manager: State<'_, DeviceManager>) -> Result<Vec<Device>, Error> {
@@ -47,13 +48,23 @@ async fn novacom_getkey(
 }
 
 #[tauri::command]
-async fn localkey_verify(
-    manager: State<'_, DeviceManager>,
-    name: String,
+async fn localkey_verify<R>(
+    app: AppHandle<R>,
+    path: FilePath,
     passphrase: Option<String>,
-) -> Result<(), Error> {
+) -> Result<PrivateKeyInfo, Error>
+where
+    R: Runtime,
+{
+    let manager = app.state::<DeviceManager>();
+    let fs = app.state::<Fs<R>>();
+    let mut open_options = OpenOptions::new();
+    open_options.read(true);
+    let mut file = fs.open(path, open_options)?;
+    let mut content = String::new();
+    file.take(32768).read_to_string(&mut content)?;
     manager
-        .localkey_verify(&name, passphrase.as_deref().unwrap_or(""))
+        .key_verify(&content, passphrase.as_deref().unwrap_or(""))
         .await
 }
 

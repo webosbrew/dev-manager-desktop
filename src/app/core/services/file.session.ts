@@ -1,7 +1,8 @@
 import {Device, FileItem, FileSession} from '../../types';
 import {RemoteCommandService} from './remote-command.service';
 import {basename} from '@tauri-apps/api/path'
-import {ProgressCallback, RemoteFileService} from "./remote-file.service";
+import {RemoteFileService} from "./remote-file.service";
+import {ProgressCallback} from './progress-callback';
 import {IOError} from "./backend-client";
 import {trimEnd} from "lodash-es";
 

@@ -3,5 +3,6 @@ description = "Default permissions for the plugin"
 permissions = [
   "allow-checksum",
   "allow-remove",
-  "allow-temp-path"
+  "allow-copy",
+  "allow-temp-path",
 ]

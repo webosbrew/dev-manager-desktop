@@ -14,9 +14,11 @@ import {SshPrivkeyHintComponent} from "./ssh-privkey-hint/ssh-privkey-hint.compo
 import {DevmodePassphraseHintComponent} from "./devmode-passphrase-hint/devmode-passphrase-hint.component";
 import {SshPasswordHintComponent} from "./ssh-password-hint/ssh-password-hint.component";
 import {RetryFailedComponent} from "../retry-failed/retry-failed.component";
-import {documentDir, homeDir, join} from "@tauri-apps/api/path";
-import {AsyncPipe, NgIf, NgSwitch} from "@angular/common";
+import {AsyncPipe} from "@angular/common";
 import {SshAuthValueDirective} from "./ssh-auth-value.directive";
+import * as path from '@tauri-apps/api/path';
+import * as os from '@tauri-apps/plugin-os';
+import {LocalFileService} from "../../core/services/local-file.service";
 
 @Component({
     selector: 'app-device-editor',
@@ -25,8 +27,6 @@ import {SshAuthValueDirective} from "./ssh-auth-value.directive";
     standalone: true,
     imports: [
         ReactiveFormsModule,
-        NgSwitch,
-        NgIf,
         SshAuthValueDirective,
         AsyncPipe
     ]
@@ -60,7 +60,8 @@ export class DeviceEditorComponent implements OnInit {
 
     appSshPubKey$: Observable<string>;
 
-    constructor(private modalService: NgbModal, private deviceManager: DeviceManagerService) {
+    constructor(private modalService: NgbModal, private deviceManager: DeviceManagerService,
+                private localFiles: LocalFileService) {
         this.appSshPubKey$ = fromPromise(this.deviceManager.getAppSshPubKey());
     }
 
@@ -267,7 +268,8 @@ export class DeviceEditorComponent implements OnInit {
                 if (!auth.value) {
                     return {PrivKeyRequired: true};
                 }
-                return this.deviceManager.verifyLocalPrivateKey(auth.value.path, auth.value.passphrase)
+                const keyPath = await this.deviceManager.sshKeyPath(auth.value.path);
+                return this.deviceManager.verifyLocalPrivateKey(keyPath, auth.value.passphrase)
                     .then(() => null).catch(e => {
                         if (BackendError.isCompatibleBody(e)) {
                             return {[e.reason]: true};
@@ -291,11 +293,11 @@ export class DeviceEditorComponent implements OnInit {
 
     async chooseSshPrivKey(): Promise<void> {
         const sshDir = await this.deviceManager.getSshKeyDir();
-        const file = await showOpenDialog({
+        let file = await showOpenDialog({
             multiple: false,
             defaultPath: sshDir,
-        }).then(result => result);
-        if (typeof (file) !== 'string' || !file) {
+        }).then(result => typeof (result) === 'string' && result);
+        if (!file) {
             return;
         }
         let passphrase: string | undefined = undefined;
@@ -316,6 +318,13 @@ export class DeviceEditorComponent implements OnInit {
                 });
                 return;
             }
+        }
+        if (os.type() == 'android') {
+            const keyInfo = await this.deviceManager.verifyLocalPrivateKey(file, passphrase);
+            const newFile = await this.deviceManager.sshKeyPath(`id_file_${keyInfo.sha1.replaceAll(':', '').substring(0, 8)}`);
+            console.log(keyInfo, newFile);
+            await this.localFiles.copy(file, newFile).catch(e => console.error(e));
+            file = newFile;
         }
         this.formGroup.controls.sshAuth.controls.value.setValue(new OpenSshLocalKeyValue(file, passphrase));
     }
@@ -416,6 +425,8 @@ export class OpenSshLocalKeyValue implements LocalKeyValue {
     }
 
     toString(): string {
-        return this.path;
+        const sep = path.sep();
+        let sepIndex = this.path.lastIndexOf(sep);
+        return this.path.substring(sepIndex + 1);
     }
 }

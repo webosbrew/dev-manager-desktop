@@ -10,6 +10,7 @@
     "core:path:default",
     "core:path:allow-resolve-directory",
     "fs:default",
+    "fs:write-all",
     "shell:allow-open",
     "dialog:allow-open",
     "dialog:allow-save",
