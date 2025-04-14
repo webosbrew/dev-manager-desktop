@@ -8,12 +8,13 @@ TV
 Find [latest release](https://github.com/webosbrew/dev-manager-desktop/releases/latest), and download the installer for
 your system
 
-| Operating System      | x86_64                                      | arm64                                                                           | x86                                       |
-|-----------------------|---------------------------------------------|---------------------------------------------------------------------------------|-------------------------------------------|
-| Windows               | webOS.Dev.Manager_[VERSION]_x64_en-US.msi   | Not available                                                                   | webOS.Dev.Manager_[VERSION]_x86_en-US.msi |
-| macOS                 | webOS.Dev.Manager_[VERSION]_x64.dmg         | webOS.Dev.Manager_1.99.3_universal.dmg                                          | Not available                             |
-| Linux (Debian/Ubuntu) | web-os-dev-manager_[VERSION]_amd64.deb      | web-os-dev-manager_[VERSION]_arm64.deb                                          | Not available                             |
-| Linux (Other distros) | web-os-dev-manager_[VERSION]_amd64.AppImage | web-os-dev-manager_[VERSION]_aarch64.AppImage                                   | Not available                             |
+| Operating System                  | x86_64                                      | arm64                                         | x86                                       |
+|-----------------------------------|---------------------------------------------|-----------------------------------------------|-------------------------------------------|
+| Windows 10+                       | webOS.Dev.Manager_[VERSION]_x64_en-US.msi   | Not available                                 | webOS.Dev.Manager_[VERSION]_x86_en-US.msi |
+| Windows 7/8/8.1 (Dropped support) | webOS.Dev.Manager_1.13.3_x64_en-US.msi      | Not available                                 | webOS.Dev.Manager_1.13.3_x86_en-US.msi    |
+| macOS                             | webOS.Dev.Manager_[VERSION]_universal.dmg   | webOS.Dev.Manager_[VERSION]_universal.dmg     | Not available                             |
+| Linux (Debian/Ubuntu)             | web-os-dev-manager_[VERSION]_amd64.deb      | web-os-dev-manager_[VERSION]_arm64.deb        | Not available                             |
+| Linux (Other distros)             | web-os-dev-manager_[VERSION]_amd64.AppImage | web-os-dev-manager_[VERSION]_aarch64.AppImage | Not available                             |
 
 ## Features
 
