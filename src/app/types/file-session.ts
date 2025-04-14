@@ -39,7 +39,7 @@ export declare interface FileSession {
 
     getTemp(remotePath: string, progress?: ProgressCallback): Promise<string>;
 
-    uploadBatch(strings: string[], pwd: string, fileCb: (name: string, index: number, total: number) => void,
+    uploadBatch(sources: string[], pwd: string, fileCb: (name: string, index: number, total: number) => void,
                 progressCb: ProgressCallback, failCb: (name: string, e: Error) => Promise<boolean>): Promise<void>;
 
     home(): Promise<string>;
