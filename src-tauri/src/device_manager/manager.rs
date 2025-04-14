@@ -6,7 +6,6 @@ use crate::device_manager::{
 use crate::error::Error;
 use libssh_rs::{PublicKeyHashType, SshKey};
 use port_check::is_port_reachable_with_timeout;
-use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tokio::fs::{remove_file, File};

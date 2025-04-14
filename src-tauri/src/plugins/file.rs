@@ -1,5 +1,4 @@
 use std::env::temp_dir;
-use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
 
@@ -9,6 +8,7 @@ use serde::Serialize;
 use tauri::ipc::Channel;
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{http, AppHandle, Manager, Runtime, UriSchemeContext, UriSchemeResponder};
+use tauri_plugin_fs::{FilePath, Fs, OpenOptions};
 use uuid::Uuid;
 
 use crate::device_manager::{Device, DeviceManager};
@@ -109,16 +109,19 @@ async fn get<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     path: String,
-    target: String,
+    target: FilePath,
     on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
     tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
+        let fs = app.state::<Fs<R>>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
             let sftp = session.sftp()?;
             let mut sfile = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
-            let mut file = File::create(target.clone())?;
+            let mut opt = OpenOptions::new();
+            opt.create(true).write(true);
+            let mut file = fs.open(target.clone(), opt)?;
             let size = sfile.metadata()?.len().unwrap_or_default() as usize;
             copy(&mut sfile, &mut file, size, &on_progress)?;
             return Ok(());
@@ -133,11 +136,12 @@ async fn put<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     path: String,
-    source: String,
+    source: FilePath,
     on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
     tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
+        let fs = app.state::<Fs<R>>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
             let sftp = session.sftp()?;
@@ -164,7 +168,9 @@ async fn put<R: Runtime>(
                         e => e,
                     };
                 })?;
-            let mut file = File::open(source.clone()).map_err(|e| Error::IO {
+            let mut opt = OpenOptions::new();
+            opt.read(true).write(false);
+            let mut file = fs.open(source.clone(), opt).map_err(|e| Error::IO {
                 code: e.kind(),
                 message: format!("Failed to open local file {source} for uploading: {e:?}"),
                 unhandled: true,
@@ -216,17 +222,13 @@ async fn get_temp<R: Runtime>(
     device: Device,
     path: String,
     on_progress: Channel<CopyProgress>,
-) -> Result<String, Error> {
+) -> Result<FilePath, Error> {
     let source = Path::new(&path);
     let extension = source
         .extension()
         .map_or(String::new(), |s| format!(".{}", s.to_string_lossy()));
     let temp_path = temp_dir().join(format!("webos-dev-tmp-{}{}", Uuid::new_v4(), extension));
-    let target = String::from(
-        temp_path
-            .to_str()
-            .expect(&format!("Bad temp_path {:?}", temp_path)),
-    );
+    let target = FilePath::from(&temp_path);
     get(app, device, path, target.clone(), on_progress).await?;
     Ok(target)
 }
@@ -235,7 +237,7 @@ async fn get_temp<R: Runtime>(
 async fn serve<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
-    path: String,
+    path: FilePath,
 ) -> Result<String, Error> {
     serve::exec(app, device, path).await
 }

@@ -12,7 +12,7 @@ use crate::shell_manager::ShellManager;
 use crate::spawn_manager::SpawnManager;
 use ssh_key::PrivateKey;
 use tauri::webview::PageLoadEvent;
-use tauri::{AppHandle, Builder, Manager, RunEvent, Runtime, State};
+use tauri::{AppHandle, Builder, Manager, RunEvent, Runtime};
 
 mod app_dirs;
 mod byte_string;
