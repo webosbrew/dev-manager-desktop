@@ -30,12 +30,10 @@ on:
 env:
   ANDROID_NDK_VERSION: '26.3.11579264'
   NODE_VERSION: '20.x'
-  CI_BUILD_FOR: ${{ github.event.inputs.build-for || 'desktop' }}
-  CI_RUNNER_TYPE: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
 
 jobs:
   build-desktop:
-    if: ${{ github.event.inputs.build-for == 'desktop' }}
+    if: ${{ !github.event.inputs.build-for || github.event.inputs.build-for == 'desktop' }}
     runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
 
     steps:
@@ -68,19 +66,19 @@ jobs:
 
       - name: Setup JDK
         uses: actions/setup-java@v4
-        if: env.CI_BUILD_FOR == 'android'
+        if: github.event.inputs.build-for == 'android'
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Setup Android SDK
-        if: env.CI_BUILD_FOR == 'android'
+        if: github.event.inputs.build-for == 'android'
         uses: android-actions/setup-android@v3
         with:
           packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-34"
 
       - name: Add NDK to PATH
-        if: env.CI_BUILD_FOR == 'android'
+        if: github.event.inputs.build-for == 'android'
         shell: bash
         run: |
           echo ${NDK_HOME}/toolchains/llvm/prebuilt/*/bin >> $GITHUB_PATH
@@ -91,7 +89,7 @@ jobs:
         run: npm run build -- --features=vendored-openssl
 
   build-android:
-    if: ${{ github.event.inputs.build-for == 'android' }}
+    if: ${{ !github.event.inputs.build-for || github.event.inputs.build-for == 'android' }}
     runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
 
     steps:
