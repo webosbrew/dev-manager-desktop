@@ -98,7 +98,7 @@ export class HomeComponent implements OnInit {
     }
 
     private updateTooltipDirection(): void {
-        const flexDirection = this.appNav?.nativeElement?.computedStyleMap().get('flex-direction');
+        const flexDirection = this.appNav?.nativeElement?.computedStyleMap()?.get('flex-direction');
         if (!(flexDirection instanceof CSSKeywordValue)) {
             return;
         }
