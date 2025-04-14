@@ -1,25 +1,24 @@
-use std::fs::File;
 use std::io::{copy, Read, Write};
 use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
-
-use httparse::Status;
-use libssh_rs::Channel;
-use path_slash::PathBufExt;
-use serde::Serialize;
-use tauri::{AppHandle, Manager, Runtime};
 
 use crate::conn_pool::ManagedDeviceConnection;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::event_channel::{EventChannel, EventHandler};
 use crate::session_manager::SessionManager;
+use httparse::Status;
+use libssh_rs::Channel;
+use path_slash::PathBufExt;
+use serde::Serialize;
+use tauri::{AppHandle, Manager, Runtime};
+use tauri_plugin_fs::{FilePath, Fs, OpenOptions};
 
 pub(crate) async fn exec<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
-    path: String,
+    path: FilePath,
 ) -> Result<String, Error> {
     let channel = EventChannel::new(app.clone(), "");
     let handler = ServeChannelHandler {
@@ -41,7 +40,7 @@ fn serve_worker<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
     channel: EventChannel<R, ServeChannelHandler>,
-    path: String,
+    path: FilePath,
 ) -> Result<(), Error> {
     log::debug!(
         "Serve {{ path={path}, device.name={} }} is waiting for start.",
@@ -51,6 +50,7 @@ fn serve_worker<R: Runtime>(
         h.wait();
     }
     let sessions = app.state::<SessionManager>();
+    let fs = app.state::<Fs<R>>();
     let remote_port: u16;
     let conn: ManagedDeviceConnection;
     loop {
@@ -85,7 +85,7 @@ fn serve_worker<R: Runtime>(
             Ok(res) => res,
             Err(_e) => continue,
         };
-        serve_handler(&path, ch)?;
+        serve_handler(&fs, &path, ch)?;
     }
     log::info!(
         "Serve {{ path={path}, device.name={} }} closed",
@@ -95,7 +95,7 @@ fn serve_worker<R: Runtime>(
     Ok(())
 }
 
-fn serve_handler(path: &String, ch: Channel) -> Result<(), Error> {
+fn serve_handler<R: Runtime>(fs: &Fs<R>, path: &FilePath, ch: Channel) -> Result<(), Error> {
     let url: String;
     let method: String;
     let mut req_data = Vec::<u8>::new();
@@ -127,12 +127,18 @@ fn serve_handler(path: &String, ch: Channel) -> Result<(), Error> {
             return Ok(());
         }
     }
-    let mut path = PathBuf::from(path);
+    let mut path = path.clone();
     if url != "/" {
-        path = path.join(PathBuf::from_slash(&url[1..]));
+        let Ok(std_path) = path.into_path() else {
+            out.write_all(b"HTTP/1.1 404\r\n\r\nFile not found\n")?;
+            return Ok(());
+        };
+        path = FilePath::from(std_path.join(PathBuf::from_slash(&url[1..])));
     }
     log::debug!("Serve {} => {:?}", url, path);
-    let mut file = match File::open(path) {
+    let mut opt = OpenOptions::new();
+    opt.read(true);
+    let mut file = match fs.open(path, opt) {
         Ok(file) => file,
         Err(_e) => {
             out.write_all(b"HTTP/1.1 404\r\n\r\nFile not found\n")?;

@@ -60,7 +60,7 @@ where
     let fs = app.state::<Fs<R>>();
     let mut open_options = OpenOptions::new();
     open_options.read(true);
-    let mut file = fs.open(path, open_options)?;
+    let file = fs.open(path, open_options)?;
     let mut content = String::new();
     file.take(32768).read_to_string(&mut content)?;
     manager

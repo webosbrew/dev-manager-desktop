@@ -1,11 +1,9 @@
+use sha2::{Digest, Sha256};
 use std::env::temp_dir;
-
 use tauri::ipc::Channel;
 use tauri::plugin::{Builder, TauriPlugin};
-use tauri::{AppHandle, Manager, Runtime, State};
+use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_fs::{FilePath, Fs, OpenOptions};
-use tokio::fs::File;
-use tokio::io::AsyncReadExt;
 use uuid::Uuid;
 
 use crate::error::Error;
@@ -13,14 +11,22 @@ use crate::plugins::file;
 use crate::plugins::file::CopyProgress;
 
 #[tauri::command]
-async fn checksum(path: String, algorithm: String) -> Result<String, Error> {
-    let mut file = File::open(&path).await?;
-    let mut contents: Vec<u8> = vec![];
-    file.read_to_end(&mut contents).await?;
-    match algorithm.as_str() {
-        "sha256" => Ok(sha256::digest(&contents[..])),
-        _ => Err(Error::Unsupported),
-    }
+async fn checksum<R: Runtime>(
+    app: AppHandle<R>,
+    path: FilePath,
+    algorithm: String,
+) -> Result<String, Error> {
+    let mut hasher = match algorithm.as_str() {
+        "sha256" => Sha256::new(),
+        _ => return Err(Error::Unsupported),
+    };
+    let fs = app.state::<Fs<R>>();
+    let mut opt = OpenOptions::new();
+    opt.read(true);
+    let mut file = fs.open(path, opt)?;
+    std::io::copy(&mut file, &mut hasher)?;
+    let result = hasher.finalize();
+    Ok(hex::encode(result))
 }
 
 #[tauri::command]
@@ -49,7 +55,7 @@ fn copy<R: Runtime>(
     target: FilePath,
     on_progress: Channel<CopyProgress>,
 ) -> Result<(), Error> {
-    let fs: State<Fs<R>> = app.state();
+    let fs = app.state::<Fs<R>>();
     let mut read_options = OpenOptions::new();
     read_options.read(true);
     let mut src_file = fs.open(source, read_options)?;
