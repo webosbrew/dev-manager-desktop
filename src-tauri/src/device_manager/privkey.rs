@@ -10,8 +10,14 @@ impl PrivateKey {
     pub fn content(&self, ssh_dir: Option<&Path>) -> Result<String, Error> {
         match self {
             PrivateKey::Path { name } => {
-                let mut secret_file =
-                    std::fs::File::open(ssh_dir.ok_or(Error::bad_config())?.join(name))?;
+                let mut ssh_dir = ssh_dir.ok_or(Error::bad_config())?;
+                if cfg!(mobile) {
+                    let ssh_parent = ssh_dir.parent().ok_or(Error::bad_config())?;
+                    if ssh_parent.join(name).is_file() {
+                        ssh_dir = ssh_parent;
+                    }
+                }
+                let mut secret_file = std::fs::File::open(ssh_dir.join(name))?;
                 let mut secret = String::new();
                 secret_file.read_to_string(&mut secret)?;
                 Ok(secret)
