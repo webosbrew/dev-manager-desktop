@@ -20,7 +20,7 @@ name = "devman"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.6", features = ["codegen"] }
+tauri-build = { version = "2.1.1", features = ["codegen"] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
@@ -49,7 +49,7 @@ tauri-plugin-os = "2.2.1"
 tauri-plugin-http = "2.4.3"
 
 [dependencies.tauri]
-version = "2.3.1"
+version = "2.4.1"
 default-features = false
 features = ["wry"]
 
@@ -66,11 +66,11 @@ optional = true
 version = "2.2.1"
 
 [dependencies.tauri-plugin-single-instance]
-version = "2.2.2"
+version = "2.2.3"
 optional = true
 
 [dependencies.ssh-key]
-version = "0.6.6"
+version = "0.6.7"
 features = ["ed25519", "getrandom"]
 
 [dev-dependencies]
