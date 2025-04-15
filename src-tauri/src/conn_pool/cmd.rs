@@ -103,9 +103,7 @@ mod test {
         ))
         .unwrap();
         let err = DeviceConnection::new(device, None).expect_err("Should have failed");
-        assert!(
-            matches!(err, Error::Authorization { message } if message == "Bad SSH password")
-        );
+        assert!(matches!(err, Error::Authorization { message } if message == "Bad SSH password"));
     }
 
     #[test]
@@ -118,6 +116,23 @@ mod test {
         ))
         .unwrap();
         let conn = DeviceConnection::new(device, None).expect("Failed to create connection");
+        let output = conn
+            .execute_command("whoami", None, Encoding::String)
+            .expect("Failed to execute command");
+        assert_eq!(b"root\n", output.stdout.as_ref());
+    }
+
+    #[test]
+    fn execute_command_whoami_keyauth() {
+        let sshd = SshContainer::new();
+        let port = sshd.wait();
+        let device = serde_json::from_str::<Device>(&format!(
+            "{{\"profile\":\"ose\",\"name\":\"test\",\"host\":\"127.0.0.1\",\
+            \"port\": {port},\"username\": \"root\",\"privateKey\": {{\"openSsh\": \"id_root\"}}}}"
+        ))
+        .unwrap();
+        let conn = DeviceConnection::new(device, Some(&SshContainer::fixture_path("keys", false)))
+            .expect("Failed to create connection");
         let output = conn
             .execute_command("whoami", None, Encoding::String)
             .expect("Failed to execute command");

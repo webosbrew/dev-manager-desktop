@@ -14,10 +14,6 @@ pub struct SshContainer {
 
 impl SshContainer {
     pub fn new() -> Self {
-        let mp = format!(
-            "{}:/etc/entrypoint.d/",
-            Self::entrypoint_d().to_string_lossy()
-        );
         let output = Command::new("docker")
             .args(["run", "--rm", "-d", "-p", "22"])
             .args(["-e", "SSH_ENABLE_ROOT=true"])
@@ -30,7 +26,18 @@ impl SshContainer {
                 "--health-interval",
                 "3s",
             ])
-            .args(["-v", &mp])
+            .args([
+                "-v",
+                &format!(
+                    "{}:/etc/entrypoint.d/",
+                    Self::fixture_path("entrypoint.d", true).to_string_lossy()
+                ),
+                "-v",
+                &format!(
+                    "{}:/root/.ssh/authorized_keys",
+                    Self::fixture_path("keys/id_root.pub", true).to_string_lossy()
+                ),
+            ])
             .arg("public.ecr.aws/panubo/sshd")
             .output()
             .expect("Failed to start sshd container");
@@ -75,9 +82,9 @@ impl SshContainer {
         panic!("Failed to start sshd container");
     }
 
-    fn entrypoint_d() -> PathBuf {
-        let path = abs_file!().parent().unwrap().join("entrypoint.d");
-        if cfg!(target_family = "windows") {
+    pub fn fixture_path(name: &str, for_container: bool) -> PathBuf {
+        let path = abs_file!().parent().unwrap().join(name);
+        if for_container && cfg!(target_family = "windows") {
             let mut components = path.components();
             let drive: Component = components.next().unwrap().into();
             components.next();
