@@ -1,12 +1,12 @@
-<div *ngIf="device">
-  @if (installedError) {
-    <app-error-card title="Unable to get installed apps" [error]="installedError" (retry)="loadPackages()">
-    </app-error-card>
-  } @else {
-    <ul class="list-group list-group-flush" *ngIf="(installed$ | async) as installed else loading">
+@let installed = installed$ | async;
+@if (installedError) {
+  <app-error-card title="Unable to get installed apps" [error]="installedError" (retry)="loadPackages()">
+  </app-error-card>
+} @else if (installed) {
+  <ul class="list-group list-group-flush">
+    @for (pkg of installed; track pkg.id) {
       <li class="list-group-item app-item d-flex flex-row align-items-center"
-          (click)="repoPackages?.[pkg.id] && parent.openDetails(repoPackages![pkg.id])"
-          *ngFor="let pkg of installed">
+          (click)="repoPackages?.[pkg.id] && parent.openDetails(repoPackages![pkg.id])">
         <div class="app-desc flex-fill">
           <!--suppress AngularNgOptimizedImage -->
           <img class="app-icon" [src]="pkg.iconUri | trustUri" [alt]="pkg.title">
@@ -14,22 +14,22 @@
             <div class="app-title">{{ pkg.title }}</div>
             <div class="app-description">
               <span>v{{ pkg.version }}</span>
-              <ng-container *ngIf="repoPackages && repoPackages[pkg.id] as rpkg">
-              <span class="text-primary"
-                    *ngIf="rpkg.manifest?.hasUpdate(pkg.version)">&nbsp;&rsaquo;&nbsp;v{{ rpkg.manifest?.version }}</span>
-              </ng-container>
+              @let rpkg = repoPackages && repoPackages[pkg.id];
+              @if (rpkg && rpkg.manifest?.hasUpdate(pkg.version)) {
+                <span class="text-primary">&nbsp;&rsaquo;&nbsp;v{{ rpkg.manifest?.version }}</span>
+              }
             </div>
           </div>
         </div>
-        <button class="btn btn-sm btn-primary text-nowrap" type="button"
-                (click)="$event.stopPropagation(); parent.installPackage(repoPackages![pkg.id])"
-                *ngIf="repoPackages?.[pkg.id]?.manifest?.hasUpdate(pkg.version)">
-          Update
-        </button>
+        @if (repoPackages?.[pkg.id]?.manifest?.hasUpdate(pkg.version)) {
+          <button class="btn btn-sm btn-primary text-nowrap" type="button" aria-label="Update"
+                  (click)="$event.stopPropagation(); parent.installPackage(repoPackages![pkg.id])">
+            Update
+          </button>
+        }
       </li>
-    </ul>
-  }
-  <ng-template #loading>
-    <app-loading-card></app-loading-card>
-  </ng-template>
-</div>
+    }
+  </ul>
+} @else {
+  <app-loading-card></app-loading-card>
+}

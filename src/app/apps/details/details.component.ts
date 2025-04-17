@@ -14,6 +14,7 @@ import {SharedModule} from "../../shared/shared.module";
 import {Device, PackageInfo} from "../../types";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {AppsComponent} from "../apps.component";
+import {ExternalLinkDirective} from "../../shared/directives";
 
 @Component({
     selector: 'app-channel-app-details',
@@ -30,7 +31,8 @@ import {AppsComponent} from "../apps.component";
         SharedModule,
         NgSwitch,
         NgSwitchDefault,
-        NgForOf
+        NgForOf,
+        ExternalLinkDirective
     ],
     templateUrl: './details.component.html',
     styleUrl: './details.component.scss',

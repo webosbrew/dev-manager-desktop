@@ -16,7 +16,8 @@
             <li>
               <select class="breadcrumb-item form-select form-select-sm border-0 border-end rounded-end-0"
                       [value]="device.name" (change)="deviceManager.setDefault(deviceSelect.value)" #deviceSelect>
-                @for (item of (deviceManager.devices$ | async); track item.name) {
+                @let devices = deviceManager.devices$ | async;
+                @for (item of devices; track item.name) {
                   <option [value]="item.name" [selected]="item.name === device.name">{{ item.name }}</option>
                 }
               </select>

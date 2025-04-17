@@ -7,6 +7,7 @@ import {SharedModule} from "../shared/shared.module";
 import {DevmodeCountdownPipe} from './devmode-countdown.pipe';
 import {NgbDropdownModule} from "@ng-bootstrap/ng-bootstrap";
 import {FormsModule} from "@angular/forms";
+import {ExternalLinkDirective} from "../shared/directives";
 
 
 @NgModule({
@@ -20,6 +21,7 @@ import {FormsModule} from "@angular/forms";
         SharedModule,
         NgbDropdownModule,
         FormsModule,
+        ExternalLinkDirective,
     ]
 })
 export class InfoModule {

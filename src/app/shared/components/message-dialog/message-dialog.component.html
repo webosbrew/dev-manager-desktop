@@ -1,21 +1,41 @@
-<div class="modal-header" *ngIf="title">
-  <h5 class="modal-title">{{title}}</h5>
-</div>
-<div class="modal-body" [ngSwitch]="messageType">
-  <p *ngSwitchCase="'string'">{{message}}</p>
-  <ng-template *ngSwitchCase="'component'" #messageComponent></ng-template>
-  <div class="card w-100 p-2" *ngIf="error && $any(error).details as details">
-    <label class="card-title">More info about the error:</label>
-    <pre class="card-body w-100 p-0">{{details}}</pre>
+@if (title) {
+  <div class="modal-header">
+    <h5 class="modal-title">{{ title }}</h5>
   </div>
+}
+<div class="modal-body" [ngSwitch]="messageType">
+  @switch (messageType) {
+    @case ('string') {
+      <p>{{ message }}</p>
+    }
+    @case ('component') {
+      <ng-container *ngComponentOutlet="$any(message); injector: messageInjector"/>
+    }
+  }
+  @let details = error && $any(error).details;
+  @if (details) {
+    <div class="card w-100 p-2">
+      <label class="card-title">More info about the error:</label>
+      <pre class="card-body w-100 p-0">{{ details }}</pre>
+    </div>
+  }
 </div>
 <div class="modal-footer">
-  <button type="button" class="btn btn-secondary me-auto" (click)="alternativeClicked()"
-          [autofocus]="autofocus === 'alternative'" [disabled]="alternativeDisabled"
-          *ngIf="alternative">{{alternative}}</button>
-  <button type="button" class="btn btn-secondary" (click)="negativeClicked()"
-          [autofocus]="autofocus === 'negative'" [disabled]="negativeDisabled"
-          *ngIf="negative">{{negative}}</button>
-  <button type="button" class="btn" (click)="positiveClicked()" [autofocus]="autofocus === 'positive'"
-          [disabled]="positiveDisabled" [ngClass]="['btn-' + positiveStyle]" *ngIf="positive">{{positive}}</button>
+  @if (alternative) {
+    <button type="button" class="btn btn-secondary me-auto" (click)="alternativeClicked()"
+            [autofocus]="autofocus === 'alternative'" [disabled]="alternativeDisabled"
+    >{{ alternative }}
+    </button>
+  }
+  @if (negative) {
+    <button type="button" class="btn btn-secondary" (click)="negativeClicked()"
+            [autofocus]="autofocus === 'negative'" [disabled]="negativeDisabled"
+    >{{ negative }}
+    </button>
+  }
+  @if (positive) {
+    <button type="button" class="btn" (click)="positiveClicked()" [autofocus]="autofocus === 'positive'"
+            [disabled]="positiveDisabled" [ngClass]="['btn-' + positiveStyle]">{{ positive }}
+    </button>
+  }
 </div>

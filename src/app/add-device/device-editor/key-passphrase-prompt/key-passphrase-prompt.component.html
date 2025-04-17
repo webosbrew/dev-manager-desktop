@@ -8,8 +8,8 @@
   }
 </div>
 <div class="modal-footer">
-  <button class="btn btn-outline-secondary" (click)="modal.dismiss()">Cancel</button>
+  <button class="btn btn-outline-secondary" (click)="modal.dismiss()" aria-label="Cancel">Cancel</button>
   <button class="btn btn-primary" [disabled]="formControl.invalid"
-          (click)="formControl.valid && modal.close(formControl.value)">OK
+          (click)="formControl.valid && modal.close(formControl.value)" aria-label="OK">OK
   </button>
 </div>

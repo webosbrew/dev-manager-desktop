@@ -2,38 +2,42 @@
   <div class="position-sticky w-100 top-0 d-flex flex-row z-3">
     <button type="button" class="btn-close ms-auto" aria-label="Close" (click)="modal.dismiss('Close click')"></button>
   </div>
+  @let installed = installedInfo$ | async;
   <div class="d-flex flex-wrap flex-sm-row">
     <img class="app-details-icon" [ngSrc]="item.detailIconUri ?? item.iconUri" width="160" height="160" alt="App icon"/>
     <div class="flex-fill my-2 ms-3 d-flex flex-column">
       <h1>{{ item.title }}</h1>
       <label class="mt-1">
         Version {{ item.manifest?.version }}
-        <ng-container *ngIf="(installedInfo$ | async) as installed">
+        @if (installed) {
           (Installed: {{ installed?.version }})
-        </ng-container>
+        }
       </label>
       <label class="mt-1 fw-bold" *ngIf="item.manifest?.rootRequired" [ngSwitch]="item.manifest?.rootRequired">
         <ng-container *ngSwitchCase="true">Root required</ng-container>
         <ng-container *ngSwitchCase="'optional'">Root is optional</ng-container>
       </label>
     </div>
-    @let installed = installedInfo$ | async;
     <div class="d-flex flex-column justify-content-center ms-auto">
       <ng-container>
         <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
-          <ng-container [ngSwitch]="installed && manifest.hasUpdate(installed.version)">
-            <button class="btn btn-primary ms-2 text-nowrap" (click)="parent?.launchApp(item.id)"
-                    *ngSwitchCase="false">
-              <i class="bi bi-play-fill me-2"></i>Launch
-            </button>
-            <button class="btn btn-primary ms-2 text-nowrap" (click)="installPackage(item)"
-                    *ngSwitchCase="true">
-              <i class="bi bi-download me-2"></i>Update
-            </button>
-            <button class="btn btn-primary ms-2 text-nowrap" (click)="installPackage(item)" *ngSwitchDefault>
-              <i class="bi bi-download me-2"></i>Install
-            </button>
-          </ng-container>
+          @switch (installed && manifest.hasUpdate(installed.version)) {
+            @case (false) {
+              <button class="btn btn-primary" (click)="parent?.launchApp(item.id)" aria-label="Launch">
+                <i class="bi bi-play-fill me-2"></i>Launch
+              </button>
+            }
+            @case (true) {
+              <button class="btn btn-primary" (click)="installPackage(item)" aria-label="Update">
+                <i class="bi bi-download me-2"></i>Update
+              </button>
+            }
+            @default {
+              <button class="btn btn-primary" (click)="installPackage(item)" aria-label="Install">
+                <i class="bi bi-download me-2"></i>Install
+              </button>
+            }
+          }
           <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
                aria-label="More options">
             <button class="btn btn-primary" ngbDropdownToggle>

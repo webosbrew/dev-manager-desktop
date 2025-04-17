@@ -19,7 +19,8 @@
       <li ngbNavItem="script">
         <a class="text-nowrap" ngbNavLink>Shell Script</a>
         <ng-template ngbNavContent>
-          <ng-container *ngIf="renewScriptContent as script">
+          @let script = renewScriptContent;
+          @if (script) {
             <p>Following is a shell script. It can be executed anywhere in your local area network.</p>
             <div class="position-relative">
               <pre class="pre-scrollable bg-panel p-3">{{ script }}</pre>
@@ -32,7 +33,7 @@
                 </button>
               </div>
             </div>
-          </ng-container>
+          }
         </ng-template>
       </li>
       <li ngbNavItem="ifttt">

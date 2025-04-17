@@ -7,7 +7,7 @@
       </app-wizard-mode-select>
       <ng-template appWizardFooterTemplate>
         <button class="btn btn-primary ms-auto" [disabled]="!connectionMode" [ngSwitch]="connectionMode"
-                (click)="finishConnectionModeSelection()">Next
+                (click)="finishConnectionModeSelection()" aria-label="Next">Next
         </button>
       </ng-template>
     </ng-template>
@@ -18,13 +18,12 @@
       <ng-template ngbNavContent>
         <app-wizard-devmode-setup #devModeSetup></app-wizard-devmode-setup>
         <ng-template appWizardFooterTemplate>
-          <button class="btn btn-outline-secondary" (click)="prevStep()">Back</button>
-          <button class="btn btn-primary ms-auto" (click)="editDevice()">
-            @if (devModeSetup.allDone) {
-              Next
-            } @else {
-              Skip
-            }</button>
+          <button class="btn btn-outline-secondary" (click)="prevStep()" aria-label="Back">Back</button>
+          @if (devModeSetup.allDone) {
+            <button class="btn btn-primary ms-auto" (click)="editDevice()" aria-label="Next">Next</button>
+          } @else {
+            <button class="btn btn-primary ms-auto" (click)="editDevice()" aria-label="Skip">Skip</button>
+          }
         </ng-template>
       </ng-template>
     </li>
@@ -35,8 +34,9 @@
       <app-wizard-add-device [mode]="connectionMode" (deviceAdded)="deviceAdded($event)" #addDevice>
       </app-wizard-add-device>
       <ng-template appWizardFooterTemplate>
-        <button class="btn btn-outline-secondary" (click)="prevStep()">Back</button>
-        <button class="btn btn-primary ms-auto" (click)="addDevice.submit()" [disabled]="!addDevice.valid">Finish
+        <button class="btn btn-outline-secondary" (click)="prevStep()" aria-label="Back">Back</button>
+        <button class="btn btn-primary ms-auto" (click)="addDevice.submit()" [disabled]="!addDevice.valid"
+                aria-label="Finish">Finish
         </button>
       </ng-template>
     </ng-template>
@@ -45,7 +45,7 @@
 <div class="modal-header">
   <h5 class="modal-title">{{ navTitle }}</h5>
   @if (cancellable) {
-    <button class="btn btn-close me-1" (click)="modal.dismiss()"></button>
+    <button class="btn btn-close me-1" (click)="modal.dismiss()" aria-label="Close"></button>
   }
 </div>
 <div class="modal-body" [ngbNavOutlet]="nav">

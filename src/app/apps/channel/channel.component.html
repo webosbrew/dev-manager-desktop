@@ -3,7 +3,8 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item app-item d-flex flex-row align-items-center" (click)="parent.openDetails(item)"
         *ngFor="let item of repoPage.packages">
-      <ng-container *ngIf="item.manifest as manifest">
+      @let manifest = item.manifest;
+      @if (manifest) {
         <div class="app-desc flex-fill">
           <img class="app-icon" [ngSrc]="item.iconUri" [alt]="item.title" width="48" height="48">
           <div class="app-headline ms-3">
@@ -11,8 +12,8 @@
             <div class="app-description">{{ manifest.appDescription }}</div>
           </div>
         </div>
-        <button class="btn btn-sm btn-primary ms-2 text-nowrap">Details</button>
-      </ng-container>
+        <button class="btn btn-sm btn-primary ms-2 text-nowrap" aria-label="Details">Details</button>
+      }
     </li>
   </ul>
   <div class="mt-3">

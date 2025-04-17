@@ -68,8 +68,7 @@
           </button>
           <div class="btn-group btn-group-sm" ngbDropdown role="group" container="body"
                aria-label="Button group with nested dropdown">
-            <button type="button" class="btn btn-secondary" ngbDropdownToggle>
-            </button>
+            <button type="button" class="btn btn-secondary" ngbDropdownToggle></button>
             <div class="dropdown-menu" ngbDropdownMenu>
               @for (device of devices; track device.name) {
                 <button ngbDropdownItem
@@ -98,7 +97,8 @@
       @if (devices) {
         <div class="list-group mt-3">
           @for (device of devices; track device.name) {
-            <button class="list-group-item list-group-item-action" type="button" (click)="newTab(device)">
+            <button class="list-group-item list-group-item-action" type="button" (click)="newTab(device)"
+                    attr.aria-label="New shell on {{ device.name }}">
               {{ device.name }}
               <span class="float-end text-secondary">{{ device.username }}</span>
             </button>

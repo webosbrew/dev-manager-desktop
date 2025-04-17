@@ -44,11 +44,13 @@
           <input type="text" class="form-control" id="authValue" formControlName="value" [appSshAuthValue]="authType"
                  autocomplete="off">
           @if (authType === 'localKey') {
-            <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()">
+            <button type="button" class="btn btn-outline-secondary" (click)="chooseSshPrivKey()"
+                    aria-label="Choose private key">
               Choose...
             </button>
           }
-          <button type="button" class="btn btn-outline-secondary" (click)="authInfoHelp()">
+          <button type="button" class="btn btn-outline-secondary" (click)="authInfoHelp()"
+                  aria-label="About authentication info">
             <i class="bi bi-question-circle-fill"></i>
           </button>
         }

@@ -26,6 +26,7 @@ import {AddDeviceModule} from "./add-device/add-device.module";
 import {NgOptimizedImage} from "@angular/common";
 import {Router} from "@angular/router";
 import {createErrorHandler, TraceService} from "@sentry/angular";
+import {ExternalLinkDirective} from "./shared/directives";
 
 @NgModule({
     declarations: [
@@ -54,6 +55,7 @@ import {createErrorHandler, TraceService} from "@sentry/angular";
         NgbDropdownToggle,
         NgbDropdownMenu,
         NgbDropdownItem,
+        ExternalLinkDirective,
     ],
     providers: [
         {
