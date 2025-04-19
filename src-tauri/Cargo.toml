@@ -49,7 +49,7 @@ tauri-plugin-os = "2.2.1"
 tauri-plugin-http = "2.4.3"
 
 [dependencies.tauri]
-version = "2.4.1"
+version = "2.5.0"
 default-features = false
 features = ["wry"]
 
@@ -86,3 +86,4 @@ default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
 vendored-openssl = ["libssh-rs-sys/vendored-openssl", "reqwest/native-tls-vendored"]
 desktop = ["tauri-plugin-single-instance", "native-dialog"]
+karma = []

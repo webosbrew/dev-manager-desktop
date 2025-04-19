@@ -4,6 +4,7 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 
 mod device;
+#[cfg(not(feature = "karma"))]
 mod io;
 mod manager;
 mod novacom;
@@ -90,4 +91,24 @@ pub struct DeviceCheckConnection {
     pub ssh_22: bool,
     pub ssh_9922: bool,
     pub key_server: bool,
+}
+
+#[cfg(feature = "karma")]
+mod io {
+    use crate::device_manager::Device;
+    use crate::error::Error;
+    use std::path::Path;
+    use std::sync::LazyLock;
+    use tokio::sync::Mutex;
+
+    static DEVICES: LazyLock<Mutex<Vec<Device>>> = LazyLock::new(Default::default);
+
+    pub(crate) async fn read(_conf_dir: &Path) -> Result<Vec<Device>, Error> {
+        Ok(DEVICES.lock().await.clone())
+    }
+
+    pub(crate) async fn write(devices: Vec<Device>, _conf_dir: &Path) -> Result<(), Error> {
+        *DEVICES.lock().await = devices;
+        Ok(())
+    }
 }
