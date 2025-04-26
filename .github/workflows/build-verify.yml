@@ -14,10 +14,10 @@ on:
         type: choice
         description: 'The type of runner to use'
         required: true
-        default: 'ubuntu-22.04'
+        default: 'ubuntu-24.04'
         options:
-          - 'ubuntu-22.04'
-          - 'ubuntu-22.04-arm'
+          - 'ubuntu-24.04'
+          - 'ubuntu-24.04-arm'
           - 'macos-latest'
       build-for:
         type: choice
@@ -34,7 +34,7 @@ env:
 jobs:
   build-desktop:
     if: ${{ !github.event.inputs.build-for || github.event.inputs.build-for == 'desktop' }}
-    runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
+    runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-24.04' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -92,7 +92,7 @@ jobs:
 
   build-android:
     if: ${{ !github.event.inputs.build-for || github.event.inputs.build-for == 'android' }}
-    runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-22.04' }}
+    runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-24.04' }}
 
     steps:
       - uses: actions/checkout@v4
