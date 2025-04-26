@@ -49,7 +49,7 @@ tauri-plugin-os = "2.2.1"
 tauri-plugin-http = "2.4.3"
 
 [dependencies.tauri]
-version = "2.5.0"
+version = "2.5.1"
 default-features = false
 features = ["wry"]
 
@@ -58,7 +58,7 @@ version = "0.12.14"
 features = ["json"]
 
 [dependencies.native-dialog]
-version = "0.7.0"
+version = "0.8.3"
 features = ["windows_dpi_awareness", "windows_visual_styles"]
 optional = true
 

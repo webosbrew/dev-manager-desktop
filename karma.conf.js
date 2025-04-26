@@ -8,10 +8,10 @@ module.exports = function (config) {
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
     plugins: [
       require('karma-jasmine'),
-      require('./scripts/karma-tauri-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma')
+      require('@angular-devkit/build-angular/plugins/karma'),
+      require('./scripts/karma-tauri-launcher'),
     ],
     client: {
       jasmine: {
@@ -22,11 +22,7 @@ module.exports = function (config) {
       },
       clearContext: false // leave Jasmine Spec Runner output visible in browser
     },
-    customLaunchers: {
-      'Desktop': {
-        base: 'TauriDesktop'
-      }
-    },
+    captureTimeout: 3600 * 1000,
     jasmineHtmlReporter: {
       suppressAll: true // removes the duplicated traces
     },
@@ -39,11 +35,11 @@ module.exports = function (config) {
       ]
     },
     reporters: ['progress', 'kjhtml'],
+    retryLimit: 0,
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Desktop'],
     singleRun: false,
     restartOnFileChange: true
   });

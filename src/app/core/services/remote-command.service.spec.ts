@@ -1,7 +1,6 @@
 import {RemoteCommandService} from "./remote-command.service";
 import {TestBed} from "@angular/core/testing";
 import {NewDeviceWithLocalPrivateKey} from "../../types";
-import objectContaining = jasmine.objectContaining;
 
 describe('RemoteCommandService', () => {
   let service: RemoteCommandService;

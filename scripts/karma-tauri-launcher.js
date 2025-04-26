@@ -7,15 +7,27 @@ const TauriLauncher = /** @class */ (function () {
       tauriCommand = ['android', 'dev'];
     }
     this._getOptions = function (url) {
-      const tauriConfOverride = {build: {beforeDevCommand: '', devUrl: url}};
+      const tauriConfOverride = {
+        build: {
+          beforeDevCommand: 'adb reverse tcp:9876 tcp:9876',
+          devUrl: url
+        },
+        app: {
+          windows: [
+            {
+              url: url
+            }
+          ]
+        }
+      };
       return ['scripts/tauri-wrapper.js', ...tauriCommand, '-c', JSON.stringify(tauriConfOverride), '-f', 'karma'];
     };
     let log = logger.create('tauri');
     this._onStdout = function (data) {
-      log.info(data.toString().trimEnd());
+      log.debug(data.toString().trimEnd());
     };
     this._onStderr = function (data) {
-      log.info(data.toString().trimEnd());
+      log.debug(data.toString().trimEnd());
     };
   }
 

@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{ErrorKind, Read};
 use std::path::Path;
 
 use libssh_rs::{PublicKeyHashType, SshKey};
@@ -17,7 +17,13 @@ impl PrivateKey {
                         ssh_dir = ssh_parent;
                     }
                 }
-                let mut secret_file = std::fs::File::open(ssh_dir.join(name))?;
+                let mut secret_file =
+                    std::fs::File::open(ssh_dir.join(name)).map_err(|err| match err.kind() {
+                        ErrorKind::NotFound => Error::BadPrivateKey {
+                            message: format!("Private key file not found: {}", name),
+                        },
+                        _ => err.into(),
+                    })?;
                 let mut secret = String::new();
                 secret_file.read_to_string(&mut secret)?;
                 Ok(secret)
