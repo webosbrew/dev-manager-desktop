@@ -9,6 +9,7 @@ import {open as openPath} from '@tauri-apps/plugin-shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/plugin-dialog';
 import {downloadDir} from "@tauri-apps/api/path";
 import {CreateDirectoryMessageComponent} from "./create-directory-message/create-directory-message.component";
+import {trimEnd} from "lodash-es";
 
 class FilesState {
 
@@ -140,7 +141,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         if (!cwd) return;
         switch (file.type) {
             case 'd': {
-                await this.cd(`${cwd}/${file.filename}`, true);
+                await this.cd(`${trimEnd(cwd, '/')}/${file.filename}`, true);
                 break;
             }
             case '-': {
@@ -354,8 +355,8 @@ export class FilesComponent implements OnInit, OnDestroy {
     }
 
     async breadcrumbNav(segs: string[]): Promise<void> {
-        segs[0] = '';
-        await this.cd(segs.join('/'), true);
+        segs = segs.filter(s => !!s);
+        await this.cd('/' + segs.join('/'), true);
     }
 
 }
