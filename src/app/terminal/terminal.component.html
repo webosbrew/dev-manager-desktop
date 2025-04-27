@@ -83,11 +83,11 @@
       }
     </div>
     <div class="overflow-hidden flex-fill position-relative">
-      <div class="position-absolute w-100 h-100">
+      <div class="position-absolute w-100 h-100 top-0 bottom-0">
         <app-terminal-size-calculator [(size)]="termSize" (pendingResizeChange)="pendingResize = $event">
         </app-terminal-size-calculator>
       </div>
-      <div class="position-absolute w-100 h-100 tabs-container" [ngbNavOutlet]="nav"></div>
+      <div class="position-absolute w-100 h-100 top-0 bottom-0 tabs-container" [ngbNavOutlet]="nav"></div>
     </div>
   </div>
 
