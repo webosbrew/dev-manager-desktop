@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {FileItem} from "../../types";
 import {FileSizeOptionsBase} from "filesize";
+import {type as osType} from "@tauri-apps/plugin-os";
 
 interface KeyModifiers {
     shift: boolean;
@@ -27,7 +28,10 @@ export class FilesTableComponent {
 
     selectedItems: FileItem[] | null = null;
 
+    allowMultiple: boolean;
+
     constructor() {
+        this.allowMultiple = !['android', 'ios'].includes(osType());
     }
 
     openItem(file: FileItem): void {
@@ -37,7 +41,9 @@ export class FilesTableComponent {
     }
 
     selectItem(file: FileItem, modifiers: KeyModifiers): void {
-        if (modifiers.ctrl) {
+        if (!this.allowMultiple) {
+            this.selectedItems = [file];
+        } else if (modifiers.ctrl) {
             this.toggleItemSelection(file);
         } else if (modifiers.shift) {
             this.selectRange(file);
