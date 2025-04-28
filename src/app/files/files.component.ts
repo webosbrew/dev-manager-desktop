@@ -10,6 +10,7 @@ import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/plugin
 import {downloadDir} from "@tauri-apps/api/path";
 import {CreateDirectoryMessageComponent} from "./create-directory-message/create-directory-message.component";
 import {trimEnd} from "lodash-es";
+import {path} from "@tauri-apps/api";
 
 class FilesState {
 
@@ -202,7 +203,8 @@ export class FilesComponent implements OnInit, OnDestroy {
             let result = false;
             do {
                 try {
-                    await this.session!.get(`${cwd}/${file.filename}`, target);
+                    const targetPath = await path.join(target, file.filename);
+                    await this.session!.get(`${cwd}/${file.filename}`, targetPath);
                 } catch (e) {
                     result = await MessageDialogComponent.open(this.modalService, {
                         title: `Failed to download file ${file.filename}`,
