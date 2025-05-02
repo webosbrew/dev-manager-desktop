@@ -1,7 +1,5 @@
 name: Bug Report
 description: Something within the app is not working as expected (files, app installation, etc...)
-labels:
-  - bug
 type: Bug
 body:
   - type: markdown
