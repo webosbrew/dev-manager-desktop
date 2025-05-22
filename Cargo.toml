@@ -6,4 +6,4 @@ members = [
 
 [patch.crates-io]
 r2d2 = { git = "https://github.com/mariotaku/r2d2.git", rev = "aaa2a2b" }
-tauri = { git = "https://github.com/mariotaku/tauri.git", rev = "f501f7b" }
+#tauri = { git = "https://github.com/mariotaku/tauri.git", rev = "f501f7b" }
