@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, catchError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject} from 'rxjs';
-import {Device, PackageInfo, RawPackageInfo} from '../../types';
+import {Device, DeviceLike, PackageInfo, RawPackageInfo} from '../../types';
 import {
     LunaResponse,
     LunaResponseError,
@@ -279,6 +279,37 @@ export class AppManagerService {
         );
     }
 
+    async appDiskUsage(device: DeviceLike, appDir: string): Promise<PackageDiskUsage> {
+        const appIndex = appDir.indexOf('/usr/palm/applications/');
+        if (appIndex < 0) {
+            throw new Error('Not accepted appDir format: ' + appDir);
+        }
+        const installBase = appDir.substring(0, appIndex);
+        const appId = appDir.substring(appIndex + 23);
+        const pkgInfo = JSON.parse(await this.file.read(device, `${installBase}/usr/palm/packages/${appId}/packageinfo.json`, undefined, 'utf-8')) as PkgInfo;
+        const dirs = [appDir];
+        pkgInfo.services?.forEach(service => {
+            const serviceDir = `${installBase}/usr/palm/services/${service}`;
+            dirs.push(serviceDir);
+        });
+        return await this.cmd.exec(device, `xargs du -d 0 -c`, 'utf-8', dirs.join('\n'))
+            .then(stdout => (Object.fromEntries(stdout.split('\n').map(line => line.match(/(\d+)\t(.+)/))
+                .map((match): [keyof PackageDiskUsage, number] | null => {
+                    if (!match) {
+                        return null;
+                    }
+                    const size = parseInt(match[1] ?? '0');
+                    const path = match[2] ?? '';
+                    if (path === 'total') {
+                        return ['total', size];
+                    } else if (path.includes('/usr/palm/applications')) {
+                        return ['application', size];
+                    } else if (path.includes('/usr/palm/services')) {
+                        return [path.substring(path.lastIndexOf('/')), size];
+                    }
+                    return null;
+                }).filter(v => v) as Iterable<[keyof PackageDiskUsage, number]>) as unknown as PackageDiskUsage));
+    }
 }
 
 function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp): boolean {
@@ -301,6 +332,10 @@ function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp):
     return false;
 }
 
+interface PkgInfo {
+    services?: string[];
+}
+
 export interface InstallProgressHandler {
     (progress?: number, statusText?: string): void;
 }
@@ -313,4 +348,11 @@ export class InstallError extends Error {
     static insufficientSpace(details: string): InstallError {
         return new InstallError('Can\'t install because of insufficient space', details);
     }
+}
+
+export interface PackageDiskUsage {
+    application: number;
+    total: number;
+
+    [service: string]: number;
 }

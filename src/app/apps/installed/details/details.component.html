@@ -1,0 +1,29 @@
+<div class="modal-body">
+  <div class="app-header overflow-hidden">
+    <img class="app-icon float-start me-2" [src]="pkg.iconUri"/>
+    <h3 class="mb-1">{{ pkg.title }}</h3>
+    <div>v{{ pkg.version }}</div>
+  </div>
+  <p class="mt-1">{{ pkg.appDescription }}</p>
+  <ul class="list-group">
+    <li class="list-group-item">
+      Launch
+    </li>
+    <li class="list-group-item text-danger">
+      Uninstall
+    </li>
+    <li class="list-group-item d-flex">
+      <div>Space used</div>
+      <div class="text-secondary ms-auto">
+        @let du = diskUsage$ | async;
+        @if (!du) {
+          Calculating...
+        } @else if (du.error) {
+          Failed to calculate
+        } @else if (du.result) {
+          {{ du.result.total * 1024 | filesize:sizeOptions }}
+        }
+      </div>
+    </li>
+  </ul>
+</div>

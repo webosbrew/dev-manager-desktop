@@ -1,26 +1,28 @@
-@let repoPage = repoPage$ | async;
-@if (repoPage) {
-  <ul class="list-group list-group-flush">
-    <li class="list-group-item app-item d-flex flex-row align-items-center" (click)="parent.openDetails(item)"
-        *ngFor="let item of repoPage.packages">
-      @let manifest = item.manifest;
-      @if (manifest) {
-        <div class="app-desc flex-fill">
-          <img class="app-icon" [ngSrc]="item.iconUri" [alt]="item.title" width="48" height="48">
-          <div class="app-headline ms-3">
-            <div class="app-title">{{ item.title }}</div>
-            <div class="app-description">{{ manifest.appDescription }}</div>
+<div class="p-3">
+  @let repoPage = repoPage$ | async;
+  @if (repoPage) {
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item app-item d-flex flex-row align-items-center"
+          *ngFor="let item of repoPage.packages">
+        @let manifest = item.manifest;
+        @if (manifest) {
+          <div class="app-desc flex-fill">
+            <img class="app-icon" [ngSrc]="item.iconUri" [alt]="item.title" width="48" height="48">
+            <div class="app-headline ms-3">
+              <div class="app-title">{{ item.title }}</div>
+              <div class="app-description">{{ manifest.appDescription }}</div>
+            </div>
           </div>
-        </div>
-        <button class="btn btn-sm btn-primary ms-2 text-nowrap" aria-label="Details">Details</button>
-      }
-    </li>
-  </ul>
-  <div class="mt-3">
-    <ngb-pagination class="d-flex justify-content-center" [collectionSize]="repoPage.paging.maxPage" [(page)]="page"
-                    [pageSize]="1" aria-label="Default pagination" (pageChange)="loadPage($event)">
-    </ngb-pagination>
-  </div>
-} @else {
-  <app-loading-card/>
-}
+          <button class="btn btn-sm btn-primary ms-2 text-nowrap" aria-label="Details">Details</button>
+        }
+      </li>
+    </ul>
+    <div class="mt-3">
+      <ngb-pagination class="d-flex justify-content-center" [collectionSize]="repoPage.paging.maxPage" [(page)]="page"
+                      [pageSize]="1" aria-label="Default pagination" (pageChange)="loadPage($event)">
+      </ngb-pagination>
+    </div>
+  } @else {
+    <app-loading-card/>
+  }
+</div>

@@ -19,7 +19,7 @@
   } @else if (installed) {
     <ul class="list-group list-group-flush">
       @for (pkg of installed; track pkg.id) {
-        <li class="list-group-item app-item d-flex flex-row align-items-center">
+        <li class="list-group-item app-item d-flex flex-row align-items-center" (click)="openDetails(pkg)">
           <div class="app-desc flex-fill">
             <!--suppress AngularNgOptimizedImage -->
             <img class="app-icon" [src]="pkg.iconUri | trustUri" [alt]="pkg.title">
