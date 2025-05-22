@@ -1,9 +1,11 @@
-import {Component, Host, OnDestroy, OnInit} from '@angular/core';
+import {Component, Host, Injector, OnDestroy, OnInit} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
 import {Observable, Subscription} from "rxjs";
 import {AppManagerService, DeviceManagerService, RepositoryItem} from "../../core/services";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
+import {DetailsComponent as InstalledDetailsComponent} from "./details/details.component";
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
     selector: 'app-installed',
@@ -23,7 +25,7 @@ export class InstalledComponent implements OnInit, OnDestroy {
     private subscription?: Subscription;
 
     constructor(@Host() public parent: AppsComponent, public deviceManager: DeviceManagerService,
-                private appManager: AppManagerService) {
+                private appManager: AppManagerService, private modals: NgbModal) {
     }
 
     ngOnInit(): void {
@@ -43,5 +45,18 @@ export class InstalledComponent implements OnInit, OnDestroy {
         if (!device) return;
         this.installedError = undefined;
         this.installed$ = fromPromise(this.appManager.load(device));
+    }
+
+    openDetails(pkg: PackageInfo) {
+        this.modals.open(InstalledDetailsComponent, {
+            size: 'lg',
+            scrollable: true,
+            injector: Injector.create({
+                providers: [
+                    {provide: 'package', useValue: pkg},
+                    {provide: 'device', useValue: this.device},
+                ]
+            })
+        });
     }
 }
