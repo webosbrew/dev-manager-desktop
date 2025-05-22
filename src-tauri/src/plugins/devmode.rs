@@ -2,10 +2,11 @@ use libssh_rs::OpenFlags;
 use std::io::Read;
 
 use regex::Regex;
-use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use tauri::plugin::{Builder, TauriPlugin};
 use tauri::{AppHandle, Manager, Runtime};
+use tauri_plugin_http::reqwest;
+use tauri_plugin_http::reqwest::Url;
 
 use crate::device_manager::Device;
 use crate::error::Error;
