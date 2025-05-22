@@ -1,35 +1,49 @@
-@let installed = installed$ | async;
-@if (installedError) {
-  <app-error-card title="Unable to get installed apps" [error]="installedError" (retry)="loadPackages()">
-  </app-error-card>
-} @else if (installed) {
-  <ul class="list-group list-group-flush">
-    @for (pkg of installed; track pkg.id) {
-      <li class="list-group-item app-item d-flex flex-row align-items-center"
-          (click)="repoPackages?.[pkg.id] && parent.openDetails(repoPackages![pkg.id])">
-        <div class="app-desc flex-fill">
-          <!--suppress AngularNgOptimizedImage -->
-          <img class="app-icon" [src]="pkg.iconUri | trustUri" [alt]="pkg.title">
-          <div class="app-headline ms-3">
-            <div class="app-title">{{ pkg.title }}</div>
-            <div class="app-description">
-              <span>v{{ pkg.version }}</span>
-              @let rpkg = repoPackages && repoPackages[pkg.id];
-              @if (rpkg && rpkg.manifest?.hasUpdate(pkg.version)) {
-                <span class="text-primary">&nbsp;&rsaquo;&nbsp;v{{ rpkg.manifest?.version }}</span>
-              }
+<div class="px-2 py-1 d-flex flex-row border-bottom align-items-center">
+  <select class="form-select form-select-sm w-auto" [value]="device?.name"
+          (change)="deviceManager.setDefault(deviceSelect.value)"
+          #deviceSelect>
+    @let devices = devices$ | async;
+    @for (dev of devices; track dev.name) {
+      <option [ngValue]="dev.name" [selected]="dev.name === device?.name">{{ dev.name }}</option>
+    }
+  </select>
+  <div class="storage-info-bar ms-auto">
+    <app-stat-storage-info [device]="device" #storageInfo></app-stat-storage-info>
+  </div>
+</div>
+<div class="px-3">
+  @let installed = installed$ | async;
+  @if (installedError) {
+    <app-error-card title="Unable to get installed apps" [error]="installedError" (retry)="loadPackages()">
+    </app-error-card>
+  } @else if (installed) {
+    <ul class="list-group list-group-flush">
+      @for (pkg of installed; track pkg.id) {
+        <li class="list-group-item app-item d-flex flex-row align-items-center" (click)="openDetails(pkg)">
+          <div class="app-desc flex-fill">
+            <!--suppress AngularNgOptimizedImage -->
+            <img class="app-icon" [src]="pkg.iconUri | trustUri" [alt]="pkg.title">
+            <div class="app-headline ms-3">
+              <div class="app-title">{{ pkg.title }}</div>
+              <div class="app-description">
+                <span>v{{ pkg.version }}</span>
+                @let rpkg = repoPackages && repoPackages[pkg.id];
+                @if (rpkg && rpkg.manifest?.hasUpdate(pkg.version)) {
+                  <span class="text-primary">&nbsp;&rsaquo;&nbsp;v{{ rpkg.manifest?.version }}</span>
+                }
+              </div>
             </div>
           </div>
-        </div>
-        @if (repoPackages?.[pkg.id]?.manifest?.hasUpdate(pkg.version)) {
-          <button class="btn btn-sm btn-primary text-nowrap" type="button" aria-label="Update"
-                  (click)="$event.stopPropagation(); parent.installPackage(repoPackages![pkg.id])">
-            Update
-          </button>
-        }
-      </li>
-    }
-  </ul>
-} @else {
-  <app-loading-card></app-loading-card>
-}
+          @if (repoPackages?.[pkg.id]?.manifest?.hasUpdate(pkg.version)) {
+            <button class="btn btn-sm btn-primary text-nowrap" type="button" aria-label="Update"
+                    (click)="$event.stopPropagation(); parent.installPackage(repoPackages![pkg.id])">
+              Update
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  } @else {
+    <app-loading-card></app-loading-card>
+  }
+</div>

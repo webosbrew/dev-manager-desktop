@@ -5,8 +5,9 @@ use std::str::FromStr;
 
 use libssh_rs::{Error as SshError, SftpError};
 use regex::Regex;
-use reqwest::StatusCode;
 use serde::{Serialize, Serializer};
+use tauri_plugin_http::reqwest;
+use tauri_plugin_http::reqwest::StatusCode;
 
 #[derive(Debug, Serialize, Clone, PartialEq)]
 #[serde(tag = "reason")]
