@@ -30,4 +30,4 @@ import {FormsModule} from "@angular/forms";
     ]
 })
 export class AppsModule {
-}
+} 
