@@ -13,7 +13,9 @@
               <div class="app-description">{{ manifest.appDescription }}</div>
             </div>
           </div>
-          <button class="btn btn-sm btn-primary ms-2 text-nowrap" aria-label="Details">Details</button>
+          <button class="btn btn-sm btn-primary ms-2 text-nowrap" aria-label="Details" (click)="openDetails(item)">
+            Details
+          </button>
         }
       </li>
     </ul>
