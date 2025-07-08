@@ -1,17 +1,15 @@
-import {Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {noop, Observable, Subscription} from 'rxjs';
-import {Device, PackageInfo, RawPackageInfo} from '../types';
-import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
+import {noop, Subscription} from 'rxjs';
+import {Device, RawPackageInfo} from '../types';
+import {AppManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
-import {keyBy} from 'lodash';
 import {open as showOpenDialog} from '@tauri-apps/plugin-dialog';
 import {basename, downloadDir} from "@tauri-apps/api/path";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 import {HbchannelRemoveComponent} from "./hbchannel-remove/hbchannel-remove.component";
 import {StatStorageInfoComponent} from "../shared/components/stat-storage-info/stat-storage-info.component";
-import {DetailsComponent} from "./details/details.component";
 
 @Component({
     selector: 'app-apps',
@@ -20,10 +18,7 @@ import {DetailsComponent} from "./details/details.component";
 })
 export class AppsComponent implements OnInit, OnDestroy {
 
-    packages$?: Observable<PackageInfo[] | null>;
-    instPackages?: Record<string, RawPackageInfo>;
     device: Device | null = null;
-    devices$?: Observable<Device[]|null>;
     tabId: string = 'installed';
 
     @ViewChild('storageInfo') storageInfo?: StatStorageInfoComponent;
@@ -32,45 +27,18 @@ export class AppsComponent implements OnInit, OnDestroy {
     private packagesSubscription?: Subscription;
 
     constructor(
-        public deviceManager: DeviceManagerService,
         private modalService: NgbModal,
         private appManager: AppManagerService,
     ) {
     }
 
     ngOnInit(): void {
-        this.devices$ = this.deviceManager.devices$;
-        this.deviceSubscription = this.deviceManager.selected$.subscribe((device) => {
-            this.device = device;
-            if (device) {
-                this.loadPackages();
-            } else {
-                this.packages$ = undefined;
-                this.packagesSubscription?.unsubscribe();
-                this.packagesSubscription = undefined;
-            }
-        });
     }
 
     ngOnDestroy(): void {
         this.deviceSubscription?.unsubscribe();
         this.packagesSubscription?.unsubscribe();
         this.packagesSubscription = undefined;
-    }
-
-    loadPackages(): void {
-        const device = this.device;
-        if (!device) return;
-        this.packagesSubscription?.unsubscribe();
-        this.packages$ = this.appManager.packages$(device);
-        this.packagesSubscription = this.packages$.subscribe({
-            next: (pkgs) => {
-                if (pkgs?.length) {
-                    this.instPackages = keyBy(pkgs, (pkg) => pkg.id);
-                }
-            }, error: noop
-        });
-        this.appManager.load(device).catch(noop);
     }
 
     async openInstallChooser(): Promise<void> {
@@ -187,21 +155,6 @@ export class AppsComponent implements OnInit, OnDestroy {
         } finally {
             progress.close(true);
         }
-    }
-
-    openDetails(item: RepositoryItem): void {
-        const modalRef = this.modalService.open(DetailsComponent, {
-            size: 'lg',
-            scrollable: true,
-            injector: Injector.create({
-                providers: [
-                    {provide: RepositoryItem, useValue: item},
-                    {provide: 'device', useValue: this.device},
-                ],
-            }),
-        });
-        const component = modalRef.componentInstance as DetailsComponent;
-        component.parent = this;
     }
 
     private handleInstallationError(name: string, e: Error) {
