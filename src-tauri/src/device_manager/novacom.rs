@@ -14,12 +14,13 @@ pub(crate) fn fetch_key(host: &str, port: u16) -> Result<String, Error> {
     stream.write(b"Connection: close\r\n")?;
     stream.write(b"\r\n")?;
 
-    let mut buffer = [0u8; 65536];
-    let buffer_size = stream.read(&mut buffer)?;
+    let mut limited_stream = stream.take(65536);
+    let mut buffer = Vec::with_capacity(65536);
+    limited_stream.read_to_end(&mut buffer)?;
     let mut headers = [httparse::EMPTY_HEADER; 64];
     let mut response = Response::new(&mut headers);
     let Status::Complete(size_to_skip) = response
-        .parse(&buffer[..buffer_size])
+        .parse(&buffer)
         .map_err(|e| IoError::new(std::io::ErrorKind::InvalidData, e))?
     else {
         return Err(Error::NotFound);
@@ -27,7 +28,7 @@ pub(crate) fn fetch_key(host: &str, port: u16) -> Result<String, Error> {
     if response.code.unwrap() != 200 {
         return Err(Error::NotFound);
     }
-    Ok(String::from_utf8_lossy(&buffer[size_to_skip..buffer_size]).to_string())
+    Ok(String::from_utf8_lossy(&buffer[size_to_skip..]).to_string())
 }
 
 #[cfg(test)]
@@ -43,11 +44,26 @@ mod tests {
         let server = Server::run();
         server.expect(
             Expectation::matching(request::method_path("GET", "/webos_rsa"))
-                .respond_with(status_code(404)),
+                .respond_with(status_code(404).body("Not Found")),
         );
         let addr = server.addr();
         let result = fetch_key(addr.ip().to_string().as_str(), addr.port());
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn fetch_key_success() {
+        let server = Server::run();
+        let expected_key =
+            "-----BEGIN ENCRYPTED PRIVATE KEY-----\n...\n-----END ENCRYPTED PRIVATE KEY-----\n";
+        server.expect(
+            Expectation::matching(request::method_path("GET", "/webos_rsa"))
+                .respond_with(status_code(200).body(expected_key)),
+        );
+        let addr = server.addr();
+        let result = fetch_key(addr.ip().to_string().as_str(), addr.port());
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), expected_key);
     }
 
     #[test]
