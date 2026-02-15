@@ -68,15 +68,9 @@ async function run() {
   if (process.platform === 'win32' && process.argv[2] === 'android') {
     await prepareOpenSSL();
   }
-  const hasCargoTauri = await (new Promise((resolve, reject) => {
-    child_process.exec('cargo tauri -V', (err, stdout) => {
-      if (err) {
-        reject(new Error('Tauri is not installed'));
-      } else {
-        resolve();
-      }
-    });
-  }).then(() => true).catch(() => false));
+  const hasCargoTauri = await (new Promise((resolve) => {
+    child_process.exec('cargo tauri -V', (err) => resolve(!err));
+  }));
   if (hasCargoTauri) {
     return new Promise((resolve, reject) => {
       const child = child_process.spawn('cargo', ['tauri', ...process.argv.slice(2)], {stdio: 'inherit'});
