@@ -84,6 +84,25 @@
             <ng-template #unrooted>Unrooted</ng-template>
           </ng-container>
         </p>
+        <div class="mb-3" *ngIf="homebrewAppInfo">
+          <label for="homebrewCustomRepoUrl" class="form-label">Custom repository URL</label>
+          <div class="input-group">
+            <input
+              id="homebrewCustomRepoUrl"
+              class="form-control"
+              placeholder="https://example.com/repo.json"
+              type="url"
+              [value]="homebrewCustomRepoUrl"
+              (input)="homebrewCustomRepoUrl = $any($event.target).value"
+              (keydown.enter)="addCustomRepoToHomebrew()">
+            <button class="btn btn-outline-primary" type="button"
+                    [disabled]="!homebrewCustomRepoUrl.trim()"
+                    (click)="addCustomRepoToHomebrew()">
+              Add Repo
+            </button>
+          </div>
+          <small class="text-muted">This opens Homebrew Channel on your TV with this URL pre-filled.</small>
+        </div>
         <div>
           <button class="btn btn-primary me-2" (click)="installHbChannel()"
                   *ngIf="!homebrewAppInfo && homebrewRepoManifest">Install
