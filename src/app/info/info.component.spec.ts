@@ -46,4 +46,31 @@ describe('InfoComponent', () => {
         expect(appManager.launch).not.toHaveBeenCalled();
         expect(dialogSpy).toHaveBeenCalled();
     });
+
+    it('shows error and does not launch for non-http protocols', async () => {
+        const {component, appManager} = setup();
+        const dialogSpy = spyOn(MessageDialogComponent, 'open');
+        component.homebrewCustomRepoUrl = 'ftp://example.com/repo.json';
+
+        await component.addCustomRepoToHomebrew();
+
+        expect(appManager.launch).not.toHaveBeenCalled();
+        expect(dialogSpy).toHaveBeenCalled();
+    });
+
+    it('trims whitespace before launching addRepository mode', async () => {
+        const {component, appManager} = setup();
+        component.homebrewCustomRepoUrl = '  https://example.com/repo.json  ';
+
+        await component.addCustomRepoToHomebrew();
+
+        expect(appManager.launch).toHaveBeenCalledWith(
+            component.device,
+            APP_ID_HBCHANNEL,
+            {
+                launchMode: 'addRepository',
+                url: 'https://example.com/repo.json',
+            }
+        );
+    });
 });

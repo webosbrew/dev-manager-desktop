@@ -163,11 +163,17 @@ export class InfoComponent implements OnInit, OnDestroy {
 
     async addCustomRepoToHomebrew(): Promise<void> {
         const device = this.device;
-        if (!device) return;
+        if (!device) {
+            MessageDialogComponent.open(this.modalService, {
+                message: 'No device selected',
+                positive: 'OK'
+            });
+            return;
+        }
         try {
             const parsed = new URL(this.homebrewCustomRepoUrl.trim());
             if (!['http:', 'https:'].includes(parsed.protocol)) {
-                throw new Error('Repository URL must use HTTP or HTTPS');
+                throw new Error('Repository URL must use http:// or https://');
             }
             await this.appManager.launch(device, APP_ID_HBCHANNEL, {
                 launchMode: 'addRepository',
@@ -175,8 +181,9 @@ export class InfoComponent implements OnInit, OnDestroy {
             });
             this.homebrewCustomRepoUrl = '';
         } catch (e) {
+            const reason = e instanceof Error ? e.message : 'An unexpected error occurred while adding the repository';
             MessageDialogComponent.open(this.modalService, {
-                message: 'Failed to add custom repository',
+                message: `Failed to add custom repository: ${reason}`,
                 error: e as Error,
                 positive: 'OK'
             });
