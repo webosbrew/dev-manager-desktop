@@ -252,6 +252,23 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
 
 pub const URI_SCHEME: &str = "remote-file";
 
+fn content_type_for_path(path: &str) -> &'static str {
+    let ext = Path::new(path)
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|e| e.to_ascii_lowercase());
+    match ext.as_deref() {
+        Some("png") => "image/png",
+        Some("jpg") | Some("jpeg") => "image/jpeg",
+        Some("gif") => "image/gif",
+        Some("webp") => "image/webp",
+        Some("bmp") => "image/bmp",
+        Some("svg") => "image/svg+xml",
+        Some("ico") => "image/x-icon",
+        _ => "application/octet-stream",
+    }
+}
+
 pub fn protocol<R: Runtime>(
     ctx: UriSchemeContext<'_, R>,
     req: http::Request<Vec<u8>>,
@@ -282,6 +299,7 @@ pub fn protocol<R: Runtime>(
             return;
         };
         let app = app.clone();
+        let content_type = content_type_for_path(&path);
         match tauri::async_runtime::spawn_blocking(move || {
             let sessions = app.state::<SessionManager>();
             return sessions.with_session(device, |session| {
@@ -295,7 +313,13 @@ pub fn protocol<R: Runtime>(
         .await
         {
             Ok(Ok(data)) => {
-                resp.respond(http::Response::builder().status(200).body(data).unwrap());
+                resp.respond(
+                    http::Response::builder()
+                        .status(200)
+                        .header(http::header::CONTENT_TYPE, content_type)
+                        .body(data)
+                        .unwrap(),
+                );
                 return;
             }
             Ok(Err(e)) => {
