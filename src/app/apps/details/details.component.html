@@ -19,11 +19,23 @@
       </label>
     </div>
     <div class="d-flex flex-column justify-content-center ms-auto">
+      @let allDevices = devices$ | async;
+      @if (allDevices && allDevices.length > 1) {
+        <select class="form-select form-select-sm mb-2 ms-auto w-auto"
+                aria-label="Install target device"
+                [value]="selectedDevice.name"
+                (change)="onDeviceChange(deviceSelect.value)"
+                #deviceSelect>
+          @for (dev of allDevices; track dev.name) {
+            <option [value]="dev.name" [selected]="dev.name === selectedDevice.name">{{ dev.name }}</option>
+          }
+        </select>
+      }
       <ng-container>
         <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
           @switch (installed && manifest.hasUpdate(installed.version)) {
             @case (false) {
-              <button class="btn btn-primary" (click)="parent?.launchApp(item.id)" aria-label="Launch">
+              <button class="btn btn-primary" (click)="launchApp(item.id)" aria-label="Launch">
                 <i class="bi bi-play-fill me-2"></i>Launch
               </button>
             }

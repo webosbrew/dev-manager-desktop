@@ -1,0 +1,19 @@
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 110, 253, 0.15);
+  border: 3px dashed rgba(13, 110, 253, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1050;
+}
+
+.drop-overlay-inner {
+  padding: 1rem 1.5rem;
+  background: var(--bs-body-bg);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  font-size: 1.25rem;
+}

@@ -1,4 +1,7 @@
-<div class="modal-body">
+<div class="modal-header border-0 pb-0">
+  <button type="button" class="btn-close ms-auto" aria-label="Close" (click)="modal.dismiss()"></button>
+</div>
+<div class="modal-body pt-0">
   <div class="app-header overflow-hidden">
     <img class="app-icon float-start me-2" [src]="pkg.iconUri"/>
     <h3 class="mb-1">{{ pkg.title }}</h3>
@@ -6,12 +9,17 @@
   </div>
   <p class="mt-1">{{ pkg.appDescription }}</p>
   <ul class="list-group">
-    <li class="list-group-item">
+    <button type="button" class="list-group-item list-group-item-action" (click)="launch()">
       Launch
-    </li>
-    <li class="list-group-item text-danger">
+    </button>
+    @if (hasUpdate) {
+      <button type="button" class="list-group-item list-group-item-action text-primary" (click)="update()">
+        Update to v{{ repoPackage!.manifest!.version }}
+      </button>
+    }
+    <button type="button" class="list-group-item list-group-item-action text-danger" (click)="uninstall()">
       Uninstall
-    </li>
+    </button>
     <li class="list-group-item d-flex">
       <div>Space used</div>
       <div class="text-secondary ms-auto">

@@ -1,8 +1,8 @@
-import {Component, Host, Injector, OnDestroy, OnInit} from '@angular/core';
+import {Component, Host, Injector, Input, OnChanges, SimpleChanges} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
-import {Observable, Subscription} from "rxjs";
-import {AppManagerService, DeviceManagerService, RepositoryItem} from "../../core/services";
+import {Observable} from "rxjs";
+import {AppManagerService, AppsRepoService, RepositoryItem} from "../../core/services";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {DetailsComponent as InstalledDetailsComponent} from "./details/details.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
@@ -12,39 +12,41 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
     templateUrl: './installed.component.html',
     styleUrls: ['./installed.component.scss']
 })
-export class InstalledComponent implements OnInit, OnDestroy {
+export class InstalledComponent implements OnChanges {
 
-    device: Device | null = null;
-    devices$?: Observable<Device[] | null>;
+    @Input() device: Device | null = null;
+
     installed$: Observable<PackageInfo[]> | undefined;
 
     installedError?: Error;
 
     repoPackages?: Record<string, RepositoryItem>;
 
-    private subscription?: Subscription;
-
-    constructor(@Host() public parent: AppsComponent, public deviceManager: DeviceManagerService,
-                private appManager: AppManagerService, private modals: NgbModal) {
+    constructor(@Host() public parent: AppsComponent,
+                private appManager: AppManagerService, private appsRepo: AppsRepoService,
+                private modals: NgbModal) {
     }
 
-    ngOnInit(): void {
-        this.devices$ = this.deviceManager.devices$;
-        this.subscription = this.devices$.subscribe(devices => {
-            this.device = devices?.find(d => d.default) ?? null;
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['device']) {
             this.loadPackages();
-        });
-    }
-
-    ngOnDestroy(): void {
-        this.subscription?.unsubscribe();
+        }
     }
 
     loadPackages(): void {
         const device = this.device;
-        if (!device) return;
         this.installedError = undefined;
-        this.installed$ = fromPromise(this.appManager.load(device));
+        this.repoPackages = undefined;
+        if (!device) {
+            this.installed$ = undefined;
+            return;
+        }
+        this.installed$ = fromPromise(this.appManager.load(device).then(packages => {
+            this.appsRepo.showApps(...packages.map(p => p.id))
+                .then(repo => this.repoPackages = repo)
+                .catch(() => undefined);
+            return packages;
+        }));
     }
 
     openDetails(pkg: PackageInfo) {
@@ -55,6 +57,8 @@ export class InstalledComponent implements OnInit, OnDestroy {
                 providers: [
                     {provide: 'package', useValue: pkg},
                     {provide: 'device', useValue: this.device},
+                    {provide: 'parent', useValue: this.parent},
+                    {provide: 'repoPackage', useValue: this.repoPackages?.[pkg.id] ?? null},
                 ]
             })
         });

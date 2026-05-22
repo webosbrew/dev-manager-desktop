@@ -34,10 +34,13 @@ export class ChannelComponent implements OnInit {
     }
 
     openDetails(item: RepositoryItem) {
+        if (!this.parent.device) return;
         this.modals.open(DetailsComponent, {
             injector: Injector.create({
                 providers: [
                     {provide: RepositoryItem, useValue: item},
+                    {provide: 'device', useValue: this.parent.device},
+                    {provide: 'parent', useValue: this.parent},
                 ]
             })
         });

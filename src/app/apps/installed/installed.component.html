@@ -1,16 +1,3 @@
-<div class="px-2 py-1 d-flex flex-row border-bottom align-items-center">
-  <select class="form-select form-select-sm w-auto" [value]="device?.name"
-          (change)="deviceManager.setDefault(deviceSelect.value)"
-          #deviceSelect>
-    @let devices = devices$ | async;
-    @for (dev of devices; track dev.name) {
-      <option [ngValue]="dev.name" [selected]="dev.name === device?.name">{{ dev.name }}</option>
-    }
-  </select>
-  <div class="storage-info-bar ms-auto">
-    <app-stat-storage-info [device]="device" #storageInfo></app-stat-storage-info>
-  </div>
-</div>
 <div class="px-3">
   @let installed = installed$ | async;
   @if (installedError) {

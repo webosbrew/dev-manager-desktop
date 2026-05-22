@@ -1,15 +1,19 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {noop, Subscription} from 'rxjs';
+import {noop, Observable, Subscription} from 'rxjs';
 import {Device, RawPackageInfo} from '../types';
-import {AppManagerService, RepositoryItem} from '../core/services';
+import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
 import {ProgressDialogComponent} from '../shared/components/progress-dialog/progress-dialog.component';
 import {open as showOpenDialog} from '@tauri-apps/plugin-dialog';
 import {basename, downloadDir} from "@tauri-apps/api/path";
+import * as os from "@tauri-apps/plugin-os";
+import {getCurrentWebview} from "@tauri-apps/api/webview";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 import {HbchannelRemoveComponent} from "./hbchannel-remove/hbchannel-remove.component";
 import {StatStorageInfoComponent} from "../shared/components/stat-storage-info/stat-storage-info.component";
+
+type UnlistenFn = () => void;
 
 @Component({
     selector: 'app-apps',
@@ -19,26 +23,59 @@ import {StatStorageInfoComponent} from "../shared/components/stat-storage-info/s
 export class AppsComponent implements OnInit, OnDestroy {
 
     device: Device | null = null;
+    devices$?: Observable<Device[] | null>;
     tabId: string = 'installed';
+    dragOver = false;
 
     @ViewChild('storageInfo') storageInfo?: StatStorageInfoComponent;
 
     private deviceSubscription?: Subscription;
-    private packagesSubscription?: Subscription;
+    private unlistenDragDrop?: UnlistenFn;
 
     constructor(
         private modalService: NgbModal,
         private appManager: AppManagerService,
+        public deviceManager: DeviceManagerService,
+        private zone: NgZone,
     ) {
     }
 
     ngOnInit(): void {
+        this.devices$ = this.deviceManager.devices$;
+        this.deviceSubscription = this.devices$.subscribe(devices => {
+            this.device = devices?.find(d => d.default) ?? null;
+        });
+        this.setupDragDrop().catch(e => console.warn('Drag-drop listener failed:', e));
     }
 
     ngOnDestroy(): void {
         this.deviceSubscription?.unsubscribe();
-        this.packagesSubscription?.unsubscribe();
-        this.packagesSubscription = undefined;
+        this.unlistenDragDrop?.();
+    }
+
+    private async setupDragDrop(): Promise<void> {
+        if (os.type() === 'android' || os.type() === 'ios') return;
+        const webview = getCurrentWebview();
+        this.unlistenDragDrop = await webview.onDragDropEvent(event => {
+            this.zone.run(() => {
+                switch (event.payload.type) {
+                    case 'over':
+                    case 'enter':
+                        this.dragOver = true;
+                        break;
+                    case 'leave':
+                        this.dragOver = false;
+                        break;
+                    case 'drop':
+                        this.dragOver = false;
+                        const ipks = event.payload.paths.filter(p => p.toLowerCase().endsWith('.ipk'));
+                        for (const path of ipks) {
+                            this.installFromPath(path).catch(noop);
+                        }
+                        break;
+                }
+            });
+        });
     }
 
     async openInstallChooser(): Promise<void> {
@@ -51,11 +88,17 @@ export class AppsComponent implements OnInit, OnDestroy {
         if (!path) {
             return;
         }
+        await this.installFromPath(path);
+    }
+
+    private async installFromPath(path: string): Promise<void> {
+        if (!this.device) return;
         const progress = ProgressDialogComponent.open(this.modalService);
         const component = progress.componentInstance as ProgressDialogComponent;
         try {
             await this.appManager.installByPath(this.device, path,
                 (progress, statusText) => component.update(statusText, progress));
+            this.storageInfo?.refresh();
         } catch (e) {
             console.warn(e);
             this.handleInstallationError(await basename(path), e as Error);
@@ -107,8 +150,8 @@ export class AppsComponent implements OnInit, OnDestroy {
         }
     }
 
-    async installPackage(item: RepositoryItem, channel: 'stable' | 'beta' = 'stable'): Promise<boolean> {
-        const device = this.device;
+    async installPackage(item: RepositoryItem, channel: 'stable' | 'beta' = 'stable', deviceOverride?: Device): Promise<boolean> {
+        const device = deviceOverride ?? this.device;
         if (!device) return false;
         const progress = ProgressDialogComponent.open(this.modalService);
         try {
