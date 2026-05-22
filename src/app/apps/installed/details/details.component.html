@@ -1,37 +1,63 @@
-<div class="modal-header border-0 pb-0">
-  <button type="button" class="btn-close ms-auto" aria-label="Close" (click)="modal.dismiss()"></button>
-</div>
-<div class="modal-body pt-0">
-  <div class="app-header overflow-hidden">
-    <img class="app-icon float-start me-2" [src]="pkg.iconUri"/>
-    <h3 class="mb-1">{{ pkg.title }}</h3>
-    <div>v{{ pkg.version }}</div>
-  </div>
-  <p class="mt-1">{{ pkg.appDescription }}</p>
-  <ul class="list-group">
-    <button type="button" class="list-group-item list-group-item-action" (click)="launch()">
-      Launch
-    </button>
-    @if (hasUpdate) {
-      <button type="button" class="list-group-item list-group-item-action text-primary" (click)="update()">
-        Update to v{{ repoPackage!.manifest!.version }}
+<div class="installed-detail h-100 d-flex flex-column">
+  <div class="detail-header d-flex flex-row align-items-center p-3 border-bottom">
+    <img class="detail-icon me-3" [src]="pkg.iconUri"/>
+    <div class="flex-fill min-w-0">
+      <h4 class="mb-0 text-truncate">{{ pkg.title }}</h4>
+      <div class="text-secondary small">
+        <span>v{{ pkg.version }}</span>
+        @if (hasUpdate) {
+          <span class="text-warning ms-2">&rsaquo; v{{ repoPackage!.manifest!.version }} available</span>
+        }
+      </div>
+    </div>
+    <div class="btn-group ms-3">
+      <button type="button" class="btn btn-primary" (click)="launch()">
+        <i class="bi bi-play-fill me-1"></i>Launch
       </button>
+      @if (hasUpdate) {
+        <button type="button" class="btn btn-warning" (click)="update()">
+          <i class="bi bi-download me-1"></i>Update
+        </button>
+      }
+      <button type="button" class="btn btn-outline-danger" (click)="uninstall()">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+  </div>
+  <div class="detail-body p-3 flex-fill overflow-auto">
+    @if (pkg.appDescription) {
+      <p class="text-body">{{ pkg.appDescription }}</p>
     }
-    <button type="button" class="list-group-item list-group-item-action text-danger" (click)="uninstall()">
-      Uninstall
-    </button>
-    <li class="list-group-item d-flex">
-      <div>Space used</div>
-      <div class="text-secondary ms-auto">
+    <dl class="row mb-0 small">
+      <dt class="col-4 col-md-3 text-secondary">App ID</dt>
+      <dd class="col-8 col-md-9 text-break"><code>{{ pkg.id }}</code></dd>
+      @if (pkg.vendor) {
+        <dt class="col-4 col-md-3 text-secondary">Vendor</dt>
+        <dd class="col-8 col-md-9">{{ pkg.vendor }}</dd>
+      }
+      @if (pkg.type) {
+        <dt class="col-4 col-md-3 text-secondary">Type</dt>
+        <dd class="col-8 col-md-9">{{ pkg.type }}</dd>
+      }
+      <dt class="col-4 col-md-3 text-secondary">Path</dt>
+      <dd class="col-8 col-md-9 text-break"><code>{{ pkg.folderPath }}</code></dd>
+      <dt class="col-4 col-md-3 text-secondary">Disk usage</dt>
+      <dd class="col-8 col-md-9">
         @let du = diskUsage$ | async;
-        @if (!du) {
-          Calculating...
+        @if (!du || (!du.result && !du.error)) {
+          Calculating&hellip;
         } @else if (du.error) {
-          Failed to calculate
+          <span class="text-secondary">Unavailable</span>
         } @else if (du.result) {
           {{ du.result.total * 1024 | filesize:sizeOptions }}
         }
-      </div>
-    </li>
-  </ul>
+      </dd>
+      @if (sourceUrl) {
+        <dt class="col-4 col-md-3 text-secondary">Website</dt>
+        <dd class="col-8 col-md-9 text-truncate">
+          <a [href]="sourceUrl" target="_blank" rel="noopener">{{ sourceUrl }}</a>
+        </dd>
+      }
+    </dl>
+  </div>
 </div>

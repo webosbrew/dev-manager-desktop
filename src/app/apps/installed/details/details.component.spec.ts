@@ -1,6 +1,4 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
-import {EMPTY, of} from 'rxjs';
 
 import {DetailsComponent} from './details.component';
 import {AppManagerService, PackageManifest, RepositoryItem} from '../../../core/services';
@@ -11,7 +9,6 @@ describe('InstalledDetailsComponent', () => {
     let component: DetailsComponent;
     let fixture: ComponentFixture<DetailsComponent>;
     let parentSpy: jasmine.SpyObj<AppsComponent>;
-    let modalSpy: jasmine.SpyObj<NgbActiveModal>;
 
     const device: Device = <Device>{
         name: 'test', host: '192.168.1.1', port: 22, username: 'prisoner',
@@ -27,7 +24,6 @@ describe('InstalledDetailsComponent', () => {
         parentSpy = jasmine.createSpyObj<AppsComponent>('AppsComponent', ['launchApp', 'removePackage', 'installPackage']);
         parentSpy.removePackage.and.resolveTo(true);
         parentSpy.installPackage.and.resolveTo(true);
-        modalSpy = jasmine.createSpyObj<NgbActiveModal>('NgbActiveModal', ['close', 'dismiss']);
         const appManagerStub = {
             appDiskUsage: () => Promise.reject(new Error('not under test')),
         } as Partial<AppManagerService>;
@@ -35,17 +31,20 @@ describe('InstalledDetailsComponent', () => {
         TestBed.configureTestingModule({
             imports: [DetailsComponent],
             providers: [
-                {provide: 'device', useValue: device},
-                {provide: 'package', useValue: pkg},
-                {provide: 'parent', useValue: parentSpy},
-                {provide: 'repoPackage', useValue: repoPackage},
-                {provide: NgbActiveModal, useValue: modalSpy},
                 {provide: AppManagerService, useValue: appManagerStub},
             ],
         });
 
         fixture = TestBed.createComponent(DetailsComponent);
         component = fixture.componentInstance;
+        component.pkg = pkg;
+        component.device = device;
+        component.parent = parentSpy;
+        component.repoPackage = repoPackage;
+        component.ngOnChanges({
+            pkg: <any>{currentValue: pkg, previousValue: undefined, firstChange: true, isFirstChange: () => true},
+            device: <any>{currentValue: device, previousValue: undefined, firstChange: true, isFirstChange: () => true},
+        });
         fixture.detectChanges();
     }
 
@@ -54,25 +53,32 @@ describe('InstalledDetailsComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('Launch calls parent.launchApp and closes the modal', () => {
+    it('Launch calls parent.launchApp', () => {
         setup();
         component.launch();
         expect(parentSpy.launchApp).toHaveBeenCalledWith(pkg.id);
-        expect(modalSpy.close).toHaveBeenCalled();
     });
 
-    it('Uninstall calls parent.removePackage and closes the modal on success', async () => {
+    it('Uninstall calls parent.removePackage with the package', async () => {
         setup();
-        await component.uninstall();
+        const removed = await component.uninstall();
         expect(parentSpy.removePackage).toHaveBeenCalledWith(pkg);
-        expect(modalSpy.close).toHaveBeenCalled();
+        expect(removed).toBeTrue();
     });
 
-    it('Uninstall keeps the modal open when removePackage returns false', async () => {
-        setup();
-        parentSpy.removePackage.and.resolveTo(false);
-        await component.uninstall();
-        expect(modalSpy.close).not.toHaveBeenCalled();
+    it('Update calls parent.installPackage when a repo package is available', async () => {
+        const newer = new RepositoryItem({manifest: new PackageManifest({version: '2.0.0'})}, '');
+        setup(newer);
+        const installed = await component.update();
+        expect(parentSpy.installPackage).toHaveBeenCalledWith(newer);
+        expect(installed).toBeTrue();
+    });
+
+    it('Update is a no-op without a repo package', async () => {
+        setup(null);
+        const installed = await component.update();
+        expect(installed).toBeFalse();
+        expect(parentSpy.installPackage).not.toHaveBeenCalled();
     });
 
     it('hasUpdate is false when no repo package is provided', () => {

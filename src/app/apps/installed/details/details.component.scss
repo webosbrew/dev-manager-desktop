@@ -1,8 +1,10 @@
-.app-header {
-  min-height: 64px;
+:host {
+  display: block;
+  height: 100%;
 }
 
-.app-icon {
+.detail-icon {
   width: 64px;
   height: 64px;
+  border-radius: 0.75rem;
 }

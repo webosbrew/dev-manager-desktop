@@ -1,11 +1,9 @@
-import {Component, Host, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild} from '@angular/core';
+import {Component, Host, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
 import {Observable, Subscription} from "rxjs";
 import {AppManagerService, AppsRepoService, RepositoryItem} from "../../core/services";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
-import {DetailsComponent as InstalledDetailsComponent} from "./details/details.component";
-import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {StatStorageInfoComponent} from "../../shared/components/stat-storage-info/stat-storage-info.component";
 
 @Component({
@@ -23,13 +21,15 @@ export class InstalledComponent implements OnChanges, OnInit, OnDestroy {
 
     repoPackages?: Record<string, RepositoryItem>;
 
+    selectedPkg: PackageInfo | null = null;
+    filterText = '';
+
     @ViewChild('storageInfo') storageInfo?: StatStorageInfoComponent;
 
     private storageSubscription?: Subscription;
 
     constructor(@Host() public parent: AppsComponent,
-                private appManager: AppManagerService, private appsRepo: AppsRepoService,
-                private modals: NgbModal) {
+                private appManager: AppManagerService, private appsRepo: AppsRepoService) {
     }
 
     ngOnInit(): void {
@@ -45,6 +45,7 @@ export class InstalledComponent implements OnChanges, OnInit, OnDestroy {
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['device']) {
+            this.selectedPkg = null;
             this.loadPackages();
         }
     }
@@ -61,22 +62,28 @@ export class InstalledComponent implements OnChanges, OnInit, OnDestroy {
             this.appsRepo.showApps(...packages.map(p => p.id))
                 .then(repo => this.repoPackages = repo)
                 .catch(() => undefined);
+            this.reconcileSelection(packages);
             return packages;
         }));
     }
 
-    openDetails(pkg: PackageInfo) {
-        this.modals.open(InstalledDetailsComponent, {
-            size: 'lg',
-            scrollable: true,
-            injector: Injector.create({
-                providers: [
-                    {provide: 'package', useValue: pkg},
-                    {provide: 'device', useValue: this.device},
-                    {provide: 'parent', useValue: this.parent},
-                    {provide: 'repoPackage', useValue: this.repoPackages?.[pkg.id] ?? null},
-                ]
-            })
-        });
+    selectPackage(pkg: PackageInfo): void {
+        this.selectedPkg = pkg;
+    }
+
+    matchesFilter(pkg: PackageInfo): boolean {
+        if (!this.filterText) return true;
+        const q = this.filterText.toLowerCase();
+        return pkg.title.toLowerCase().includes(q) || pkg.id.toLowerCase().includes(q);
+    }
+
+    hasUpdate(pkg: PackageInfo): boolean {
+        return this.repoPackages?.[pkg.id]?.manifest?.hasUpdate(pkg.version) === true;
+    }
+
+    private reconcileSelection(packages: PackageInfo[]): void {
+        if (!this.selectedPkg) return;
+        const match = packages.find(p => p.id === this.selectedPkg!.id);
+        this.selectedPkg = match ?? null;
     }
 }
