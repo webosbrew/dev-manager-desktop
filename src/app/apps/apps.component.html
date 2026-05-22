@@ -16,22 +16,14 @@
           </ng-template>
         </li>
       </ul>
-      <select class="form-select form-select-sm w-auto ms-3" [value]="device?.name"
-              (change)="deviceManager.setDefault(deviceSelect.value)"
-              #deviceSelect>
-        @for (dev of devices$ | async; track dev.name) {
-          <option [ngValue]="dev.name" [selected]="dev.name === device?.name">{{ dev.name }}</option>
-        }
-      </select>
-      <div class="storage-info-bar ms-2">
-        <app-stat-storage-info [device]="device" #storageInfo></app-stat-storage-info>
-      </div>
-      <button class="btn btn-primary text-nowrap ms-2" (click)="openInstallChooser()">
-        <i class="bi bi-folder-fill me-2"></i>Install
-      </button>
+      @if (tabId === 'installed') {
+        <button class="btn btn-primary text-nowrap ms-auto" (click)="openInstallChooser()">
+          <i class="bi bi-folder-fill me-2"></i>Install
+        </button>
+      }
     </div>
   </nav>
-  <div class="flex-fill overflow-auto" [ngbNavOutlet]="nav"></div>
+  <div class="flex-fill d-flex flex-column overflow-hidden" [ngbNavOutlet]="nav"></div>
   @if (dragOver) {
     <div class="drop-overlay">
       <div class="drop-overlay-inner">

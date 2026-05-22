@@ -1,6 +1,6 @@
-import {Component, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, NgZone, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {noop, Observable, Subscription} from 'rxjs';
+import {noop, Observable, Subject, Subscription} from 'rxjs';
 import {Device, RawPackageInfo} from '../types';
 import {AppManagerService, DeviceManagerService, RepositoryItem} from '../core/services';
 import {MessageDialogComponent} from '../shared/components/message-dialog/message-dialog.component';
@@ -11,7 +11,6 @@ import * as os from "@tauri-apps/plugin-os";
 import {getCurrentWebview} from "@tauri-apps/api/webview";
 import {APP_ID_HBCHANNEL} from "../shared/constants";
 import {HbchannelRemoveComponent} from "./hbchannel-remove/hbchannel-remove.component";
-import {StatStorageInfoComponent} from "../shared/components/stat-storage-info/stat-storage-info.component";
 
 type UnlistenFn = () => void;
 
@@ -26,8 +25,7 @@ export class AppsComponent implements OnInit, OnDestroy {
     devices$?: Observable<Device[] | null>;
     tabId: string = 'installed';
     dragOver = false;
-
-    @ViewChild('storageInfo') storageInfo?: StatStorageInfoComponent;
+    readonly storageChanged$ = new Subject<void>();
 
     private deviceSubscription?: Subscription;
     private unlistenDragDrop?: UnlistenFn;
@@ -98,7 +96,7 @@ export class AppsComponent implements OnInit, OnDestroy {
         try {
             await this.appManager.installByPath(this.device, path,
                 (progress, statusText) => component.update(statusText, progress));
-            this.storageInfo?.refresh();
+            this.storageChanged$.next();
         } catch (e) {
             console.warn(e);
             this.handleInstallationError(await basename(path), e as Error);
@@ -136,7 +134,7 @@ export class AppsComponent implements OnInit, OnDestroy {
         const progress = ProgressDialogComponent.open(this.modalService);
         try {
             await this.appManager.remove(this.device, pkg.id);
-            this.storageInfo?.refresh();
+            this.storageChanged$.next();
             return true;
         } catch (e) {
             MessageDialogComponent.open(this.modalService, {
@@ -190,7 +188,7 @@ export class AppsComponent implements OnInit, OnDestroy {
             const component = progress.componentInstance as ProgressDialogComponent;
             await this.appManager.installByManifest(device, manifest,
                 (progress, statusText) => component.update(statusText, progress));
-            this.storageInfo?.refresh();
+            this.storageChanged$.next();
             return true;
         } catch (e: any) {
             this.handleInstallationError(item.title, e as Error);

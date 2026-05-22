@@ -1,18 +1,19 @@
-import {Component, Host, Injector, Input, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, Host, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
-import {Observable} from "rxjs";
+import {Observable, Subscription} from "rxjs";
 import {AppManagerService, AppsRepoService, RepositoryItem} from "../../core/services";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {DetailsComponent as InstalledDetailsComponent} from "./details/details.component";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {StatStorageInfoComponent} from "../../shared/components/stat-storage-info/stat-storage-info.component";
 
 @Component({
     selector: 'app-installed',
     templateUrl: './installed.component.html',
     styleUrls: ['./installed.component.scss']
 })
-export class InstalledComponent implements OnChanges {
+export class InstalledComponent implements OnChanges, OnInit, OnDestroy {
 
     @Input() device: Device | null = null;
 
@@ -22,9 +23,24 @@ export class InstalledComponent implements OnChanges {
 
     repoPackages?: Record<string, RepositoryItem>;
 
+    @ViewChild('storageInfo') storageInfo?: StatStorageInfoComponent;
+
+    private storageSubscription?: Subscription;
+
     constructor(@Host() public parent: AppsComponent,
                 private appManager: AppManagerService, private appsRepo: AppsRepoService,
                 private modals: NgbModal) {
+    }
+
+    ngOnInit(): void {
+        this.storageSubscription = this.parent.storageChanged$.subscribe(() => {
+            this.storageInfo?.refresh();
+            this.loadPackages();
+        });
+    }
+
+    ngOnDestroy(): void {
+        this.storageSubscription?.unsubscribe();
     }
 
     ngOnChanges(changes: SimpleChanges): void {
