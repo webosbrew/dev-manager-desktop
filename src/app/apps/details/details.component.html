@@ -20,58 +20,59 @@
     </div>
     <div class="d-flex flex-column justify-content-center ms-auto">
       @let allDevices = devices$ | async;
-      @if (allDevices && allDevices.length > 1) {
-        <select class="form-select form-select-sm mb-2 ms-auto w-auto"
-                aria-label="Install target device"
-                [value]="selectedDevice.name"
-                (change)="onDeviceChange(deviceSelect.value)"
-                #deviceSelect>
-          @for (dev of allDevices; track dev.name) {
-            <option [value]="dev.name" [selected]="dev.name === selectedDevice.name">{{ dev.name }}</option>
+      <div class="input-group text-nowrap ms-2" aria-label="Install actions">
+        @if (allDevices && allDevices.length > 1) {
+          <select class="form-select"
+                  aria-label="Install target device"
+                  [value]="selectedDevice.name"
+                  (change)="onDeviceChange(deviceSelect.value)"
+                  #deviceSelect>
+            @for (dev of allDevices; track dev.name) {
+              <option [value]="dev.name" [selected]="dev.name === selectedDevice.name">{{ dev.name }}</option>
+            }
+          </select>
+        }
+        @switch (installed && manifest.hasUpdate(installed.version)) {
+          @case (false) {
+            <button class="btn btn-primary" (click)="launchApp(item.id)" aria-label="Launch">
+              <i class="bi bi-play-fill me-2"></i>Launch
+            </button>
           }
-        </select>
-      }
-      <ng-container>
-        <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
-          @switch (installed && manifest.hasUpdate(installed.version)) {
-            @case (false) {
-              <button class="btn btn-primary" (click)="launchApp(item.id)" aria-label="Launch">
-                <i class="bi bi-play-fill me-2"></i>Launch
-              </button>
-            }
-            @case (true) {
-              <button class="btn btn-primary" (click)="installPackage(item)" aria-label="Update">
-                <i class="bi bi-download me-2"></i>Update
-              </button>
-            }
-            @default {
-              <button class="btn btn-primary" (click)="installPackage(item)" aria-label="Install">
-                <i class="bi bi-download me-2"></i>Install
-              </button>
-            }
+          @case (true) {
+            <button class="btn btn-primary" (click)="installPackage(item)" aria-label="Update">
+              <i class="bi bi-download me-2"></i>Update
+            </button>
           }
+          @default {
+            <button class="btn btn-primary" (click)="installPackage(item)" aria-label="Install">
+              <i class="bi bi-download me-2"></i>Install
+            </button>
+          }
+        }
+        @if (item.manifestBeta || installed) {
           <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
-               aria-label="More options">
-            <button class="btn btn-primary" ngbDropdownToggle>
+               aria-label="More actions">
+            <button class="btn btn-primary" ngbDropdownToggle aria-label="More actions">
               <span class="caret"></span>
             </button>
             <ul class="dropdown-menu" ngbDropdownMenu>
               <li ngbDropdownItem (click)="installPackage(item, 'beta')" *ngIf="item.manifestBeta">
                 <i class="bi bi-download me-3"></i>Install Beta
               </li>
-              <a ngbDropdownItem *ngIf="manifest?.sourceUrl as url" [href]="url" appExternalLink>
-                <i class="bi bi-globe2 me-3"></i>Website
-              </a>
               <ng-container *ngIf="installed">
-                <li class="divider dropdown-divider"></li>
+                <li class="divider dropdown-divider" *ngIf="item.manifestBeta"></li>
                 <li ngbDropdownItem class="text-danger" (click)="removePackage(installed)">
                   <i class="bi bi-trash me-3"></i>Uninstall
                 </li>
               </ng-container>
             </ul>
           </div>
-        </div>
-      </ng-container>
+        }
+      </div>
+      <a *ngIf="manifest?.sourceUrl as url" [href]="url" appExternalLink
+         class="btn btn-link btn-sm text-nowrap ms-2 mt-2 align-self-end">
+        <i class="bi bi-globe2 me-2"></i>Website
+      </a>
     </div>
   </div>
   <hr>
