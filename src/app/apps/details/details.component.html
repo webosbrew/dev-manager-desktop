@@ -8,15 +8,18 @@
     <img class="hero-icon me-3" [ngSrc]="item.detailIconUri ?? item.iconUri" width="80" height="80" alt="App icon"/>
     <div class="flex-fill min-w-0">
       <h4 class="mb-1 text-truncate">{{ item.title }}</h4>
-      <div class="text-secondary small">
+      <div class="text-body-secondary small">
         <span>v{{ manifest.version }}</span>
         @if (installed) {
-          <span class="ms-2">(Installed v{{ installed.version }})</span>
+          <span class="ms-2">· installed v{{ installed.version }}</span>
         }
       </div>
+      @if (installed) {
+        <span class="badge text-bg-secondary mt-2">Installed</span>
+      }
       <ng-container *ngIf="manifest.rootRequired" [ngSwitch]="manifest.rootRequired">
-        <div class="small fw-semibold mt-1" *ngSwitchCase="true">Root required</div>
-        <div class="small fw-semibold mt-1" *ngSwitchCase="'optional'">Root is optional</div>
+        <div class="small text-body-secondary mt-1" *ngSwitchCase="true"><i class="bi bi-shield-lock me-1"></i>Root required</div>
+        <div class="small text-body-secondary mt-1" *ngSwitchCase="'optional'"><i class="bi bi-shield me-1"></i>Root optional</div>
       </ng-container>
     </div>
   </section>
@@ -31,12 +34,12 @@
         </li>
       </ul>
     </div>
-    <h6 class="text-uppercase text-secondary small mb-2">About</h6>
+    <h6 class="text-body-secondary mb-2">About</h6>
     <p class="mb-3" *ngIf="item.shortDescription">{{ item.shortDescription }}</p>
     <div class="full-description" [innerHtml]="fullDescriptionHtml$ | async" #fullDescription></div>
     <ng-container *ngIf="manifest?.sourceUrl as url">
       <hr>
-      <h6 class="text-uppercase text-secondary small mb-2">Links</h6>
+      <h6 class="text-body-secondary mb-2">Links</h6>
       <a [href]="url" appExternalLink class="d-flex flex-row align-items-center text-decoration-none">
         <i class="bi bi-globe2 me-2"></i>
         <span class="text-truncate">{{ url }}</span>

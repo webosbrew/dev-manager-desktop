@@ -20,7 +20,7 @@
                 <img class="installed-row-icon me-2" [src]="pkg.iconUri | trustUri" [alt]="pkg.title">
                 <div class="flex-fill min-w-0">
                   <div class="installed-row-title text-truncate">{{ pkg.title }}</div>
-                  <div class="installed-row-meta text-secondary small">
+                  <div class="installed-row-meta text-body-secondary small">
                     v{{ pkg.version }}
                     @if (hasUpdate(pkg)) {
                       <span class="badge text-bg-warning ms-1">Update</span>
