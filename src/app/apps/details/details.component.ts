@@ -4,7 +4,7 @@ import {noop, Observable, of} from "rxjs";
 import {AsyncPipe, NgForOf, NgIf, NgOptimizedImage, NgSwitch, NgSwitchCase} from "@angular/common";
 import {open as openPath} from "@tauri-apps/plugin-shell";
 import {
-    NgbActiveModal,
+    NgbActiveOffcanvas,
     NgbDropdown,
     NgbDropdownItem,
     NgbDropdownMenu,
@@ -51,7 +51,7 @@ export class DetailsComponent implements OnInit, OnDestroy {
     private unsubscribeClickListener!: () => void;
 
     constructor(
-        public modal: NgbActiveModal,
+        public offcanvas: NgbActiveOffcanvas,
         public item: RepositoryItem,
         @Inject('device') public device: Device,
         @Inject('parent') private parent: AppsComponent,

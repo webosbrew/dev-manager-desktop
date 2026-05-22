@@ -4,7 +4,7 @@ import {AppManagerService, AppsRepoService, RepositoryItem, RepositoryPage} from
 import {AppsComponent} from '../apps.component';
 import {PackageInfo} from "../../types";
 import {DetailsComponent} from "../details/details.component";
-import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {NgbOffcanvas} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
     selector: 'app-channel',
@@ -24,7 +24,7 @@ export class ChannelComponent implements OnInit, OnDestroy {
         @Host() public parent: AppsComponent,
         private appsRepo: AppsRepoService,
         private appManager: AppManagerService,
-        private modals: NgbModal) {
+        private offcanvas: NgbOffcanvas) {
     }
 
     ngOnInit(): void {
@@ -56,7 +56,9 @@ export class ChannelComponent implements OnInit, OnDestroy {
 
     openDetails(item: RepositoryItem) {
         if (!this.parent.device) return;
-        this.modals.open(DetailsComponent, {
+        this.offcanvas.open(DetailsComponent, {
+            position: 'end',
+            panelClass: 'app-detail-offcanvas',
             injector: Injector.create({
                 providers: [
                     {provide: RepositoryItem, useValue: item},

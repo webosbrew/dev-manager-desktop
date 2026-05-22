@@ -40,3 +40,13 @@ app-apps .tab-content > .tab-pane.active {
   display: flex;
   flex-direction: column;
 }
+
+.offcanvas.app-detail-offcanvas {
+  --bs-offcanvas-width: 480px;
+}
+
+@media (max-width: 575.98px) {
+  .offcanvas.app-detail-offcanvas {
+    --bs-offcanvas-width: 100%;
+  }
+}
