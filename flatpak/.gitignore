@@ -1,0 +1,7 @@
+# Local build artifacts
+/.flatpak-builder/
+/build-dir/
+/repo/
+/*.flatpak
+# Debian package staged for the local-file source in the manifest
+webos-dev-manager.deb

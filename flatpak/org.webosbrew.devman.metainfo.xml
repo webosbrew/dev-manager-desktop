@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.webosbrew.devman</id>
+
+  <name>webOS Dev Manager</name>
+  <summary>Device and Dev Mode manager for webOS TV</summary>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+
+  <developer id="org.webosbrew">
+    <name>webOS Homebrew Team</name>
+  </developer>
+
+  <description>
+    <p>
+      webOS Dev Manager is a simple tool to manage developer mode enabled or rooted
+      LG webOS TVs, without needing to install the LG SDK or IDE.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>No need to install LG SDK or IDE</li>
+      <li>Add a device without using the command line</li>
+      <li>Install apps on your TV with a few clicks</li>
+      <li>Configuration compatible with ares-cli</li>
+      <li>Built-in file manager and terminal</li>
+      <li>Dark mode follows system preferences</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">org.webosbrew.devman.desktop</launchable>
+
+  <categories>
+    <category>Development</category>
+    <category>Utility</category>
+  </categories>
+
+  <keywords>
+    <keyword>webOS</keyword>
+    <keyword>LG</keyword>
+    <keyword>TV</keyword>
+    <keyword>homebrew</keyword>
+  </keywords>
+
+  <url type="homepage">https://github.com/webosbrew/dev-manager-desktop</url>
+  <url type="bugtracker">https://github.com/webosbrew/dev-manager-desktop/issues</url>
+  <url type="vcs-browser">https://github.com/webosbrew/dev-manager-desktop</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Add a device</caption>
+      <image>https://user-images.githubusercontent.com/830358/215522596-196d9629-3942-4533-bebb-5a81ba62ebc0.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Manage installed apps</caption>
+      <image>https://user-images.githubusercontent.com/830358/215522298-eadebc84-661b-40ad-b6a9-9379710f88dc.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Install from the webOS Homebrew repo</caption>
+      <image>https://user-images.githubusercontent.com/830358/215523117-0fdbde24-a503-4eed-8e2f-50a3486ce7f7.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Manage files</caption>
+      <image>https://user-images.githubusercontent.com/830358/215522354-50997437-e3de-43a9-89cc-52cdaecb0502.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Built-in terminal</caption>
+      <image>https://user-images.githubusercontent.com/830358/215522468-bc3e4871-01b2-4eed-a8b2-31f683874ba1.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Device information</caption>
+      <image>https://user-images.githubusercontent.com/830358/215522554-5554a89b-ff3e-455e-8ed7-0f28c03f04a9.png</image>
+    </screenshot>
+  </screenshots>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="1.99.16" date="2025-07-10">
+      <url>https://github.com/webosbrew/dev-manager-desktop/releases/tag/v1.99.16</url>
+    </release>
+  </releases>
+</component>

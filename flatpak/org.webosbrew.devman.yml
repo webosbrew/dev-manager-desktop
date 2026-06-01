@@ -1,0 +1,63 @@
+# Flatpak manifest for webOS Dev Manager.
+#
+# This packages the binary produced by `tauri build` (the Debian package) into a
+# Flatpak. The Tauri app links against webkit2gtk-4.1, which is provided by the
+# GNOME 46 runtime, so no extra libraries need to be built.
+#
+# See ./README.md for how to build locally and how to adapt this manifest for a
+# Flathub submission.
+id: org.webosbrew.devman
+runtime: org.gnome.Platform
+runtime-version: '46'
+sdk: org.gnome.Sdk
+command: webos-dev-manager
+
+finish-args:
+  - --socket=wayland # Show the window under Wayland
+  - --socket=fallback-x11 # Show the window under X11
+  - --device=dri # OpenGL acceleration for the webview
+  - --share=ipc # Required together with X11
+  - --share=network # Connect to webOS TVs over the network (SSH)
+  - --filesystem=home # Read ares-cli/SSH keys and transfer files to/from the TV
+
+modules:
+  - name: webos-dev-manager
+    buildsystem: simple
+    sources:
+      - type: file
+        path: org.webosbrew.devman.metainfo.xml
+
+      # Built locally by scripts/build-flatpak.sh / the build-flatpak workflow.
+      # For a Flathub submission, replace this local file with the released
+      # artifact, for example:
+      #
+      #   - type: file
+      #     url: https://github.com/webosbrew/dev-manager-desktop/releases/download/v1.99.16/webos-dev-manager_1.99.16_amd64.deb
+      #     sha256: <sha256-of-the-deb>
+      #     only-arches: [x86_64]
+      - type: file
+        path: webos-dev-manager.deb
+
+    build-commands:
+      - ar -x *.deb --output deb-extract
+      - tar -C deb-extract -xf deb-extract/data.tar.gz
+
+      # Install the main executable.
+      - install -Dm755 deb-extract/usr/bin/webos-dev-manager /app/bin/webos-dev-manager
+
+      # Install the desktop file, renamed to the Flatpak app id and pointing at
+      # the renamed icon.
+      - |
+        desktop="$(ls deb-extract/usr/share/applications/*.desktop | head -n1)"
+        sed -i 's/^Icon=.*/Icon=org.webosbrew.devman/' "$desktop"
+        install -Dm644 "$desktop" /app/share/applications/org.webosbrew.devman.desktop
+
+      # Install all packaged icon sizes, renamed to the Flatpak app id.
+      - |
+        for icon in deb-extract/usr/share/icons/hicolor/*/apps/*.png; do
+          size="$(basename "$(dirname "$(dirname "$icon")")")"
+          install -Dm644 "$icon" "/app/share/icons/hicolor/${size}/apps/org.webosbrew.devman.png"
+        done
+
+      # Install the AppStream metadata.
+      - install -Dm644 org.webosbrew.devman.metainfo.xml /app/share/metainfo/org.webosbrew.devman.metainfo.xml

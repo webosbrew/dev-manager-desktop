@@ -1,0 +1,99 @@
+name: 'Build Flatpak'
+
+on:
+  release:
+    types: [ published ]
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'flatpak/**'
+      - 'scripts/build-flatpak.sh'
+      - '.github/workflows/build-flatpak.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+  RUNTIME_VERSION: '46'
+
+jobs:
+  build-flatpak:
+    name: Build Flatpak (x86_64)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Required Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential curl wget file libssl-dev libayatana-appindicator3-dev \
+            librsvg2-dev libwebkit2gtk-4.1-0=2.44.0-2 libwebkit2gtk-4.1-dev=2.44.0-2 \
+            libjavascriptcoregtk-4.1-0=2.44.0-2 libjavascriptcoregtk-4.1-dev=2.44.0-2 \
+            gir1.2-javascriptcoregtk-4.1=2.44.0-2 gir1.2-webkit2-4.1=2.44.0-2 xdg-utils \
+            flatpak flatpak-builder appstream
+
+      - name: Validate AppStream metainfo
+        run: appstreamcli validate --no-net flatpak/org.webosbrew.devman.metainfo.xml
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust Project
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: ${{ runner.os }}-flatpak-rust
+          workspaces: src-tauri
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Build Debian Package
+        run: npm run build -- --features=vendored-openssl --bundles deb
+
+      - name: Stage Debian Package for Flatpak
+        run: |
+          deb="$(find target -path '*/bundle/deb/*.deb' -print -quit)"
+          if [ -z "$deb" ]; then
+            echo "::error::No .deb found under target/**/bundle/deb/"
+            exit 1
+          fi
+          echo "Using $deb"
+          cp "$deb" flatpak/webos-dev-manager.deb
+
+      - name: Setup Flatpak Runtime
+        run: |
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user --noninteractive flathub \
+            "org.gnome.Platform//${RUNTIME_VERSION}" "org.gnome.Sdk//${RUNTIME_VERSION}"
+
+      - name: Build Flatpak Bundle
+        working-directory: flatpak
+        run: |
+          flatpak-builder --user --force-clean --repo=repo build-dir org.webosbrew.devman.yml
+          flatpak build-bundle repo org.webosbrew.devman.flatpak org.webosbrew.devman \
+            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        if: ${{ github.event_name != 'release' }}
+        with:
+          name: flatpak-bundle
+          path: flatpak/org.webosbrew.devman.flatpak
+
+      - name: Attach to Release
+        uses: ncipollo/release-action@v1
+        if: ${{ github.event_name == 'release' }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifacts: flatpak/org.webosbrew.devman.flatpak
