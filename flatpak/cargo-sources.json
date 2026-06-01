@@ -1,9 +1,11 @@
 [
     {
-        "type": "git",
-        "url": "https://github.com/mariotaku/r2d2",
-        "commit": "aaa2a2ba08582ad685ecdaaa74cc4ac47fe46efa",
-        "dest": "flatpak-cargo/git/r2d2-aaa2a2b"
+        "type": "archive",
+        "archive-type": "tar-gzip",
+        "url": "https://github.com/mariotaku/r2d2/archive/aaa2a2ba08582ad685ecdaaa74cc4ac47fe46efa.tar.gz",
+        "sha256": "e7557d8d1e17cd1acd3c344a27cc0a07429fe8aa0aeb67727eb29b68f1cadc18",
+        "dest": "cargo/vendor/r2d2",
+        "strip-components": 1
     },
     {
         "type": "archive",
@@ -4554,12 +4556,6 @@
         "contents": "{\"package\": \"69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f\", \"files\": {}}",
         "dest": "cargo/vendor/r-efi-5.3.0",
         "dest-filename": ".cargo-checksum.json"
-    },
-    {
-        "type": "shell",
-        "commands": [
-            "cp -r --reflink=auto \"flatpak-cargo/git/r2d2-aaa2a2b/.\" \"cargo/vendor/r2d2\""
-        ]
     },
     {
         "type": "inline",
