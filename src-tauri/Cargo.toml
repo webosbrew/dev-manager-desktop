@@ -36,8 +36,8 @@ r2d2 = "0.8.10"
 unix_mode = "0.1.4"
 sha2 = "0.10.9"
 pathdiff = "0.2.3"
-libssh-rs = { version = "0.3.6", features = ["vendored"] }
-libssh-rs-sys = "0.2.6"
+libssh-rs = { version = "0.3.8", features = ["vendored"] }
+libssh-rs-sys = "0.2.8"
 flate2 = "1.1.2"
 regex = "1.12.2"
 port_check = "0.3.0"
