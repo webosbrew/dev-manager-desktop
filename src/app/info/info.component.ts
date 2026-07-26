@@ -34,6 +34,7 @@ export class InfoComponent implements OnInit, OnDestroy {
     homebrewAppConfig: Partial<HomebrewChannelConfiguration> | null = null;
     homebrewRepoManifest?: RepositoryItem;
     homebrewRepoHasUpdate: boolean = false;
+    homebrewCustomRepoUrl: string = '';
     infoError: any;
     deviceSubscription!: Subscription;
     infoSubscription?: Subscription;
@@ -158,6 +159,35 @@ export class InfoComponent implements OnInit, OnDestroy {
             progress.close(true);
         }
         await this.loadHomebrewInfo(device);
+    }
+
+    async addCustomRepoToHomebrew(): Promise<void> {
+        const device = this.device;
+        if (!device) {
+            MessageDialogComponent.open(this.modalService, {
+                message: 'No device selected',
+                positive: 'OK'
+            });
+            return;
+        }
+        try {
+            const parsed = new URL(this.homebrewCustomRepoUrl.trim());
+            if (!['http:', 'https:'].includes(parsed.protocol)) {
+                throw new Error('Repository URL must use http:// or https://');
+            }
+            await this.appManager.launch(device, APP_ID_HBCHANNEL, {
+                launchMode: 'addRepository',
+                url: parsed.toString(),
+            });
+            this.homebrewCustomRepoUrl = '';
+        } catch (e) {
+            const reason = e instanceof Error ? e.message : 'An unexpected error occurred while adding the repository';
+            MessageDialogComponent.open(this.modalService, {
+                message: `Failed to add custom repository: ${reason}`,
+                error: e as Error,
+                positive: 'OK'
+            });
+        }
     }
 
 }
