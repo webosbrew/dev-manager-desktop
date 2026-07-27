@@ -98,7 +98,7 @@
     "vitest": "4.1.10"
   },
   "browserslist": [
-    "chrome >= 91",
+    "chrome >= 66",
     "safari >= 15"
   ]
 }
