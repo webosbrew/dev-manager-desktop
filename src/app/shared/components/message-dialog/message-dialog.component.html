@@ -3,7 +3,7 @@
     <h5 class="modal-title">{{ title }}</h5>
   </div>
 }
-<div class="modal-body" [ngSwitch]="messageType">
+<div class="modal-body">
   @switch (messageType) {
     @case ('string') {
       <p>{{ message }}</p>
@@ -23,19 +23,19 @@
 <div class="modal-footer">
   @if (alternative) {
     <button type="button" class="btn btn-secondary me-auto" (click)="alternativeClicked()"
-            [autofocus]="autofocus === 'alternative'" [disabled]="alternativeDisabled"
-    >{{ alternative }}
+      [autofocus]="autofocus === 'alternative'" [disabled]="alternativeDisabled"
+      >{{ alternative }}
     </button>
   }
   @if (negative) {
     <button type="button" class="btn btn-secondary" (click)="negativeClicked()"
-            [autofocus]="autofocus === 'negative'" [disabled]="negativeDisabled"
-    >{{ negative }}
+      [autofocus]="autofocus === 'negative'" [disabled]="negativeDisabled"
+      >{{ negative }}
     </button>
   }
   @if (positive) {
     <button type="button" class="btn" (click)="positiveClicked()" [autofocus]="autofocus === 'positive'"
-            [disabled]="positiveDisabled" [ngClass]="['btn-' + positiveStyle]">{{ positive }}
+      [disabled]="positiveDisabled" [ngClass]="['btn-' + positiveStyle]">{{ positive }}
     </button>
   }
 </div>

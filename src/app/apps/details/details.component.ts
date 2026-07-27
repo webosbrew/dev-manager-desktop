@@ -1,7 +1,7 @@
 import {Component, ElementRef, Inject, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation} from '@angular/core';
 import {AppManagerService, IncompatibleReason, PackageManifest, RepositoryItem} from "../../core/services";
 import {noop, Observable, of} from "rxjs";
-import {AsyncPipe, NgForOf, NgIf, NgOptimizedImage, NgSwitch, NgSwitchCase, NgSwitchDefault} from "@angular/common";
+import { AsyncPipe, NgOptimizedImage } from "@angular/common";
 import {open as openPath} from "@tauri-apps/plugin-shell";
 import {
     NgbActiveModal,
@@ -19,20 +19,15 @@ import {ExternalLinkDirective} from "../../shared/directives";
 @Component({
     selector: 'app-channel-app-details',
     imports: [
-        AsyncPipe,
-        NgOptimizedImage,
-        NgIf,
-        NgSwitchCase,
-        NgbDropdown,
-        NgbDropdownItem,
-        NgbDropdownMenu,
-        NgbDropdownToggle,
-        SharedModule,
-        NgSwitch,
-        NgSwitchDefault,
-        NgForOf,
-        ExternalLinkDirective
-    ],
+    AsyncPipe,
+    NgOptimizedImage,
+    NgbDropdown,
+    NgbDropdownItem,
+    NgbDropdownMenu,
+    NgbDropdownToggle,
+    SharedModule,
+    ExternalLinkDirective
+],
     templateUrl: './details.component.html',
     styleUrl: './details.component.scss',
     encapsulation: ViewEncapsulation.None
