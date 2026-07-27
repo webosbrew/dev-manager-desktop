@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {DeviceManagerService} from "../core/services";
 import {Device, FileItem, FileSession} from "../types";
 import {from, Observable, Subscription, tap} from "rxjs";
@@ -29,6 +29,7 @@ class FilesState {
     selector: 'app-files',
     templateUrl: './files.component.html',
     styleUrls: ['./files.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class FilesComponent implements OnInit, OnDestroy {

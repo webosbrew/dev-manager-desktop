@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {IDisposable, Terminal} from "@xterm/xterm";
 import {ITerminalDimensions} from "@xterm/addon-fit";
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
@@ -10,6 +10,7 @@ import {ITerminalComponent} from "../terminal.component";
     selector: 'app-terminal-pty',
     templateUrl: './pty.component.html',
     styleUrls: ['./pty.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: true,
 })
 export class PtyComponent implements OnInit, AfterViewInit, OnDestroy, ITerminalComponent {

@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {DeviceManagerService, Release, UpdateService} from './core/services';
 import PackageInfo from '../../package.json';
 import {SemVer} from 'semver';
@@ -12,6 +12,7 @@ import {noop} from "rxjs";
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AppComponent {

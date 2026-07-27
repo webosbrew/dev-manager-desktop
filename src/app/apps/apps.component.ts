@@ -1,4 +1,4 @@
-import {Component, Injector, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Observable, Subscription} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../types';
@@ -17,6 +17,7 @@ import {DetailsComponent} from "./details/details.component";
     selector: 'app-apps',
     templateUrl: './apps.component.html',
     styleUrls: ['./apps.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class AppsComponent implements OnInit, OnDestroy {

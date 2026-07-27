@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {Device, StorageInfo} from "../../../types";
 import {DeviceManagerService} from "../../../core/services";
 import {FileSizeOptionsBase} from "filesize";
@@ -7,6 +7,7 @@ import {FileSizeOptionsBase} from "filesize";
     selector: 'app-stat-storage-info',
     templateUrl: './stat-storage-info.component.html',
     styleUrls: ['./stat-storage-info.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class StatStorageInfoComponent {

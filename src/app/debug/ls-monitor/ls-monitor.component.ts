@@ -1,4 +1,4 @@
-import {Component, Input, OnDestroy} from '@angular/core';
+import {Component, Input, OnDestroy, ChangeDetectionStrategy} from '@angular/core';
 import {Device} from "../../types";
 import {finalize, from, Observable, Subscription} from "rxjs";
 import {ExecutionError, RemoteCommandService} from "../../core/services/remote-command.service";
@@ -46,6 +46,7 @@ declare interface SearchQuery {
     selector: 'app-ls-monitor',
     templateUrl: './ls-monitor.component.html',
     styleUrl: './ls-monitor.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LsMonitorComponent implements OnDestroy {

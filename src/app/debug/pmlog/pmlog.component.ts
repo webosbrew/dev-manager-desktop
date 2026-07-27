@@ -1,4 +1,4 @@
-import {Component, Injector, Input} from '@angular/core';
+import {Component, Injector, Input, ChangeDetectionStrategy} from '@angular/core';
 import {Device} from "../../types";
 import {RemoteCommandService} from "../../core/services/remote-command.service";
 import {catchError, finalize, from, identity, mergeMap, Observable, tap} from "rxjs";
@@ -14,6 +14,7 @@ import semver from "semver/preload";
     selector: 'app-pmlog',
     templateUrl: './pmlog.component.html',
     styleUrls: ['./pmlog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class PmLogComponent {

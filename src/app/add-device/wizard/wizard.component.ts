@@ -1,12 +1,13 @@
 import {
-    AfterContentChecked,
-    ChangeDetectorRef,
-    Component, Directive,
-    Inject,
-    OnDestroy,
-    OnInit,
-    TemplateRef,
-    ViewChild
+  AfterContentChecked,
+  ChangeDetectorRef,
+  Component, Directive,
+  Inject,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {DeviceConnectionMode} from "./mode-select/mode-select.component";
 import {NgbActiveModal, NgbNav} from "@ng-bootstrap/ng-bootstrap";
@@ -28,6 +29,7 @@ export class WizardFooterTemplateDirective {
     selector: 'app-wizard',
     templateUrl: './wizard.component.html',
     styleUrls: ['./wizard.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {

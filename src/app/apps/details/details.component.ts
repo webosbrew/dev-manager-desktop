@@ -1,4 +1,4 @@
-import {Component, ElementRef, Inject, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation} from '@angular/core';
+import {Component, ElementRef, Inject, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation, ChangeDetectionStrategy} from '@angular/core';
 import {AppManagerService, IncompatibleReason, PackageManifest, RepositoryItem} from "../../core/services";
 import {noop, Observable, of} from "rxjs";
 import { AsyncPipe, NgOptimizedImage } from "@angular/common";
@@ -30,6 +30,7 @@ import {ExternalLinkDirective} from "../../shared/directives";
 ],
     templateUrl: './details.component.html',
     styleUrl: './details.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
     encapsulation: ViewEncapsulation.None
 })
 export class DetailsComponent implements OnInit, OnDestroy {

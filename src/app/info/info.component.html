@@ -1,5 +1,5 @@
 <div class="manager-toolbar navbar bg-panel border-bottom d-flex flex-row flex-nowrap px-2">
-  <select class="form-select" [value]="device?.name" (change)="deviceManager.setDefault(deviceSelect.value)"
+  <select class="form-select" [value]="$safeNavigationMigration(device?.name)" (change)="deviceManager.setDefault(deviceSelect.value)"
     #deviceSelect>
     @let devices = deviceManager.devices$ | async;
     @for (item of devices; track item.name) {

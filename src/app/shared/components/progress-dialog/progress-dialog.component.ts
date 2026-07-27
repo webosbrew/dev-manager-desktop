@@ -1,10 +1,11 @@
-import {Component, NgZone} from '@angular/core';
+import {Component, NgZone, ChangeDetectionStrategy} from '@angular/core';
 import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
     selector: 'app-progress-dialog',
     templateUrl: './progress-dialog.component.html',
     styleUrls: ['./progress-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ProgressDialogComponent {

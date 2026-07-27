@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {MessageDialogComponent} from "../../shared/components/message-dialog/message-dialog.component";
 import {FormControl, Validators} from "@angular/forms";
 
@@ -6,6 +6,7 @@ import {FormControl, Validators} from "@angular/forms";
     selector: 'app-create-directory-message',
     templateUrl: './create-directory-message.component.html',
     styleUrls: ['./create-directory-message.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CreateDirectoryMessageComponent {

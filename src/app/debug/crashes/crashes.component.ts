@@ -1,4 +1,4 @@
-import {Component, Injector, Input} from '@angular/core';
+import {Component, Injector, Input, ChangeDetectionStrategy} from '@angular/core';
 import {CrashReport, DeviceManagerService} from '../../core/services';
 import {Device} from "../../types";
 import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
@@ -11,6 +11,7 @@ import {remove} from "lodash-es";
     selector: 'app-crashes',
     templateUrl: './crashes.component.html',
     styleUrls: ['./crashes.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CrashesComponent {

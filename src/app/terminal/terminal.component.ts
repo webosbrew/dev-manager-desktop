@@ -1,4 +1,4 @@
-import {Component, NgZone, OnDestroy, OnInit, QueryList, ViewChildren, ViewEncapsulation} from '@angular/core';
+import {Component, NgZone, OnDestroy, OnInit, QueryList, ViewChildren, ViewEncapsulation, ChangeDetectionStrategy} from '@angular/core';
 import {DeviceManagerService} from '../core/services';
 import {firstValueFrom, noop, Subscription} from "rxjs";
 import {Device} from "../types";
@@ -32,6 +32,7 @@ import {PtyComponent} from "./pty/pty.component";
     templateUrl: './terminal.component.html',
     styleUrls: ['./terminal.component.scss'],
     encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         NgbNavContent,
         NgbNav,

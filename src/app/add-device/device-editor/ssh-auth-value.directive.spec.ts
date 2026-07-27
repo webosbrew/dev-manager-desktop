@@ -1,5 +1,5 @@
 import {SshAuthValueDirective} from './ssh-auth-value.directive';
-import {Component} from "@angular/core";
+import {Component, ChangeDetectionStrategy} from "@angular/core";
 import {NewDeviceAuthentication} from "../../types";
 import {TestBed} from "@angular/core/testing";
 
@@ -14,6 +14,7 @@ describe('SshAuthValueDirective', () => {
     template: `<input type="text" class="form-control" id="authValue" formControlName="value"
                       [appSshAuthValue]="NewDeviceAuthentication.AppKey"
                       autocomplete="off">`,
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 class TestSshAuthValueDirectiveHostComponent {

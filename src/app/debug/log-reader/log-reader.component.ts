@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {debounceTime, filter, Observable, Subject, Subscription} from "rxjs";
 import {LogLevel, LogMessage} from '../../core/services/remote-log.service';
 import {Terminal} from "@xterm/xterm";
@@ -12,6 +12,7 @@ import {ISearchOptions, SearchAddon} from "@xterm/addon-search";
     selector: 'app-log-reader',
     templateUrl: './log-reader.component.html',
     styleUrls: ['./log-reader.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LogReaderComponent implements OnInit, OnDestroy, AfterViewInit {

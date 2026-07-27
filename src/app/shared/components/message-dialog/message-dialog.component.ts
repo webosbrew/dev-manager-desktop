@@ -1,4 +1,4 @@
-import {Component, Inject, Injector, StaticProvider, Type} from '@angular/core';
+import {Component, Inject, Injector, StaticProvider, Type, ChangeDetectionStrategy} from '@angular/core';
 import {NgbActiveModal, NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 import {isFunction} from "lodash-es";
 
@@ -6,6 +6,7 @@ import {isFunction} from "lodash-es";
     selector: 'app-message-dialog',
     templateUrl: './message-dialog.component.html',
     styleUrls: ['./message-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class MessageDialogComponent implements MessageDialogConfig {

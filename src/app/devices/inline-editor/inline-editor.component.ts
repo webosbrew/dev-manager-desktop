@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from '@angular/core';
 import {AppPrivKeyName, Device, NewDevice, NewDeviceAuthentication} from "../../types";
 import {
     DeviceEditorComponent,
@@ -12,6 +12,7 @@ import {
     imports: [
         DeviceEditorComponent
     ],
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './inline-editor.component.scss'
 })
 export class InlineEditorComponent {
