@@ -36,20 +36,22 @@
       }
     </div>
   </aside>
-  <main class="installed-detail-pane flex-fill min-w-0">
-    @if (selectedPkg && device) {
-      <app-installed-details
-        [pkg]="selectedPkg"
-        [device]="device"
-        [parent]="parent"
-        [repoPackage]="repoPackages?.[selectedPkg.id] ?? null"/>
-    } @else {
-      <div class="installed-empty h-100 d-flex flex-column align-items-center justify-content-center text-secondary">
-        <i class="bi bi-collection fs-1 mb-2"></i>
-        <div>Select an installed app to see details</div>
-      </div>
-    }
-  </main>
+  @if (!isNarrow) {
+    <main class="installed-detail-pane flex-fill min-w-0">
+      @if (selectedPkg && device) {
+        <app-installed-details
+          [pkg]="selectedPkg"
+          [device]="device"
+          [parent]="parent"
+          [repoPackage]="repoPackages?.[selectedPkg.id] ?? null"/>
+      } @else {
+        <div class="installed-empty h-100 d-flex flex-column align-items-center justify-content-center text-secondary">
+          <i class="bi bi-collection fs-1 mb-2"></i>
+          <div>Select an installed app to see details</div>
+        </div>
+      }
+    </main>
+  }
 </div>
 <div class="px-2 py-1 d-flex flex-row border-top align-items-center bg-panel">
   <select class="form-select form-select-sm w-auto" [value]="device?.name"

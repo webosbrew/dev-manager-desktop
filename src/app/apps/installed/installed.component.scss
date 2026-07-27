@@ -9,9 +9,18 @@
   min-height: 0;
 }
 
+
 .installed-list-pane {
   width: 320px;
   flex: 0 0 auto;
+}
+
+@media (max-width: 767.98px) {
+  .installed-list-pane {
+    width: 100%;
+    flex: 1 1 auto;
+    border-right: none;
+  }
 }
 
 .installed-row {

@@ -1,9 +1,10 @@
-import {Component, Input, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, Input, OnChanges, Optional, SimpleChanges} from '@angular/core';
 import {AsyncResult, Device, PackageInfo} from "../../../types";
 import {AppManagerService, PackageDiskUsage, RepositoryItem} from "../../../core/services";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {Observable, of} from "rxjs";
 import {AsyncPipe} from "@angular/common";
+import {NgbActiveOffcanvas} from "@ng-bootstrap/ng-bootstrap";
 import {SharedModule} from "../../../shared/shared.module";
 import {FilesizePipe} from "../../../shared/pipes/filesize.pipe";
 import {FileSizeOptions} from "filesize";
@@ -30,7 +31,12 @@ export class DetailsComponent implements OnChanges {
     diskUsage$: Observable<AsyncResult<PackageDiskUsage, unknown>> = of({});
     sizeOptions: FileSizeOptions = {base: 2, standard: 'jedec'};
 
-    constructor(private appManager: AppManagerService) {
+    constructor(private appManager: AppManagerService,
+                @Optional() public offcanvas: NgbActiveOffcanvas | null) {
+    }
+
+    close(): void {
+        this.offcanvas?.dismiss();
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -48,15 +54,20 @@ export class DetailsComponent implements OnChanges {
 
     launch(): void {
         this.parent.launchApp(this.pkg.id);
+        this.offcanvas?.dismiss();
     }
 
-    uninstall(): Promise<boolean> {
-        return this.parent.removePackage(this.pkg);
+    async uninstall(): Promise<boolean> {
+        const removed = await this.parent.removePackage(this.pkg);
+        if (removed) this.offcanvas?.dismiss();
+        return removed;
     }
 
-    update(): Promise<boolean> {
-        if (!this.repoPackage) return Promise.resolve(false);
-        return this.parent.installPackage(this.repoPackage);
+    async update(): Promise<boolean> {
+        if (!this.repoPackage) return false;
+        const installed = await this.parent.installPackage(this.repoPackage);
+        if (installed) this.offcanvas?.dismiss();
+        return installed;
     }
 
     get sourceUrl(): string | undefined {

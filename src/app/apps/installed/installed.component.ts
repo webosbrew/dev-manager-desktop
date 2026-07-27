@@ -1,9 +1,11 @@
-import {ChangeDetectionStrategy, Component, Host, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Host, HostListener, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
 import {Observable, Subscription} from "rxjs";
 import {AppManagerService, AppsRepoService, RepositoryItem} from "../../core/services";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
+import {NgbOffcanvas} from "@ng-bootstrap/ng-bootstrap";
+import {DetailsComponent as InstalledDetailsComponent} from "./details/details.component";
 import {StatStorageInfoComponent} from "../../shared/components/stat-storage-info/stat-storage-info.component";
 
 @Component({
@@ -26,12 +28,25 @@ export class InstalledComponent implements OnChanges, OnInit, OnDestroy {
     selectedPkg: PackageInfo | null = null;
     filterText = '';
 
+    private static readonly NARROW_QUERY = '(max-width: 767.98px)';
+    isNarrow = window.matchMedia(InstalledComponent.NARROW_QUERY).matches;
+
+    @HostListener('window:resize')
+    onResize(): void {
+        const wasNarrow = this.isNarrow;
+        this.isNarrow = window.matchMedia(InstalledComponent.NARROW_QUERY).matches;
+        if (this.isNarrow && !wasNarrow) {
+            this.selectedPkg = null;
+        }
+    }
+
     @ViewChild('storageInfo') storageInfo?: StatStorageInfoComponent;
 
     private storageSubscription?: Subscription;
 
     constructor(@Host() public parent: AppsComponent,
-                private appManager: AppManagerService, private appsRepo: AppsRepoService) {
+                private appManager: AppManagerService, private appsRepo: AppsRepoService,
+                private offcanvas: NgbOffcanvas) {
     }
 
     ngOnInit(): void {
@@ -70,7 +85,30 @@ export class InstalledComponent implements OnChanges, OnInit, OnDestroy {
     }
 
     selectPackage(pkg: PackageInfo): void {
-        this.selectedPkg = pkg;
+        if (this.isNarrow) {
+            this.openDetailsOffcanvas(pkg);
+        } else {
+            this.selectedPkg = pkg;
+        }
+    }
+
+    private openDetailsOffcanvas(pkg: PackageInfo): void {
+        if (!this.device) return;
+        const device = this.device;
+        const repoPackage = this.repoPackages?.[pkg.id] ?? null;
+        const ref = this.offcanvas.open(InstalledDetailsComponent, {
+            position: 'end',
+            panelClass: 'app-detail-offcanvas',
+        });
+        const instance = ref.componentInstance as InstalledDetailsComponent;
+        instance.pkg = pkg;
+        instance.device = device;
+        instance.parent = this.parent;
+        instance.repoPackage = repoPackage;
+        instance.ngOnChanges({
+            pkg: <any>{currentValue: pkg, previousValue: undefined, firstChange: true, isFirstChange: () => true},
+            device: <any>{currentValue: device, previousValue: undefined, firstChange: true, isFirstChange: () => true},
+        });
     }
 
     matchesFilter(pkg: PackageInfo): boolean {

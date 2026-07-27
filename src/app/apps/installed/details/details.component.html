@@ -1,4 +1,10 @@
 <div class="installed-detail h-100 d-flex flex-column">
+  @if (offcanvas) {
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title text-truncate me-3">{{ pkg.title }}</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+    </div>
+  }
   <div class="detail-header d-flex flex-row align-items-center p-3 border-bottom">
     <img class="detail-icon me-3" [src]="pkg.iconUri"/>
     <div class="flex-fill min-w-0">

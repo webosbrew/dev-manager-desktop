@@ -12,10 +12,27 @@
   gap: 0.75rem;
 }
 
+@media (max-width: 575.98px) {
+  .featured-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .app-card-hero {
+    grid-row: auto;
+  }
+}
+
 .app-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 0.75rem;
+}
+
+@media (max-width: 575.98px) {
+  .app-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .app-card {
@@ -29,6 +46,8 @@
   border: 1px solid var(--bs-border-color);
   border-radius: var(--bs-border-radius);
   text-align: left;
+  min-width: 0;
+  overflow: hidden;
   transition: background 0.12s ease, border-color 0.12s ease;
 
   &:hover {
