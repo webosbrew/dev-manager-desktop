@@ -14,6 +14,16 @@ import {Subscription} from "rxjs";
 import {Device} from "../../types";
 import {findIndex} from "lodash-es";
 
+// Declared before WizardComponent on purpose: the component's @ViewChild decorator
+// reads this class while its own class body is being evaluated, so a later
+// declaration lands in the temporal dead zone and throws at module load.
+@Directive({
+    selector: '[appWizardFooterTemplate]',
+    standalone: true,
+})
+export class WizardFooterTemplateDirective {
+}
+
 @Component({
     selector: 'app-wizard',
     templateUrl: './wizard.component.html',
@@ -96,11 +106,4 @@ export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {
         return linkElem?.innerText;
     }
 
-}
-
-@Directive({
-    selector: '[appWizardFooterTemplate]',
-    standalone: true,
-})
-export class WizardFooterTemplateDirective {
 }
