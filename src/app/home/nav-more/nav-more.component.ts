@@ -7,7 +7,6 @@ import {ExternalLinkDirective} from "../../shared/directives";
 
 @Component({
     selector: 'app-nav-more',
-    standalone: true,
     imports: [
         RouterLink,
         SharedModule,

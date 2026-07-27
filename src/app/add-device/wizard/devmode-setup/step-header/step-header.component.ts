@@ -1,9 +1,10 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 
 @Component({
-  selector: 'app-devmode-setup-step-header',
-  templateUrl: './step-header.component.html',
-  styleUrls: ['./step-header.component.scss']
+    selector: 'app-devmode-setup-step-header',
+    templateUrl: './step-header.component.html',
+    styleUrls: ['./step-header.component.scss'],
+    standalone: false
 })
 export class StepHeaderComponent {
   private checked: boolean = false;

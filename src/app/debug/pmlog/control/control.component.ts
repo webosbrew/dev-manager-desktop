@@ -7,7 +7,8 @@ import {SetContextComponent} from "../set-context/set-context.component";
 @Component({
     selector: 'app-pmlog-control',
     templateUrl: './control.component.html',
-    styleUrls: ['./control.component.scss']
+    styleUrls: ['./control.component.scss'],
+    standalone: false
 })
 export class PmLogControlComponent {
 

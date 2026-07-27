@@ -2,7 +2,8 @@ import {Pipe, PipeTransform} from "@angular/core";
 import {filesize, FileSizeOptionsBase} from 'filesize';
 
 @Pipe({
-    name: 'filesize'
+    name: 'filesize',
+    standalone: false
 })
 export class FilesizePipe implements PipeTransform {
 

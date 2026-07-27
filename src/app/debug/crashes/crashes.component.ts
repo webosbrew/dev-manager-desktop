@@ -10,7 +10,8 @@ import {remove} from "lodash-es";
 @Component({
     selector: 'app-crashes',
     templateUrl: './crashes.component.html',
-    styleUrls: ['./crashes.component.scss']
+    styleUrls: ['./crashes.component.scss'],
+    standalone: false
 })
 export class CrashesComponent {
 

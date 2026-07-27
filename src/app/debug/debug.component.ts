@@ -7,10 +7,11 @@ import {NgbNavChangeEvent} from "@ng-bootstrap/ng-bootstrap";
 import {Location} from "@angular/common";
 
 @Component({
-  selector: 'app-debug',
-  templateUrl: './debug.component.html',
-  styleUrls: ['./debug.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+    selector: 'app-debug',
+    templateUrl: './debug.component.html',
+    styleUrls: ['./debug.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class DebugComponent implements OnInit, OnDestroy {
   device: Device | null = null;

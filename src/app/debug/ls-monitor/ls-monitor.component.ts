@@ -45,7 +45,8 @@ declare interface SearchQuery {
 @Component({
     selector: 'app-ls-monitor',
     templateUrl: './ls-monitor.component.html',
-    styleUrl: './ls-monitor.component.scss'
+    styleUrl: './ls-monitor.component.scss',
+    standalone: false
 })
 export class LsMonitorComponent implements OnDestroy {
 

@@ -11,7 +11,8 @@ import Mustache from 'mustache';
 @Component({
     selector: 'app-renew-script',
     templateUrl: './renew-script.component.html',
-    styleUrls: ['./renew-script.component.scss']
+    styleUrls: ['./renew-script.component.scss'],
+    standalone: false
 })
 export class RenewScriptComponent implements OnInit {
 

@@ -5,9 +5,10 @@ import {LOG_LEVELS} from "../control/control.component";
 import {PrefLogLevel} from "../../../core/services/remote-log.service";
 
 @Component({
-  selector: 'app-pmlog-set-context',
-  templateUrl: './set-context.component.html',
-  styleUrls: ['./set-context.component.scss']
+    selector: 'app-pmlog-set-context',
+    templateUrl: './set-context.component.html',
+    styleUrls: ['./set-context.component.scss'],
+    standalone: false
 })
 export class SetContextComponent {
   public formGroup: UntypedFormGroup;

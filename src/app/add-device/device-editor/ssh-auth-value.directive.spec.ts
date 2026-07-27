@@ -13,7 +13,8 @@ describe('SshAuthValueDirective', () => {
     selector: 'app-test-ssh-auth-value-directive-host',
     template: `<input type="text" class="form-control" id="authValue" formControlName="value"
                       [appSshAuthValue]="NewDeviceAuthentication.AppKey"
-                      autocomplete="off">`
+                      autocomplete="off">`,
+    standalone: false
 })
 class TestSshAuthValueDirectiveHostComponent {
     protected readonly NewDeviceAuthentication = NewDeviceAuthentication;

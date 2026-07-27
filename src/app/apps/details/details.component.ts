@@ -18,7 +18,6 @@ import {ExternalLinkDirective} from "../../shared/directives";
 
 @Component({
     selector: 'app-channel-app-details',
-    standalone: true,
     imports: [
         AsyncPipe,
         NgOptimizedImage,

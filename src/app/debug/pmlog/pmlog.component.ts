@@ -13,7 +13,8 @@ import semver from "semver/preload";
 @Component({
     selector: 'app-pmlog',
     templateUrl: './pmlog.component.html',
-    styleUrls: ['./pmlog.component.scss']
+    styleUrls: ['./pmlog.component.scss'],
+    standalone: false
 })
 export class PmLogComponent {
 

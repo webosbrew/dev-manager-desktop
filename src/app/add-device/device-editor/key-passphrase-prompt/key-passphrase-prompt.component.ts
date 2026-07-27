@@ -9,7 +9,8 @@ import {fromPromise} from "rxjs/internal/observable/innerFrom";
 @Component({
     selector: 'app-key-passphrase-prompt',
     templateUrl: './key-passphrase-prompt.component.html',
-    styleUrls: ['./key-passphrase-prompt.component.scss']
+    styleUrls: ['./key-passphrase-prompt.component.scss'],
+    standalone: false
 })
 export class KeyPassphrasePromptComponent {
     formControl: FormControl<string>;

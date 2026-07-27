@@ -1,9 +1,10 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 
 @Component({
-  selector: 'app-wizard-mode-select',
-  templateUrl: './mode-select.component.html',
-  styleUrls: ['./mode-select.component.scss']
+    selector: 'app-wizard-mode-select',
+    templateUrl: './mode-select.component.html',
+    styleUrls: ['./mode-select.component.scss'],
+    standalone: false
 })
 export class ModeSelectComponent {
   private modeValue: DeviceConnectionMode = DeviceConnectionMode.DevMode;

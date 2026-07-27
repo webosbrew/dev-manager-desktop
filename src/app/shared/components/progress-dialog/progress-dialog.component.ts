@@ -4,7 +4,8 @@ import {NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 @Component({
     selector: 'app-progress-dialog',
     templateUrl: './progress-dialog.component.html',
-    styleUrls: ['./progress-dialog.component.scss']
+    styleUrls: ['./progress-dialog.component.scss'],
+    standalone: false
 })
 export class ProgressDialogComponent {
 

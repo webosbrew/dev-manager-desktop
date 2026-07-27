@@ -11,7 +11,8 @@ interface KeyModifiers {
 @Component({
     selector: 'app-files-table',
     templateUrl: './files-table.component.html',
-    styleUrls: ['./files-table.component.scss']
+    styleUrls: ['./files-table.component.scss'],
+    standalone: false
 })
 export class FilesTableComponent {
 

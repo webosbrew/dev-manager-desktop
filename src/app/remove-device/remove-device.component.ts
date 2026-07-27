@@ -3,9 +3,10 @@ import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {Device} from "../types";
 
 @Component({
-  selector: 'app-remove-device',
-  templateUrl: './remove-device.component.html',
-  styleUrls: ['./remove-device.component.scss']
+    selector: 'app-remove-device',
+    templateUrl: './remove-device.component.html',
+    styleUrls: ['./remove-device.component.scss'],
+    standalone: false
 })
 export class RemoveDeviceComponent {
 

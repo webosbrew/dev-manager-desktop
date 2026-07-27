@@ -13,8 +13,7 @@ import {AutosizeModule} from "ngx-autosize";
     imports: [
         ExternalLinkDirective,
         AutosizeModule
-    ],
-    standalone: true
+    ]
 })
 export class DumbComponent implements OnInit, AfterViewInit, OnDestroy, ITerminalComponent {
 

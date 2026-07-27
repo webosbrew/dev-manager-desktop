@@ -28,7 +28,8 @@ class FilesState {
 @Component({
     selector: 'app-files',
     templateUrl: './files.component.html',
-    styleUrls: ['./files.component.scss']
+    styleUrls: ['./files.component.scss'],
+    standalone: false
 })
 export class FilesComponent implements OnInit, OnDestroy {
     device: Device | null = null;

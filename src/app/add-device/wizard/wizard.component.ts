@@ -27,7 +27,8 @@ export class WizardFooterTemplateDirective {
 @Component({
     selector: 'app-wizard',
     templateUrl: './wizard.component.html',
-    styleUrls: ['./wizard.component.scss']
+    styleUrls: ['./wizard.component.scss'],
+    standalone: false
 })
 export class WizardComponent implements OnInit, AfterContentChecked, OnDestroy {
     connectionMode: DeviceConnectionMode = DeviceConnectionMode.DevMode;

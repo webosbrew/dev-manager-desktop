@@ -5,9 +5,10 @@ import {AppsComponent} from '../apps.component';
 import {RawPackageInfo} from "../../types";
 
 @Component({
-  selector: 'app-channel',
-  templateUrl: './channel.component.html',
-  styleUrls: ['./channel.component.scss']
+    selector: 'app-channel',
+    templateUrl: './channel.component.html',
+    styleUrls: ['./channel.component.scss'],
+    standalone: false
 })
 export class ChannelComponent implements OnInit {
 

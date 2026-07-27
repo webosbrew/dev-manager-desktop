@@ -7,7 +7,8 @@ import {LogMessage, RemoteLogService} from "../../core/services/remote-log.servi
 @Component({
     selector: 'app-dmesg',
     templateUrl: './dmesg.component.html',
-    styleUrls: ['./dmesg.component.scss']
+    styleUrls: ['./dmesg.component.scss'],
+    standalone: false
 })
 export class DmesgComponent {
 

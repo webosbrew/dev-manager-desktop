@@ -24,7 +24,6 @@ import {LocalFileService} from "../../core/services/local-file.service";
     selector: 'app-device-editor',
     templateUrl: './device-editor.component.html',
     styleUrls: ['./device-editor.component.scss'],
-    standalone: true,
     imports: [
         ReactiveFormsModule,
         SshAuthValueDirective,

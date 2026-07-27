@@ -9,7 +9,8 @@ import {DeviceManagerService} from "../../../core/services";
 @Component({
     selector: 'app-wizard-add-device',
     templateUrl: './add-device.component.html',
-    styleUrls: ['./add-device.component.scss']
+    styleUrls: ['./add-device.component.scss'],
+    standalone: false
 })
 export class AddDeviceComponent implements OnInit {
     @Input()

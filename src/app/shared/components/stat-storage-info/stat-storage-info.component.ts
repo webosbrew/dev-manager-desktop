@@ -6,7 +6,8 @@ import {FileSizeOptionsBase} from "filesize";
 @Component({
     selector: 'app-stat-storage-info',
     templateUrl: './stat-storage-info.component.html',
-    styleUrls: ['./stat-storage-info.component.scss']
+    styleUrls: ['./stat-storage-info.component.scss'],
+    standalone: false
 })
 export class StatStorageInfoComponent {
 

@@ -11,7 +11,6 @@ import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove
 
 @Component({
     selector: 'app-devices',
-    standalone: true,
     imports: [
         AsyncPipe,
         AddDeviceModule,

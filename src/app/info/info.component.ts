@@ -24,7 +24,8 @@ import {fromPromise} from "rxjs/internal/observable/innerFrom";
 @Component({
     selector: 'app-info',
     templateUrl: './info.component.html',
-    styleUrls: ['./info.component.scss']
+    styleUrls: ['./info.component.scss'],
+    standalone: false
 })
 export class InfoComponent implements OnInit, OnDestroy {
     device: Device | null = null;

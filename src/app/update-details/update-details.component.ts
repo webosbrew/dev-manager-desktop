@@ -8,6 +8,7 @@ import {Release} from '../core/services';
     templateUrl: './update-details.component.html',
     styleUrls: ['./update-details.component.scss'],
     encapsulation: ViewEncapsulation.None,
+    standalone: false
 })
 export class UpdateDetailsComponent {
 

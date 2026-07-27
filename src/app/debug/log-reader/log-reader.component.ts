@@ -11,7 +11,8 @@ import {ISearchOptions, SearchAddon} from "@xterm/addon-search";
 @Component({
     selector: 'app-log-reader',
     templateUrl: './log-reader.component.html',
-    styleUrls: ['./log-reader.component.scss']
+    styleUrls: ['./log-reader.component.scss'],
+    standalone: false
 })
 export class LogReaderComponent implements OnInit, OnDestroy, AfterViewInit {
 

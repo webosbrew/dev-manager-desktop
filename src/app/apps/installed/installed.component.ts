@@ -7,7 +7,8 @@ import {AppsRepoService, RepositoryItem} from "../../core/services";
 @Component({
     selector: 'app-installed',
     templateUrl: './installed.component.html',
-    styleUrls: ['./installed.component.scss']
+    styleUrls: ['./installed.component.scss'],
+    standalone: false
 })
 export class InstalledComponent implements OnDestroy {
 

@@ -5,7 +5,6 @@ import {AsyncPipe, NgForOf} from "@angular/common";
 
 @Component({
     selector: 'app-device-chooser',
-    standalone: true,
     imports: [
         AsyncPipe,
         NgForOf

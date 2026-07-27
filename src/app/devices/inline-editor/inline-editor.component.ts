@@ -8,7 +8,6 @@ import {
 
 @Component({
     selector: 'app-device-inline-editor',
-    standalone: true,
     templateUrl: './inline-editor.component.html',
     imports: [
         DeviceEditorComponent

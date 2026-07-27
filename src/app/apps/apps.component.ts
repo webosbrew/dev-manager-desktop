@@ -16,7 +16,8 @@ import {DetailsComponent} from "./details/details.component";
 @Component({
     selector: 'app-apps',
     templateUrl: './apps.component.html',
-    styleUrls: ['./apps.component.scss']
+    styleUrls: ['./apps.component.scss'],
+    standalone: false
 })
 export class AppsComponent implements OnInit, OnDestroy {
 

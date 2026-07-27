@@ -12,7 +12,8 @@ describe('SearchBarDirective', () => {
 @Component({
     selector: 'app-test-search-bar-directive-host',
     template: `<input type="search" class="form-control form-control-sm"
-                      appSearchBar keywords="sender,destination">`
+                      appSearchBar keywords="sender,destination">`,
+    standalone: false
 })
 class TestSearchBarDirectiveHostComponent {
 }

@@ -3,9 +3,10 @@ import {MessageDialogComponent} from "../../shared/components/message-dialog/mes
 import {FormControl, Validators} from "@angular/forms";
 
 @Component({
-  selector: 'app-create-directory-message',
-  templateUrl: './create-directory-message.component.html',
-  styleUrls: ['./create-directory-message.component.scss']
+    selector: 'app-create-directory-message',
+    templateUrl: './create-directory-message.component.html',
+    styleUrls: ['./create-directory-message.component.scss'],
+    standalone: false
 })
 export class CreateDirectoryMessageComponent {
   public formControl: FormControl<string>;

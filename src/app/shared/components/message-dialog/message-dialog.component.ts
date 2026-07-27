@@ -5,7 +5,8 @@ import {isFunction} from "lodash-es";
 @Component({
     selector: 'app-message-dialog',
     templateUrl: './message-dialog.component.html',
-    styleUrls: ['./message-dialog.component.scss']
+    styleUrls: ['./message-dialog.component.scss'],
+    standalone: false
 })
 export class MessageDialogComponent implements MessageDialogConfig {
     title: string = '';

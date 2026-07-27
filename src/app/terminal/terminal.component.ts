@@ -32,7 +32,6 @@ import {PtyComponent} from "./pty/pty.component";
     templateUrl: './terminal.component.html',
     styleUrls: ['./terminal.component.scss'],
     encapsulation: ViewEncapsulation.None,
-    standalone: true,
     imports: [
         NgbNavContent,
         NgbNav,
