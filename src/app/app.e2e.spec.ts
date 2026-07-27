@@ -1,4 +1,4 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {ComponentFixture, DeferBlockBehavior, TestBed} from '@angular/core/testing';
 import {provideLocationMocks} from '@angular/common/testing';
 import {Router} from '@angular/router';
 import {emit} from '@tauri-apps/api/event';
@@ -47,7 +47,9 @@ describe('App (mocked backend e2e)', () => {
     }
 
     async function settle(): Promise<void> {
-        await fixture.whenStable();
+        // A macrotask turn first: the mocked IPC handler resolves outside the
+        // Angular zone, so whenStable() alone can return before it has run.
+        await new Promise(resolve => setTimeout(resolve, 0));
         fixture.detectChanges();
         await fixture.whenStable();
         fixture.detectChanges();
@@ -64,6 +66,10 @@ describe('App (mocked backend e2e)', () => {
         await TestBed.configureTestingModule({
             imports: [AppModule],
             providers: [provideLocationMocks()],
+            // The devices screen keeps its row editor behind a @defer block that only
+            // opens on click. TestBed would otherwise render every deferred block
+            // immediately, instantiating editors for rows nobody selected.
+            deferBlockBehavior: DeferBlockBehavior.Manual,
         }).compileComponents();
     });
 

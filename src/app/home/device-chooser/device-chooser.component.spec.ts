@@ -1,4 +1,5 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {Mock, vi} from 'vitest';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {emit} from '@tauri-apps/api/event';
 
@@ -14,11 +15,11 @@ describe('DeviceChooserComponent', () => {
     ];
 
     let fixture: ComponentFixture<DeviceChooserComponent>;
-    let modal: jasmine.SpyObj<NgbActiveModal>;
+    let modal: {close: Mock; dismiss: Mock};
 
     beforeEach(async () => {
         mockBackend({'device-manager/list': () => devices});
-        modal = jasmine.createSpyObj<NgbActiveModal>('NgbActiveModal', ['close', 'dismiss']);
+        modal = {close: vi.fn(), dismiss: vi.fn()};
 
         await TestBed.configureTestingModule({
             imports: [DeviceChooserComponent],
@@ -29,6 +30,14 @@ describe('DeviceChooserComponent', () => {
     });
 
     afterEach(() => resetBackend());
+
+    /** Lets the mocked IPC promise chain settle, then re-renders. */
+    async function settle(): Promise<void> {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+    }
 
     function renderedNames(): string[] {
         return Array.from(fixture.nativeElement.querySelectorAll('li'))
@@ -42,8 +51,7 @@ describe('DeviceChooserComponent', () => {
 
     it('renders one row per device once loaded', async () => {
         TestBed.inject(DeviceManagerService).load();
-        await fixture.whenStable();
-        fixture.detectChanges();
+        await settle();
 
         expect(renderedNames()).toEqual(['living-room', 'bedroom']);
     });
@@ -60,8 +68,7 @@ describe('DeviceChooserComponent', () => {
 
     it('closes the modal with the clicked device', async () => {
         TestBed.inject(DeviceManagerService).load();
-        await fixture.whenStable();
-        fixture.detectChanges();
+        await settle();
 
         fixture.nativeElement.querySelectorAll('li')[1].click();
 

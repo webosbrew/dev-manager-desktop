@@ -26,11 +26,33 @@ export function backendError(reason: string, extra: Record<string, unknown> = {}
  * `undefined` — a silent `undefined` surfaces later as an unrelated failure deep
  * in the component under test.
  */
+/**
+ * Path operations, answered locally. `@tauri-apps/api/path` round-trips even
+ * `join` through the backend, and a spec that merely renders a form should not
+ * have to know that. Overridable — a caller's map wins.
+ */
+function pathHandlers(sep: string): CommandHandlers {
+    const normalize = (p: string) => p.replace(/[\\/]+/g, sep).replace(new RegExp(`\\${sep}$`), '');
+    return {
+        'path/join': ({paths}) => normalize((paths as string[]).join(sep)),
+        'path/resolve': ({paths}) => normalize((paths as string[]).join(sep)),
+        'path/normalize': ({path}) => normalize(path),
+        'path/dirname': ({path}) => normalize(path).split(sep).slice(0, -1).join(sep),
+        'path/basename': ({path, ext}) => {
+            const name = normalize(path).split(sep).pop() ?? '';
+            return ext && name.endsWith(ext) ? name.slice(0, -ext.length) : name;
+        },
+    };
+}
+
 export function mockBackend(handlers: CommandHandlers, platform: 'windows' | 'posix' = 'posix'): void {
+    const sep = platform === 'windows' ? '\\' : '/';
+    const resolved: CommandHandlers = {...pathHandlers(sep), ...handlers};
+
     mockIPC(async (cmd, args) => {
         const match = /^plugin:([^|]+)\|(.+)$/.exec(cmd);
         const call = match ? `${match[1]}/${match[2]}` : cmd;
-        const handler = handlers[call];
+        const handler = resolved[call];
         if (!handler) {
             throw backendError('Message', {message: `No mock for backend call ${call}`});
         }
@@ -43,9 +65,7 @@ export function mockBackend(handlers: CommandHandlers, platform: 'windows' | 'po
     const internals = (window as any).__TAURI_INTERNALS__;
     internals.plugins = {
         ...internals.plugins,
-        path: platform === 'windows'
-            ? {sep: '\\', delimiter: ';'}
-            : {sep: '/', delimiter: ':'},
+        path: {sep, delimiter: platform === 'windows' ? ';' : ':'},
     };
 }
 

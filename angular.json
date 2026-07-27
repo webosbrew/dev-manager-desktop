@@ -34,6 +34,8 @@
             },
             "index": "src/index.html",
             "polyfills": [
+              "zone.js",
+              "@angular/localize/init",
               "src/polyfills.ts"
             ],
             "tsConfig": "tsconfig.app.json",
@@ -128,23 +130,14 @@
           }
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "buildTarget": "ui:build",
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "browsers": "ChromeHeadless",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "src/assets"
+            "runner": "vitest",
+            "setupFiles": [
+              "src/testing/setup.ts"
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
-            "scripts": [],
             "exclude": [
               "**/*.integration.spec.ts"
             ]

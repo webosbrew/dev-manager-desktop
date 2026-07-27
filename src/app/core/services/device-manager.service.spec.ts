@@ -23,7 +23,7 @@ describe('DeviceManagerService', () => {
     it('resolves list() from the backend', async () => {
         mockBackend({'device-manager/list': () => [device]});
         const service = TestBed.inject(DeviceManagerService);
-        await expectAsync(service.list()).toBeResolvedTo([device]);
+        await expect(service.list()).resolves.toEqual([device]);
     });
 
     it('pushes devicesUpdated events into devices$', async () => {
@@ -46,9 +46,9 @@ describe('DeviceManagerService', () => {
         });
         const service = TestBed.inject(DeviceManagerService);
 
-        await expectAsync(service.list()).toBeRejected();
+        await expect(service.list()).rejects.toBeDefined();
         const error = await service.list().catch(e => e);
-        expect(BackendError.isCompatible(error)).toBeTrue();
+        expect(BackendError.isCompatible(error)).toBe(true);
         expect(error.reason).toBe('Timeout');
         expect(error.call).toBe('device-manager/list');
     });
@@ -56,6 +56,6 @@ describe('DeviceManagerService', () => {
     it('fails loudly when a command has no mock', async () => {
         mockBackend({});
         const service = TestBed.inject(DeviceManagerService);
-        await expectAsync(service.list()).toBeRejectedWithError(/No mock for backend call/);
+        await expect(service.list()).rejects.toThrow(/No mock for backend call/);
     });
 });

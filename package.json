@@ -89,16 +89,16 @@
     "globals": "16.0.0",
     "istanbul-lib-instrument": "^6.0.3",
     "jasmine-core": "5.6.0",
+    "jsdom": "30.0.0",
     "karma": "6.4.4",
-    "karma-chrome-launcher": "3.2.0",
     "karma-coverage": "2.2.1",
     "karma-jasmine": "5.1.0",
     "karma-jasmine-html-reporter": "2.1.0",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
   },
   "browserslist": [
     "chrome >= 91",
-    "safari >= 15",
-    "defaults"
+    "safari >= 15"
   ]
 }

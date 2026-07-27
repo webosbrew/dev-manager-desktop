@@ -1,28 +1,20 @@
-// Karma configuration file, see link for more information
+// Karma configuration, used only by the `test-integration` target: those specs
+// run inside a real Tauri window against the real Rust backend, which needs the
+// custom launcher below. The mocked headless suite (`npm test`) runs on vitest
+// via @angular/build:unit-test and does not read this file.
 // https://karma-runner.github.io/1.0/config/configuration-file.html
 
 /** @param config {import('karma').Config} */
 module.exports = function (config) {
   config.set({
     basePath: '',
-    frameworks: ['jasmine', '@angular-devkit/build-angular'],
+    frameworks: ['jasmine'],
     plugins: [
       require('karma-jasmine'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
-      require('karma-chrome-launcher'),
-      
       require('./scripts/karma-tauri-launcher'),
     ],
-    // Which launcher runs is set per target in angular.json: `test` uses
-    // ChromeHeadless with a mocked backend, `test-integration` uses TauriDesktop
-    // so the specs reach the real Rust side.
-    customLaunchers: {
-      ChromeHeadlessNoSandbox: {
-        base: 'ChromeHeadless',
-        flags: ['--no-sandbox', '--disable-gpu'],
-      },
-    },
     client: {
       jasmine: {
         // you can add configuration options for Jasmine here
