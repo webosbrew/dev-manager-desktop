@@ -49,7 +49,23 @@ export function mockBackend(handlers: CommandHandlers, platform: 'windows' | 'po
     };
 }
 
-/** Tears the mock down. Call from `afterEach` so mocks never leak between specs. */
+/**
+ * Tears the mock down. Call from `afterEach` so mocks never leak between specs.
+ *
+ * `clearMocks` removes `__TAURI_INTERNALS__` outright, so a call still in flight
+ * when a spec ends dies with `invoke is not a function` — noise in the report that
+ * points at the harness rather than at anything real. Leaving a rejecting stub
+ * behind turns those stragglers into a quiet, named rejection instead.
+ */
 export function resetBackend(): void {
     clearMocks();
+    mockIPC(async cmd => {
+        // Stream cleanup is fire-and-forget on the app side — plugin-http cancels a
+        // response body it never finished reading. Rejecting those would report a
+        // failure for something no caller is waiting on.
+        if (cmd.startsWith('plugin:http|fetch_cancel')) {
+            return null;
+        }
+        throw backendError('Message', {message: `Backend mock torn down before ${cmd} completed`});
+    });
 }

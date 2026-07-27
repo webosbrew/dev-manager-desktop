@@ -14,7 +14,7 @@ import {RemoteFileService, ServeInstance} from "./remote-file.service";
 import {IncompatibleReason, PackageManifest, RepositoryItem} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {LocalFileService} from "./local-file.service";
-import _ from "lodash-es";
+import {get} from "lodash-es";
 import {APP_ID_HBCHANNEL} from "../../shared/constants";
 import {DeviceManagerService} from "./device-manager.service";
 import {HomebrewChannelConfiguration} from "../../types/luna-apis";
@@ -282,7 +282,7 @@ export class AppManagerService {
 }
 
 function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp): boolean {
-    const resultValue: string = _.get(v, ['details', 'state']) || '';
+    const resultValue: string = get(v, ['details', 'state']) || '';
     if (resultValue.match(/FAILED/i)) {
         let details = v['details'];
         if (details && details.reason) {
