@@ -3,7 +3,7 @@ import {invoke} from '@tauri-apps/api/core';
 import {NgZone} from '@angular/core';
 import {omit} from "lodash-es";
 import {noop} from "rxjs";
-import {ExecutionError} from "./remote-command.service";
+import {ExecutionError} from "./execution-error";
 
 export abstract class BackendClient {
     protected constructor(protected zone: NgZone, public category: string) {

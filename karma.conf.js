@@ -10,9 +10,19 @@ module.exports = function (config) {
       require('karma-jasmine'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
+      require('karma-chrome-launcher'),
       require('@angular-devkit/build-angular/plugins/karma'),
       require('./scripts/karma-tauri-launcher'),
     ],
+    // Which launcher runs is set per target in angular.json: `test` uses
+    // ChromeHeadless with a mocked backend, `test-integration` uses TauriDesktop
+    // so the specs reach the real Rust side.
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox', '--disable-gpu'],
+      },
+    },
     client: {
       jasmine: {
         // you can add configuration options for Jasmine here

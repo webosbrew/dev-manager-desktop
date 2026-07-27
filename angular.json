@@ -133,6 +133,7 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
+            "browsers": "ChromeHeadless",
             "inlineStyleLanguage": "scss",
             "assets": [
               "src/assets"
@@ -140,7 +141,33 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "exclude": [
+              "**/*.integration.spec.ts"
+            ]
+          }
+        },
+        "test-integration": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "tsconfig.integration.json",
+            "karmaConfig": "karma.conf.js",
+            "browsers": "TauriDesktop",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "src/assets"
+            ],
+            "styles": [
+              "src/styles.scss"
+            ],
+            "scripts": [],
+            "include": [
+              "**/*.integration.spec.ts"
+            ]
           }
         }
       }
