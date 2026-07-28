@@ -1,16 +1,15 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
 import {DeviceManagerService} from "../../core/services";
-import {AsyncPipe, NgForOf} from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 
 @Component({
     selector: 'app-device-chooser',
-    standalone: true,
     imports: [
-        AsyncPipe,
-        NgForOf
-    ],
+    AsyncPipe
+],
     templateUrl: './device-chooser.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './device-chooser.component.scss'
 })
 export class DeviceChooserComponent {

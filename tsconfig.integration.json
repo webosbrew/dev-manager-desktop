@@ -1,0 +1,24 @@
+/* Specs that talk to the real Rust backend, and in some cases a real device.
+   Run with `npm run test:integration`, which launches them inside a Tauri window
+   instead of a headless browser. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/integration",
+    "types": [
+      "jasmine"
+    ]
+  },
+  "include": [
+    "src/**/*.integration.spec.ts",
+    "src/**/*.d.ts"
+  ],
+  "angularCompilerOptions": {
+    "extendedDiagnostics": {
+      "checks": {
+        "nullishCoalescingNotNullable": "suppress",
+        "optionalChainNotNullable": "suppress"
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import {Component, Host, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Host, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
 import {Observable, Subscription} from "rxjs";
@@ -9,7 +9,9 @@ import {StatStorageInfoComponent} from "../../shared/components/stat-storage-inf
 @Component({
     selector: 'app-installed',
     templateUrl: './installed.component.html',
-    styleUrls: ['./installed.component.scss']
+    styleUrls: ['./installed.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class InstalledComponent implements OnChanges, OnInit, OnDestroy {
 

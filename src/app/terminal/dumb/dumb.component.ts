@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Input, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {RemoteShellService, ShellObservable, ShellToken} from "../../core/services/remote-shell.service";
 import {Subscription} from "rxjs";
 import {Buffer} from "buffer";
@@ -10,11 +10,11 @@ import {AutosizeModule} from "ngx-autosize";
     selector: 'app-terminal-dumb',
     templateUrl: './dumb.component.html',
     styleUrls: ['./dumb.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         ExternalLinkDirective,
         AutosizeModule
-    ],
-    standalone: true
+    ]
 })
 export class DumbComponent implements OnInit, AfterViewInit, OnDestroy, ITerminalComponent {
 

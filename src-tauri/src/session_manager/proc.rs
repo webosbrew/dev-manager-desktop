@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Formatter};
 use std::io::Write;
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{channel, RecvTimeoutError};
+use std::thread::sleep;
 use std::time::Duration;
 
 use libssh_rs::Channel;
@@ -8,6 +9,11 @@ use libssh_rs::Channel;
 use crate::conn_pool::ManagedDeviceConnection;
 use crate::error::Error;
 use crate::session_manager::{Proc, ProcResult, SessionManager};
+
+/// How long the loop parks waiting for stdin before polling the remote for
+/// output again. Small enough to feel instant, large enough to keep a
+/// long-running command off the CPU.
+const POLL_INTERVAL: Duration = Duration::from_millis(10);
 
 impl Proc {
     pub fn is_ready(&self) -> bool {
@@ -86,26 +92,33 @@ impl Proc {
                 channel.close()?;
                 interrupted = true;
                 break;
-            } else if let Ok(msg) = receiver.recv_timeout(Duration::from_micros(1)) {
-                channel.stdin().write_all(&msg)?;
             }
-            let buf_size =
-                match channel.read_timeout(&mut buf, false, Some(Duration::from_millis(10))) {
-                    Ok(size) => size,
-                    Err(libssh_rs::Error::TryAgain) => 0,
-                    Err(e) => return Err(Error::from(e)),
-                };
-            if buf_size > 0 {
-                self.data(0, &buf[..buf_size])?;
+            // Forward everything already buffered on both streams before parking,
+            // so a burst of output reaches the client in one pass.
+            for (fd, is_stderr) in [(0, false), (1, true)] {
+                loop {
+                    let buf_size =
+                        match channel.read_timeout(&mut buf, is_stderr, Some(Duration::ZERO)) {
+                            Ok(size) => size,
+                            Err(libssh_rs::Error::TryAgain) => 0,
+                            Err(e) => return Err(Error::from(e)),
+                        };
+                    if buf_size == 0 {
+                        break;
+                    }
+                    self.data(fd, &buf[..buf_size])?;
+                }
             }
-            let buf_size =
-                match channel.read_timeout(&mut buf, true, Some(Duration::from_millis(10))) {
-                    Ok(size) => size,
-                    Err(libssh_rs::Error::TryAgain) => 0,
-                    Err(e) => return Err(Error::from(e)),
-                };
-            if buf_size > 0 {
-                self.data(1, &buf[..buf_size])?;
+            // Park until there is stdin to forward or it is time to poll again.
+            // The reads above are non-blocking, so this is what keeps the loop
+            // from spinning while the command is running.
+            match receiver.recv_timeout(POLL_INTERVAL) {
+                Ok(msg) => channel.stdin().write_all(&msg)?,
+                Err(RecvTimeoutError::Timeout) => {}
+                // The sender lives in `self.sender` for as long as this loop
+                // runs, so this is unreachable in practice; sleep rather than
+                // spin if it ever becomes reachable.
+                Err(RecvTimeoutError::Disconnected) => sleep(POLL_INTERVAL),
             }
         }
         let mut result = ProcResult::Closed;

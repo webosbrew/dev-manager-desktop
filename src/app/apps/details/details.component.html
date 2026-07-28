@@ -17,85 +17,109 @@
       @if (installed) {
         <span class="badge text-bg-secondary mt-2">Installed</span>
       }
-      <ng-container *ngIf="manifest.rootRequired" [ngSwitch]="manifest.rootRequired">
-        <div class="small text-body-secondary mt-1" *ngSwitchCase="true"><i class="bi bi-shield-lock me-1"></i>Root required</div>
-        <div class="small text-body-secondary mt-1" *ngSwitchCase="'optional'"><i class="bi bi-shield me-1"></i>Root optional</div>
-      </ng-container>
+      @if (manifest.rootRequired) {
+        @switch (manifest.rootRequired) {
+          @case (true) {
+            <div class="small text-body-secondary mt-1"><i class="bi bi-shield-lock me-1"></i>Root required</div>
+          }
+          @case ('optional') {
+            <div class="small text-body-secondary mt-1"><i class="bi bi-shield me-1"></i>Root optional</div>
+          }
+        }
+      }
     </div>
   </section>
   <div class="p-3 detail-content">
-    <div class="alert alert-warning mb-3" role="alert" *ngIf="(incompatible$ | async) as reasons">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ item.title }} is marked incompatible with the selected device.
-      <ul class="mb-0 mt-2">
-        <li *ngFor="let reason of reasons" [ngSwitch]="reason">
-          <ng-container *ngSwitchCase="'root'">This app requires root.</ng-container>
-          <ng-container *ngSwitchCase="'soc'">Not compatible with the device's SoC.</ng-container>
-          <ng-container *ngSwitchCase="'release'">Not compatible with the device's webOS version.</ng-container>
-        </li>
-      </ul>
-    </div>
-    <h6 class="text-body-secondary mb-2">About</h6>
-    <p class="mb-3" *ngIf="item.shortDescription">{{ item.shortDescription }}</p>
-    <div class="full-description" [innerHtml]="fullDescriptionHtml$ | async" #fullDescription></div>
-    <ng-container *ngIf="manifest?.sourceUrl as url">
-      <hr>
-      <h6 class="text-body-secondary mb-2">Links</h6>
-      <a [href]="url" appExternalLink class="d-flex flex-row align-items-center text-decoration-none">
-        <i class="bi bi-globe2 me-2"></i>
-        <span class="text-truncate">{{ url }}</span>
-      </a>
-    </ng-container>
-  </div>
-</div>
-<div class="detail-footer border-top p-3 bg-body">
-  <div class="input-group" aria-label="Install actions">
-    @let allDevices = devices$ | async;
-    @if (allDevices && allDevices.length > 1) {
-      <select class="form-select"
-              aria-label="Install target device"
-              [value]="selectedDevice.name"
-              (change)="onDeviceChange(deviceSelect.value)"
-              #deviceSelect>
-        @for (dev of allDevices; track dev.name) {
-          <option [value]="dev.name" [selected]="dev.name === selectedDevice.name">{{ dev.name }}</option>
-        }
-      </select>
-    }
-    @switch (installed && manifest.hasUpdate(installed.version)) {
-      @case (false) {
-        <button class="btn btn-primary flex-fill" (click)="launchApp(item.id)" aria-label="Launch">
-          <i class="bi bi-play-fill me-2"></i>Launch
-        </button>
-      }
-      @case (true) {
-        <button class="btn btn-warning flex-fill" (click)="installPackage(item)" aria-label="Update">
-          <i class="bi bi-download me-2"></i>Update
-        </button>
-      }
-      @default {
-        <button class="btn btn-primary flex-fill" (click)="installPackage(item)" aria-label="Install">
-          <i class="bi bi-download me-2"></i>Install
-        </button>
-      }
-    }
-    @if (item.manifestBeta || installed) {
-      <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
-           placement="top-end" aria-label="More actions">
-        <button class="btn btn-outline-primary" ngbDropdownToggle aria-label="More actions">
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu" ngbDropdownMenu>
-          <li ngbDropdownItem (click)="installPackage(item, 'beta')" *ngIf="item.manifestBeta">
-            <i class="bi bi-download me-3"></i>Install Beta
-          </li>
-          <ng-container *ngIf="installed">
-            <li class="divider dropdown-divider" *ngIf="item.manifestBeta"></li>
-            <li ngbDropdownItem class="text-danger" (click)="removePackage(installed)">
-              <i class="bi bi-trash me-3"></i>Uninstall
+    @if ((incompatible$ | async); as reasons) {
+      <div class="alert alert-warning mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ item.title }} is marked incompatible with the selected device.
+        <ul class="mb-0 mt-2">
+          @for (reason of reasons; track reason) {
+            <li>
+              @switch (reason) {
+                @case ('root') {
+                  This app requires root.
+                }
+                @case ('soc') {
+                  Not compatible with the device's SoC.
+                }
+                @case ('release') {
+                  Not compatible with the device's webOS version.
+                }
+              }
             </li>
-          </ng-container>
+          }
         </ul>
       </div>
     }
+    <h6 class="text-body-secondary mb-2">About</h6>
+    @if (item.shortDescription) {
+      <p class="mb-3">{{ item.shortDescription }}</p>
+    }
+    <div class="full-description" [innerHtml]="fullDescriptionHtml$ | async" #fullDescription></div>
+    @if (manifest?.sourceUrl; as url) {
+      <hr>
+        <h6 class="text-body-secondary mb-2">Links</h6>
+        <a [href]="url" appExternalLink class="d-flex flex-row align-items-center text-decoration-none">
+          <i class="bi bi-globe2 me-2"></i>
+          <span class="text-truncate">{{ url }}</span>
+        </a>
+      }
+    </div>
   </div>
-</div>
+  <div class="detail-footer border-top p-3 bg-body">
+    <div class="input-group" aria-label="Install actions">
+      @let allDevices = devices$ | async;
+      @if (allDevices && allDevices.length > 1) {
+        <select class="form-select"
+          aria-label="Install target device"
+          [value]="selectedDevice.name"
+          (change)="onDeviceChange(deviceSelect.value)"
+          #deviceSelect>
+          @for (dev of allDevices; track dev.name) {
+            <option [value]="dev.name" [selected]="dev.name === selectedDevice.name">{{ dev.name }}</option>
+          }
+        </select>
+      }
+      @switch (installed && manifest.hasUpdate(installed.version)) {
+        @case (false) {
+          <button class="btn btn-primary flex-fill" (click)="launchApp(item.id)" aria-label="Launch">
+            <i class="bi bi-play-fill me-2"></i>Launch
+          </button>
+        }
+        @case (true) {
+          <button class="btn btn-warning flex-fill" (click)="installPackage(item)" aria-label="Update">
+            <i class="bi bi-download me-2"></i>Update
+          </button>
+        }
+        @default {
+          <button class="btn btn-primary flex-fill" (click)="installPackage(item)" aria-label="Install">
+            <i class="bi bi-download me-2"></i>Install
+          </button>
+        }
+      }
+      @if (item.manifestBeta || installed) {
+        <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
+          placement="top-end" aria-label="More actions">
+          <button class="btn btn-outline-primary" ngbDropdownToggle aria-label="More actions">
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" ngbDropdownMenu>
+            @if (item.manifestBeta) {
+              <li ngbDropdownItem (click)="installPackage(item, 'beta')">
+                <i class="bi bi-download me-3"></i>Install Beta
+              </li>
+            }
+            @if (installed) {
+              @if (item.manifestBeta) {
+                <li class="divider dropdown-divider"></li>
+              }
+              <li ngbDropdownItem class="text-danger" (click)="removePackage(installed)">
+                <i class="bi bi-trash me-3"></i>Uninstall
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </div>

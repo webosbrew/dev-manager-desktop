@@ -1,10 +1,14 @@
 import {Injectable, NgZone} from "@angular/core";
-import {BackendClient, BackendError, BackendErrorBody} from "./backend-client";
+import {BackendClient, BackendError} from "./backend-client";
+import {convertOutput, ExecutionError} from "./execution-error";
 import {DeviceLike} from "../../types";
 import {Buffer} from "buffer";
 import {noop, ReplaySubject} from "rxjs";
 import {EventChannel} from "../event-channel";
 import {isNil} from "lodash-es";
+
+// Re-exported so the many existing `from "./remote-command.service"` imports keep working.
+export {ExecutionError, convertOutput};
 
 @Injectable({
     providedIn: 'root'
@@ -198,41 +202,6 @@ declare interface ExecOutput<T> {
 
 type SpawnResult = SpawnExited | SpawnSignaled | SpawnClosed;
 
-export class ExecutionError extends Error {
-    constructor(message: string, public status: number, public details: string, public command: string) {
-        super(message);
-    }
-
-    static isCompatible(e: unknown): e is ExecutionError {
-        if (!(e instanceof Error)) {
-            return false;
-        }
-        const p = e as Partial<ExecutionError>;
-        return typeof (p.status) === 'number' && p.details !== null;
-    }
-
-    static fromBackendError(e: BackendErrorBody): ExecutionError {
-        const stderr = e['stderr'] as number[];
-        const data = convertOutput(stderr, 'utf-8');
-        const exitCode = e['exit_code'] as number;
-        const command = e['command'] as string;
-        return new ExecutionError(`Command \`${command}\` exited with code ${exitCode}`, exitCode, data, command);
-    }
-}
-
 export function escapeSingleQuoteString(value: string) {
     return value.split('\'').map(s => `'${s}'`).join('\\\'');
-}
-
-export function convertOutput(data: number[], format: 'buffer'): Buffer;
-export function convertOutput(data: number[], format: 'utf-8'): string;
-
-export function convertOutput(data: number[], format: 'buffer' | 'utf-8'): Buffer | string {
-    const outputData = Buffer.from(data);
-    switch (format) {
-        case 'utf-8':
-            return outputData.toString('utf-8');
-        default:
-            return outputData;
-    }
 }

@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {Device} from "../../types";
 import {RemoteCommandService} from "../../core/services/remote-command.service";
 import {from, identity, mergeMap, Observable} from "rxjs";
@@ -7,7 +7,9 @@ import {LogMessage, RemoteLogService} from "../../core/services/remote-log.servi
 @Component({
     selector: 'app-dmesg',
     templateUrl: './dmesg.component.html',
-    styleUrls: ['./dmesg.component.scss']
+    styleUrls: ['./dmesg.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class DmesgComponent {
 

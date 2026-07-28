@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators} from '@angular/forms';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {DeviceManagerService} from '../../core/services';
@@ -24,7 +24,7 @@ import {LocalFileService} from "../../core/services/local-file.service";
     selector: 'app-device-editor',
     templateUrl: './device-editor.component.html',
     styleUrls: ['./device-editor.component.scss'],
-    standalone: true,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         ReactiveFormsModule,
         SshAuthValueDirective,

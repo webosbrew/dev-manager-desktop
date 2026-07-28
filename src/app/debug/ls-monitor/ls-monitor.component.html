@@ -1,43 +1,64 @@
 <div class="w-100 h-100 ls-monitor">
   <div class="top-bar border-bottom p-2">
     <input type="search" class="form-control form-control-sm"
-           appSearchBar keywords="sender,destination" (query)="queryUpdated($event)">
-  </div>
-  <div class="side-bar border-end h-100 d-flex flex-column p-2">
-    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Capture" (click)="beginCapture()" [disabled]="!device"
-            [ngSwitch]="isCapturing">
-      <i class="bi bi-record-fill larger" *ngSwitchCase="false"></i>
-      <i class="bi bi-stop-fill" *ngSwitchDefault></i>
+      appSearchBar keywords="sender,destination" (query)="queryUpdated($event)">
+    </div>
+    <div class="side-bar border-end h-100 d-flex flex-column p-2">
+      <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Capture" (click)="beginCapture()" [disabled]="!device"
+        >
+      @switch (isCapturing) {
+        @case (false) {
+          <i class="bi bi-record-fill larger"></i>
+        }
+        @default {
+          <i class="bi bi-stop-fill"></i>
+        }
+      }
     </button>
     <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Open" (click)="openFromFile()" [disabled]="isCapturing">
       <i class="bi bi-folder-fill"></i>
     </button>
-    <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Save" *ngIf="isCapture">
-      <i class="bi bi-floppy2-fill"></i>
-    </button>
+    @if (isCapture) {
+      <button class="btn btn-sm btn-secondary mt-2" ngbTooltip="Save">
+        <i class="bi bi-floppy2-fill"></i>
+      </button>
+    }
     <hr>
-  </div>
-  <div class="table-container overflow-hidden d-flex flex-row">
-    <div class="overflow-x-hidden overflow-y-auto h-100" [class.w-100]="!selectedRow"
-         [class.details-opened]="selectedRow">
-      <table class="table table-sm table-striped table-hover">
-        <thead>
-        <tr>
-          <th class="name-col">Name</th>
-          <th class="sender-col" *ngIf="!selectedRow">Sender</th>
-          <th class="info-col" *ngIf="!selectedRow">Information</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr [class.table-active]="selectedRow === row" (click)="selectedRow = row" *ngFor="let row of rows">
-          <td class="name-col">{{ row.name }}</td>
-          <td class="sender-col" *ngIf="!selectedRow">{{ row.sender }}</td>
-          <td class="info-col text-nowrap" *ngIf="!selectedRow">{{ row.information }}</td>
-        </tbody>
-      </table>
     </div>
-    <div class="flex-fill h-100 border-start overflow-hidden" *ngIf="selectedRow as selected">
-      <app-ls-monitor-details [details]="selected" (closeClick)="selectedRow = undefined"></app-ls-monitor-details>
+    <div class="table-container overflow-hidden d-flex flex-row">
+      <div class="overflow-x-hidden overflow-y-auto h-100" [class.w-100]="!selectedRow"
+        [class.details-opened]="selectedRow">
+        <table class="table table-sm table-striped table-hover">
+          <thead>
+            <tr>
+              <th class="name-col">Name</th>
+              @if (!selectedRow) {
+                <th class="sender-col">Sender</th>
+              }
+              @if (!selectedRow) {
+                <th class="info-col">Information</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows; track row) {
+              <tr [class.table-active]="selectedRow === row" (click)="selectedRow = row">
+                <td class="name-col">{{ row.name }}</td>
+                @if (!selectedRow) {
+                  <td class="sender-col">{{ row.sender }}</td>
+                }
+                @if (!selectedRow) {
+                  <td class="info-col text-nowrap">{{ row.information }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      @if (selectedRow; as selected) {
+        <div class="flex-fill h-100 border-start overflow-hidden">
+          <app-ls-monitor-details [details]="selected" (closeClick)="selectedRow = undefined"></app-ls-monitor-details>
+        </div>
+      }
     </div>
   </div>
-</div>

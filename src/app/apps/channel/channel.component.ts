@@ -1,4 +1,4 @@
-import {Component, Host, Injector, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Host, Injector, Input, OnDestroy, OnInit} from '@angular/core';
 import {Observable, Subscription} from 'rxjs';
 import {AppManagerService, AppsRepoService, RepositoryItem, RepositoryPage} from '../../core/services';
 import {AppsComponent} from '../apps.component';
@@ -9,7 +9,9 @@ import {NgbOffcanvas} from "@ng-bootstrap/ng-bootstrap";
 @Component({
     selector: 'app-channel',
     templateUrl: './channel.component.html',
-    styleUrls: ['./channel.component.scss']
+    styleUrls: ['./channel.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ChannelComponent implements OnInit, OnDestroy {
 

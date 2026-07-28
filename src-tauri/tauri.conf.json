@@ -85,7 +85,8 @@
       "exceptionDomain": "",
       "frameworks": [],
       "providerShortName": null,
-      "signingIdentity": null
+      "signingIdentity": null,
+      "minimumSystemVersion": "10.15"
     },
     "resources": [],
     "shortDescription": "Device/Dev Mode Manager for webOS TV",
@@ -98,8 +99,7 @@
         "silent": false,
         "type": "embedBootstrapper"
       },
-      "wix": {
-      }
+      "wix": {}
     },
     "android": {
       "minSdkVersion": 28

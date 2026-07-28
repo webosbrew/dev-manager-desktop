@@ -1,4 +1,4 @@
-import {Component, Inject, OnInit} from '@angular/core';
+import {Component, Inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../../types';
 import {DeviceManagerService, DevModeStatus} from '../../core/services';
@@ -11,7 +11,9 @@ import Mustache from 'mustache';
 @Component({
     selector: 'app-renew-script',
     templateUrl: './renew-script.component.html',
-    styleUrls: ['./renew-script.component.scss']
+    styleUrls: ['./renew-script.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class RenewScriptComponent implements OnInit {
 

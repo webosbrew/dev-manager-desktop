@@ -1,4 +1,4 @@
-import {Component, NgZone, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Injector, NgZone, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Observable, Subject, Subscription} from 'rxjs';
 import {Device, RawPackageInfo} from '../types';
@@ -17,7 +17,9 @@ type UnlistenFn = () => void;
 @Component({
     selector: 'app-apps',
     templateUrl: './apps.component.html',
-    styleUrls: ['./apps.component.scss']
+    styleUrls: ['./apps.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class AppsComponent implements OnInit, OnDestroy {
 

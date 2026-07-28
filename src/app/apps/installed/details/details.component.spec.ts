@@ -1,4 +1,5 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {Mock, vi} from 'vitest';
 
 import {DetailsComponent} from './details.component';
 import {AppManagerService, PackageManifest, RepositoryItem} from '../../../core/services';
@@ -8,7 +9,7 @@ import {AppsComponent} from '../../apps.component';
 describe('InstalledDetailsComponent', () => {
     let component: DetailsComponent;
     let fixture: ComponentFixture<DetailsComponent>;
-    let parentSpy: jasmine.SpyObj<AppsComponent>;
+    let parentSpy: {launchApp: Mock; removePackage: Mock; installPackage: Mock};
 
     const device: Device = <Device>{
         name: 'test', host: '192.168.1.1', port: 22, username: 'prisoner',
@@ -21,9 +22,11 @@ describe('InstalledDetailsComponent', () => {
     };
 
     function setup(repoPackage: RepositoryItem | null = null) {
-        parentSpy = jasmine.createSpyObj<AppsComponent>('AppsComponent', ['launchApp', 'removePackage', 'installPackage']);
-        parentSpy.removePackage.and.resolveTo(true);
-        parentSpy.installPackage.and.resolveTo(true);
+        parentSpy = {
+            launchApp: vi.fn(),
+            removePackage: vi.fn().mockResolvedValue(true),
+            installPackage: vi.fn().mockResolvedValue(true),
+        };
         const appManagerStub = {
             appDiskUsage: () => Promise.reject(new Error('not under test')),
         } as Partial<AppManagerService>;
@@ -39,7 +42,8 @@ describe('InstalledDetailsComponent', () => {
         component = fixture.componentInstance;
         component.pkg = pkg;
         component.device = device;
-        component.parent = parentSpy;
+        // Only the three methods the details view calls are stubbed.
+        component.parent = parentSpy as unknown as AppsComponent;
         component.repoPackage = repoPackage;
         component.ngOnChanges({
             pkg: <any>{currentValue: pkg, previousValue: undefined, firstChange: true, isFirstChange: () => true},
@@ -63,7 +67,7 @@ describe('InstalledDetailsComponent', () => {
         setup();
         const removed = await component.uninstall();
         expect(parentSpy.removePackage).toHaveBeenCalledWith(pkg);
-        expect(removed).toBeTrue();
+        expect(removed).toBe(true);
     });
 
     it('Update calls parent.installPackage when a repo package is available', async () => {
@@ -71,24 +75,24 @@ describe('InstalledDetailsComponent', () => {
         setup(newer);
         const installed = await component.update();
         expect(parentSpy.installPackage).toHaveBeenCalledWith(newer);
-        expect(installed).toBeTrue();
+        expect(installed).toBe(true);
     });
 
     it('Update is a no-op without a repo package', async () => {
         setup(null);
         const installed = await component.update();
-        expect(installed).toBeFalse();
+        expect(installed).toBe(false);
         expect(parentSpy.installPackage).not.toHaveBeenCalled();
     });
 
     it('hasUpdate is false when no repo package is provided', () => {
         setup(null);
-        expect(component.hasUpdate).toBeFalse();
+        expect(component.hasUpdate).toBe(false);
     });
 
     it('hasUpdate reflects the repo manifest comparison', () => {
         const newer = new RepositoryItem({manifest: new PackageManifest({version: '2.0.0'})}, '');
         setup(newer);
-        expect(component.hasUpdate).toBeTrue();
+        expect(component.hasUpdate).toBe(true);
     });
 });

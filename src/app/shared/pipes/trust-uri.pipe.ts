@@ -2,7 +2,8 @@ import {Pipe, PipeTransform} from "@angular/core";
 import {DomSanitizer} from '@angular/platform-browser';
 
 @Pipe({
-  name: 'trustUri'
+    name: 'trustUri',
+    standalone: false
 })
 export class TrustUriPipe implements PipeTransform {
 

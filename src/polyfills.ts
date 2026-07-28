@@ -55,13 +55,15 @@
 /***************************************************************************************************
  * Zone JS is required by default for Angular itself.
  */
-import 'zone.js';  // Included with Angular CLI.
+// zone.js and @angular/localize/init are listed ahead of this file in the build
+// target's `polyfills` array. Declaring zone.js by name (rather than importing it
+// here) is what lets the unit-test builder see it and load zone.js/testing with a
+// static import instead of a top-level await.
 
 
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
-import '@angular/localize/init';
 
 // Fixing "global is not defined"
 (window as any).global = window;

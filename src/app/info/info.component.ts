@@ -1,4 +1,4 @@
-import {Component, Injector, OnDestroy, OnInit} from '@angular/core';
+import {Component, Injector, OnDestroy, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {noop, Subscription} from 'rxjs';
 import {Device, RawPackageInfo} from '../types';
@@ -24,7 +24,9 @@ import {fromPromise} from "rxjs/internal/observable/innerFrom";
 @Component({
     selector: 'app-info',
     templateUrl: './info.component.html',
-    styleUrls: ['./info.component.scss']
+    styleUrls: ['./info.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class InfoComponent implements OnInit, OnDestroy {
     device: Device | null = null;

@@ -1,6 +1,6 @@
 <div class="manager-toolbar navbar bg-panel border-bottom d-flex flex-row flex-nowrap px-2">
-  <select class="form-select" [value]="device?.name" (change)="deviceManager.setDefault(deviceSelect.value)"
-          #deviceSelect>
+  <select class="form-select" [value]="$safeNavigationMigration(device?.name)" (change)="deviceManager.setDefault(deviceSelect.value)"
+    #deviceSelect>
     @let devices = deviceManager.devices$ | async;
     @for (item of devices; track item.name) {
       <option [ngValue]="item.name" [selected]="item.name === device?.name">{{ item.name }}</option>
@@ -21,80 +21,92 @@
             <span class="user-select-text">{{ deviceInfo.firmwareVersion }}</span>
             @if (deviceInfo.osVersion) {
               <br>
-              <strong>webOS version: </strong><span class="user-select-text">{{ deviceInfo.osVersion }}</span>
-            }
-            @if (deviceInfo.otaId) {
-              <br>
-              <strong>OTA ID: </strong><span class="user-select-text">{{ deviceInfo.otaId }}</span>
-            }
-            @if (deviceInfo.socName) {
-              <br>
-              <strong>SoC: </strong><span class="user-select-text">{{ deviceInfo.socName }}</span>
-            }
-          </p>
-          @if (device.username === 'root') {
-            <div class="btn-group">
-              <button class="btn btn-primary" (click)="takeScreenshot()">Take Screenshot
-              </button>
-              <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
-                   aria-label="More options">
-                <button class="btn btn-primary" ngbDropdownToggle>
-                  <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" ngbDropdownMenu>
-                  <li ngbDropdownItem (click)="takeScreenshot('VIDEO')">
-                    Video
-                  </li>
-                  <li ngbDropdownItem (click)="takeScreenshot('GRAPHIC')">
-                    Graphic (UI)
-                  </li>
-                </ul>
+                <strong>webOS version: </strong><span class="user-select-text">{{ deviceInfo.osVersion }}</span>
+              }
+              @if (deviceInfo.otaId) {
+                <br>
+                  <strong>OTA ID: </strong><span class="user-select-text">{{ deviceInfo.otaId }}</span>
+                }
+                @if (deviceInfo.socName) {
+                  <br>
+                    <strong>SoC: </strong><span class="user-select-text">{{ deviceInfo.socName }}</span>
+                  }
+                </p>
+                @if (device.username === 'root') {
+                  <div class="btn-group">
+                    <button class="btn btn-primary" (click)="takeScreenshot()">Take Screenshot
+                    </button>
+                    <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
+                      aria-label="More options">
+                      <button class="btn btn-primary" ngbDropdownToggle>
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu" ngbDropdownMenu>
+                        <li ngbDropdownItem (click)="takeScreenshot('VIDEO')">
+                          Video
+                        </li>
+                        <li ngbDropdownItem (click)="takeScreenshot('GRAPHIC')">
+                          Graphic (UI)
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          @if (deviceInfo && devModeInfo) {
+            <div class="card mt-4">
+              <div class="card-body">
+                <h5 class="card-title">Developer Mode</h5>
+                @if (devModeInfo.token) {
+                  <p class="card-text">
+                    <strong>Remaining duration: </strong><span>{{ devModeInfo.remaining | devmodeCountdown | async }}</span><br>
+                    <small>Remaining time displaying on your TV will only update on boot.</small>
+                  </p>
+                  <div>
+                    <button class="btn btn-primary me-2" (click)="renewDevMode()">Renew session</button>
+                    <button class="btn btn-primary" (click)="renewScript()">Renew automatically...</button>
+                  </div>
+                } @else {
+                  <p class="card-text">Can't find a valid Developer Mode token.</p>
+                }
+              </div>
+            </div>
+          }
+          @if (deviceInfo) {
+            <div class="card mt-4">
+              <div class="card-body">
+                <h5 class="card-title">Homebrew Channel</h5>
+                @if (homebrewAppInfo) {
+                  <p class="card-text">
+                    <strong>Version: </strong><span>{{ homebrewAppInfo.version }}</span>
+                    @if (homebrewAppConfig; as config) {
+                      <br>
+                        <strong>Rooted: </strong>@if (config.root) {
+                        <span>Yes</span>
+                      } @else {
+                        Unrooted
+                      }
+                    }
+                  </p>
+                }
+                <div>
+                  @if (!homebrewAppInfo && homebrewRepoManifest) {
+                    <button class="btn btn-primary me-2" (click)="installHbChannel()"
+                      >Install
+                    </button>
+                  }
+                  @if (homebrewAppInfo && homebrewRepoManifest && homebrewRepoHasUpdate) {
+                    <button class="btn btn-primary me-2" (click)="installHbChannel()"
+                      >Update
+                    </button>
+                  }
+                  <a class="btn btn-primary me-2" href="https://github.com/webosbrew/webos-homebrew-channel" appExternalLink><i
+                  class="bi bi-github me-2"></i>Github Repo</a>
+                </div>
               </div>
             </div>
           }
         </div>
-      </div>
-    }
-    <div class="card mt-4" *ngIf="deviceInfo && devModeInfo">
-      <div class="card-body">
-        <h5 class="card-title">Developer Mode</h5>
-        <ng-container *ngIf="devModeInfo.token else invalidToken">
-          <p class="card-text">
-            <strong>Remaining duration: </strong><span>{{ devModeInfo.remaining | devmodeCountdown | async }}</span><br>
-            <small>Remaining time displaying on your TV will only update on boot.</small>
-          </p>
-          <div>
-            <button class="btn btn-primary me-2" (click)="renewDevMode()">Renew session</button>
-            <button class="btn btn-primary" (click)="renewScript()">Renew automatically...</button>
-          </div>
-        </ng-container>
-        <ng-template #invalidToken>
-          <p class="card-text">Can't find a valid Developer Mode token.</p>
-        </ng-template>
-      </div>
-    </div>
-    <div class="card mt-4" *ngIf="deviceInfo">
-      <div class="card-body">
-        <h5 class="card-title">Homebrew Channel</h5>
-        <p class="card-text" *ngIf="homebrewAppInfo">
-          <strong>Version: </strong><span>{{ homebrewAppInfo.version }}</span>
-          <ng-container *ngIf="homebrewAppConfig as config">
-            <br>
-            <strong>Rooted: </strong><span *ngIf="config.root else unrooted">Yes</span>
-            <ng-template #unrooted>Unrooted</ng-template>
-          </ng-container>
-        </p>
-        <div>
-          <button class="btn btn-primary me-2" (click)="installHbChannel()"
-                  *ngIf="!homebrewAppInfo && homebrewRepoManifest">Install
-          </button>
-          <button class="btn btn-primary me-2" (click)="installHbChannel()"
-                  *ngIf="homebrewAppInfo && homebrewRepoManifest && homebrewRepoHasUpdate">Update
-          </button>
-          <a class="btn btn-primary me-2" href="https://github.com/webosbrew/webos-homebrew-channel" appExternalLink><i
-            class="bi bi-github me-2"></i>Github Repo</a>
-        </div>
-      </div>
-    </div>
-  </div>
-}
+      }

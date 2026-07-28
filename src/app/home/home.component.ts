@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, Injector, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, HostListener, Injector, OnInit, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../types';
 import {DeviceManagerService} from '../core/services';
@@ -14,7 +14,9 @@ import {DevicesComponent} from "../devices/devices.component";
 @Component({
     selector: 'app-home',
     templateUrl: './home.component.html',
-    styleUrls: ['./home.component.scss']
+    styleUrls: ['./home.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class HomeComponent implements OnInit {
 
