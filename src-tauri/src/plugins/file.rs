@@ -62,20 +62,17 @@ async fn read<R: Runtime>(
     tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
-            let sftp = session.sftp()?;
-            let mut file = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
-            let mut buf = Vec::<u8>::new();
+            let mut raw = Vec::<u8>::new();
+            session.get(&path, &mut raw, |_| {})?;
             if let Some(encoding) = &encoding {
-                if encoding == "gzip" {
-                    let mut decoder = GzDecoder::new(&mut file);
-                    decoder.read_to_end(&mut buf)?;
-                } else {
+                if encoding != "gzip" {
                     return Err(Error::new(format!("Unsupported encoding {}", encoding)));
                 }
-            } else {
-                file.read_to_end(&mut buf)?;
+                let mut buf = Vec::<u8>::new();
+                GzDecoder::new(&raw[..]).read_to_end(&mut buf)?;
+                return Ok(buf);
             }
-            return Ok(buf);
+            return Ok(raw);
         });
     })
     .await
@@ -92,13 +89,7 @@ async fn write<R: Runtime>(
     tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return Ok(sessions.with_session(device, |session| {
-            let sftp = session.sftp()?;
-            let mut file = sftp.open(
-                &path,
-                OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE,
-                0o644,
-            )?;
-            file.write_all(&content)?;
+            session.put(&mut content.as_slice(), &path, |_| {})?;
             return Ok(());
         })?);
     })
@@ -119,13 +110,22 @@ async fn get<R: Runtime>(
         let fs = app.state::<Fs<R>>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
-            let sftp = session.sftp()?;
-            let mut sfile = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
             let mut opt = OpenOptions::new();
             opt.create(true).write(true);
             let mut file = fs.open(target.clone(), opt)?;
-            let size = sfile.metadata()?.len().unwrap_or_default() as usize;
-            copy(&mut sfile, &mut file, size, &on_progress)?;
+            // Only SFTP can tell us the size up front. Without it the progress
+            // events carry a total of 0, which the frontend already tolerates.
+            let total = session
+                .maybe_sftp()
+                .and_then(|sftp| sftp.open(&path, OpenFlags::READ_ONLY, 0)?.metadata())
+                .ok()
+                .and_then(|meta| meta.len())
+                .unwrap_or_default() as usize;
+            // The shared FileTransfer streams the file over an exec channel when
+            // the device has no SFTP.
+            session.get(&path, &mut file, |copied| {
+                let _ = on_progress.send(CopyProgress { copied, total });
+            })?;
             return Ok(());
         });
     })
@@ -285,10 +285,8 @@ pub fn protocol<R: Runtime>(
         match tauri::async_runtime::spawn_blocking(move || {
             let sessions = app.state::<SessionManager>();
             return sessions.with_session(device, |session| {
-                let sftp = session.sftp()?;
-                let mut file = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
                 let mut buf = Vec::<u8>::new();
-                file.read_to_end(&mut buf)?;
+                session.get(&path, &mut buf, |_| {})?;
                 return Ok(buf);
             });
         })
