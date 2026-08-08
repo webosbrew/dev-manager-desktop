@@ -1,4 +1,5 @@
 use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
+use crate::device_manager::privkey::PrivateKeyExt;
 use crate::device_manager::io::{read, write};
 use crate::device_manager::{
     novacom, Device, DeviceCheckConnection, DeviceManager, PrivateKey, PrivateKeyInfo,
@@ -45,7 +46,7 @@ impl DeviceManager {
         let mut device = device.clone();
         if let Some(key) = &device.private_key {
             match key {
-                PrivateKey::Path { name } => {
+                PrivateKey::Name { name } => {
                     let path = Path::new(name);
                     if path.is_absolute() {
                         let name = String::from(
@@ -53,15 +54,23 @@ impl DeviceManager {
                                 .ok_or(Error::NotFound)?
                                 .to_string_lossy(),
                         );
-                        device.private_key = Some(PrivateKey::Path { name });
+                        device.private_key = Some(PrivateKey::Name { name });
                     }
+                }
+                PrivateKey::Path { path } => {
+                    let name = String::from(
+                        pathdiff::diff_paths(path, self.ensure_ssh_dir()?)
+                            .ok_or(Error::NotFound)?
+                            .to_string_lossy(),
+                    );
+                    device.private_key = Some(PrivateKey::Name { name });
                 }
                 PrivateKey::Data { data } => {
                     let name = key.name(device.valid_passphrase())?;
                     let key_path = self.ensure_ssh_dir()?.join(&name);
                     let mut file = File::create(key_path).await?;
                     file.write(data.as_bytes()).await?;
-                    device.private_key = Some(PrivateKey::Path { name });
+                    device.private_key = Some(PrivateKey::Name { name });
                 }
             }
         }
@@ -88,7 +97,7 @@ impl DeviceManager {
                     need_new_default = true;
                 }
                 if let Some(name) = device.private_key.and_then(|k| match k {
-                    PrivateKey::Path { name } => Some(name),
+                    PrivateKey::Name { name } => Some(name),
                     _ => None,
                 }) {
                     if !name.starts_with("webos_") {

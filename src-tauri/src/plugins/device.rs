@@ -1,4 +1,5 @@
 use crate::app_dirs::{GetAppSshKeyDir, GetSshDir};
+use crate::device_manager::privkey::PrivateKeyExt;
 use crate::device_manager::{Device, DeviceCheckConnection, DeviceManager, PrivateKeyInfo};
 use crate::error::Error;
 use std::io::Read;
@@ -73,7 +74,7 @@ async fn privkey_read<R: Runtime>(app: AppHandle<R>, device: Device) -> Result<S
     Ok(device
         .private_key
         .ok_or_else(|| Error::bad_config())?
-        .content(app.get_ssh_dir().as_deref())?)
+        .read_content(app.get_ssh_dir().as_deref())?)
 }
 
 #[tauri::command]

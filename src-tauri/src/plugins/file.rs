@@ -12,6 +12,8 @@ use tauri_plugin_fs::{FilePath, Fs, OpenOptions};
 use uuid::Uuid;
 
 use crate::device_manager::{Device, DeviceManager};
+use ares_connection_lib::transfer::FileTransfer;
+
 use crate::error::Error;
 use crate::remote_files::serve;
 use crate::remote_files::{FileItem, PermInfo};
@@ -144,30 +146,6 @@ async fn put<R: Runtime>(
         let fs = app.state::<Fs<R>>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
-            let sftp = session.sftp()?;
-            let mut sfile = sftp
-                .open(
-                    &path,
-                    OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE,
-                    0o644,
-                )
-                .map_err(|e| {
-                    let e: Error = e.into();
-                    return match e {
-                        Error::IO {
-                            code,
-                            message,
-                            unhandled,
-                        } => Error::IO {
-                            code,
-                            message: format!(
-                                "Failed to open remote file {path} for writing: {message}"
-                            ),
-                            unhandled,
-                        },
-                        e => e,
-                    };
-                })?;
             let mut opt = OpenOptions::new();
             opt.read(true).write(false);
             let mut file = fs.open(source.clone(), opt).map_err(|e| Error::IO {
@@ -175,8 +153,12 @@ async fn put<R: Runtime>(
                 message: format!("Failed to open local file {source} for uploading: {e:?}"),
                 unhandled: true,
             })?;
-            let size = file.metadata().unwrap().len() as usize;
-            copy(&mut file, &mut sfile, size, &on_progress)?;
+            let total = file.metadata().unwrap().len() as usize;
+            // The shared FileTransfer streams the file over an exec channel when
+            // the device has no SFTP.
+            session.put(&mut file, &path, |copied| {
+                let _ = on_progress.send(CopyProgress { copied, total });
+            })?;
             return Ok(());
         });
     })

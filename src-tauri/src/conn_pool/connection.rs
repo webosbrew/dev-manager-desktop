@@ -5,12 +5,14 @@ use std::path::Path;
 use std::sync::Mutex;
 use std::time::Duration;
 
+use ares_connection_lib::session::SshConnection;
 use libssh_rs::{AuthStatus, Session, SshKey, SshOption};
 use regex::Regex;
 use uuid::Uuid;
 
 use crate::conn_pool::{DeviceConnection, DeviceConnectionUserInfo, Id};
-use crate::device_manager::Device;
+use crate::device_manager::privkey::PrivateKeyExt;
+use crate::device_manager::{Device, DeviceFileTransfer};
 use crate::error::Error;
 
 impl DeviceConnection {
@@ -26,7 +28,7 @@ impl DeviceConnection {
 
         if let Some(private_key) = &device.private_key {
             let passphrase = device.valid_passphrase();
-            let priv_key_content = private_key.content(ssh_dir)?;
+            let priv_key_content = private_key.read_content(ssh_dir)?;
             let priv_key = SshKey::from_privkey_base64(&priv_key_content, passphrase.as_deref())?;
 
             if session.userauth_publickey(None, &priv_key)? != AuthStatus::Success {
@@ -121,6 +123,20 @@ impl DeviceConnection {
             session.set_option(SshOption::GlobalKnownHosts(Some(format!("/dev/null"))))?;
         }
         Ok(())
+    }
+}
+
+impl SshConnection for DeviceConnection {
+    fn session(&self) -> &Session {
+        &self.session
+    }
+
+    fn supports_sftp(&self) -> bool {
+        !matches!(self.device.files, Some(DeviceFileTransfer::Stream))
+    }
+
+    fn is_root(&self) -> bool {
+        self.user.as_ref().is_some_and(|user| user.uid.id == 0)
     }
 }
 

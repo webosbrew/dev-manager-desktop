@@ -56,6 +56,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
+name = "ares-connection-lib"
+version = "0.4.0"
+source = "git+https://github.com/webosbrew/ares-cli-rs?tag=v0.4.0#983a9c40cc158f84b9a2ac4196ce38ba39166571"
+dependencies = [
+ "ares-device-lib",
+ "libssh-rs",
+ "path-slash",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "snailquote",
+]
+
+[[package]]
+name = "ares-device-lib"
+version = "0.4.0"
+source = "git+https://github.com/webosbrew/ares-cli-rs?tag=v0.4.0#983a9c40cc158f84b9a2ac4196ce38ba39166571"
+dependencies = [
+ "log",
+ "pathdiff",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -822,6 +847,8 @@ name = "devman"
 version = "0.2.0"
 dependencies = [
  "abs-file-macro",
+ "ares-connection-lib",
+ "ares-device-lib",
  "flate2",
  "hex",
  "httparse",
@@ -3541,8 +3568,11 @@ checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
 dependencies = [
  "base64 0.22.1",
  "bytes",
+ "encoding_rs",
+ "futures-channel",
  "futures-core",
  "futures-util",
+ "h2",
  "http",
  "http-body",
  "http-body-util",
@@ -3552,6 +3582,7 @@ dependencies = [
  "hyper-util",
  "js-sys",
  "log",
+ "mime",
  "native-tls",
  "percent-encoding",
  "pin-project-lite",
@@ -4167,6 +4198,16 @@ name = "smallvec"
 version = "1.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ed6a63f02c8539c91a8685a86f4099661ba3da017932f6ebbea6de3f0fa7c90"
+
+[[package]]
+name = "snailquote"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec62a949bda7f15800481a711909f946e1204f2460f89210eaf7f57730f88f86"
+dependencies = [
+ "thiserror 1.0.69",
+ "unicode_categories",
+]
 
 [[package]]
 name = "socket2"
@@ -5335,6 +5376,12 @@ name = "unicode-width"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7dd6e30e90baa6f72411720665d41d89b9a3d039dc45b8faea1ddd07f617f6af"
+
+[[package]]
+name = "unicode_categories"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
 
 [[package]]
 name = "unix_mode"
