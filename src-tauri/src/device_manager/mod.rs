@@ -3,13 +3,13 @@ use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 
-#[cfg(not(feature = "karma"))]
-mod io;
 mod manager;
 pub mod privkey;
 
 // Device, its key and its file transfer mode are shared with the ares-cli-rs
-// tools. Only how a key name is resolved differs, which lives in privkey.rs.
+// tools. Reading and writing the device list is shared too, through
+// ares_device_lib::DeviceManager. Only how a key name is resolved differs,
+// which lives in privkey.rs.
 pub use ares_device_lib::{Device, FileTransfer as DeviceFileTransfer, PrivateKey};
 
 #[derive(PartialEq, Eq, Hash)]
@@ -37,24 +37,4 @@ pub struct DeviceCheckConnection {
     pub ssh_22: bool,
     pub ssh_9922: bool,
     pub key_server: bool,
-}
-
-#[cfg(feature = "karma")]
-mod io {
-    use crate::device_manager::Device;
-    use crate::error::Error;
-    use std::path::Path;
-    use std::sync::LazyLock;
-    use tokio::sync::Mutex;
-
-    static DEVICES: LazyLock<Mutex<Vec<Device>>> = LazyLock::new(Default::default);
-
-    pub(crate) async fn read(_conf_dir: &Path) -> Result<Vec<Device>, Error> {
-        Ok(DEVICES.lock().await.clone())
-    }
-
-    pub(crate) async fn write(devices: Vec<Device>, _conf_dir: &Path) -> Result<(), Error> {
-        *DEVICES.lock().await = devices;
-        Ok(())
-    }
 }
