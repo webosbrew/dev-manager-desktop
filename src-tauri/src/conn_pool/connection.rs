@@ -4,8 +4,8 @@ use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::sync::Mutex;
 
-use ares_connection_lib::session::{configure_session, SshConnection};
-use libssh_rs::{AuthStatus, Session, SshKey, SshOption};
+use ares_connection_lib::session::{authenticate, configure_session, SshConnection};
+use libssh_rs::{Session, SshOption};
 use regex::Regex;
 use uuid::Uuid;
 
@@ -25,27 +25,15 @@ impl DeviceConnection {
 
         session.connect()?;
 
-        if let Some(private_key) = &device.private_key {
-            let passphrase = device.valid_passphrase();
-            let priv_key_content = private_key.read_content(ssh_dir)?;
-            let priv_key = SshKey::from_privkey_base64(&priv_key_content, passphrase.as_deref())?;
-
-            if session.userauth_publickey(None, &priv_key)? != AuthStatus::Success {
-                return Err(Error::Authorization {
-                    message: "Key authorization failed".to_string(),
-                });
-            }
-        } else if let Some(password) = &device.password {
-            if session.userauth_password(None, Some(password))? != AuthStatus::Success {
-                return Err(Error::Authorization {
-                    message: "Bad SSH password".to_string(),
-                });
-            }
-        } else if session.userauth_none(None)? != AuthStatus::Success {
-            return Err(Error::Authorization {
-                message: "Host needs authorization".to_string(),
-            });
-        }
+        // The key is read here, not by the shared code: this app resolves a key
+        // name against its own SSH directory, and falls back to the parent
+        // directory on mobile.
+        let key = device
+            .private_key
+            .as_ref()
+            .map(|k| k.read_content(ssh_dir))
+            .transpose()?;
+        authenticate(&session, &device, key.as_deref())?;
         let connection = DeviceConnection {
             id: Uuid::new_v4(),
             device: device.clone(),
