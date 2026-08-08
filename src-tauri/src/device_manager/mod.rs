@@ -1,7 +1,8 @@
-use std::path::PathBuf;
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
+
+use crate::app_dirs::DirSlot;
 
 mod manager;
 pub mod privkey;
@@ -20,8 +21,8 @@ pub struct DeviceSessionToken {
 
 #[derive(Default)]
 pub struct DeviceManager {
-    ssh_dir: Mutex<Option<PathBuf>>,
-    conf_dir: Mutex<Option<PathBuf>>,
+    pub ssh_dir: DirSlot,
+    pub conf_dir: DirSlot,
     devices: Mutex<Vec<Device>>,
 }
 

@@ -1,10 +1,10 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
 use std::sync::mpsc::Sender;
 use std::sync::{Arc, Condvar, Mutex};
 
 use serde::Serialize;
 
+use crate::app_dirs::DirSlot;
 use crate::conn_pool::DeviceConnectionPool;
 use crate::device_manager::Device;
 
@@ -13,7 +13,7 @@ mod proc;
 
 #[derive(Default)]
 pub struct SessionManager {
-    ssh_dir: Mutex<Option<PathBuf>>,
+    pub ssh_dir: DirSlot,
     pools: Mutex<HashMap<String, DeviceConnectionPool>>,
 }
 

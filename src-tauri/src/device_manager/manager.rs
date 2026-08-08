@@ -1,4 +1,4 @@
-use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
+
 use crate::device_manager::privkey::PrivateKeyExt;
 use crate::device_manager::{
     Device, DeviceCheckConnection, DeviceManager, PrivateKey, PrivateKeyInfo,
@@ -9,7 +9,6 @@ use ares_device_lib::DeviceManager as SharedDeviceManager;
 use libssh_rs::{PublicKeyHashType, SshKey};
 use port_check::is_port_reachable_with_timeout;
 use std::io::{Error as IoError, ErrorKind};
-use std::path::PathBuf;
 use std::time::Duration;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
@@ -18,8 +17,8 @@ impl DeviceManager {
     /// The shared manager, pointed at this app's own directories.
     fn shared(&self) -> Result<SharedDeviceManager, Error> {
         Ok(SharedDeviceManager::with_dirs(
-            self.ensure_conf_dir()?,
-            self.ensure_ssh_dir()?,
+            self.conf_dir.ensure()?,
+            self.ssh_dir.ensure()?,
         ))
     }
 
@@ -60,7 +59,7 @@ impl DeviceManager {
         // no dependency on, so this part stays.
         if let Some(key @ PrivateKey::Data { data }) = &device.private_key {
             let name = key.name(device.valid_passphrase())?;
-            let key_path = self.ensure_ssh_dir()?.join(&name);
+            let key_path = self.ssh_dir.ensure()?.join(&name);
             let mut file = File::create(key_path).await?;
             file.write(data.as_bytes()).await?;
             device.private_key = Some(PrivateKey::Name { name });
@@ -142,26 +141,3 @@ impl DeviceManager {
     }
 }
 
-impl GetSshDir for DeviceManager {
-    fn get_ssh_dir(&self) -> Option<PathBuf> {
-        self.ssh_dir.lock().unwrap().clone()
-    }
-}
-
-impl SetSshDir for DeviceManager {
-    fn set_ssh_dir(&self, dir: PathBuf) {
-        *self.ssh_dir.lock().unwrap() = Some(dir);
-    }
-}
-
-impl GetConfDir for DeviceManager {
-    fn get_conf_dir(&self) -> Option<PathBuf> {
-        self.conf_dir.lock().unwrap().clone()
-    }
-}
-
-impl SetConfDir for DeviceManager {
-    fn set_conf_dir(&self, dir: PathBuf) {
-        *self.conf_dir.lock().unwrap() = Some(dir);
-    }
-}

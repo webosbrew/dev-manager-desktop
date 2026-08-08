@@ -7,6 +7,7 @@ use serde::Serialize;
 use uuid::Uuid;
 use vt100::Parser;
 
+use crate::app_dirs::DirSlot;
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::shell_manager::shell::ShellsMap;
@@ -18,7 +19,7 @@ pub(crate) mod token;
 #[derive(Default)]
 pub struct ShellManager {
     pub(crate) shells: Arc<Mutex<ShellsMap>>,
-    ssh_dir: Mutex<Option<PathBuf>>,
+    pub ssh_dir: DirSlot,
 }
 
 pub struct Shell {

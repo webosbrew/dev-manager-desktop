@@ -1,7 +1,5 @@
-use std::path::PathBuf;
 use std::sync::{Arc, Condvar, Mutex};
 
-use crate::app_dirs::{GetSshDir, SetSshDir};
 use crate::conn_pool::{DeviceConnectionPool, ManagedDeviceConnection};
 use crate::device_manager::Device;
 use crate::error::Error;
@@ -45,7 +43,7 @@ impl SessionManager {
 
     fn pool(&self, device: Device) -> DeviceConnectionPool {
         if device.new {
-            return DeviceConnectionPool::new(device, self.get_ssh_dir());
+            return DeviceConnectionPool::new(device, self.ssh_dir.get());
         }
         if let Some(p) = self
             .pools
@@ -56,23 +54,11 @@ impl SessionManager {
             return p.clone();
         }
         let key = device.name.clone();
-        let pool = DeviceConnectionPool::new(device, self.get_ssh_dir());
+        let pool = DeviceConnectionPool::new(device, self.ssh_dir.get());
         self.pools
             .lock()
             .expect("Failed to lock SessionManager::pools")
             .insert(key, pool.clone());
         pool
-    }
-}
-
-impl GetSshDir for SessionManager {
-    fn get_ssh_dir(&self) -> Option<PathBuf> {
-        self.ssh_dir.lock().unwrap().clone()
-    }
-}
-
-impl SetSshDir for SessionManager {
-    fn set_ssh_dir(&self, dir: PathBuf) {
-        *self.ssh_dir.lock().unwrap() = Some(dir);
     }
 }
