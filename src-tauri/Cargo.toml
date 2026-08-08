@@ -74,7 +74,6 @@ version = "0.6.7"
 features = ["ed25519", "getrandom"]
 
 [dev-dependencies]
-httptest = "0.16.3"
 abs-file-macro = "0.1.2"
 
 [features]

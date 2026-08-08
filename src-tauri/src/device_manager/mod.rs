@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 #[cfg(not(feature = "karma"))]
 mod io;
 mod manager;
-mod novacom;
 pub mod privkey;
 
 // Device, its key and its file transfer mode are shared with the ares-cli-rs

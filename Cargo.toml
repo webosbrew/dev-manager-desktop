@@ -7,3 +7,10 @@ members = [
 [patch.crates-io]
 r2d2 = { git = "https://github.com/mariotaku/r2d2.git", rev = "aaa2a2b" }
 #tauri = { git = "https://github.com/mariotaku/tauri.git", rev = "f501f7b" }
+
+# TEMPORARY: build against the ares-cli-rs checkout next to this one, which has
+# the shared code this app now calls. Remove this once that work is tagged and
+# the tag in src-tauri/Cargo.toml points at it.
+[patch."https://github.com/webosbrew/ares-cli-rs"]
+ares-device-lib = { path = "../ares-cli-rs/common/device" }
+ares-connection-lib = { path = "../ares-cli-rs/common/connection" }

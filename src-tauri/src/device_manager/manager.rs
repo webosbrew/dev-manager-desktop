@@ -2,11 +2,13 @@ use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
 use crate::device_manager::privkey::PrivateKeyExt;
 use crate::device_manager::io::{read, write};
 use crate::device_manager::{
-    novacom, Device, DeviceCheckConnection, DeviceManager, PrivateKey, PrivateKeyInfo,
+    Device, DeviceCheckConnection, DeviceManager, PrivateKey, PrivateKeyInfo,
 };
 use crate::error::Error;
+use ares_connection_lib::setup::{fetch_key, NOVACOM_KEY_PORT};
 use libssh_rs::{PublicKeyHashType, SshKey};
 use port_check::is_port_reachable_with_timeout;
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use tokio::fs::{remove_file, File};
@@ -117,9 +119,15 @@ impl DeviceManager {
 
     pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
         let host = address.to_string();
-        let content = tauri::async_runtime::spawn_blocking(move || novacom::fetch_key(&host, 9991))
-            .await
-            .unwrap()?;
+        let content =
+            tauri::async_runtime::spawn_blocking(move || fetch_key(&host, NOVACOM_KEY_PORT))
+                .await
+                .unwrap()
+                .map_err(|e| match e.kind() {
+                    // The device answered, but not with a key.
+                    ErrorKind::NotFound => Error::NotFound,
+                    _ => e.into(),
+                })?;
 
         match SshKey::from_privkey_base64(&content, Some(passphrase)) {
             Ok(_) => Ok(content),
