@@ -1,8 +1,7 @@
 use abs_file_macro::abs_file;
-use std::borrow::Cow;
 use std::io::BufRead;
 use std::net::SocketAddr;
-use std::path::{Component, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 use std::str::FromStr;
 use std::thread::sleep;
@@ -82,25 +81,18 @@ impl SshContainer {
         panic!("Failed to start sshd container");
     }
 
+    /// The path of a fixture next to this file. `for_container` gives the form
+    /// a `docker run -v` argument needs.
+    ///
+    /// On Windows that means the drive letter with forward slashes, such as
+    /// `C:/Users/me/keys`. Docker Desktop does not read the `/c/Users/me/keys`
+    /// form that Docker Toolbox used. It treats it as a host path that does not
+    /// exist and mounts an empty directory over the fixture, which makes the
+    /// container start without the key or the entrypoint script.
     pub fn fixture_path(name: &str, for_container: bool) -> PathBuf {
         let path = abs_file!().parent().unwrap().join(name);
         if for_container && cfg!(target_family = "windows") {
-            let mut components = path.components();
-            let drive: Component = components.next().unwrap().into();
-            components.next();
-            let rest: Vec<Cow<'_, str>> = components
-                .map(|c| c.as_os_str().to_string_lossy())
-                .collect();
-            return PathBuf::from(format!(
-                "/{}/{}",
-                drive
-                    .as_os_str()
-                    .to_string_lossy()
-                    .strip_suffix(":")
-                    .unwrap()
-                    .to_ascii_lowercase(),
-                rest.join("/")
-            ));
+            return PathBuf::from(path.to_string_lossy().replace('\\', "/"));
         }
         path
     }
