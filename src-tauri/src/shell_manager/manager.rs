@@ -8,7 +8,7 @@ impl ShellManager {
     pub fn open(&self, device: Device, rows: u16, cols: u16, dumb: bool) -> Arc<Shell> {
         let shell = Arc::new(Shell::new(
             device,
-            self.ssh_dir.get().as_deref(),
+            self.ssh_dir.get(),
             !dumb,
             rows,
             cols,

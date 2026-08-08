@@ -6,30 +6,37 @@
 use ssh_key::private::{Ed25519Keypair, KeypairData};
 use ssh_key::{rand_core::OsRng, LineEnding, PrivateKey};
 use std::fs::create_dir_all;
-use std::path::PathBuf;
-use std::sync::Mutex;
+use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 use tauri::{AppHandle, Manager, Runtime};
 
 use crate::error::Error;
 
-/// A directory set once at startup and read afterwards.
+/// A directory that the Tauri runtime works out at startup, and that everything
+/// else only reads.
+///
+/// The slot is filled once, so reads need no lock and hand back a borrow.
 #[derive(Default)]
-pub struct DirSlot(Mutex<Option<PathBuf>>);
+pub struct DirSlot(OnceLock<PathBuf>);
 
 impl DirSlot {
+    /// Fills the slot. A second call is ignored, because the directory does not
+    /// change while the app runs.
     pub fn set(&self, dir: PathBuf) {
-        *self.0.lock().expect("Failed to lock DirSlot") = Some(dir);
+        if self.0.set(dir).is_err() {
+            log::warn!("The app directory was already set");
+        }
     }
 
-    pub fn get(&self) -> Option<PathBuf> {
-        self.0.lock().expect("Failed to lock DirSlot").clone()
+    pub fn get(&self) -> Option<&Path> {
+        self.0.get().map(PathBuf::as_path)
     }
 
     /// The directory, created if it is absent.
-    pub fn ensure(&self) -> Result<PathBuf, Error> {
+    pub fn ensure(&self) -> Result<&Path, Error> {
         let dir = self.get().ok_or_else(Error::bad_config)?;
         if !dir.exists() {
-            create_dir_all(&dir)?;
+            create_dir_all(dir)?;
         }
         Ok(dir)
     }

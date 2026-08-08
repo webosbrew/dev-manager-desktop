@@ -17,8 +17,8 @@ impl DeviceManager {
     /// The shared manager, pointed at this app's own directories.
     fn shared(&self) -> Result<SharedDeviceManager, Error> {
         Ok(SharedDeviceManager::with_dirs(
-            self.conf_dir.ensure()?,
-            self.ssh_dir.ensure()?,
+            self.conf_dir.ensure()?.to_path_buf(),
+            self.ssh_dir.ensure()?.to_path_buf(),
         ))
     }
 

@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::sync::{Arc, Condvar, Mutex};
 
 use crate::conn_pool::{DeviceConnectionPool, ManagedDeviceConnection};
@@ -43,7 +44,7 @@ impl SessionManager {
 
     fn pool(&self, device: Device) -> DeviceConnectionPool {
         if device.new {
-            return DeviceConnectionPool::new(device, self.ssh_dir.get());
+            return DeviceConnectionPool::new(device, self.ssh_dir.get().map(Path::to_path_buf));
         }
         if let Some(p) = self
             .pools
@@ -54,7 +55,7 @@ impl SessionManager {
             return p.clone();
         }
         let key = device.name.clone();
-        let pool = DeviceConnectionPool::new(device, self.ssh_dir.get());
+        let pool = DeviceConnectionPool::new(device, self.ssh_dir.get().map(Path::to_path_buf));
         self.pools
             .lock()
             .expect("Failed to lock SessionManager::pools")
