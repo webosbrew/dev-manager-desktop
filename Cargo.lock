@@ -57,7 +57,8 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "ares-connection-lib"
-version = "0.4.0"
+version = "0.5.0"
+source = "git+https://github.com/webosbrew/ares-cli-rs?tag=v0.5.0#ff9d3b3d8b2ff24ac772f795ef24c5d54aa69c90"
 dependencies = [
  "ares-device-lib",
  "httparse",
@@ -70,7 +71,8 @@ dependencies = [
 
 [[package]]
 name = "ares-device-lib"
-version = "0.4.0"
+version = "0.5.0"
+source = "git+https://github.com/webosbrew/ares-cli-rs?tag=v0.5.0#ff9d3b3d8b2ff24ac772f795ef24c5d54aa69c90"
 dependencies = [
  "log",
  "pathdiff",
