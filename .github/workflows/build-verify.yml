@@ -55,7 +55,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           prefix-key: ${{ runner.os }}-${{ github.event.inputs.runner-type }}-rust
-          workspaces: src-tauri
+          cache-on-failure: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -104,7 +104,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           prefix-key: ${{ runner.os }}-${{ github.event.inputs.runner-type }}-rust
-          workspaces: src-tauri
+          cache-on-failure: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

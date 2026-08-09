@@ -92,6 +92,14 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      # One cache per matrix target. The Windows job builds two triples into the
+      # same directory, so both share its entry.
+      - name: Cache Rust Project
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+          cache-on-failure: true
+
       - name: Setup JDK (Android)
         uses: actions/setup-java@v4
         if: startsWith(matrix.target, 'android')
