@@ -4,8 +4,8 @@ use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::sync::Mutex;
 
-use ares_connection_lib::session::{authenticate, configure_session, SshConnection};
-use libssh_rs::{Session, SshOption};
+use ares_connection_lib::session::{authenticate, connect, SshConnection};
+use libssh_rs::Session;
 use regex::Regex;
 use uuid::Uuid;
 
@@ -16,15 +16,7 @@ use crate::error::Error;
 
 impl DeviceConnection {
     pub(crate) fn new(device: Device, ssh_dir: Option<&Path>) -> Result<DeviceConnection, Error> {
-        let session = Session::new()?;
-        configure_session(&session)?;
-
-        session.set_option(SshOption::Hostname(device.host.clone()))?;
-        session.set_option(SshOption::Port(device.port))?;
-        session.set_option(SshOption::User(Some(device.username.clone())))?;
-
-        session.connect()?;
-
+        let session = connect(&device)?;
         // The key is read here, not by the shared code: this app resolves a key
         // name against its own SSH directory, and falls back to the parent
         // directory on mobile.
