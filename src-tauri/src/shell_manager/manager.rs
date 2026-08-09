@@ -23,7 +23,12 @@ impl ShellManager {
     }
 
     pub fn find(&self, token: &ShellToken) -> Option<Arc<Shell>> {
-        self.shells.lock().unwrap().get(token).map(|a| a.clone())
+        self.shells.lock().unwrap().get(token).cloned()
+    }
+
+    /// The shell behind `token`, or [`Error::NotFound`] if it has closed.
+    pub fn get(&self, token: &ShellToken) -> Result<Arc<Shell>, Error> {
+        self.find(token).ok_or(Error::NotFound)
     }
 
     pub fn close(&self, token: &ShellToken) -> Result<(), Error> {

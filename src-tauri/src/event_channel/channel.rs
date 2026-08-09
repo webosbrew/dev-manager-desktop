@@ -15,47 +15,46 @@ where
     where
         D: Serialize + Clone,
     {
-        self.app
-            .emit(
-                &format!("event_channel:{}:{}:rx", self.category, self.id),
-                data,
-            )
-            .unwrap();
+        self.emit("rx", data);
     }
 
     pub fn closed<D>(&self, data: D)
     where
         D: Serialize + Clone,
     {
-        self.app
-            .emit(
-                &format!("event_channel:{}:{}:closed", self.category, self.id),
-                data,
-            )
-            .unwrap();
+        self.emit("closed", data);
     }
 
     pub fn listen(&self, handler: H) {
         let handler = Arc::new(handler);
         *self.handler.lock().unwrap() = Some(handler.clone());
-        let handler2 = handler.clone();
-        let handler3 = handler.clone();
-        self.app.once(
-            format!("event_channel:{}:{}:close", self.category, self.id),
-            move |e| {
-                handler2.close(Some(e.payload()));
-            },
-        );
-        self.listeners.lock().unwrap().push(self.app.listen(
-            format!("event_channel:{}:{}:tx", self.category, self.id),
-            move |e| {
-                handler3.tx(Some(e.payload()));
-            },
-        ));
+        let on_close = handler.clone();
+        let on_tx = handler;
+        self.app.once(self.topic("close"), move |e| {
+            on_close.close(Some(e.payload()));
+        });
+        self.listeners
+            .lock()
+            .unwrap()
+            .push(self.app.listen(self.topic("tx"), move |e| {
+                on_tx.tx(Some(e.payload()));
+            }));
     }
 
     pub fn token(&self) -> String {
-        return format!("event_channel:{}:{}", self.category, self.id);
+        format!("event_channel:{}:{}", self.category, self.id)
+    }
+
+    /// The event name the frontend listens on for one kind of message.
+    fn topic(&self, suffix: &str) -> String {
+        format!("{}:{suffix}", self.token())
+    }
+
+    fn emit<D>(&self, suffix: &str, data: D)
+    where
+        D: Serialize + Clone,
+    {
+        self.app.emit(&self.topic(suffix), data).unwrap();
     }
 
     pub fn new<S>(app: AppHandle<R>, category: S) -> EventChannel<R, H>

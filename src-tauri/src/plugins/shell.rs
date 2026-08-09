@@ -38,7 +38,7 @@ async fn close<R: Runtime>(
 
 #[tauri::command]
 fn write(manager: State<'_, ShellManager>, token: ShellToken, data: Vec<u8>) -> Result<(), Error> {
-    let shell = manager.find(&token).ok_or(Error::NotFound)?;
+    let shell = manager.get(&token)?;
     shell.write(&data)
 }
 
@@ -49,7 +49,7 @@ async fn resize(
     rows: u16,
     cols: u16,
 ) -> Result<(), Error> {
-    let shell = manager.find(&token).ok_or(Error::NotFound)?;
+    let shell = manager.get(&token)?;
     shell.resize(rows, cols)
 }
 
@@ -59,7 +59,7 @@ async fn screen(
     token: ShellToken,
     cols: u16,
 ) -> Result<ShellScreen, Error> {
-    let shell = manager.find(&token).ok_or(Error::NotFound)?;
+    let shell = manager.get(&token)?;
     shell.screen(cols)
 }
 
