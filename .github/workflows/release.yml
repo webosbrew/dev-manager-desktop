@@ -12,7 +12,7 @@ env:
   SENTRY_ORG: webosbrew
   SENTRY_PROJECT: dev-manager-desktop-ui
   SENTRY_ENVIRONMENT: "${{ github.event_name == 'release' && 'release' || 'development' }}"
-  ANDROID_NDK_VERSION: '27.3.13750724'
+  ANDROID_NDK_VERSION: '28.2.13676358'
   ANDROID_BUILD_TOOLS_VERSION: '34.0.0'
 
 jobs:

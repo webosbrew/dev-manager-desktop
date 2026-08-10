@@ -28,7 +28,7 @@ on:
           - 'desktop'
           - 'android'
 env:
-  ANDROID_NDK_VERSION: '27.3.13750724'
+  ANDROID_NDK_VERSION: '28.2.13676358'
   NODE_VERSION: '24.x'
 
 jobs:
