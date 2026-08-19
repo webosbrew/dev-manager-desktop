@@ -98,6 +98,25 @@ async fn write<R: Runtime>(
 }
 
 #[tauri::command]
+async fn mkdir<R: Runtime>(
+    app: AppHandle<R>,
+    device: Device,
+    path: String,
+    mode: u32,
+) -> Result<(), Error> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        return Ok(sessions.with_session(device, |session| {
+            // The shared FileTransfer makes every missing parent, like mkdir -p.
+            session.mkdir(&path, mode)?;
+            return Ok(());
+        })?);
+    })
+    .await
+    .expect("critical failure in file::mkdir task")
+}
+
+#[tauri::command]
 async fn get<R: Runtime>(
     app: AppHandle<R>,
     device: Device,
@@ -227,7 +246,7 @@ async fn serve<R: Runtime>(
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
     Builder::new(name)
         .invoke_handler(tauri::generate_handler![
-            ls, read, write, get, put, get_temp, serve
+            ls, read, write, mkdir, get, put, get_temp, serve
         ])
         .build()
 }

@@ -52,8 +52,11 @@ export class RemoteFileService extends BackendClient {
         await this.invoke('put', {device, path, source, onProgress});
     }
 
-    public async mkdir(device: Device, path: string): Promise<void> {
-        await this.cmd.exec(device, `xargs -0 mkdir`, 'buffer', path);
+    /**
+     * Make `path` and every missing parent, the way `mkdir -p` does.
+     */
+    public async mkdir(device: Device, path: string, mode: number = 0o755): Promise<void> {
+        await this.invoke('mkdir', {device, path, mode});
     }
 
     public async getTemp(device: Device, path: string, progress?: ProgressCallback): Promise<string> {

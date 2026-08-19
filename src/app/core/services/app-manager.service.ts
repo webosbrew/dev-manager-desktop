@@ -21,6 +21,9 @@ import {HomebrewChannelConfiguration} from "../../types/luna-apis";
 import {download} from "@tauri-apps/plugin-upload";
 import {convertFileSrc} from "@tauri-apps/api/core";
 
+/** Where an IPK waits on the device while appinstalld reads it. */
+const TEMP_IPK_DIR = '/media/developer/temp';
+
 @Injectable({
     providedIn: 'root'
 })
@@ -197,7 +200,10 @@ export class AppManagerService {
     }
 
     private async tempDownloadIpk(device: Device, location: string | URL, progress?: InstallProgressHandler): Promise<string> {
-        const targetPath = `/tmp/devman_dl_${Date.now()}.ipk`
+        // webOS 11 keeps appinstalld out of /tmp, so the IPK goes to the
+        // developer partition, the same place ares-install uses.
+        await this.file.mkdir(device, TEMP_IPK_DIR, 0o777);
+        const targetPath = `${TEMP_IPK_DIR}/devman_dl_${Date.now()}.ipk`
         let localPath: string;
         let deleteLocal = false;
         switch (typeof location) {

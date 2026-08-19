@@ -40,8 +40,8 @@ libssh-rs = { version = "0.3.8", features = ["vendored"] }
 libssh-rs-sys = "0.2.8"
 # Shared with the ares-cli-rs tools. default-features = false keeps its vendored
 # OpenSSL out of the graph, so the `vendored-openssl` feature below stays in charge.
-ares-connection-lib = { git = "https://github.com/webosbrew/ares-cli-rs", tag = "v0.5.0", default-features = false }
-ares-device-lib = { git = "https://github.com/webosbrew/ares-cli-rs", tag = "v0.5.0" }
+ares-connection-lib = { git = "https://github.com/webosbrew/ares-cli-rs", tag = "v0.6.0", default-features = false }
+ares-device-lib = { git = "https://github.com/webosbrew/ares-cli-rs", tag = "v0.6.0" }
 flate2 = "1.1.2"
 regex = "1.12.2"
 port_check = "0.3.0"
