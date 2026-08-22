@@ -1,111 +1,125 @@
-<div class="modal-body">
-  <div class="position-sticky w-100 top-0 d-flex flex-row z-3">
-    <button type="button" class="btn-close ms-auto" aria-label="Close" (click)="modal.dismiss('Close click')"></button>
-  </div>
+<div class="offcanvas-header border-bottom">
+  <h5 class="offcanvas-title text-truncate me-3">{{ item.title }}</h5>
+  <button type="button" class="btn-close" aria-label="Close" (click)="offcanvas.dismiss('Close click')"></button>
+</div>
+<div class="offcanvas-body p-0">
   @let installed = installedInfo$ | async;
-  <div class="d-flex flex-wrap flex-sm-row">
-    <img class="app-details-icon" [ngSrc]="item.detailIconUri ?? item.iconUri" width="160" height="160" alt="App icon"/>
-    <div class="flex-fill my-2 ms-3 d-flex flex-column">
-      <h1>{{ item.title }}</h1>
-      <label class="mt-1">
-        Version {{ item.manifest?.version }}
+  <section class="hero-section p-3 d-flex flex-row align-items-center border-bottom">
+    <img class="hero-icon me-3" [ngSrc]="item.detailIconUri ?? item.iconUri" width="80" height="80" alt="App icon"/>
+    <div class="flex-fill min-w-0">
+      <h4 class="mb-1 text-truncate">{{ item.title }}</h4>
+      <div class="text-body-secondary small">
+        <span>v{{ manifest.version }}</span>
         @if (installed) {
-          (Installed: {{ installed?.version }})
+          <span class="ms-2">· installed v{{ installed.version }}</span>
         }
-      </label>
-      @if (item.manifest?.rootRequired) {
-        <label class="mt-1 fw-bold">
-          @switch (item.manifest?.rootRequired) {
-            @case (true) {
-              Root required
-            }
-            @case ('optional') {
-              Root is optional
-            }
+      </div>
+      @if (installed) {
+        <span class="badge text-bg-secondary mt-2">Installed</span>
+      }
+      @if (manifest.rootRequired) {
+        @switch (manifest.rootRequired) {
+          @case (true) {
+            <div class="small text-body-secondary mt-1"><i class="bi bi-shield-lock me-1"></i>Root required</div>
           }
-        </label>
+          @case ('optional') {
+            <div class="small text-body-secondary mt-1"><i class="bi bi-shield me-1"></i>Root optional</div>
+          }
+        }
       }
     </div>
-    <div class="d-flex flex-column justify-content-center ms-auto">
-      <ng-container>
-        <div class="btn-group text-nowrap ms-2" role="group" aria-label="Actions">
-          @switch (installed && manifest.hasUpdate(installed.version)) {
-            @case (false) {
-              <button class="btn btn-primary" (click)="parent?.launchApp(item.id)" aria-label="Launch">
-                <i class="bi bi-play-fill me-2"></i>Launch
-              </button>
-            }
-            @case (true) {
-              <button class="btn btn-primary" (click)="installPackage(item)" aria-label="Update">
-                <i class="bi bi-download me-2"></i>Update
-              </button>
-            }
-            @default {
-              <button class="btn btn-primary" (click)="installPackage(item)" aria-label="Install">
-                <i class="bi bi-download me-2"></i>Install
-              </button>
-            }
+  </section>
+  <div class="p-3 detail-content">
+    @if ((incompatible$ | async); as reasons) {
+      <div class="alert alert-warning mb-3" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ item.title }} is marked incompatible with the selected device.
+        <ul class="mb-0 mt-2">
+          @for (reason of reasons; track reason) {
+            <li>
+              @switch (reason) {
+                @case ('root') {
+                  This app requires root.
+                }
+                @case ('soc') {
+                  Not compatible with the device's SoC.
+                }
+                @case ('release') {
+                  Not compatible with the device's webOS version.
+                }
+              }
+            </li>
           }
-          <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
-            aria-label="More options">
-            <button class="btn btn-primary" ngbDropdownToggle>
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu" ngbDropdownMenu>
-              @if (item.manifestBeta) {
-                <li ngbDropdownItem (click)="installPackage(item, 'beta')">
-                  <i class="bi bi-download me-3"></i>Install Beta
-                </li>
-              }
-              @if (manifest?.sourceUrl; as url) {
-                <a ngbDropdownItem [href]="url" appExternalLink>
-                  <i class="bi bi-globe2 me-3"></i>Website
-                </a>
-              }
-              @if (installed) {
-                <li class="divider dropdown-divider"></li>
-                <li ngbDropdownItem class="text-danger" (click)="removePackage(installed)">
-                  <i class="bi bi-trash me-3"></i>Uninstall
-                </li>
-              }
-            </ul>
-          </div>
-        </div>
-      </ng-container>
+        </ul>
+      </div>
+    }
+    <h6 class="text-body-secondary mb-2">About</h6>
+    @if (item.shortDescription) {
+      <p class="mb-3">{{ item.shortDescription }}</p>
+    }
+    <div class="full-description" [innerHtml]="fullDescriptionHtml$ | async" #fullDescription></div>
+    @if (manifest?.sourceUrl; as url) {
+      <hr>
+        <h6 class="text-body-secondary mb-2">Links</h6>
+        <a [href]="url" appExternalLink class="d-flex flex-row align-items-center text-decoration-none">
+          <i class="bi bi-globe2 me-2"></i>
+          <span class="text-truncate">{{ url }}</span>
+        </a>
+      }
     </div>
   </div>
-  <hr>
-    @if ((incompatible$ | async); as reasons) {
-      <div class="alert alert-warning" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ item.title }} is marked incompatible with your device.
-        <hr>
-          <ul class="mb-0">
-            @for (reason of reasons; track reason) {
-              <li>
-                @switch (reason) {
-                  @case ('root') {
-                    This app requires root but your device is not rooted.
-                  }
-                  @case ('soc') {
-                    This app is not compatible with your device's SoC.
-                  }
-                  @case ('release') {
-                    This app is not compatible with your webOS version.
-                  }
-                }
+  <div class="detail-footer border-top p-3 bg-body">
+    <div class="input-group" aria-label="Install actions">
+      @let allDevices = devices$ | async;
+      @if (allDevices && allDevices.length > 1) {
+        <select class="form-select"
+          aria-label="Install target device"
+          [value]="selectedDevice.name"
+          (change)="onDeviceChange(deviceSelect.value)"
+          #deviceSelect>
+          @for (dev of allDevices; track dev.name) {
+            <option [value]="dev.name" [selected]="dev.name === selectedDevice.name">{{ dev.name }}</option>
+          }
+        </select>
+      }
+      @switch (installed && manifest.hasUpdate(installed.version)) {
+        @case (false) {
+          <button class="btn btn-primary flex-fill" (click)="launchApp(item.id)" aria-label="Launch">
+            <i class="bi bi-play-fill me-2"></i>Launch
+          </button>
+        }
+        @case (true) {
+          <button class="btn btn-warning flex-fill" (click)="installPackage(item)" aria-label="Update">
+            <i class="bi bi-download me-2"></i>Update
+          </button>
+        }
+        @default {
+          <button class="btn btn-primary flex-fill" (click)="installPackage(item)" aria-label="Install">
+            <i class="bi bi-download me-2"></i>Install
+          </button>
+        }
+      }
+      @if (item.manifestBeta || installed) {
+        <div class="btn-group" ngbDropdown container="body" display="dynamic" role="group"
+          placement="top-end" aria-label="More actions">
+          <button class="btn btn-outline-primary" ngbDropdownToggle aria-label="More actions">
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" ngbDropdownMenu>
+            @if (item.manifestBeta) {
+              <li ngbDropdownItem (click)="installPackage(item, 'beta')">
+                <i class="bi bi-download me-3"></i>Install Beta
+              </li>
+            }
+            @if (installed) {
+              @if (item.manifestBeta) {
+                <li class="divider dropdown-divider"></li>
+              }
+              <li ngbDropdownItem class="text-danger" (click)="removePackage(installed)">
+                <i class="bi bi-trash me-3"></i>Uninstall
               </li>
             }
           </ul>
         </div>
       }
-      <div class="full-description" [innerHtml]="fullDescriptionHtml$ | async" #fullDescription></div>
-      <hr>
-        <ul class="list-group list-group-flush">
-          @if (manifest?.sourceUrl; as url) {
-            <a [href]="url" appExternalLink class="list-group-item list-group-item-action">
-              <h5>Project page</h5>
-              <label class="mb">{{ url }}</label>
-            </a>
-          }
-        </ul>
-      </div>
+    </div>
+  </div>

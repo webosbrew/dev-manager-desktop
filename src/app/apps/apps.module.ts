@@ -8,6 +8,7 @@ import {InstalledComponent} from "./installed/installed.component";
 import {NgbDropdownModule, NgbNavModule, NgbPaginationModule, NgbProgressbar} from "@ng-bootstrap/ng-bootstrap";
 import {SharedModule} from "../shared/shared.module";
 import {HbchannelRemoveComponent} from './hbchannel-remove/hbchannel-remove.component';
+import {DetailsComponent as InstalledDetailsComponent} from "./installed/details/details.component";
 import {FormsModule} from "@angular/forms";
 
 @NgModule({
@@ -27,6 +28,7 @@ import {FormsModule} from "@angular/forms";
         NgbProgressbar,
         NgOptimizedImage,
         FormsModule,
+        InstalledDetailsComponent,
     ]
 })
 export class AppsModule {
