@@ -20,8 +20,7 @@
         "aarch64-darwin"
       ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      nixpkgsFor =
-        system: if system == "x86_64-darwin" then nixpkgs-x86-darwin else nixpkgs;
+      nixpkgsFor = system: if system == "x86_64-darwin" then nixpkgs-x86-darwin else nixpkgs;
       mkBuildInputs =
         pkgs:
         with pkgs;
@@ -85,10 +84,22 @@
               importNpmLock.npmConfigHook
             ]
             ++ lib.optionals stdenv.hostPlatform.isLinux [
+              copyDesktopItems
               wrapGAppsHook3
             ];
 
           buildInputs = mkBuildInputs pkgs;
+
+          desktopItems = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+            (pkgs.makeDesktopItem {
+              name = "webos-dev-manager";
+              desktopName = "webOS Dev Manager";
+              comment = packageJson.description;
+              exec = "webos-dev-manager";
+              icon = "webos-dev-manager";
+              categories = [ "Development" ];
+            })
+          ];
 
           preBuild = ''
             npm run ng build
@@ -110,6 +121,11 @@
             "--skip"
             "conn_pool::cmd::test"
           ];
+
+          postInstall = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+            install -Dm644 src-tauri/icons/128x128@2x.png \
+              $out/share/icons/hicolor/256x256/apps/webos-dev-manager.png
+          '';
 
           preFixup = pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
             gappsWrapperArgs+=(
