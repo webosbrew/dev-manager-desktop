@@ -1,8 +1,10 @@
-import {Component, Host, Input, OnInit, ChangeDetectionStrategy} from '@angular/core';
-import {Observable} from 'rxjs';
-import {AppsRepoService, RepositoryPage} from '../../core/services';
+import {ChangeDetectionStrategy, Component, Host, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {Observable, Subscription} from 'rxjs';
+import {AppManagerService, AppsRepoService, RepositoryItem, RepositoryPage} from '../../core/services';
 import {AppsComponent} from '../apps.component';
-import {RawPackageInfo} from "../../types";
+import {PackageInfo} from "../../types";
+import {DetailsComponent} from "../details/details.component";
+import {NgbOffcanvas} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
     selector: 'app-channel',
@@ -11,24 +13,61 @@ import {RawPackageInfo} from "../../types";
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
-export class ChannelComponent implements OnInit {
+export class ChannelComponent implements OnInit, OnDestroy {
 
-  page = 1;
-  repoPage$?: Observable<RepositoryPage>;
+    page = 1;
+    repoPage$?: Observable<RepositoryPage>;
 
-  @Input()
-  installed?: Record<string, RawPackageInfo>;
+    installedById: Record<string, PackageInfo> = {};
 
-  constructor(
-    @Host() public parent: AppsComponent,
-    private appsRepo: AppsRepoService) {
-  }
+    private installedSubscription?: Subscription;
 
-  ngOnInit(): void {
-    this.loadPage(1);
-  }
+    constructor(
+        @Host() public parent: AppsComponent,
+        private appsRepo: AppsRepoService,
+        private appManager: AppManagerService,
+        private offcanvas: NgbOffcanvas) {
+    }
 
-  loadPage(page: number): void {
-    this.repoPage$ = this.appsRepo.allApps$(page);
-  }
+    ngOnInit(): void {
+        this.loadPage(1);
+        const device = this.parent.device;
+        if (device) {
+            this.installedSubscription = this.appManager.packages$(device).subscribe(pkgs => {
+                this.installedById = (pkgs ?? []).reduce((acc, p) => {
+                    acc[p.id] = p;
+                    return acc;
+                }, {} as Record<string, PackageInfo>);
+            });
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.installedSubscription?.unsubscribe();
+    }
+
+    loadPage(page: number): void {
+        this.repoPage$ = this.appsRepo.allApps$(page);
+    }
+
+    cardState(item: RepositoryItem): 'install' | 'installed' | 'update' {
+        const inst = this.installedById[item.id];
+        if (!inst) return 'install';
+        return item.manifest?.hasUpdate(inst.version) === true ? 'update' : 'installed';
+    }
+
+    openDetails(item: RepositoryItem) {
+        if (!this.parent.device) return;
+        this.offcanvas.open(DetailsComponent, {
+            position: 'end',
+            panelClass: 'app-detail-offcanvas',
+            injector: Injector.create({
+                providers: [
+                    {provide: RepositoryItem, useValue: item},
+                    {provide: 'device', useValue: this.parent.device},
+                    {provide: 'parent', useValue: this.parent},
+                ]
+            })
+        });
+    }
 }

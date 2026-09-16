@@ -1,0 +1,100 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.app-card {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+  text-align: left;
+  transition: background 0.12s ease, border-color 0.12s ease;
+
+  &:hover {
+    background: var(--bs-tertiary-bg);
+    border-color: var(--bs-border-color-translucent);
+  }
+}
+
+.app-card-hero {
+  grid-row: 1 / 3;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1rem;
+  gap: 0.75rem;
+
+  .app-card-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .app-card-title {
+    font-size: 1.1rem;
+  }
+
+  .app-card-desc {
+    -webkit-line-clamp: 3;
+  }
+}
+
+.app-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.5rem;
+  flex: 0 0 auto;
+}
+
+.app-card-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.app-card-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.app-card-version {
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color);
+  margin-top: 0.15rem;
+}
+
+.app-card-desc {
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.app-card-tag {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+}

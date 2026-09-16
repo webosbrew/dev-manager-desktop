@@ -1,8 +1,10 @@
-import {Component, Host, Input, OnDestroy, ChangeDetectionStrategy} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Host, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
 import {Observable, Subscription} from "rxjs";
-import {AppsRepoService, RepositoryItem} from "../../core/services";
+import {AppManagerService, AppsRepoService, RepositoryItem} from "../../core/services";
+import {fromPromise} from "rxjs/internal/observable/innerFrom";
+import {StatStorageInfoComponent} from "../../shared/components/stat-storage-info/stat-storage-info.component";
 
 @Component({
     selector: 'app-installed',
@@ -11,49 +13,79 @@ import {AppsRepoService, RepositoryItem} from "../../core/services";
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
-export class InstalledComponent implements OnDestroy {
+export class InstalledComponent implements OnChanges, OnInit, OnDestroy {
 
-    @Input()
-    device: Device | null = null;
+    @Input() device: Device | null = null;
+
+    installed$: Observable<PackageInfo[]> | undefined;
 
     installedError?: Error;
 
     repoPackages?: Record<string, RepositoryItem>;
 
-    private subscription?: Subscription;
-    private installedField?: Observable<PackageInfo[] | null>;
+    selectedPkg: PackageInfo | null = null;
+    filterText = '';
 
-    constructor(@Host() public parent: AppsComponent, private appsRepo: AppsRepoService) {
+    @ViewChild('storageInfo') storageInfo?: StatStorageInfoComponent;
+
+    private storageSubscription?: Subscription;
+
+    constructor(@Host() public parent: AppsComponent,
+                private appManager: AppManagerService, private appsRepo: AppsRepoService) {
     }
 
-    @Input()
-    set installed$(value: Observable<PackageInfo[] | null> | undefined) {
-        this.subscription?.unsubscribe();
-        this.subscription = value?.subscribe({
-            next: (pkgs) => {
-                this.installedError = undefined;
-
-                const strings: string[] = pkgs?.map((pkg) => pkg.id) ?? [];
-                this.appsRepo.showApps(...strings).then(apps => this.repoPackages = apps);
-            },
-            error: (error) => {
-                console.log('installed apps', error);
-                return this.installedError = error;
-            }
+    ngOnInit(): void {
+        this.storageSubscription = this.parent.storageChanged$.subscribe(() => {
+            this.storageInfo?.refresh();
+            this.loadPackages();
         });
-        this.installedField = value;
-    }
-
-    get installed$(): Observable<PackageInfo[] | null> | undefined {
-        return this.installedField;
     }
 
     ngOnDestroy(): void {
-        this.subscription?.unsubscribe();
+        this.storageSubscription?.unsubscribe();
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['device']) {
+            this.selectedPkg = null;
+            this.loadPackages();
+        }
     }
 
     loadPackages(): void {
+        const device = this.device;
         this.installedError = undefined;
-        this.parent.loadPackages();
+        this.repoPackages = undefined;
+        if (!device) {
+            this.installed$ = undefined;
+            return;
+        }
+        this.installed$ = fromPromise(this.appManager.load(device).then(packages => {
+            this.appsRepo.showApps(...packages.map(p => p.id))
+                .then(repo => this.repoPackages = repo)
+                .catch(() => undefined);
+            this.reconcileSelection(packages);
+            return packages;
+        }));
+    }
+
+    selectPackage(pkg: PackageInfo): void {
+        this.selectedPkg = pkg;
+    }
+
+    matchesFilter(pkg: PackageInfo): boolean {
+        if (!this.filterText) return true;
+        const q = this.filterText.toLowerCase();
+        return pkg.title.toLowerCase().includes(q) || pkg.id.toLowerCase().includes(q);
+    }
+
+    hasUpdate(pkg: PackageInfo): boolean {
+        return this.repoPackages?.[pkg.id]?.manifest?.hasUpdate(pkg.version) === true;
+    }
+
+    private reconcileSelection(packages: PackageInfo[]): void {
+        if (!this.selectedPkg) return;
+        const match = packages.find(p => p.id === this.selectedPkg!.id);
+        this.selectedPkg = match ?? null;
     }
 }

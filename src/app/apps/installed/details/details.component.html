@@ -1,0 +1,68 @@
+<div class="installed-detail h-100 d-flex flex-column">
+  <div class="detail-header d-flex flex-row align-items-center p-3 border-bottom">
+    <img class="detail-icon me-3" [src]="pkg.iconUri"/>
+    <div class="flex-fill min-w-0">
+      <h4 class="mb-1 text-truncate">{{ pkg.title }}</h4>
+      <div class="text-body-secondary small">
+        <span>v{{ pkg.version }}</span>
+        @if (hasUpdate) {
+          <span class="text-warning ms-2">&rsaquo; v{{ repoPackage!.manifest!.version }}</span>
+        }
+      </div>
+      @if (hasUpdate) {
+        <span class="badge text-bg-warning mt-2">Update available</span>
+      }
+    </div>
+    <div class="btn-group ms-3 align-self-start">
+      <button type="button" class="btn btn-primary" (click)="launch()">
+        <i class="bi bi-play-fill me-1"></i>Launch
+      </button>
+      @if (hasUpdate) {
+        <button type="button" class="btn btn-warning" (click)="update()">
+          <i class="bi bi-download me-1"></i>Update
+        </button>
+      }
+      <button type="button" class="btn btn-outline-danger" (click)="uninstall()">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+  </div>
+  <div class="detail-body p-3 flex-fill overflow-auto">
+    @if (pkg.appDescription) {
+      <h6 class="text-body-secondary mb-2">About</h6>
+      <p class="mb-4">{{ pkg.appDescription }}</p>
+    }
+    <h6 class="text-body-secondary mb-2">Details</h6>
+    <dl class="row mb-0 small">
+      <dt class="col-4 col-md-3 text-body-secondary">App ID</dt>
+      <dd class="col-8 col-md-9 text-break"><code>{{ pkg.id }}</code></dd>
+      @if (pkg.vendor) {
+        <dt class="col-4 col-md-3 text-body-secondary">Vendor</dt>
+        <dd class="col-8 col-md-9">{{ pkg.vendor }}</dd>
+      }
+      @if (pkg.type) {
+        <dt class="col-4 col-md-3 text-body-secondary">Type</dt>
+        <dd class="col-8 col-md-9">{{ pkg.type }}</dd>
+      }
+      <dt class="col-4 col-md-3 text-body-secondary">Path</dt>
+      <dd class="col-8 col-md-9 text-break"><code>{{ pkg.folderPath }}</code></dd>
+      <dt class="col-4 col-md-3 text-body-secondary">Disk usage</dt>
+      <dd class="col-8 col-md-9">
+        @let du = diskUsage$ | async;
+        @if (!du || (!du.result && !du.error)) {
+          <span class="text-body-secondary">Calculating&hellip;</span>
+        } @else if (du.error) {
+          <span class="text-body-secondary">Unavailable</span>
+        } @else if (du.result) {
+          {{ du.result.total * 1024 | filesize:sizeOptions }}
+        }
+      </dd>
+      @if (sourceUrl) {
+        <dt class="col-4 col-md-3 text-body-secondary">Website</dt>
+        <dd class="col-8 col-md-9 text-truncate">
+          <a [href]="sourceUrl" target="_blank" rel="noopener">{{ sourceUrl }}</a>
+        </dd>
+      }
+    </dl>
+  </div>
+</div>
