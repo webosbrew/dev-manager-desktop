@@ -85,7 +85,7 @@
       "exceptionDomain": "",
       "frameworks": [],
       "providerShortName": null,
-      "signingIdentity": null,
+      "signingIdentity": "-",
       "minimumSystemVersion": "10.15"
     },
     "resources": [],
