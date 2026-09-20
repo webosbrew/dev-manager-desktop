@@ -8,11 +8,15 @@
       <li ngbNavItem="manual">
         <a class="text-nowrap" ngbNavLink>Manual Setup</a>
         <ng-template ngbNavContent>
-          <p>Following is the URL to renew developer mode session. You can make request to it periodically to keep
-            developer mode session alive.</p>
-          <div class="overflow-auto bg-panel p-2">
-            <code
-              class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{ devMode.token }}</code>
+          <p>
+            Renewing requires a command to run on the TV. Run the following from a computer on the same local network,
+            replacing <code>/path/to/webos_private_key</code> with the SSH key configured for this TV.
+          </p>
+          <pre class="overflow-auto bg-panel p-2"><code>ssh -i /path/to/webos_private_key -p {{ device.port }} {{ device.username }}&#64;{{ device.host }} \
+  "luna-send-pub -n 1 luna://com.webos.applicationManager/launch '&#123;\"id\":\"com.palmdts.devmode\",\"subscribe\":false,\"params\":&#123;\"extend\":true&#125;&#125;'"</code></pre>
+          <div class="alert alert-info" role="alert">
+            The TV must be powered on, reachable, and have an active Developer Mode session. For a command with the
+            configured key embedded, use the Shell Script tab.
           </div>
         </ng-template>
       </li>
@@ -21,7 +25,13 @@
         <ng-template ngbNavContent>
           @let script = renewScriptContent;
           @if (script) {
-            <p>Following is a shell script. It can be executed anywhere in your local area network.</p>
+            <p>
+              This script can be scheduled with cron or a systemd timer on a computer in the TV's local network.
+            </p>
+            <div class="alert alert-warning" role="alert">
+              The generated script contains the TV's SSH private key and passphrase. Store it securely and do not
+              share or commit it.
+            </div>
             <div class="position-relative">
               <pre class="pre-scrollable bg-panel p-3">{{ script }}</pre>
               <div class="position-absolute top-0 right-0 my-2 mx-4">
@@ -34,34 +44,6 @@
               </div>
             </div>
           }
-        </ng-template>
-      </li>
-      <li ngbNavItem="ifttt">
-        <a class="text-nowrap" ngbNavLink>IFTTT Applet</a>
-        <ng-template ngbNavContent>
-          <div class="alert alert-warning" role="alert">
-            IFTTT does not offer webhook feature for free anymore.
-          </div>
-          <ul>
-            <li>Create an applet in <a href="https://ifttt.com/create" appExternalLink>ifttt.com/create</a>.</li>
-            <li>Select <strong>Date & Time</strong> as trigger.</li>
-            <li>Choose <strong>Every day at</strong> or <strong>Every hour at</strong>, and pick any option you
-              like.
-            </li>
-            <li>Select <strong>Webhooks</strong> as action.</li>
-            <li>Use <strong>URL below</strong>:
-              <div class="overflow-auto bg-panel p-2">
-                <code
-                  class="text-nowrap">https://developer.lge.com/secure/ResetDevModeSession.dev?sessionToken={{ devMode.token }}</code>
-              </div>
-            </li>
-            <li>Select <strong>Creation action</strong>.</li>
-            <li>Select <strong>Continue</strong>.</li>
-            <li>
-              Review and name your Applet. Please note <strong>if this method stopped working</strong>, you should open
-              this page and use the new URL.
-            </li>
-          </ul>
         </ng-template>
       </li>
     </ul>

@@ -1,7 +1,7 @@
 import {Component, Inject, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {Device} from '../../types';
-import {DeviceManagerService, DevModeStatus} from '../../core/services';
+import {DeviceManagerService} from '../../core/services';
 import {noop} from 'rxjs';
 import {save as showSaveDialog} from '@tauri-apps/plugin-dialog'
 import {writeTextFile} from '@tauri-apps/plugin-fs';
@@ -23,7 +23,6 @@ export class RenewScriptComponent implements OnInit {
         public modal: NgbActiveModal,
         private deviceManager: DeviceManagerService,
         @Inject('device') public device: Device,
-        @Inject('devMode') public devMode: DevModeStatus,
     ) {
     }
 
@@ -49,7 +48,7 @@ export class RenewScriptComponent implements OnInit {
             if (!value) {
                 return;
             }
-            return writeTextFile(value, content);
+            return writeTextFile(value, content, {mode: 0o700});
         }).catch(noop);
     }
 }
