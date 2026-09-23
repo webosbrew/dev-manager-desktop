@@ -57,8 +57,8 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "ares-connection-lib"
-version = "0.6.0"
-source = "git+https://github.com/webosbrew/ares-cli-rs?tag=v0.6.0#ef1247bc5b2fc4cdc625b663eb7721e8242d80b6"
+version = "0.7.1"
+source = "git+https://github.com/webosbrew/ares-cli-rs?tag=v0.7.1#1134f40c292cf1edc0079fb7e01a6453e6b71d17"
 dependencies = [
  "ares-device-lib",
  "httparse",
@@ -67,12 +67,13 @@ dependencies = [
  "serde",
  "serde_json",
  "snailquote",
+ "socket2 0.5.10",
 ]
 
 [[package]]
 name = "ares-device-lib"
-version = "0.6.0"
-source = "git+https://github.com/webosbrew/ares-cli-rs?tag=v0.6.0#ef1247bc5b2fc4cdc625b663eb7721e8242d80b6"
+version = "0.7.1"
+source = "git+https://github.com/webosbrew/ares-cli-rs?tag=v0.7.1#1134f40c292cf1edc0079fb7e01a6453e6b71d17"
 dependencies = [
  "log",
  "pathdiff",
@@ -1884,7 +1885,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2",
+ "socket2 0.6.5",
  "system-configuration",
  "tokio",
  "tower-service",
@@ -3281,7 +3282,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2",
+ "socket2 0.6.5",
  "thiserror 2.0.20",
  "tokio",
  "tracing",
@@ -3319,7 +3320,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2",
+ "socket2 0.6.5",
  "tracing",
  "windows-sys 0.61.2",
 ]
@@ -4139,6 +4140,16 @@ checksum = "ec62a949bda7f15800481a711909f946e1204f2460f89210eaf7f57730f88f86"
 dependencies = [
  "thiserror 1.0.69",
  "unicode_categories",
+]
+
+[[package]]
+name = "socket2"
+version = "0.5.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
+dependencies = [
+ "libc",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -4975,7 +4986,7 @@ dependencies = [
  "libc",
  "mio",
  "pin-project-lite",
- "socket2",
+ "socket2 0.6.5",
  "tokio-macros",
  "windows-sys 0.61.2",
 ]
