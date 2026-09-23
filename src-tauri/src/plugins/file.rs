@@ -4,6 +4,7 @@ use std::path::Path;
 
 use flate2::read::GzDecoder;
 use libssh_rs::OpenFlags;
+use percent_encoding::percent_decode_str;
 use serde::Serialize;
 use tauri::ipc::Channel;
 use tauri::plugin::{Builder, TauriPlugin};
@@ -270,21 +271,30 @@ fn content_type_for_path(path: &str) -> &'static str {
     }
 }
 
+fn decode(segment: &str) -> String {
+    percent_decode_str(segment).decode_utf8_lossy().into_owned()
+}
+
+/// Splits `/<device name>/<absolute remote path>` into its two percent-decoded parts.
+///
+/// The device name is always the first path segment. The host is unusable here: Tauri writes
+/// `remote-file://localhost/…` on macOS and Linux and `http://remote-file.localhost/…` on
+/// Windows and Android, and Chromium lowercases a host but not a path.
+fn split_uri_path(path: &str) -> Option<(String, String)> {
+    let (device, path) = path.strip_prefix('/')?.split_once('/')?;
+    if device.is_empty() {
+        return None;
+    }
+    Some((decode(device), format!("/{}", decode(path))))
+}
+
 pub fn protocol<R: Runtime>(
     ctx: UriSchemeContext<'_, R>,
     req: http::Request<Vec<u8>>,
     resp: UriSchemeResponder,
 ) {
     let app = ctx.app_handle().clone();
-    let uri = req.uri();
-    let Some((device_name, path)) = (match cfg!(any(target_os = "windows", target_os = "android")) {
-        true => uri.path()[1..]
-            .split_once('/')
-            .map(|(device, path)| (device.to_string(), format!("/{path}"))),
-        _ => uri
-            .host()
-            .map(|host| (host.to_string(), uri.path().to_string())),
-    }) else {
+    let Some((device_name, path)) = split_uri_path(req.uri().path()) else {
         resp.respond(http::Response::builder().status(404).body(vec![]).unwrap());
         return;
     };
@@ -341,4 +351,36 @@ pub fn protocol<R: Runtime>(
             }
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::plugins::file::split_uri_path;
+
+    #[test]
+    fn test_split_uri_path() {
+        assert_eq!(
+            split_uri_path("/My%20TV/media/developer/apps/usr/palm/applications/a/icon.png"),
+            Some((
+                "My TV".to_string(),
+                "/media/developer/apps/usr/palm/applications/a/icon.png".to_string()
+            ))
+        );
+    }
+
+    #[test]
+    fn test_split_uri_path_keeps_device_name_case() {
+        assert_eq!(
+            split_uri_path("/OLEDC1/media/icon.png"),
+            Some(("OLEDC1".to_string(), "/media/icon.png".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_split_uri_path_rejects_incomplete() {
+        assert_eq!(split_uri_path(""), None);
+        assert_eq!(split_uri_path("/"), None);
+        assert_eq!(split_uri_path("/device-only"), None);
+        assert_eq!(split_uri_path("//media/icon.png"), None);
+    }
 }
