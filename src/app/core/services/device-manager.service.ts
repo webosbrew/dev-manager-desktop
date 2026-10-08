@@ -155,11 +155,30 @@ export class DeviceManagerService extends BackendClient {
         await (this.luna.call(device, 'luna://com.webos.service.capture/executeOneShot', param, false)
             .catch((e) => {
                 if (LunaResponseError.isCompatible(e) && e['errorText']?.includes('Service does not exist')) {
-                    return this.luna.call(device, 'luna://com.webos.service.tv.capture/executeOneShot', param, false);
+                    return this.legacyScreenshot(device, param);
                 }
                 throw e;
             }));
         return tmpPath;
+    }
+
+    /**
+     * Capture with `com.webos.service.tv.capture`, the service older webOS versions have instead of
+     * `com.webos.service.capture`.
+     *
+     * On some models it answers `CAPTURE_ERROR_03` ("Specified size is out of range") when the request
+     * has no size. The same capture works at 1920x1080, so it is retried at that size.
+     */
+    private async legacyScreenshot(device: DeviceLike, param: Record<string, any>): Promise<void> {
+        const uri = 'luna://com.webos.service.tv.capture/executeOneShot';
+        await this.luna.call(device, uri, param, false).catch((e) => {
+            const sizeOutOfRange = LunaResponseError.isCompatible(e)
+                && [e['errorCode'], e['errorText']].some(v => /CAPTURE_ERROR_03|size is out of range/i.test(String(v)));
+            if (sizeOutOfRange && param['width'] === undefined) {
+                return this.luna.call(device, uri, {...param, width: 1920, height: 1080}, false);
+            }
+            throw e;
+        });
     }
 
     async getHbChannelConfig(device: Device): Promise<Partial<HomebrewChannelConfiguration>> {
