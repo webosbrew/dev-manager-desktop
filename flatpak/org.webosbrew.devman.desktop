@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=webOS Dev Manager
+Comment=Device and Dev Mode manager for webOS TV
+Exec=webos-dev-manager
+Icon=org.webosbrew.devman
+Terminal=false
+Categories=Development;
+StartupWMClass=org.webosbrew.devman

@@ -1,0 +1,51 @@
+name: 'Build Flatpak'
+
+on:
+  release:
+    types: [ published ]
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'flatpak/**'
+      - 'scripts/build-flatpak.sh'
+      - 'scripts/flatpak-gen-sources.sh'
+      - '.github/workflows/build-flatpak.yml'
+  workflow_dispatch:
+
+jobs:
+  build-flatpak:
+    name: Build Flatpak (x86_64)
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-46
+      options: --privileged
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate AppStream metainfo
+        run: |
+          if command -v appstreamcli >/dev/null; then
+            appstreamcli validate --no-net flatpak/org.webosbrew.devman.metainfo.xml
+          else
+            appstream-util validate-relax flatpak/org.webosbrew.devman.metainfo.xml
+          fi
+
+      - name: Build Flatpak Bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: org.webosbrew.devman.flatpak
+          manifest-path: flatpak/org.webosbrew.devman.yml
+          cache-key: flatpak-builder-${{ github.sha }}
+
+      - name: Attach to Release
+        uses: ncipollo/release-action@v1
+        if: ${{ github.event_name == 'release' }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
+          artifacts: org.webosbrew.devman.flatpak

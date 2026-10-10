@@ -15,6 +15,7 @@ your system
 | macOS                             | webOS.Dev.Manager_[VERSION]_universal.dmg   | webOS.Dev.Manager_[VERSION]_universal.dmg     | Not available                             |
 | Linux (Debian/Ubuntu)             | web-os-dev-manager_[VERSION]_amd64.deb      | web-os-dev-manager_[VERSION]_arm64.deb        | Not available                             |
 | Linux (Other distros)             | web-os-dev-manager_[VERSION]_amd64.AppImage | web-os-dev-manager_[VERSION]_aarch64.AppImage | Not available                             |
+| Linux (Flatpak)                   | org.webosbrew.devman.flatpak                | Not available                                 | Not available                             |
 
 ## Features
 
