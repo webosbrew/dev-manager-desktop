@@ -17,7 +17,6 @@ import {FilesizePipe} from "./pipes/filesize.pipe";
     declarations: [
         PageNotFoundComponent,
         TrustUriPipe,
-        FilesizePipe,
         MessageDialogComponent,
         ProgressDialogComponent,
         MessageTraceComponent,
@@ -26,11 +25,10 @@ import {FilesizePipe} from "./pipes/filesize.pipe";
         StatStorageInfoComponent,
     ],
     imports: [CommonModule, FormsModule, NgbModule,
-        ExternalLinkDirective],
+        ExternalLinkDirective, FilesizePipe],
     exports: [
         PageNotFoundComponent,
         TrustUriPipe,
-        FilesizePipe,
         MessageDialogComponent,
         ProgressDialogComponent,
         MessageTraceComponent,

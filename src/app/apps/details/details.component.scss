@@ -1,12 +1,21 @@
+app-channel-app-details {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
 .full-description {
   img {
     max-width: 100%;
   }
 }
 
-.app-details-icon {
-  max-width: 25vw;
-  max-height: 25vw;
-  height: auto;
-  object-fit: contain;
+.hero-icon {
+  border-radius: 0.75rem;
+  flex: 0 0 auto;
+}
+
+.detail-footer {
+  flex: 0 0 auto;
 }

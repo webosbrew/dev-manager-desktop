@@ -1,10 +1,10 @@
-import {Component, ElementRef, Inject, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation, ChangeDetectionStrategy} from '@angular/core';
-import {AppManagerService, IncompatibleReason, PackageManifest, RepositoryItem} from "../../core/services";
+import {ChangeDetectionStrategy, Component, ElementRef, Inject, OnDestroy, OnInit, Renderer2, ViewChild, ViewEncapsulation} from '@angular/core';
+import {AppManagerService, DeviceManagerService, IncompatibleReason, PackageManifest, RepositoryItem} from "../../core/services";
 import {noop, Observable, of} from "rxjs";
-import { AsyncPipe, NgOptimizedImage } from "@angular/common";
+import {AsyncPipe, NgOptimizedImage} from "@angular/common";
 import {open as openPath} from "@tauri-apps/plugin-shell";
 import {
-    NgbActiveModal,
+    NgbActiveOffcanvas,
     NgbDropdown,
     NgbDropdownItem,
     NgbDropdownMenu,
@@ -19,15 +19,15 @@ import {ExternalLinkDirective} from "../../shared/directives";
 @Component({
     selector: 'app-channel-app-details',
     imports: [
-    AsyncPipe,
-    NgOptimizedImage,
-    NgbDropdown,
-    NgbDropdownItem,
-    NgbDropdownMenu,
-    NgbDropdownToggle,
-    SharedModule,
-    ExternalLinkDirective
-],
+        AsyncPipe,
+        NgOptimizedImage,
+        NgbDropdown,
+        NgbDropdownItem,
+        NgbDropdownMenu,
+        NgbDropdownToggle,
+        SharedModule,
+        ExternalLinkDirective
+    ],
     templateUrl: './details.component.html',
     styleUrl: './details.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
@@ -38,27 +38,42 @@ export class DetailsComponent implements OnInit, OnDestroy {
 
     fullDescriptionHtml$: Observable<string>;
     installedInfo$?: Observable<PackageInfo | null>;
-    incompatible$: Observable<IncompatibleReason[] | null>;
+    incompatible$!: Observable<IncompatibleReason[] | null>;
+    devices$: Observable<Device[] | null>;
+    selectedDevice: Device;
 
     @ViewChild('fullDescription', {static: true})
     fullDescription!: ElementRef<HTMLElement>;
 
-    parent?: AppsComponent;
-
-
     private unsubscribeClickListener!: () => void;
 
     constructor(
-        public modal: NgbActiveModal,
+        public offcanvas: NgbActiveOffcanvas,
         public item: RepositoryItem,
         @Inject('device') public device: Device,
+        @Inject('parent') private parent: AppsComponent,
         private appManager: AppManagerService,
+        private deviceManager: DeviceManagerService,
         private renderer2: Renderer2
     ) {
         this.manifest = item.manifest!;
-        this.incompatible$ = fromPromise(this.appManager.checkIncompatibility(device, item));
+        this.selectedDevice = device;
+        this.devices$ = this.deviceManager.devices$;
         this.fullDescriptionHtml$ = item.fullDescriptionUrl ? fromPromise(fetch(item.fullDescriptionUrl)
             .then(resp => resp.text())) : of('');
+        this.refreshForDevice();
+    }
+
+    onDeviceChange(name: string): void {
+        let next: Device | undefined;
+        this.devices$.subscribe(devices => next = devices?.find(d => d.name === name)).unsubscribe();
+        if (!next) return;
+        this.selectedDevice = next;
+        this.refreshForDevice();
+    }
+
+    private refreshForDevice(): void {
+        this.incompatible$ = fromPromise(this.appManager.checkIncompatibility(this.selectedDevice, this.item));
         this.reloadInstalledInfo();
     }
 
@@ -75,15 +90,20 @@ export class DetailsComponent implements OnInit, OnDestroy {
         this.unsubscribeClickListener();
     }
 
+    launchApp(id: string) {
+        this.parent.launchApp(id);
+    }
+
     installPackage(item: RepositoryItem, channel: 'stable' | 'beta' = 'stable') {
-        this.parent?.installPackage(item, channel).then((installed) => installed && this.reloadInstalledInfo());
+        this.parent.installPackage(item, channel, this.selectedDevice)
+            .then((installed) => installed && this.reloadInstalledInfo());
     }
 
     removePackage(item: PackageInfo) {
-        this.parent?.removePackage(item).then((removed) => removed && this.reloadInstalledInfo());
+        this.parent.removePackage(item).then((removed) => removed && this.reloadInstalledInfo());
     }
 
     private reloadInstalledInfo(): void {
-        this.installedInfo$ = fromPromise(this.appManager.info(this.device, this.item.id));
+        this.installedInfo$ = fromPromise(this.appManager.info(this.selectedDevice, this.item.id));
     }
 }

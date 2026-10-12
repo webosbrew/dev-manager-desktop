@@ -15,6 +15,7 @@ import {FilesTableComponent} from './files-table/files-table.component';
 import {SharedModule} from "../shared/shared.module";
 import {CreateDirectoryMessageComponent} from './create-directory-message/create-directory-message.component';
 import {ReactiveFormsModule} from "@angular/forms";
+import {FilesizePipe} from "../shared/pipes/filesize.pipe";
 
 
 @NgModule({
@@ -24,17 +25,18 @@ import {ReactiveFormsModule} from "@angular/forms";
     FilesTableComponent,
     CreateDirectoryMessageComponent,
   ],
-  imports: [
-    CommonModule,
-    FilesRoutingModule,
-    NgbTooltipModule,
-    SharedModule,
-    NgbDropdown,
-    NgbDropdownItem,
-    NgbDropdownMenu,
-    NgbDropdownToggle,
-    ReactiveFormsModule,
-  ]
+    imports: [
+        CommonModule,
+        FilesRoutingModule,
+        NgbTooltipModule,
+        SharedModule,
+        NgbDropdown,
+        NgbDropdownItem,
+        NgbDropdownMenu,
+        NgbDropdownToggle,
+        ReactiveFormsModule,
+        FilesizePipe,
+    ]
 })
 export class FilesModule {
 }

@@ -1,28 +1,73 @@
-@let repoPage = repoPage$ | async;
-@if (repoPage) {
-  <ul class="list-group list-group-flush">
-    @for (item of repoPage.packages; track item) {
-      <li class="list-group-item app-item d-flex flex-row align-items-center" (click)="parent.openDetails(item)"
-        >
-        @let manifest = item.manifest;
-        @if (manifest) {
-          <div class="app-desc flex-fill">
-            <img class="app-icon" [ngSrc]="item.iconUri" [alt]="item.title" width="48" height="48">
-            <div class="app-headline ms-3">
-              <div class="app-title">{{ item.title }}</div>
-              <div class="app-description">{{ manifest.appDescription }}</div>
+<div class="p-3">
+  @let repoPage = repoPage$ | async;
+  @if (repoPage) {
+    @if (page === 1 && repoPage.packages.length > 2) {
+      <section class="featured-section mb-4">
+        <h6 class="text-body-secondary mb-2">Featured</h6>
+        <div class="featured-grid">
+          @let hero = repoPage.packages[0];
+          <button type="button" class="app-card app-card-hero" (click)="openDetails(hero)">
+            @switch (cardState(hero)) {
+              @case ('installed') { <span class="app-card-tag badge text-bg-secondary">Installed</span> }
+              @case ('update') { <span class="app-card-tag badge text-bg-warning">Update</span> }
+            }
+            <img class="app-card-icon" [ngSrc]="hero.detailIconUri ?? hero.iconUri" [alt]="hero.title" width="128" height="128">
+            <div class="app-card-text">
+              <div class="app-card-title">{{ hero.title }}</div>
+              <div class="app-card-version">v{{ hero.manifest?.version }}</div>
+              @if (hero.shortDescription || hero.manifest?.appDescription) {
+                <p class="app-card-desc mt-2 mb-0">{{ hero.shortDescription || hero.manifest?.appDescription }}</p>
+              }
             </div>
-          </div>
-          <button class="btn btn-sm btn-primary ms-2 text-nowrap" aria-label="Details">Details</button>
-        }
-      </li>
+          </button>
+          @for (item of repoPage.packages.slice(1, 3); track item.id) {
+            <button type="button" class="app-card" (click)="openDetails(item)">
+              @switch (cardState(item)) {
+                @case ('installed') { <span class="app-card-tag badge text-bg-secondary">Installed</span> }
+                @case ('update') { <span class="app-card-tag badge text-bg-warning">Update</span> }
+              }
+              <img class="app-card-icon" [ngSrc]="item.iconUri" [alt]="item.title" width="64" height="64">
+              <div class="app-card-text">
+                <div class="app-card-title text-truncate">{{ item.title }}</div>
+                <div class="app-card-version">v{{ item.manifest?.version }}</div>
+                @if (item.shortDescription) {
+                  <div class="app-card-desc text-truncate mt-1">{{ item.shortDescription }}</div>
+                }
+              </div>
+            </button>
+          }
+        </div>
+      </section>
     }
-  </ul>
-  <div class="mt-3">
-    <ngb-pagination class="d-flex justify-content-center" [collectionSize]="repoPage.paging.maxPage" [(page)]="page"
-      [pageSize]="1" aria-label="Default pagination" (pageChange)="loadPage($event)">
-    </ngb-pagination>
-  </div>
-} @else {
-  <app-loading-card/>
-}
+    <section>
+      <h6 class="text-body-secondary mb-2">{{ page === 1 ? 'All apps' : ('Page ' + page) }}</h6>
+      <div class="app-grid">
+        @for (item of repoPage.packages; track item.id) {
+          @if (item.manifest) {
+            <button type="button" class="app-card" (click)="openDetails(item)">
+              @switch (cardState(item)) {
+                @case ('installed') { <span class="app-card-tag badge text-bg-secondary">Installed</span> }
+                @case ('update') { <span class="app-card-tag badge text-bg-warning">Update</span> }
+              }
+              <img class="app-card-icon" [ngSrc]="item.iconUri" [alt]="item.title" width="64" height="64">
+              <div class="app-card-text">
+                <div class="app-card-title text-truncate">{{ item.title }}</div>
+                <div class="app-card-version">v{{ item.manifest.version }}</div>
+                @if (item.shortDescription) {
+                  <div class="app-card-desc text-truncate mt-1">{{ item.shortDescription }}</div>
+                }
+              </div>
+            </button>
+          }
+        }
+      </div>
+    </section>
+    <div class="mt-4">
+      <ngb-pagination class="d-flex justify-content-center" [collectionSize]="repoPage.paging.maxPage" [(page)]="page"
+                      [pageSize]="1" aria-label="App pages" (pageChange)="loadPage($event)">
+      </ngb-pagination>
+    </div>
+  } @else {
+    <app-loading-card/>
+  }
+</div>

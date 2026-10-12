@@ -1,0 +1,40 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.installed-body {
+  min-height: 0;
+}
+
+.installed-list-pane {
+  width: 320px;
+  flex: 0 0 auto;
+}
+
+.installed-row {
+  cursor: pointer;
+  border-left: 3px solid transparent;
+
+  &.active {
+    background: var(--bs-primary-bg-subtle);
+    border-left-color: var(--bs-primary);
+    color: inherit;
+  }
+}
+
+.installed-row-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.4rem;
+}
+
+.installed-row-title {
+  font-weight: 500;
+}
+
+.installed-empty {
+  padding: 2rem;
+}
