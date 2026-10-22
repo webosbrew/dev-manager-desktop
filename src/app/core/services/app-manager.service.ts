@@ -10,7 +10,7 @@ import {
 } from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {filter, map} from "rxjs/operators";
-import {RemoteFileService, ServeInstance} from "./remote-file.service";
+import {remoteFileUri, RemoteFileService, ServeInstance} from "./remote-file.service";
 import {IncompatibleReason, PackageManifest, RepositoryItem} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {LocalFileService} from "./local-file.service";
@@ -19,7 +19,6 @@ import {APP_ID_HBCHANNEL} from "../../shared/constants";
 import {DeviceManagerService} from "./device-manager.service";
 import {HomebrewChannelConfiguration} from "../../types/luna-apis";
 import {download} from "@tauri-apps/plugin-upload";
-import {convertFileSrc} from "@tauri-apps/api/core";
 
 /** Where an IPK waits on the device while appinstalld reads it. */
 const TEMP_IPK_DIR = '/media/developer/temp';
@@ -65,7 +64,7 @@ export class AppManagerService {
             .then(resp => resp['apps'] as RawPackageInfo[])
             .then((result) => result.map(info => {
                 const iconPath = [info.folderPath, info.icon].join('/');
-                return {iconUri: `${convertFileSrc('', 'remote-file')}${device.name}${iconPath}`, ...info};
+                return {iconUri: remoteFileUri(device, iconPath), ...info};
             }));
     }
 
