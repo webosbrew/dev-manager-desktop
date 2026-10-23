@@ -1,6 +1,4 @@
-use libssh_rs::OpenFlags;
-use std::io::Read;
-
+use ares_connection_lib::transfer::FileTransfer;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use tauri::plugin::{Builder, TauriPlugin};
@@ -80,14 +78,8 @@ async fn valid_token<R: Runtime>(
     let data = tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
-            let sftp = session.sftp()?;
-            let mut ch = sftp.open(
-                "/var/luna/preferences/devmode_enabled",
-                OpenFlags::READ_ONLY,
-                0,
-            )?;
             let mut data = Vec::<u8>::new();
-            ch.read_to_end(&mut data)?;
+            session.get("/var/luna/preferences/devmode_enabled", &mut data, |_| {})?;
             return Ok::<Vec<u8>, Error>(data);
         });
     })

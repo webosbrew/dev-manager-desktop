@@ -12,7 +12,7 @@ env:
   SENTRY_ORG: webosbrew
   SENTRY_PROJECT: dev-manager-desktop-ui
   SENTRY_ENVIRONMENT: "${{ github.event_name == 'release' && 'release' || 'development' }}"
-  ANDROID_NDK_VERSION: '26.3.11579264'
+  ANDROID_NDK_VERSION: '28.2.13676358'
   ANDROID_BUILD_TOOLS_VERSION: '34.0.0'
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24.x
 
       - name: Extract Version
         id: pkg-version
@@ -92,6 +92,14 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      # One cache per matrix target. The Windows job builds two triples into the
+      # same directory, so both share its entry.
+      - name: Cache Rust Project
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+          cache-on-failure: true
+
       - name: Setup JDK (Android)
         uses: actions/setup-java@v4
         if: startsWith(matrix.target, 'android')
@@ -117,7 +125,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'npm'
 
       - name: Write Version

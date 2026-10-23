@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- macOS 15 and later gate LAN connections behind this permission.
+	     Without this key, macOS shows no prompt. The app does not appear in
+	     Privacy & Security > Local Network. Each connection to the TV then
+	     fails with EHOSTUNREACH ("No route to host"). See #417. -->
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>webOS Dev Manager connects to your TV on the local network to set up developer mode and manage apps.</string>
+</dict>
+</plist>

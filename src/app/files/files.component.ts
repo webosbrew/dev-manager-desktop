@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {DeviceManagerService} from "../core/services";
 import {Device, FileItem, FileSession} from "../types";
 import {from, Observable, Subscription, tap} from "rxjs";
@@ -7,7 +7,7 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {ProgressDialogComponent} from "../shared/components/progress-dialog/progress-dialog.component";
 import {open as openPath} from '@tauri-apps/plugin-shell';
 import {open as showOpenDialog, save as showSaveDialog} from '@tauri-apps/plugin-dialog';
-import {downloadDir} from "@tauri-apps/api/path";
+import {defaultDownloadDir} from "../shared/paths";
 import {CreateDirectoryMessageComponent} from "./create-directory-message/create-directory-message.component";
 import {trimEnd} from "lodash-es";
 import {path} from "@tauri-apps/api";
@@ -28,7 +28,9 @@ class FilesState {
 @Component({
     selector: 'app-files',
     templateUrl: './files.component.html',
-    styleUrls: ['./files.component.scss']
+    styleUrls: ['./files.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class FilesComponent implements OnInit, OnDestroy {
     device: Device | null = null;
@@ -194,7 +196,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         const returnValue = await showOpenDialog({
             directory: true,
             multiple: false,
-            defaultPath: await downloadDir(),
+            defaultPath: await defaultDownloadDir(),
         });
         if (!returnValue) return;
         const progress = ProgressDialogComponent.open(this.modalService);
@@ -291,7 +293,7 @@ export class FilesComponent implements OnInit, OnDestroy {
         if (!cwd || !this.device) return;
         const returnValue = await showOpenDialog({
             multiple: true,
-            defaultPath: await downloadDir(),
+            defaultPath: await defaultDownloadDir(),
         });
         if (!returnValue) return;
         const progressRef = ProgressDialogComponent.open(this.modalService);

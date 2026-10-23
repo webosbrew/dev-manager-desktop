@@ -1,7 +1,5 @@
-use std::path::PathBuf;
 use std::sync::Arc;
 
-use crate::app_dirs::{GetSshDir, SetSshDir};
 use crate::device_manager::Device;
 use crate::error::Error;
 use crate::shell_manager::{Shell, ShellInfo, ShellManager, ShellToken};
@@ -10,7 +8,7 @@ impl ShellManager {
     pub fn open(&self, device: Device, rows: u16, cols: u16, dumb: bool) -> Arc<Shell> {
         let shell = Arc::new(Shell::new(
             device,
-            self.get_ssh_dir().as_deref(),
+            self.ssh_dir.get(),
             !dumb,
             rows,
             cols,
@@ -25,7 +23,12 @@ impl ShellManager {
     }
 
     pub fn find(&self, token: &ShellToken) -> Option<Arc<Shell>> {
-        self.shells.lock().unwrap().get(token).map(|a| a.clone())
+        self.shells.lock().unwrap().get(token).cloned()
+    }
+
+    /// The shell behind `token`, or [`Error::NotFound`] if it has closed.
+    pub fn get(&self, token: &ShellToken) -> Result<Arc<Shell>, Error> {
+        self.find(token).ok_or(Error::NotFound)
     }
 
     pub fn close(&self, token: &ShellToken) -> Result<(), Error> {
@@ -46,17 +49,5 @@ impl ShellManager {
             .collect();
         list.sort_by_key(|v| v.created_at);
         list
-    }
-}
-
-impl GetSshDir for ShellManager {
-    fn get_ssh_dir(&self) -> Option<PathBuf> {
-        self.ssh_dir.lock().unwrap().clone()
-    }
-}
-
-impl SetSshDir for ShellManager {
-    fn set_ssh_dir(&self, dir: PathBuf) {
-        *self.ssh_dir.lock().unwrap() = Some(dir);
     }
 }

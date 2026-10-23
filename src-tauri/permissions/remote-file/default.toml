@@ -4,6 +4,7 @@ permissions = [
   "allow-ls",
   "allow-read",
   "allow-write",
+  "allow-mkdir",
   "allow-get",
   "allow-put",
   "allow-get-temp",

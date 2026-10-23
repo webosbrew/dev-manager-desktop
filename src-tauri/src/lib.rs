@@ -4,7 +4,7 @@ extern crate core;
 use std::env;
 use std::path::PathBuf;
 
-use crate::app_dirs::{GetAppSshKeyDir, GetConfDir, GetSshDir, SetConfDir, SetSshDir};
+use crate::app_dirs::GetAppSshKeyDir;
 use crate::device_manager::DeviceManager;
 use crate::error::Error;
 use crate::session_manager::SessionManager;
@@ -64,13 +64,13 @@ pub fn run() {
         .and_then(|app| {
             app.run(|app, event| match event {
                 RunEvent::Ready => {
-                    if let Some(ssh_dir) = app.get_ssh_dir() {
-                        app.state::<DeviceManager>().set_ssh_dir(ssh_dir.clone());
-                        app.state::<SessionManager>().set_ssh_dir(ssh_dir.clone());
-                        app.state::<ShellManager>().set_ssh_dir(ssh_dir.clone());
+                    if let Some(dir) = app_dirs::ssh_dir(app) {
+                        app.state::<DeviceManager>().ssh_dir.set(dir.clone());
+                        app.state::<SessionManager>().ssh_dir.set(dir.clone());
+                        app.state::<ShellManager>().ssh_dir.set(dir);
                     }
-                    if let Some(conf_dir) = app.get_conf_dir() {
-                        app.state::<DeviceManager>().set_conf_dir(conf_dir.clone());
+                    if let Some(dir) = app_dirs::conf_dir(app) {
+                        app.state::<DeviceManager>().conf_dir.set(dir);
                     }
                 }
                 _ => {}
@@ -125,30 +125,6 @@ fn optional_setup<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     }
 }
 
-impl<R: Runtime> GetSshDir for AppHandle<R> {
-    fn get_ssh_dir(&self) -> Option<PathBuf> {
-        let home_dir = if cfg!(mobile) {
-            self.path().app_config_dir()
-        } else {
-            self.path().home_dir()
-        };
-        home_dir
-            .map(|home| home.join(".ssh"))
-            .and_then(|path| {
-                std::fs::create_dir_all(&path)?;
-                #[cfg(target_family = "unix")]
-                {
-                    use std::fs::Permissions;
-                    use std::os::unix::fs::PermissionsExt;
-                    std::fs::set_permissions(&path, Permissions::from_mode(0o700))?;
-                }
-                Ok(path)
-            })
-            .or_else(|_| self.path().data_dir())
-            .ok()
-    }
-}
-
 impl<R: Runtime> GetAppSshKeyDir for AppHandle<R> {
     fn get_app_ssh_key_path(&self) -> Result<PathBuf, Error> {
         if cfg!(mobile) {
@@ -159,7 +135,7 @@ impl<R: Runtime> GetAppSshKeyDir for AppHandle<R> {
                 }
             }
         }
-        let config_dir = self.get_ssh_dir().ok_or(Error::bad_config())?;
+        let config_dir = app_dirs::ssh_dir(self).ok_or_else(Error::bad_config)?;
         Ok(config_dir.join("id_devman"))
     }
 
@@ -179,27 +155,3 @@ impl<R: Runtime> GetAppSshKeyDir for AppHandle<R> {
     }
 }
 
-impl<R: Runtime> GetConfDir for AppHandle<R> {
-    fn get_conf_dir(&self) -> Option<PathBuf> {
-        #[cfg(not(mobile))]
-        {
-            let home: Option<PathBuf>;
-            #[cfg(target_family = "windows")]
-            {
-                home = env::var("APPDATA")
-                    .or_else(|_| env::var("USERPROFILE"))
-                    .map(PathBuf::from)
-                    .ok();
-            }
-            #[cfg(not(target_family = "windows"))]
-            {
-                home = self.path().home_dir().ok();
-            }
-            return home.map(|d| d.join(".webos").join("ose"));
-        }
-        #[cfg(mobile)]
-        {
-            return self.path().data_dir().ok();
-        }
-    }
-}

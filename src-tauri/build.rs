@@ -32,7 +32,7 @@ fn main() {
             .plugin(
                 "remote-file",
                 InlinedPlugin::new()
-                    .commands(&["ls", "read", "write", "get", "put", "get_temp", "serve"]),
+                    .commands(&["ls", "read", "write", "mkdir", "get", "put", "get_temp", "serve"]),
             )
             .plugin(
                 "dev-mode",

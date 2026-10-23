@@ -1,4 +1,4 @@
-import {Component, Host, Input, OnDestroy} from '@angular/core';
+import {Component, Host, Input, OnDestroy, ChangeDetectionStrategy} from '@angular/core';
 import {AppsComponent} from '../apps.component';
 import {Device, PackageInfo} from "../../types";
 import {Observable, Subscription} from "rxjs";
@@ -7,7 +7,9 @@ import {AppsRepoService, RepositoryItem} from "../../core/services";
 @Component({
     selector: 'app-installed',
     templateUrl: './installed.component.html',
-    styleUrls: ['./installed.component.scss']
+    styleUrls: ['./installed.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class InstalledComponent implements OnDestroy {
 

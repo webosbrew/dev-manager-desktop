@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ChangeDetectionStrategy} from '@angular/core';
 import {Device} from "../../../types";
 import {PrefLogLevel, RemoteLogService} from "../../../core/services/remote-log.service";
 import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
@@ -7,7 +7,9 @@ import {SetContextComponent} from "../set-context/set-context.component";
 @Component({
     selector: 'app-pmlog-control',
     templateUrl: './control.component.html',
-    styleUrls: ['./control.component.scss']
+    styleUrls: ['./control.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class PmLogControlComponent {
 

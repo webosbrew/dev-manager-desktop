@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from '@angular/core';
 import {FileItem} from "../../types";
 import {FileSizeOptionsBase} from "filesize";
 import {type as osType} from "@tauri-apps/plugin-os";
@@ -11,7 +11,9 @@ interface KeyModifiers {
 @Component({
     selector: 'app-files-table',
     templateUrl: './files-table.component.html',
-    styleUrls: ['./files-table.component.scss']
+    styleUrls: ['./files-table.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class FilesTableComponent {
 

@@ -1,7 +1,7 @@
 <div class="w-100 h-100 d-flex flex-column overflow-hidden" xmlns="http://www.w3.org/1999/html">
   <nav class="manager-toolbar navbar bg-panel border-bottom px-2">
     <div class="d-flex flex-row w-100">
-      <select class="form-select w-auto" [value]="device?.name" (change)="deviceManager.setDefault(deviceSelect.value)"
+      <select class="form-select w-auto" [value]="$safeNavigationMigration(device?.name)" (change)="deviceManager.setDefault(deviceSelect.value)"
               #deviceSelect>
         @for (dev of devices$ | async; track dev.name) {
           <option [ngValue]="dev.name" [selected]="dev.name === device?.name">{{ dev.name }}</option>

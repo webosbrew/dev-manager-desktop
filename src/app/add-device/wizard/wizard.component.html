@@ -6,7 +6,7 @@
       <app-wizard-mode-select [(mode)]="connectionMode" (proceed)="finishConnectionModeSelection()">
       </app-wizard-mode-select>
       <ng-template appWizardFooterTemplate>
-        <button class="btn btn-primary ms-auto" [disabled]="!connectionMode" [ngSwitch]="connectionMode"
+        <button class="btn btn-primary ms-auto" [disabled]="!connectionMode"
                 (click)="finishConnectionModeSelection()" aria-label="Next">Next
         </button>
       </ng-template>

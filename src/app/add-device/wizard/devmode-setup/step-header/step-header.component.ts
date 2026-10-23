@@ -1,9 +1,11 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, ChangeDetectionStrategy} from '@angular/core';
 
 @Component({
-  selector: 'app-devmode-setup-step-header',
-  templateUrl: './step-header.component.html',
-  styleUrls: ['./step-header.component.scss']
+    selector: 'app-devmode-setup-step-header',
+    templateUrl: './step-header.component.html',
+    styleUrls: ['./step-header.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class StepHeaderComponent {
   private checked: boolean = false;

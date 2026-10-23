@@ -1,4 +1,4 @@
-import {Component, Inject, Optional} from '@angular/core';
+import {Component, Inject, Optional, ChangeDetectionStrategy} from '@angular/core';
 import {DeviceManagerService} from "../core/services";
 import {Observable} from "rxjs";
 import {Device, NewDevice} from "../types";
@@ -11,7 +11,6 @@ import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove
 
 @Component({
     selector: 'app-devices',
-    standalone: true,
     imports: [
         AsyncPipe,
         AddDeviceModule,
@@ -19,6 +18,7 @@ import {RemoveConfirmation, RemoveDeviceComponent} from "../remove-device/remove
         InlineEditorComponent
     ],
     templateUrl: './devices.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     styleUrl: './devices.component.scss'
 })
 export class DevicesComponent {

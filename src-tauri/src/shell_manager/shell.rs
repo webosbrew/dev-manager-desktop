@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::io::Write;
 use std::path::Path;
-use std::sync::mpsc::channel;
+use std::sync::mpsc::{channel, RecvTimeoutError};
 use std::sync::{Arc, Mutex};
-use std::thread::JoinHandle;
+use std::thread::{sleep, JoinHandle};
 use std::time::{Duration, Instant};
 
 use libssh_rs::Error::RequestDenied;
@@ -16,6 +16,11 @@ use crate::error::Error;
 use crate::shell_manager::{Shell, ShellInfo, ShellMessage, ShellScreen, ShellState, ShellToken};
 
 pub(crate) type ShellsMap = HashMap<ShellToken, Arc<Shell>>;
+
+/// How long the worker parks waiting for input before polling the remote for
+/// output again. Small enough to feel instant, large enough to keep an idle
+/// shell off the CPU.
+const POLL_INTERVAL: Duration = Duration::from_millis(10);
 
 impl Shell {
     pub fn write(&self, data: &[u8]) -> Result<(), Error> {
@@ -164,26 +169,17 @@ impl Shell {
         }
         let mut buf = [0; 8192];
         while !channel.is_closed() {
-            if let Ok(msg) = receiver.recv_timeout(Duration::from_micros(1)) {
-                match msg {
-                    ShellMessage::Data(d) => {
-                        channel.stdin().write_all(&d)?;
-                    }
-                    ShellMessage::Resize { rows, cols } => {
-                        channel.change_pty_size(cols as u32, rows as u32)?;
-                    }
-                    ShellMessage::Close => {
-                        channel.close()?;
-                        break;
-                    }
+            // Forward everything the remote has already sent. In a PTY stderr is
+            // folded into stdout, so only the dumb shell reads both streams.
+            loop {
+                let size = match channel.read_timeout(&mut buf, false, Some(Duration::ZERO)) {
+                    Ok(size) => size,
+                    Err(libssh_rs::Error::TryAgain) => 0,
+                    Err(e) => return Err(Error::from(e)),
+                };
+                if size == 0 {
+                    break;
                 }
-            }
-            let size = match channel.read_timeout(&mut buf, false, Some(Duration::from_micros(5))) {
-                Ok(size) => size,
-                Err(libssh_rs::Error::TryAgain) => 0,
-                Err(e) => return Err(Error::from(e)),
-            };
-            if size != 0 {
                 if let Some(callback) = self.callback.lock().unwrap().as_ref() {
                     callback.rx(0, &buf[..size]);
                 }
@@ -194,17 +190,39 @@ impl Shell {
                 }
             }
             if !has_pty {
-                let size =
-                    match channel.read_timeout(&mut buf, true, Some(Duration::from_micros(5))) {
+                loop {
+                    let size = match channel.read_timeout(&mut buf, true, Some(Duration::ZERO)) {
                         Ok(size) => size,
                         Err(libssh_rs::Error::TryAgain) => 0,
                         Err(e) => return Err(Error::from(e)),
                     };
-                if size != 0 {
+                    if size == 0 {
+                        break;
+                    }
                     if let Some(callback) = self.callback.lock().unwrap().as_ref() {
                         callback.rx(1, &buf[..size]);
                     }
                 }
+            }
+            // Park until there is something to write or it is time to poll the
+            // remote again. Both reads above are non-blocking, so without this
+            // the loop would spin and burn a core for every open shell.
+            match receiver.recv_timeout(POLL_INTERVAL) {
+                Ok(ShellMessage::Data(d)) => {
+                    channel.stdin().write_all(&d)?;
+                }
+                Ok(ShellMessage::Resize { rows, cols }) => {
+                    channel.change_pty_size(cols as u32, rows as u32)?;
+                }
+                Ok(ShellMessage::Close) => {
+                    channel.close()?;
+                    break;
+                }
+                Err(RecvTimeoutError::Timeout) => {}
+                // The sender lives in `self.sender` for as long as this loop
+                // runs, so this is unreachable in practice; sleep rather than
+                // spin if it ever becomes reachable.
+                Err(RecvTimeoutError::Disconnected) => sleep(POLL_INTERVAL),
             }
         }
         Ok(channel.get_exit_status().unwrap_or(0))

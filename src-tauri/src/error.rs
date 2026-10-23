@@ -3,6 +3,8 @@ use std::fmt::{Debug, Display, Formatter};
 use std::io::ErrorKind;
 use std::str::FromStr;
 
+use ares_connection_lib::session::SessionError;
+use ares_connection_lib::transfer::TransferError;
 use libssh_rs::{Error as SshError, SftpError};
 use regex::Regex;
 use serde::{Serialize, Serializer};
@@ -194,6 +196,35 @@ impl From<SftpError> for Error {
         Error::Message {
             message,
             unhandled: false,
+        }
+    }
+}
+
+impl From<TransferError> for Error {
+    fn from(value: TransferError) -> Self {
+        match value {
+            // Reuse the SSH mapping, so a dropped connection still becomes
+            // Error::Disconnected and the pool retries it.
+            TransferError::Ssh(e) => e.into(),
+            TransferError::Io(e) => e.into(),
+            // The shared library reports the reason but not the command or its
+            // stderr, so this can't become Error::ExitStatus.
+            TransferError::ExitCode { reason, .. } => Error::Message {
+                message: reason,
+                unhandled: false,
+            },
+        }
+    }
+}
+
+impl From<SessionError> for Error {
+    fn from(value: SessionError) -> Self {
+        match value {
+            SessionError::Authorization { message } => Error::Authorization { message },
+            // Reuse the SSH mapping, so a bad key still becomes
+            // Error::BadPrivateKey and a dropped connection Error::Disconnected.
+            SessionError::LibSsh(e) => e.into(),
+            SessionError::Io(e) => e.into(),
         }
     }
 }

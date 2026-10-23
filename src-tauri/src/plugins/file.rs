@@ -4,6 +4,7 @@ use std::path::Path;
 
 use flate2::read::GzDecoder;
 use libssh_rs::OpenFlags;
+use percent_encoding::percent_decode_str;
 use serde::Serialize;
 use tauri::ipc::Channel;
 use tauri::plugin::{Builder, TauriPlugin};
@@ -12,6 +13,8 @@ use tauri_plugin_fs::{FilePath, Fs, OpenOptions};
 use uuid::Uuid;
 
 use crate::device_manager::{Device, DeviceManager};
+use ares_connection_lib::transfer::FileTransfer;
+
 use crate::error::Error;
 use crate::remote_files::serve;
 use crate::remote_files::{FileItem, PermInfo};
@@ -60,20 +63,17 @@ async fn read<R: Runtime>(
     tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return sessions.with_session(device, |session| {
-            let sftp = session.sftp()?;
-            let mut file = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
-            let mut buf = Vec::<u8>::new();
+            let mut raw = Vec::<u8>::new();
+            session.get(&path, &mut raw, |_| {})?;
             if let Some(encoding) = &encoding {
-                if encoding == "gzip" {
-                    let mut decoder = GzDecoder::new(&mut file);
-                    decoder.read_to_end(&mut buf)?;
-                } else {
+                if encoding != "gzip" {
                     return Err(Error::new(format!("Unsupported encoding {}", encoding)));
                 }
-            } else {
-                file.read_to_end(&mut buf)?;
+                let mut buf = Vec::<u8>::new();
+                GzDecoder::new(&raw[..]).read_to_end(&mut buf)?;
+                return Ok(buf);
             }
-            return Ok(buf);
+            return Ok(raw);
         });
     })
     .await
@@ -90,18 +90,31 @@ async fn write<R: Runtime>(
     tauri::async_runtime::spawn_blocking(move || {
         let sessions = app.state::<SessionManager>();
         return Ok(sessions.with_session(device, |session| {
-            let sftp = session.sftp()?;
-            let mut file = sftp.open(
-                &path,
-                OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE,
-                0o644,
-            )?;
-            file.write_all(&content)?;
+            session.put(&mut content.as_slice(), &path, |_| {})?;
             return Ok(());
         })?);
     })
     .await
     .expect("critical failure in file::write task")
+}
+
+#[tauri::command]
+async fn mkdir<R: Runtime>(
+    app: AppHandle<R>,
+    device: Device,
+    path: String,
+    mode: u32,
+) -> Result<(), Error> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let sessions = app.state::<SessionManager>();
+        return Ok(sessions.with_session(device, |session| {
+            // The shared FileTransfer makes every missing parent, like mkdir -p.
+            session.mkdir(&path, mode)?;
+            return Ok(());
+        })?);
+    })
+    .await
+    .expect("critical failure in file::mkdir task")
 }
 
 #[tauri::command]
@@ -117,13 +130,22 @@ async fn get<R: Runtime>(
         let fs = app.state::<Fs<R>>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
-            let sftp = session.sftp()?;
-            let mut sfile = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
             let mut opt = OpenOptions::new();
             opt.create(true).write(true);
             let mut file = fs.open(target.clone(), opt)?;
-            let size = sfile.metadata()?.len().unwrap_or_default() as usize;
-            copy(&mut sfile, &mut file, size, &on_progress)?;
+            // Only SFTP can tell us the size up front. Without it the progress
+            // events carry a total of 0, which the frontend already tolerates.
+            let total = session
+                .maybe_sftp()
+                .and_then(|sftp| sftp.open(&path, OpenFlags::READ_ONLY, 0)?.metadata())
+                .ok()
+                .and_then(|meta| meta.len())
+                .unwrap_or_default() as usize;
+            // The shared FileTransfer streams the file over an exec channel when
+            // the device has no SFTP.
+            session.get(&path, &mut file, |copied| {
+                let _ = on_progress.send(CopyProgress { copied, total });
+            })?;
             return Ok(());
         });
     })
@@ -144,30 +166,6 @@ async fn put<R: Runtime>(
         let fs = app.state::<Fs<R>>();
         let on_progress = on_progress.clone();
         return sessions.with_session(device, move |session| {
-            let sftp = session.sftp()?;
-            let mut sfile = sftp
-                .open(
-                    &path,
-                    OpenFlags::WRITE_ONLY | OpenFlags::CREATE | OpenFlags::TRUNCATE,
-                    0o644,
-                )
-                .map_err(|e| {
-                    let e: Error = e.into();
-                    return match e {
-                        Error::IO {
-                            code,
-                            message,
-                            unhandled,
-                        } => Error::IO {
-                            code,
-                            message: format!(
-                                "Failed to open remote file {path} for writing: {message}"
-                            ),
-                            unhandled,
-                        },
-                        e => e,
-                    };
-                })?;
             let mut opt = OpenOptions::new();
             opt.read(true).write(false);
             let mut file = fs.open(source.clone(), opt).map_err(|e| Error::IO {
@@ -175,8 +173,12 @@ async fn put<R: Runtime>(
                 message: format!("Failed to open local file {source} for uploading: {e:?}"),
                 unhandled: true,
             })?;
-            let size = file.metadata().unwrap().len() as usize;
-            copy(&mut file, &mut sfile, size, &on_progress)?;
+            let total = file.metadata().unwrap().len() as usize;
+            // The shared FileTransfer streams the file over an exec channel when
+            // the device has no SFTP.
+            session.put(&mut file, &path, |copied| {
+                let _ = on_progress.send(CopyProgress { copied, total });
+            })?;
             return Ok(());
         });
     })
@@ -245,7 +247,7 @@ async fn serve<R: Runtime>(
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
     Builder::new(name)
         .invoke_handler(tauri::generate_handler![
-            ls, read, write, get, put, get_temp, serve
+            ls, read, write, mkdir, get, put, get_temp, serve
         ])
         .build()
 }
@@ -269,21 +271,30 @@ fn content_type_for_path(path: &str) -> &'static str {
     }
 }
 
+fn decode(segment: &str) -> String {
+    percent_decode_str(segment).decode_utf8_lossy().into_owned()
+}
+
+/// Splits `/<device name>/<absolute remote path>` into its two percent-decoded parts.
+///
+/// The device name is always the first path segment. The host is unusable here: Tauri writes
+/// `remote-file://localhost/…` on macOS and Linux and `http://remote-file.localhost/…` on
+/// Windows and Android, and Chromium lowercases a host but not a path.
+fn split_uri_path(path: &str) -> Option<(String, String)> {
+    let (device, path) = path.strip_prefix('/')?.split_once('/')?;
+    if device.is_empty() {
+        return None;
+    }
+    Some((decode(device), format!("/{}", decode(path))))
+}
+
 pub fn protocol<R: Runtime>(
     ctx: UriSchemeContext<'_, R>,
     req: http::Request<Vec<u8>>,
     resp: UriSchemeResponder,
 ) {
     let app = ctx.app_handle().clone();
-    let uri = req.uri();
-    let Some((device_name, path)) = (match cfg!(any(target_os = "windows", target_os = "android")) {
-        true => uri.path()[1..]
-            .split_once('/')
-            .map(|(device, path)| (device.to_string(), format!("/{path}"))),
-        _ => uri
-            .host()
-            .map(|host| (host.to_string(), uri.path().to_string())),
-    }) else {
+    let Some((device_name, path)) = split_uri_path(req.uri().path()) else {
         resp.respond(http::Response::builder().status(404).body(vec![]).unwrap());
         return;
     };
@@ -303,10 +314,8 @@ pub fn protocol<R: Runtime>(
         match tauri::async_runtime::spawn_blocking(move || {
             let sessions = app.state::<SessionManager>();
             return sessions.with_session(device, |session| {
-                let sftp = session.sftp()?;
-                let mut file = sftp.open(&path, OpenFlags::READ_ONLY, 0)?;
                 let mut buf = Vec::<u8>::new();
-                file.read_to_end(&mut buf)?;
+                session.get(&path, &mut buf, |_| {})?;
                 return Ok(buf);
             });
         })
@@ -342,4 +351,36 @@ pub fn protocol<R: Runtime>(
             }
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::plugins::file::split_uri_path;
+
+    #[test]
+    fn test_split_uri_path() {
+        assert_eq!(
+            split_uri_path("/My%20TV/media/developer/apps/usr/palm/applications/a/icon.png"),
+            Some((
+                "My TV".to_string(),
+                "/media/developer/apps/usr/palm/applications/a/icon.png".to_string()
+            ))
+        );
+    }
+
+    #[test]
+    fn test_split_uri_path_keeps_device_name_case() {
+        assert_eq!(
+            split_uri_path("/OLEDC1/media/icon.png"),
+            Some(("OLEDC1".to_string(), "/media/icon.png".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_split_uri_path_rejects_incomplete() {
+        assert_eq!(split_uri_path(""), None);
+        assert_eq!(split_uri_path("/"), None);
+        assert_eq!(split_uri_path("/device-only"), None);
+        assert_eq!(split_uri_path("//media/icon.png"), None);
+    }
 }

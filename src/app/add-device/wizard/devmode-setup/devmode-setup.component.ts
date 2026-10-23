@@ -1,10 +1,12 @@
-import {Component, ViewEncapsulation} from '@angular/core';
+import {Component, ViewEncapsulation, ChangeDetectionStrategy} from '@angular/core';
 
 @Component({
-  selector: 'app-wizard-devmode-setup',
-  templateUrl: './devmode-setup.component.html',
-  styleUrls: ['./devmode-setup.component.scss'],
-  encapsulation: ViewEncapsulation.None
+    selector: 'app-wizard-devmode-setup',
+    templateUrl: './devmode-setup.component.html',
+    styleUrls: ['./devmode-setup.component.scss'],
+    encapsulation: ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class DevmodeSetupComponent {
 

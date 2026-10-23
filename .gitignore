@@ -72,3 +72,5 @@ local.properties
 **/fastlane/test_output
 
 .secrets
+
+.claude/settings.local.json

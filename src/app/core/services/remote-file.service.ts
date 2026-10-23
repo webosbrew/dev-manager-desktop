@@ -7,6 +7,20 @@ import {finalize, firstValueFrom, lastValueFrom, Observable, Subject} from "rxjs
 import {EventChannel} from "../event-channel";
 import {map} from "rxjs/operators";
 import {ProgressCallback, progressChannel} from "./progress-callback";
+import {convertFileSrc} from "@tauri-apps/api/core";
+
+/**
+ * Builds a `remote-file` URL that loads `path` from `device`.
+ *
+ * The device name goes in the first path segment, never the host. convertFileSrc puts the scheme
+ * in the host on Windows and Android (`http://remote-file.localhost/`) and in the scheme elsewhere
+ * (`remote-file://localhost/`), so the host is not ours to use. Chromium also lowercases a host,
+ * which a device name must survive.
+ */
+export function remoteFileUri(device: DeviceLike, path: string): string {
+    const segments = [device.name, ...path.split('/')].filter(segment => segment.length > 0);
+    return convertFileSrc('', 'remote-file') + segments.map(encodeURIComponent).join('/');
+}
 
 @Injectable({
     providedIn: 'root'
@@ -52,8 +66,11 @@ export class RemoteFileService extends BackendClient {
         await this.invoke('put', {device, path, source, onProgress});
     }
 
-    public async mkdir(device: Device, path: string): Promise<void> {
-        await this.cmd.exec(device, `xargs -0 mkdir`, 'buffer', path);
+    /**
+     * Make `path` and every missing parent, the way `mkdir -p` does.
+     */
+    public async mkdir(device: Device, path: string, mode: number = 0o755): Promise<void> {
+        await this.invoke('mkdir', {device, path, mode});
     }
 
     public async getTemp(device: Device, path: string, progress?: ProgressCallback): Promise<string> {

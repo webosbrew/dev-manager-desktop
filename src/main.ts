@@ -1,4 +1,4 @@
-import {enableProdMode} from '@angular/core';
+import {enableProdMode, provideZoneChangeDetection} from '@angular/core';
 import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 
 import {AppModule} from './app/app.module';
@@ -46,9 +46,7 @@ if (AppConfig.production) {
 }
 
 platformBrowserDynamic()
-    .bootstrapModule(AppModule, {
-        preserveWhitespaces: false
-    })
+    .bootstrapModule(AppModule, { applicationProviders: [provideZoneChangeDetection()], preserveWhitespaces: false,})
     .catch(err => console.error(err));
 
 const darkTheme = window.matchMedia('(prefers-color-scheme: dark)');

@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {DeviceConnectionMode} from "../mode-select/mode-select.component";
 import {Device, NewDeviceAuthentication} from "../../../types";
 import {DeviceEditorComponent, SetupAuthInfoUnion} from "../../device-editor/device-editor.component";
@@ -9,7 +9,9 @@ import {DeviceManagerService} from "../../../core/services";
 @Component({
     selector: 'app-wizard-add-device',
     templateUrl: './add-device.component.html',
-    styleUrls: ['./add-device.component.scss']
+    styleUrls: ['./add-device.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class AddDeviceComponent implements OnInit {
     @Input()

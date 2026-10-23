@@ -1,13 +1,14 @@
 import {
-    AfterViewInit,
-    Component,
-    ElementRef,
-    EventEmitter,
-    Input,
-    OnDestroy,
-    OnInit,
-    Output,
-    ViewChild
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {IDisposable, Terminal} from "@xterm/xterm";
 
@@ -21,6 +22,7 @@ import {TERMINAL_CONFIG} from "../../xterm/config";
     selector: 'app-terminal-size-calculator',
     templateUrl: './size-calculator.component.html',
     styleUrls: ['./size-calculator.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: true
 })
 export class SizeCalculatorComponent implements OnInit, AfterViewInit, OnDestroy {

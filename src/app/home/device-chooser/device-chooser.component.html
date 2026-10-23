@@ -2,8 +2,10 @@
   <h5 class="modal-title">Choose Device</h5>
 </div>
 <ul class="list-group list-group-flush">
-  <li class="list-group-item list-group-item-action" *ngFor="let device of (deviceManager.devices$ | async)"
+  @for (device of (deviceManager.devices$ | async); track device) {
+    <li class="list-group-item list-group-item-action"
       (click)="modal.close(device)">
-    {{ device.name }}
-  </li>
+      {{ device.name }}
+    </li>
+  }
 </ul>

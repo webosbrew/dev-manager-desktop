@@ -1,4 +1,4 @@
-import {APP_INITIALIZER, ErrorHandler, NgModule} from '@angular/core';
+import {ErrorHandler, inject, NgModule, provideAppInitializer} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
@@ -68,13 +68,10 @@ import {ExternalLinkDirective} from "./shared/directives";
             provide: TraceService,
             deps: [Router],
         },
-        {
-            provide: APP_INITIALIZER,
-            useFactory: () => () => {
-            },
-            deps: [TraceService],
-            multi: true,
-        },
+        // Instantiates TraceService so Sentry starts recording router navigations.
+        provideAppInitializer(() => {
+            inject(TraceService);
+        }),
         NgbTooltipConfig,
     ],
     bootstrap: [AppComponent]

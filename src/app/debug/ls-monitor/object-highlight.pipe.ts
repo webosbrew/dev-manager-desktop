@@ -2,7 +2,10 @@ import {Pipe, PipeTransform} from '@angular/core';
 
 import hljs from 'highlight.js/lib/core';
 
-@Pipe({name: 'objectHighlight'})
+@Pipe({
+    name: 'objectHighlight',
+    standalone: false
+})
 export class ObjectHighlightPipe implements PipeTransform {
 
     transform(value: unknown): string {

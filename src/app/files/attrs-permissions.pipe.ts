@@ -1,7 +1,8 @@
 import {Pipe, PipeTransform} from '@angular/core';
 
 @Pipe({
-  name: 'attrsPermissions'
+    name: 'attrsPermissions',
+    standalone: false
 })
 export class AttrsPermissionsPipe implements PipeTransform {
 

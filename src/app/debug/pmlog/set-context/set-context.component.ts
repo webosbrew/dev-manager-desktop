@@ -1,13 +1,15 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {UntypedFormBuilder, UntypedFormGroup} from "@angular/forms";
 import {LOG_LEVELS} from "../control/control.component";
 import {PrefLogLevel} from "../../../core/services/remote-log.service";
 
 @Component({
-  selector: 'app-pmlog-set-context',
-  templateUrl: './set-context.component.html',
-  styleUrls: ['./set-context.component.scss']
+    selector: 'app-pmlog-set-context',
+    templateUrl: './set-context.component.html',
+    styleUrls: ['./set-context.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class SetContextComponent {
   public formGroup: UntypedFormGroup;

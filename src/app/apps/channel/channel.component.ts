@@ -1,13 +1,15 @@
-import {Component, Host, Input, OnInit} from '@angular/core';
+import {Component, Host, Input, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {Observable} from 'rxjs';
 import {AppsRepoService, RepositoryPage} from '../../core/services';
 import {AppsComponent} from '../apps.component';
 import {RawPackageInfo} from "../../types";
 
 @Component({
-  selector: 'app-channel',
-  templateUrl: './channel.component.html',
-  styleUrls: ['./channel.component.scss']
+    selector: 'app-channel',
+    templateUrl: './channel.component.html',
+    styleUrls: ['./channel.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ChannelComponent implements OnInit {
 

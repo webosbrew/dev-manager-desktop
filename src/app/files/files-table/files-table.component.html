@@ -1,50 +1,80 @@
 <table class="table table-hover">
   <thead>
-  <tr>
-    <th>Name</th>
-    <th>Last Modified</th>
-    <th>Size</th>
-    <th>Permission</th>
-    <th>Owner</th>
-    <th>Group</th>
-  </tr>
+    <tr>
+      <th>Name</th>
+      <th>Last Modified</th>
+      <th>Size</th>
+      <th>Permission</th>
+      <th>Owner</th>
+      <th>Group</th>
+    </tr>
   </thead>
   <tbody class="border-top-0">
-  <tr *ngFor="let file of items" (dblclick)="openItem(file)" (click)="selectItem(file, keyModifiers($event))"
-      [class.table-active]="selectedItems && selectedItems.includes(file)">
-    <td class="text-nowrap">
-          <span class="pe-2" [ngSwitch]="file.type">
-              <i class="bi-folder-fill" *ngSwitchCase="'d'"></i>
-              <i class="bi-file-earmark-fill" *ngSwitchCase="'-'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'c'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'b'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'f'"></i>
-              <i class="bi-gear-fill" *ngSwitchCase="'s'"></i>
-              <i class="bi-link" *ngSwitchCase="'l'"></i>
-              <i class="bi-file-earmark-x-fill" *ngSwitchDefault></i>
-            </span>
-      <span>{{ file.filename }}</span>
-      <ng-container *ngIf="file.link as link">
-        <i class="bi-arrow-right-short text-secondary px-1"></i>
-        <span class="text-secondary" [class.text-decoration-line-through]="link.broken">{{ link.target ?? '?' }}</span>
-      </ng-container>
-    </td>
-    <td class="text-nowrap">{{ file.mtime * 1000 | date:'short' }}
-    </td>
-    <td class="text-nowrap">
-          <span *ngIf="file.type === '-'; else nonRegular">
-            {{ file.size | filesize:sizeOptions }}
+    @for (file of items; track file) {
+      <tr (dblclick)="openItem(file)" (click)="selectItem(file, keyModifiers($event))"
+        [class.table-active]="selectedItems && selectedItems.includes(file)">
+        <td class="text-nowrap">
+          <span class="pe-2">
+            @switch (file.type) {
+              @case ('d') {
+                <i class="bi-folder-fill"></i>
+              }
+              @case ('-') {
+                <i class="bi-file-earmark-fill"></i>
+              }
+              @case ('c') {
+                <i class="bi-gear-fill"></i>
+              }
+              @case ('b') {
+                <i class="bi-gear-fill"></i>
+              }
+              @case ('p') {
+                <i class="bi-gear-fill"></i>
+              }
+              @case ('s') {
+                <i class="bi-gear-fill"></i>
+              }
+              @case ('l') {
+                <i class="bi-link"></i>
+              }
+              @default {
+                <i class="bi-file-earmark-x-fill"></i>
+              }
+            }
           </span>
-      <ng-template #nonRegular>-</ng-template>
-    </td>
-    <td class="text-nowrap font-monospace">{{ file.mode }}</td>
-    <td class="text-nowrap">
-      <ng-container *ngIf="file.user else unknownValue">{{ file.user }}</ng-container>
-    </td>
-    <td class="text-nowrap">
-      <ng-container *ngIf="file.group else unknownValue">{{ file.group }}</ng-container>
-    </td>
-  </tr>
+          <span>{{ file.filename }}</span>
+          @if (file.link; as link) {
+            <i class="bi-arrow-right-short text-secondary px-1"></i>
+            <span class="text-secondary" [class.text-decoration-line-through]="link.broken">{{ link.target ?? '?' }}</span>
+          }
+        </td>
+        <td class="text-nowrap">{{ file.mtime * 1000 | date:'short' }}
+        </td>
+        <td class="text-nowrap">
+          @if (file.type === '-') {
+            <span>
+              {{ file.size | filesize:sizeOptions }}
+            </span>
+          } @else {
+            -
+          }
+        </td>
+        <td class="text-nowrap font-monospace">{{ file.mode }}</td>
+        <td class="text-nowrap">
+          @if (file.user) {
+            {{ file.user }}
+          } @else {
+            -
+          }
+        </td>
+        <td class="text-nowrap">
+          @if (file.group) {
+            {{ file.group }}
+          } @else {
+            -
+          }
+        </td>
+      </tr>
+    }
   </tbody>
 </table>
-<ng-template #unknownValue>-</ng-template>

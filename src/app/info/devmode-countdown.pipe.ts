@@ -4,7 +4,8 @@ import {DateTime, Duration, DurationLikeObject} from "luxon";
 import {map} from "rxjs/operators";
 
 @Pipe({
-  name: 'devmodeCountdown'
+    name: 'devmodeCountdown',
+    standalone: false
 })
 export class DevmodeCountdownPipe implements PipeTransform {
 

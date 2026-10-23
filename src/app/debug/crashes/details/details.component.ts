@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {CrashReport} from "../../../core/services";
 import {firstValueFrom} from "rxjs";
 import {save as showSaveDialog} from "@tauri-apps/plugin-dialog";
@@ -7,9 +7,11 @@ import {writeTextFile} from "@tauri-apps/plugin-fs";
 import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
-  selector: 'app-crash-details',
-  templateUrl: './details.component.html',
-  styleUrls: ['./details.component.scss']
+    selector: 'app-crash-details',
+    templateUrl: './details.component.html',
+    styleUrls: ['./details.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class DetailsComponent {
 

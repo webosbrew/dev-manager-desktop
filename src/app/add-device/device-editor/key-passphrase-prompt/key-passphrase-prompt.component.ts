@@ -1,4 +1,4 @@
-import {Component, Inject, Injector} from '@angular/core';
+import {Component, Inject, Injector, ChangeDetectionStrategy} from '@angular/core';
 import {NgbActiveModal, NgbModal} from "@ng-bootstrap/ng-bootstrap";
 import {FormControl, ValidationErrors} from "@angular/forms";
 import {DeviceManagerService} from "../../../core/services";
@@ -9,7 +9,9 @@ import {fromPromise} from "rxjs/internal/observable/innerFrom";
 @Component({
     selector: 'app-key-passphrase-prompt',
     templateUrl: './key-passphrase-prompt.component.html',
-    styleUrls: ['./key-passphrase-prompt.component.scss']
+    styleUrls: ['./key-passphrase-prompt.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class KeyPassphrasePromptComponent {
     formControl: FormControl<string>;

@@ -10,16 +10,18 @@ import {
 } from "./remote-luna.service";
 import {RemoteCommandService} from "./remote-command.service";
 import {filter, map} from "rxjs/operators";
-import {RemoteFileService, ServeInstance} from "./remote-file.service";
+import {remoteFileUri, RemoteFileService, ServeInstance} from "./remote-file.service";
 import {IncompatibleReason, PackageManifest, RepositoryItem} from "./apps-repo.service";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {LocalFileService} from "./local-file.service";
-import _ from "lodash-es";
+import {get} from "lodash-es";
 import {APP_ID_HBCHANNEL} from "../../shared/constants";
 import {DeviceManagerService} from "./device-manager.service";
 import {HomebrewChannelConfiguration} from "../../types/luna-apis";
 import {download} from "@tauri-apps/plugin-upload";
-import {convertFileSrc} from "@tauri-apps/api/core";
+
+/** Where an IPK waits on the device while appinstalld reads it. */
+const TEMP_IPK_DIR = '/media/developer/temp';
 
 @Injectable({
     providedIn: 'root'
@@ -62,7 +64,7 @@ export class AppManagerService {
             .then(resp => resp['apps'] as RawPackageInfo[])
             .then((result) => result.map(info => {
                 const iconPath = [info.folderPath, info.icon].join('/');
-                return {iconUri: `${convertFileSrc('', 'remote-file')}${device.name}${iconPath}`, ...info};
+                return {iconUri: remoteFileUri(device, iconPath), ...info};
             }));
     }
 
@@ -197,7 +199,10 @@ export class AppManagerService {
     }
 
     private async tempDownloadIpk(device: Device, location: string | URL, progress?: InstallProgressHandler): Promise<string> {
-        const targetPath = `/tmp/devman_dl_${Date.now()}.ipk`
+        // webOS 11 keeps appinstalld out of /tmp, so the IPK goes to the
+        // developer partition, the same place ares-install uses.
+        await this.file.mkdir(device, TEMP_IPK_DIR, 0o777);
+        const targetPath = `${TEMP_IPK_DIR}/devman_dl_${Date.now()}.ipk`
         let localPath: string;
         let deleteLocal = false;
         switch (typeof location) {
@@ -282,7 +287,7 @@ export class AppManagerService {
 }
 
 function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp): boolean {
-    const resultValue: string = _.get(v, ['details', 'state']) || '';
+    const resultValue: string = get(v, ['details', 'state']) || '';
     if (resultValue.match(/FAILED/i)) {
         let details = v['details'];
         if (details && details.reason) {

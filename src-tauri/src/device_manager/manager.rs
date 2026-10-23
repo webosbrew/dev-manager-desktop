@@ -1,19 +1,42 @@
-use crate::app_dirs::{GetConfDir, GetSshDir, SetConfDir, SetSshDir};
-use crate::device_manager::io::{read, write};
+
+use crate::device_manager::privkey::PrivateKeyExt;
 use crate::device_manager::{
-    novacom, Device, DeviceCheckConnection, DeviceManager, PrivateKey, PrivateKeyInfo,
+    Device, DeviceCheckConnection, DeviceManager, PrivateKey, PrivateKeyInfo,
 };
 use crate::error::Error;
+use ares_connection_lib::setup::{fetch_key, NOVACOM_KEY_PORT};
+use ares_device_lib::DeviceManager as SharedDeviceManager;
 use libssh_rs::{PublicKeyHashType, SshKey};
 use port_check::is_port_reachable_with_timeout;
-use std::path::{Path, PathBuf};
+use std::io::{Error as IoError, ErrorKind};
 use std::time::Duration;
-use tokio::fs::{remove_file, File};
+use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 
 impl DeviceManager {
+    /// The shared manager, pointed at this app's own directories.
+    fn shared(&self) -> Result<SharedDeviceManager, Error> {
+        Ok(SharedDeviceManager::with_dirs(
+            self.conf_dir.ensure()?.to_path_buf(),
+            self.ssh_dir.ensure()?.to_path_buf(),
+        ))
+    }
+
+    /// Runs a shared-manager call off the async runtime, because it reads and
+    /// writes the device list on the calling thread.
+    async fn with_shared<T, F>(&self, f: F) -> Result<T, Error>
+    where
+        T: Send + 'static,
+        F: FnOnce(SharedDeviceManager) -> Result<T, IoError> + Send + 'static,
+    {
+        let shared = self.shared()?;
+        tauri::async_runtime::spawn_blocking(move || Ok(f(shared)?))
+            .await
+            .expect("critical failure in device manager task")
+    }
+
     pub async fn list(&self) -> Result<Vec<Device>, Error> {
-        let devices = read(&self.ensure_conf_dir()?).await?;
+        let devices = self.with_shared(|shared| shared.list()).await?;
         *self.devices.lock().unwrap() = devices.clone();
         Ok(devices)
     }
@@ -24,93 +47,56 @@ impl DeviceManager {
     }
 
     pub async fn set_default(&self, name: &str) -> Result<Option<Device>, Error> {
-        let conf_dir = self.ensure_conf_dir()?;
-        let mut devices = read(&conf_dir).await?;
-        let mut result: Option<Device> = None;
-        for device in &mut devices {
-            if device.name == name {
-                device.default = Some(true);
-                result = Some(device.clone());
-            } else {
-                device.default = None;
-            }
-        }
-        log::trace!("{:?}", devices);
-        write(devices, &conf_dir).await?;
-        Ok(result)
+        let name = name.to_string();
+        self.with_shared(move |shared| shared.set_default(&name))
+            .await
     }
 
     pub async fn add(&self, device: &Device) -> Result<Device, Error> {
-        let conf_dir = self.ensure_conf_dir()?;
         let mut device = device.clone();
-        if let Some(key) = &device.private_key {
-            match key {
-                PrivateKey::Path { name } => {
-                    let path = Path::new(name);
-                    if path.is_absolute() {
-                        let name = String::from(
-                            pathdiff::diff_paths(path, self.ensure_ssh_dir()?)
-                                .ok_or(Error::NotFound)?
-                                .to_string_lossy(),
-                        );
-                        device.private_key = Some(PrivateKey::Path { name });
-                    }
-                }
-                PrivateKey::Data { data } => {
-                    let name = key.name(device.valid_passphrase())?;
-                    let key_path = self.ensure_ssh_dir()?.join(&name);
-                    let mut file = File::create(key_path).await?;
-                    file.write(data.as_bytes()).await?;
-                    device.private_key = Some(PrivateKey::Path { name });
-                }
-            }
+        // An inline key becomes a file here, so the shared code sees a name it
+        // can resolve. Naming the file needs libssh, which ares-device-lib has
+        // no dependency on, so this part stays.
+        if let Some(key @ PrivateKey::Data { data }) = &device.private_key {
+            let name = key.name(device.valid_passphrase())?;
+            let key_path = self.ssh_dir.ensure()?.join(&name);
+            let mut file = File::create(key_path).await?;
+            file.write(data.as_bytes()).await?;
+            device.private_key = Some(PrivateKey::Name { name });
         }
         log::info!("Save device {}", device.name);
-        let mut devices = read(&conf_dir).await?;
-        if let Some(existing) = devices.iter_mut().find(|ref d| d.name == device.name) {
-            *existing = device.clone();
-        } else {
-            devices.push(device.clone());
-        }
-        write(devices.clone(), &conf_dir).await?;
-        Ok(device)
+        self.with_shared(move |shared| {
+            // Unlike the CLI, editing a device saves it under the name it
+            // already has, so replace an existing entry instead of refusing it.
+            if shared.find_or_default(Some(&device.name))?.is_some() {
+                shared.modify(&device.name.clone(), &device)
+            } else {
+                shared.add(&device)
+            }
+        })
+        .await
     }
 
+    /// Removes a device, including one the webOS SDK marks `indelible`. The UI
+    /// asks the person to confirm first, so there is nothing left to protect
+    /// them from.
     pub async fn remove(&self, name: &str, remove_key: bool) -> Result<(), Error> {
-        let conf_dir = self.ensure_conf_dir()?;
-        let devices = read(&conf_dir).await?;
-        let (will_delete, mut will_keep): (Vec<Device>, Vec<Device>) =
-            devices.into_iter().partition(|d| d.name == name);
-        let mut need_new_default = false;
-        if remove_key {
-            for device in will_delete {
-                if device.default.unwrap_or(false) {
-                    need_new_default = true;
-                }
-                if let Some(name) = device.private_key.and_then(|k| match k {
-                    PrivateKey::Path { name } => Some(name),
-                    _ => None,
-                }) {
-                    if !name.starts_with("webos_") {
-                        continue;
-                    }
-                    let key_path = self.ensure_ssh_dir()?.join(name);
-                    remove_file(key_path).await?;
-                }
-            }
-        }
-        if need_new_default && !will_keep.is_empty() {
-            will_keep.first_mut().unwrap().default = Some(true);
-        }
-        write(will_keep, &conf_dir).await?;
-        Ok(())
+        let name = name.to_string();
+        self.with_shared(move |shared| shared.remove(&name, remove_key, true))
+            .await
     }
 
     pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
         let host = address.to_string();
-        let content = tauri::async_runtime::spawn_blocking(move || novacom::fetch_key(&host, 9991))
-            .await
-            .unwrap()?;
+        let content =
+            tauri::async_runtime::spawn_blocking(move || fetch_key(&host, NOVACOM_KEY_PORT))
+                .await
+                .unwrap()
+                .map_err(|e| match e.kind() {
+                    // The device answered, but not with a key.
+                    ErrorKind::NotFound => Error::NotFound,
+                    _ => e.into(),
+                })?;
 
         match SshKey::from_privkey_base64(&content, Some(passphrase)) {
             Ok(_) => Ok(content),
@@ -155,26 +141,3 @@ impl DeviceManager {
     }
 }
 
-impl GetSshDir for DeviceManager {
-    fn get_ssh_dir(&self) -> Option<PathBuf> {
-        self.ssh_dir.lock().unwrap().clone()
-    }
-}
-
-impl SetSshDir for DeviceManager {
-    fn set_ssh_dir(&self, dir: PathBuf) {
-        *self.ssh_dir.lock().unwrap() = Some(dir);
-    }
-}
-
-impl GetConfDir for DeviceManager {
-    fn get_conf_dir(&self) -> Option<PathBuf> {
-        self.conf_dir.lock().unwrap().clone()
-    }
-}
-
-impl SetConfDir for DeviceManager {
-    fn set_conf_dir(&self, dir: PathBuf) {
-        *self.conf_dir.lock().unwrap() = Some(dir);
-    }
-}
