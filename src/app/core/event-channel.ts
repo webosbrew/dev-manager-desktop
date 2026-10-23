@@ -39,6 +39,7 @@ export abstract class EventChannel<RxPayload, ClosePayload> {
 
     public async send<P>(payload?: P): Promise<void> {
         console.debug('event-channel::tx', this.token, payload);
+        await this.promise;
         return emit(`${this.token}:tx`, payload);
     }
 

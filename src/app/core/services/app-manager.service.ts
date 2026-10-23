@@ -84,7 +84,7 @@ export class AppManagerService {
             try {
                 await this.hbChannelInstall(device, new URL(serve.host).toString(), sha256, progress);
             } finally {
-                await serve.interrupt();
+                await serve.interrupt().catch(error => console.warn('Failed to stop IPK HTTP server', error));
             }
         } else {
             const ipkPath = await this.tempDownloadIpk(device, localPath, progress);

@@ -3,7 +3,7 @@ import {BackendClient, BackendError} from "./backend-client";
 import {Device, DeviceLike, FileItem} from "../../types";
 import {Buffer} from "buffer";
 import {RemoteCommandService} from "./remote-command.service";
-import {finalize, firstValueFrom, lastValueFrom, Observable, Subject} from "rxjs";
+import {defaultIfEmpty, EmptyError, firstValueFrom, ignoreElements, lastValueFrom, noop, Observable, Subject, timeout, TimeoutError} from "rxjs";
 import {EventChannel} from "../event-channel";
 import {map} from "rxjs/operators";
 import {ProgressCallback, progressChannel} from "./progress-callback";
@@ -82,6 +82,8 @@ export class RemoteFileService extends BackendClient {
         const subject = new Subject<Record<string, any>>();
         const token = await this.invoke<string>('serve', {device, path: localPath});
         const call = `${this.category}/serveLocal`;
+        let released: Promise<void> | undefined;
+        const release = () => released ??= channel.unlisten();
         const channel = new class extends EventChannel<Record<string, any>, any> {
             constructor(token: string) {
                 super(token);
@@ -90,40 +92,53 @@ export class RemoteFileService extends BackendClient {
             onClose(payload: any): void {
                 console.log('serve closed', payload);
                 if (payload) {
-                    if (BackendError.isCompatibleBody(payload)) {
-                        subject.error(new BackendError(payload, call));
-                    } else {
-                        subject.error(payload);
-                    }
+                    subject.error(BackendError.isCompatibleBody(payload) ? new BackendError(payload, call) : payload);
                 } else {
                     subject.complete();
                 }
+                release().catch(noop);
             }
 
             onReceive(payload: Record<string, any>): void {
                 subject.next(payload);
             }
         }(token);
-        await channel.send();
-        return firstValueFrom(subject).then((v: Record<string, any>): ServeInstance => {
-            return {
-                host: v['host'],
-                requests: subject.pipe(map(v => v as ServeRequest), finalize(() => channel.unlisten())),
-                async interrupt(): Promise<void> {
-                    await channel.close();
-                    await lastValueFrom(subject).catch(e => {
-                        if (e.name === 'EmptyError') {
-                            return null;
-                        } else {
-                            throw e
-                        }
-                    });
-                },
+        // Keep the close result even if the server stops before interrupt() is called.
+        const closed = lastValueFrom(subject.pipe(ignoreElements(), defaultIfEmpty(undefined)));
+        closed.catch(noop);
+        let interrupted: Promise<void> | undefined;
+        const interrupt = (): Promise<void> => interrupted ??= Promise.resolve().then(async () => {
+            let timer: ReturnType<typeof setTimeout> | undefined;
+            try {
+                await Promise.race([
+                    closed,
+                    channel.closed ? closed : channel.close().then(() => closed),
+                    new Promise<void>((_, reject) => {
+                        timer = setTimeout(() => reject(new Error('Timed out stopping the IPK HTTP server.')), 5_000);
+                    }),
+                ]);
+            } finally {
+                clearTimeout(timer);
+                subject.complete();
+                release().catch(noop);
             }
-        }).catch(e => {
-            channel.unlisten();
-            throw e;
         });
+        // Subscribe before start: ready/error can arrive before send() resolves.
+        const ready = firstValueFrom(subject.pipe(timeout({first: 60_000})));
+        channel.send().catch(error => subject.error(error));
+        try {
+            const value = await ready;
+            return {host: value['host'], requests: subject.pipe(map(v => v as ServeRequest)), interrupt};
+        } catch (error) {
+            await interrupt().catch(noop);
+            if (error instanceof EmptyError) {
+                throw new Error('IPK HTTP server closed before becoming ready.');
+            }
+            if (error instanceof TimeoutError) {
+                throw new Error('IPK HTTP server did not become ready within 60 seconds.');
+            }
+            throw error;
+        }
     }
 
 }

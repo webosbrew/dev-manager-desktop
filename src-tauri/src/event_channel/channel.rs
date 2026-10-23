@@ -30,9 +30,10 @@ where
         *self.handler.lock().unwrap() = Some(handler.clone());
         let on_close = handler.clone();
         let on_tx = handler;
-        self.app.once(self.topic("close"), move |e| {
+        let close_listener = self.app.once(self.topic("close"), move |e| {
             on_close.close(Some(e.payload()));
         });
+        self.listeners.lock().unwrap().push(close_listener);
         self.listeners
             .lock()
             .unwrap()
