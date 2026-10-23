@@ -1,10 +1,11 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, catchError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, catchError, EmptyError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject, throwError, timeout} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
 import {
     LunaResponse,
     LunaResponseError,
     LunaServiceNotFoundError,
+    LunaSubscription,
     LunaUnknownMethodError,
     RemoteLunaService
 } from "./remote-luna.service";
@@ -22,6 +23,8 @@ import {download} from "@tauri-apps/plugin-upload";
 
 /** Where an IPK waits on the device while appinstalld reads it. */
 const TEMP_IPK_DIR = '/media/developer/temp';
+// Large installs can take minutes; every response renews this inactivity window.
+const INSTALL_RESPONSE_TIMEOUT_MS = 10 * 60 * 1_000;
 
 @Injectable({
     providedIn: 'root'
@@ -91,7 +94,8 @@ export class AppManagerService {
             try {
                 await this.devInstall(device, ipkPath, progress);
             } finally {
-                await this.file.rm(device, ipkPath, false);
+                await this.file.rm(device, ipkPath, false).catch(error =>
+                    console.warn('Failed to remove temporary IPK', error));
             }
         }
         this.load(device).catch(noop);
@@ -115,7 +119,8 @@ export class AppManagerService {
         const path = await this.tempDownloadIpk(device, new URL(manifest.ipkUrl), progress);
         await this.devInstall(device, path, progress)
             .then(() => this.load(device).catch(noop))
-            .finally(() => this.file.rm(device, path, false));
+            .finally(() => this.file.rm(device, path, false).catch(error =>
+                console.warn('Failed to remove temporary IPK', error)));
     }
 
     async remove(device: Device, id: string): Promise<void> {
@@ -236,14 +241,7 @@ export class AppManagerService {
             ipkUrl: path,
             subscribe: true,
         });
-        await lastValueFrom(luna.asObservable().pipe(
-            map(v => mapAppinstalldResponse(v, /installed/i)),
-            filter(v => v)/* Only pick finish event */,
-            mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
-            catchError((e) => fromPromise(luna.unsubscribe().then(() => {
-                throw e;
-            })))/* Unsubscribe when failed, and throw the error */)
-        );
+        await waitForInstallResult(luna, v => mapAppinstalldResponse(v, /installed/i));
     }
 
     private async hbChannelInstall(device: Device, url: string, sha256sum?: string, progress?: InstallProgressHandler) {
@@ -252,38 +250,48 @@ export class AppManagerService {
             ipkHash: sha256sum,
             subscribe: true,
         });
-        await lastValueFrom(luna.asObservable().pipe(
-            map((v: LunaResponse): boolean => {
+        try {
+            await waitForInstallResult(luna, (v: LunaResponse): boolean => {
                 if (v.returnValue === false) {
-                    // If returnValue is false, then it must be a failure.
                     throw new LunaResponseError(v);
                 } else if (v['finished']) {
                     return true;
                 } else if (v.subscribed === false && v.returnValue) {
-                    // We didn't get any positive result, but there was no error either. Treat it as success.
                     return true;
                 }
                 progress?.(v['progress'], v['statusText']);
                 console.debug('install output', v);
                 return false;
-            }),
-            filter(v => v)/* Only pick finish event */,
-            mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
-            catchError((e) => fromPromise(luna.unsubscribe().then(() => {
-                const match = e instanceof LunaResponseError && e.details?.match(/(-?\d+): +(\w+)/);
-                if (!match) {
-                    throw e;
-                }
-                if (match[2] === 'FAILED_IPKG_INSTALL') {
-                    if (match[1] === '-5') {
-                        throw InstallError.insufficientSpace(e.details);
-                    }
-                }
-                throw e;
-            })))/* Unsubscribe when failed, and throw the error */)
-        );
+            });
+        } catch (e) {
+            const match = e instanceof LunaResponseError && e.details?.match(/(-?\d+): +(\w+)/);
+            if (match && match[2] === 'FAILED_IPKG_INSTALL' && match[1] === '-5') {
+                throw InstallError.insufficientSpace(e.details);
+            }
+            throw e;
+        }
     }
 
+}
+
+async function waitForInstallResult(luna: LunaSubscription<LunaResponse>,
+                                    mapResponse: (response: LunaResponse) => boolean): Promise<void> {
+    try {
+        await firstValueFrom(luna.asObservable().pipe(
+            // Apply before filtering progress, so all Luna messages reset the timer.
+            timeout({each: INSTALL_RESPONSE_TIMEOUT_MS, with: () => throwError(() =>
+                new Error('No installation response from the TV for 10 minutes. Check the TV connection and Developer Mode.'))}),
+            map(mapResponse),
+            filter(Boolean),
+        ));
+    } catch (error) {
+        if (error instanceof EmptyError) {
+            throw new Error('Installation connection closed before the TV reported a result.');
+        }
+        throw error;
+    } finally {
+        await luna.unsubscribe().catch(error => console.warn('Failed to close installation subscription', error));
+    }
 }
 
 function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp): boolean {
@@ -299,6 +307,8 @@ function mapAppinstalldResponse(v: LunaResponse, expectResult: string | RegExp):
             throw new Error(`${details.errorCode}: ${details.reason}`);
         }
         throw new Error(resultValue);
+    } else if (v.returnValue === false) {
+        throw new LunaResponseError(v);
     } else if (resultValue.match(/^SUCCESS/i) || resultValue.match(expectResult)) {
         return true;
     }

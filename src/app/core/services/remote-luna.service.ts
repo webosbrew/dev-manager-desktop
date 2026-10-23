@@ -7,7 +7,7 @@ import {
 } from "./remote-command.service";
 import {Injectable} from "@angular/core";
 import {DeviceLike} from "../../types";
-import {lastValueFrom, noop, Observable, ReplaySubject, Subject, Subscription} from "rxjs";
+import {ignoreElements, lastValueFrom, noop, Observable, ReplaySubject, Subject, Subscription} from "rxjs";
 import {filter, map} from "rxjs/operators";
 import {omit} from "lodash-es";
 import {isNonNull} from "../../shared/operators";
@@ -79,10 +79,14 @@ export class RemoteLunaService {
     }
 }
 
+// Interrupt delivery and process exit share one best-effort cleanup budget.
+const LUNA_CLEANUP_TIMEOUT_MS = 5_000;
+
 export class LunaSubscription<T> {
     private subject: Subject<T>;
     private subscription?: Subscription;
     private stderr = '';
+    private disposal?: Promise<void>;
 
     constructor(private proc: CommandSubject<string>, private nonce: string) {
         this.subject = new ReplaySubject<T>();
@@ -113,20 +117,39 @@ export class LunaSubscription<T> {
         return this.subject.asObservable();
     }
 
-    /**
-     * Multiple unsubscribe calls will not have side effect
-     */
-    async unsubscribe(): Promise<void> {
-        const subscription = this.subscription;
-        if (!subscription) {
-            return;
-        }
-        this.subscription = undefined;
-        await this.proc.write();
-        this.subject.complete();
-        await lastValueFrom(this.proc).catch(noop);
-        subscription.unsubscribe();
+    /** Concurrent/repeated calls share one bounded, best-effort disposal. */
+    unsubscribe(): Promise<void> {
+        this.disposal ??= Promise.resolve().then(() => this.dispose());
+        return this.disposal;
     }
+
+    private async dispose(): Promise<void> {
+        this.subscription?.unsubscribe();
+        this.subscription = undefined;
+        this.subject.complete();
+        // Listen before interrupting: the process can close during write().
+        const closed = lastValueFrom(this.proc.pipe(ignoreElements())).catch(noop);
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+            await Promise.race([
+                closed,
+                this.proc.isStopped ? closed : this.proc.write().then(() => closed),
+                new Promise<void>(resolve => {
+                    timer = setTimeout(resolve, LUNA_CLEANUP_TIMEOUT_MS);
+                }),
+            ]);
+        } catch (error) {
+            console.warn('Failed to interrupt Luna subscription', error);
+        } finally {
+            clearTimeout(timer);
+            // CommandSubject.complete also unlistens the backend EventChannel.
+            // Do this even if interrupt delivery or process exit never settles.
+            if (!this.proc.isStopped) {
+                this.proc.complete();
+            }
+        }
+    }
+
 }
 
 export class LunaUnsupportedError extends Error {
