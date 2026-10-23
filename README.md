@@ -13,7 +13,7 @@ your system
 | Windows 10+                       | webOS.Dev.Manager_[VERSION]_x64_en-US.msi   | Not available                                 | webOS.Dev.Manager_[VERSION]_x86_en-US.msi |
 | Windows 7/8/8.1 (Dropped support) | webOS.Dev.Manager_1.13.3_x64_en-US.msi      | Not available                                 | webOS.Dev.Manager_1.13.3_x86_en-US.msi    |
 | macOS                             | webOS.Dev.Manager_[VERSION]_universal.dmg   | webOS.Dev.Manager_[VERSION]_universal.dmg     | Not available                             |
-| Linux (Debian/Ubuntu)             | web-os-dev-manager_[VERSION]_amd64.deb      | web-os-dev-manager_[VERSION]_arm64.deb        | Not available                             |
+| Linux (Debian/Ubuntu)             | webos-dev-manager_[VERSION]_amd64.deb       | webos-dev-manager_[VERSION]_arm64.deb         | Not available                             |
 | Linux (Other distros)             | webos-dev-manager_[VERSION]_amd64.AppImage  | webos-dev-manager_[VERSION]_aarch64.AppImage  | Not available                             |
 
 ### AppImage updates
