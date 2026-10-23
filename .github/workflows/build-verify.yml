@@ -87,8 +87,19 @@ jobs:
         env:
           NDK_HOME: "${{ env.ANDROID_HOME }}/ndk/${{ env.ANDROID_NDK_VERSION }}"
 
+      - name: Configure AppImage updates
+        if: runner.os == 'Linux'
+        run: |
+          python3 scripts/appimage-update.test.py
+          update_info=$(sh scripts/appimage-update-info.sh)
+          echo "LDAI_UPDATE_INFORMATION=$update_info" >> "$GITHUB_ENV"
+
       - name: Build for Desktop
         run: npm run build -- --features=vendored-openssl
+
+      - name: Verify AppImage updates
+        if: runner.os == 'Linux'
+        run: python3 scripts/verify-appimage-update.py target/*/bundle/appimage/*.AppImage
 
   build-android:
     if: ${{ !github.event.inputs.build-for || github.event.inputs.build-for == 'android' }}
