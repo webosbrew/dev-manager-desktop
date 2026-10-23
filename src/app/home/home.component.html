@@ -42,11 +42,12 @@
 
     <ul class="nav flex-column mb-sm-2 d-none d-sm-block">
       <li class="nav-item" ngbDropdown placement="auto">
-        <a class="nav-link" ngbDropdownToggle>
+        <a class="nav-link" ngbDropdownToggle aria-label="Settings">
           <i class="bi bi-gear"></i>
         </a>
         <div ngbDropdownMenu>
           <a ngbDropdownItem routerLink="devices" replaceUrl>Devices</a>
+          <a ngbDropdownItem routerLink="nav-more" replaceUrl>About this app</a>
         </div>
       </li>
     </ul>
