@@ -7,15 +7,15 @@ starting point for a [Flathub](https://flathub.org/) submission
 
 | File | Purpose |
 |------|---------|
-| `org.webosbrew.devman.yml` | Flatpak manifest. Compiles the Angular frontend and Tauri/Rust backend offline inside the GNOME 46 runtime. |
+| `org.webosbrew.devman.yml` | Flatpak manifest. Compiles the Angular frontend and Tauri/Rust backend offline inside the GNOME 50 runtime. |
 | `org.webosbrew.devman.metainfo.xml` | AppStream metadata (name, description, screenshots, releases) required by Flathub. |
 | `org.webosbrew.devman.desktop` | Desktop entry installed under the Flatpak app id. |
 | `node-sources.json` | Vendored npm dependencies (generated). |
-| `cargo-sources.json` | Vendored cargo dependencies, including the `r2d2` git crate (generated). |
+| `cargo-sources.json` | Vendored cargo dependencies, including the `r2d2` and `ares-cli-rs` Git crates (generated). |
 
 Flatpak/Flathub builds run with **no network access**, so every npm and cargo
 dependency is vendored up front. The Tauri app links against `webkit2gtk-4.1`,
-which ships in the GNOME 46 runtime, so no extra libraries are built.
+which ships in the GNOME 50 runtime, so no extra libraries are built.
 
 ## Regenerating the vendored sources
 
@@ -28,7 +28,7 @@ change:
 ```
 
 This needs network access (the generators download dependency archives to hash
-them) and `node_modules` to be absent.
+them) and Python 3.11+ with venv/pip. The generator tools are pinned in the script.
 
 ## Build locally
 
@@ -38,8 +38,8 @@ You need `flatpak` and `flatpak-builder`:
 ./scripts/build-flatpak.sh
 ```
 
-This installs the GNOME 46 runtime/SDK plus the `node20` and `rust-stable` SDK
-extensions, builds the app, and writes `flatpak/org.webosbrew.devman.flatpak`.
+This installs the GNOME 50 runtime/SDK plus the `node24` and `rust-stable` SDK
+extensions on the Freedesktop 25.08 base, builds the app, and writes `flatpak/org.webosbrew.devman.flatpak`.
 Install and run it with:
 
 ```bash
@@ -47,7 +47,7 @@ flatpak install --user flatpak/org.webosbrew.devman.flatpak
 flatpak run org.webosbrew.devman
 ```
 
-CI builds the same bundle on every change to this directory
+CI builds the same bundle on pull requests to main and pushes to main
 (`.github/workflows/build-flatpak.yml`) and attaches it to GitHub releases.
 
 ## Publishing to Flathub
@@ -65,7 +65,7 @@ are built by Flathub's own (offline) infrastructure. To submit:
 
    ```yaml
    - type: archive
-     url: https://github.com/webosbrew/dev-manager-desktop/archive/refs/tags/v1.99.16.tar.gz
+     url: https://github.com/webosbrew/dev-manager-desktop/archive/refs/tags/v1.99.20.tar.gz
      sha256: <sha256-of-the-tarball>
    ```
 

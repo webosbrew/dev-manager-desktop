@@ -6,23 +6,30 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - 'flatpak/**'
-      - 'scripts/build-flatpak.sh'
-      - 'scripts/flatpak-gen-sources.sh'
-      - '.github/workflows/build-flatpak.yml'
+  push:
+    branches: [main]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flatpak-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-flatpak:
     name: Build Flatpak (x86_64)
     runs-on: ubuntu-24.04
+    timeout-minutes: 90
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-46
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50@sha256:1de59efef01a946d9f28f1ec3458bf6f61dcee3507d7fecdd473f8134da4ec77
       options: --privileged
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Validate AppStream metainfo
         run: |
@@ -33,19 +40,27 @@ jobs:
           fi
 
       - name: Build Flatpak Bundle
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3 # v6
         with:
           bundle: org.webosbrew.devman.flatpak
+          artifact-name: flatpak-x86_64
           manifest-path: flatpak/org.webosbrew.devman.yml
-          cache-key: flatpak-builder-${{ github.sha }}
+          cache-key: flatpak-gnome50-${{ hashFiles('flatpak/*.yml', 'flatpak/*-sources.json') }}
 
-      - name: Attach to Release
-        uses: ncipollo/release-action@v1
-        if: ${{ github.event_name == 'release' }}
+  attach-release:
+    if: github.event_name == 'release'
+    needs: build-flatpak
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          allowUpdates: true
-          omitNameDuringUpdate: true
-          omitBodyDuringUpdate: true
-          omitPrereleaseDuringUpdate: true
-          artifacts: org.webosbrew.devman.flatpak
+          name: flatpak-x86_64
+      - name: Attach bundle to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" org.webosbrew.devman.flatpak --clobber

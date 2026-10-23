@@ -76,8 +76,8 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="1.99.16" date="2025-07-10">
-      <url>https://github.com/webosbrew/dev-manager-desktop/releases/tag/v1.99.16</url>
+    <release version="1.99.20" date="2026-08-19">
+      <url>https://github.com/webosbrew/dev-manager-desktop/releases/tag/v1.99.20</url>
     </release>
   </releases>
 </component>
