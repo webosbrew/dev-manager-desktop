@@ -1,0 +1,5 @@
+# Local flatpak-builder artifacts
+/.flatpak-builder/
+/build-dir/
+/repo/
+/*.flatpak
