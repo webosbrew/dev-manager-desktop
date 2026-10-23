@@ -19,6 +19,7 @@ import {SshAuthValueDirective} from "./ssh-auth-value.directive";
 import * as path from '@tauri-apps/api/path';
 import * as os from '@tauri-apps/plugin-os';
 import {LocalFileService} from "../../core/services/local-file.service";
+import {deviceAddressValidator} from "./device-address.validator";
 
 @Component({
     selector: 'app-device-editor',
@@ -79,7 +80,7 @@ export class DeviceEditorComponent implements OnInit {
                 nonNullable: true,
                 validators: [
                     Validators.required,
-                    Validators.pattern(/^(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))\.(\d|[1-9]\d|1\d\d|2([0-4]\d|5[0-5]))$/)
+                    deviceAddressValidator
                 ]
             }),
             port: new FormControl<number | null>(this.port ?? null, {
