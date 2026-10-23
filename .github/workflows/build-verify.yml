@@ -46,7 +46,7 @@ jobs:
           sudo apt-get install -y build-essential curl wget file libssl-dev libayatana-appindicator3-dev \
             librsvg2-dev libwebkit2gtk-4.1-0=2.44.0-2 libwebkit2gtk-4.1-dev=2.44.0-2 \
             libjavascriptcoregtk-4.1-0=2.44.0-2 libjavascriptcoregtk-4.1-dev=2.44.0-2 \
-            gir1.2-javascriptcoregtk-4.1=2.44.0-2 gir1.2-webkit2-4.1=2.44.0-2
+            gir1.2-javascriptcoregtk-4.1=2.44.0-2 gir1.2-webkit2-4.1=2.44.0-2 jq openssh-client
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -65,6 +65,10 @@ jobs:
 
       - name: Install NPM Dependencies
         run: npm ci
+
+      - name: Test generated renewal script
+        if: runner.os == 'Linux'
+        run: npm run test:renew-script
 
       - name: Setup JDK
         uses: actions/setup-java@v4
