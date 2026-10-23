@@ -1,7 +1,6 @@
 import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {ActivatedRoute, RouterLink} from "@angular/router";
 import {HomeComponent} from "../home.component";
-import ReleaseInfo from '../../../release.json';
 import {SharedModule} from "../../shared/shared.module";
 import {ExternalLinkDirective} from "../../shared/directives";
 
@@ -25,6 +24,6 @@ export class NavMoreComponent {
         public parent: HomeComponent,
     ) {
         this.homeRoute = route.parent;
-        this.appVersion = ReleaseInfo.version;
+        this.appVersion = parent.appVersion;
     }
 }

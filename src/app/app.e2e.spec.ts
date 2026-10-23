@@ -2,10 +2,14 @@ import {ComponentFixture, DeferBlockBehavior, TestBed} from '@angular/core/testi
 import {provideLocationMocks} from '@angular/common/testing';
 import {Router} from '@angular/router';
 import {emit} from '@tauri-apps/api/event';
+import {vi} from 'vitest';
 
 import {AppComponent} from './app.component';
 import {AppModule} from './app.module';
 import {Device} from './types';
+import {UpdateService} from './core/services';
+import ReleaseInfo from '../release.json';
+import packageInfo from '../../package.json';
 import {mockBackend, resetBackend} from '../testing/tauri-mock';
 import {mockHttp} from '../testing/tauri-http-mock';
 
@@ -22,6 +26,7 @@ import {mockHttp} from '../testing/tauri-http-mock';
  * zone, so `tick()` never sees them.
  */
 describe('App (mocked backend e2e)', () => {
+    const originalReleaseVersion = ReleaseInfo.version;
     const devices = <Device[]>[
         {name: 'living-room', host: '192.168.1.1', port: 22, username: 'root', profile: 'ose'},
         {name: 'bedroom', host: '192.168.1.2', port: 22, username: 'root', profile: 'ose'},
@@ -86,7 +91,10 @@ describe('App (mocked backend e2e)', () => {
         fixture.detectChanges();
     }
 
-    afterEach(() => resetBackend());
+    afterEach(() => {
+        ReleaseInfo.version = originalReleaseVersion;
+        resetBackend();
+    });
 
     it('boots the shell without reaching a real backend', async () => {
         boot();
@@ -116,6 +124,36 @@ describe('App (mocked backend e2e)', () => {
         await settle();
 
         expect(deviceRows()).toEqual(['bedroom']);
+    });
+
+    it.each([
+        {releaseVersion: '9.8.7', expectedVersion: '9.8.7'},
+        {releaseVersion: '', expectedVersion: packageInfo.version},
+    ])('opens About from desktop settings and displays version $expectedVersion offline', async ({releaseVersion, expectedVersion}) => {
+        ReleaseInfo.version = releaseVersion;
+        TestBed.overrideProvider(UpdateService, {
+            useValue: {getRecentRelease: () => Promise.reject(new Error('Network unavailable'))},
+        });
+        const remoteCommand = vi.fn(() => { throw new Error('TV is offline'); });
+        boot({
+            'device-manager/list': () => devices,
+            'remote-command/exec': remoteCommand,
+        });
+        await router.navigate(['/home/devices']);
+        await settle();
+
+        fixture.nativeElement.querySelector('[aria-label="Settings"]').click();
+        await settle();
+        const aboutLink = fixture.nativeElement.querySelector('.dropdown-menu.show a[href="/home/nav-more"]') as HTMLAnchorElement;
+        expect(aboutLink?.textContent).toBe('About this app');
+        aboutLink.click();
+        await settle();
+
+        expect(router.url).toBe('/home/nav-more');
+        const aboutPage = fixture.nativeElement.querySelector('app-nav-more') as HTMLElement;
+        expect(aboutPage.textContent).toContain('About this app');
+        expect(aboutPage.querySelector('.text-secondary')?.textContent).toBe(expectedVersion);
+        expect(remoteCommand).not.toHaveBeenCalled();
     });
 
     // Not covered here: a failing `device-manager/list` at startup. `DeviceManagerService.load()`
