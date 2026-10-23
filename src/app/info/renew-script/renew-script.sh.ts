@@ -40,18 +40,35 @@ SESSION_TOKEN=$(ssh -i "\${PRIV_KEY_FILE}" \\
 
 rm -rf "\${TEMP_KEY_DIR}"
 
-SESSION_TOKEN_CACHE="/tmp/webos_devmode_token_\${DEVICE_NAME}.txt"
-
-if [ -z "$SESSION_TOKEN" ]; then
-  echo "ssh into TV failed, loading previous SESSION_TOKEN from \${SESSION_TOKEN_CACHE}" >&2
-  SESSION_TOKEN=$(cat "\${SESSION_TOKEN_CACHE}")
-else
-  echo "Got SESSION_TOKEN from TV - writing to \${SESSION_TOKEN_CACHE}" >&2
-  echo "$SESSION_TOKEN" >"\${SESSION_TOKEN_CACHE}"
+# Keep the token across reboots so renewal also works while the TV is off.
+# XDG_STATE_HOME must be absolute; otherwise use the current user's home.
+case "$XDG_STATE_HOME" in
+  /*) STATE_HOME="$XDG_STATE_HOME" ;;
+  *) STATE_HOME="\${HOME:+\${HOME}/.local/state}" ;;
+esac
+SESSION_TOKEN_CACHE=""
+if [ -n "$STATE_HOME" ]; then
+  SESSION_TOKEN_CACHE="$STATE_HOME/webos-dev-manager/webos_devmode_token_\${DEVICE_NAME}.txt"
 fi
 
 if [ -z "$SESSION_TOKEN" ]; then
-  echo "Unable to get token" >&2
+  echo "ssh into TV failed, loading previous SESSION_TOKEN from \${SESSION_TOKEN_CACHE}" >&2
+  if [ -n "$SESSION_TOKEN_CACHE" ] && [ -r "$SESSION_TOKEN_CACHE" ]; then
+    SESSION_TOKEN=$(cat "\${SESSION_TOKEN_CACHE}")
+  fi
+else
+  if [ -n "$SESSION_TOKEN_CACHE" ] && mkdir -p "$STATE_HOME/webos-dev-manager"; then
+    echo "Got SESSION_TOKEN from TV - writing to \${SESSION_TOKEN_CACHE}" >&2
+    if ! printf '%s\\n' "$SESSION_TOKEN" >"\${SESSION_TOKEN_CACHE}"; then
+      echo "Unable to save token cache; continuing with token from TV" >&2
+    fi
+  else
+    echo "Unable to create token cache directory; continuing with token from TV" >&2
+  fi
+fi
+
+if [ -z "$SESSION_TOKEN" ]; then
+  echo "Unable to get token from TV or persistent cache; turn on the TV and try again" >&2
   exit 1
 fi
 
