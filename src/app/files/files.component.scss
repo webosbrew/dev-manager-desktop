@@ -1,4 +1,10 @@
 .breadcrumb-bar {
+  // A flex item is at least as wide as its content by default, so a deep path
+  // would push the toolbar buttons off screen. Scroll the path inside the bar.
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+
   nav {
     width: fit-content;
     --bs-breadcrumb-divider: '';

@@ -848,6 +848,7 @@ dependencies = [
  "native-dialog",
  "path-slash",
  "pathdiff",
+ "percent-encoding",
  "port_check",
  "r2d2",
  "regex",

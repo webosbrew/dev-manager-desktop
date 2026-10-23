@@ -21,11 +21,16 @@
       <label class="form-label" for="deviceAddress">Address</label>
       <div class="input-group address-input">
         <input type="text" class="form-control flex-fill" id="deviceAddress" formControlName="address"
-               autocomplete="off" placeholder="address">
+               autocomplete="off" placeholder="192.168.1.2 or tv.local">
         <span class="input-group-text">:</span>
         <input type="number" class="form-control port" id="devicePort" formControlName="port" step="1" min="0"
                max="65535" maxlength="5" autocomplete="off" placeholder="port">
       </div>
+      @if (formGroup.controls.address.errors?.['deviceAddress']) {
+        <div class="invalid-feedback d-block">
+          Enter an IPv4 address or hostname without a scheme, path, or port.
+        </div>
+      }
     </div>
     <div class="col-12 col-md-4">
       <label class="form-label" for="authMethod">Authentication</label>

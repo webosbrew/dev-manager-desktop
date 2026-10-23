@@ -32,6 +32,7 @@ uuid = { version = "1.19.0", features = ["v1", "v4"] }
 hex = "0.4.3"
 path-slash = "0.2.1"
 httparse = "1.10.1"
+percent-encoding = "2.3.2"
 r2d2 = "0.8.10"
 unix_mode = "0.1.4"
 sha2 = "0.10.9"

@@ -19,6 +19,7 @@
     "ng": "node scripts/ng-wrapper.js",
     "icon": "node scripts/icon-generator.js",
     "test": "node scripts/ng-wrapper.js test --watch=false",
+    "test:renew-script": "node --test scripts/renew-script.test.mjs",
     "test:integration": "node scripts/ng-wrapper.js run ui:test-integration"
   },
   "private": true,
