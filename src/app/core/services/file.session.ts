@@ -61,6 +61,7 @@ export class FileSessionImpl implements FileSession {
             do {
                 try {
                     await this.put(source, target, progressCb);
+                    break;
                 } catch (e) {
                     try {
                         retry = await failCb(name, e as Error);

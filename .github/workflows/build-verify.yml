@@ -70,6 +70,10 @@ jobs:
         if: runner.os == 'Linux'
         run: npm run test:renew-script
 
+      - name: Test frontend
+        if: runner.os == 'Linux'
+        run: npm test
+
       - name: Setup JDK
         uses: actions/setup-java@v4
         if: github.event.inputs.build-for == 'android'
