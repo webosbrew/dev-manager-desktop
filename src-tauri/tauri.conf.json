@@ -58,7 +58,7 @@
       "rpm": {
         "desktopTemplate": "./assets/app.desktop",
         "depends": [
-          "zlib (>=1.2.11)"
+          "zlib"
         ],
         "provides": [
           "web-os-dev-manager"
