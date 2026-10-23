@@ -207,32 +207,48 @@ export class AppManagerService {
         // webOS 11 keeps appinstalld out of /tmp, so the IPK goes to the
         // developer partition, the same place ares-install uses.
         await this.file.mkdir(device, TEMP_IPK_DIR, 0o777);
-        const targetPath = `${TEMP_IPK_DIR}/devman_dl_${Date.now()}.ipk`
-        let localPath: string;
+        const targetPath = `${TEMP_IPK_DIR}/devman_dl_${self.crypto.randomUUID()}.ipk`;
+        let localPath: string | undefined;
         let deleteLocal = false;
-        switch (typeof location) {
-            case 'string': {
-                localPath = location;
-                break;
+        try {
+            switch (typeof location) {
+                case 'string': {
+                    localPath = location;
+                    break;
+                }
+                default: {
+                    localPath = await this.localFile.tempPath('.ipk');
+                    deleteLocal = true;
+                    progress?.(undefined, 'Downloading IPK to computer...');
+                    let downloaded: number = 0;
+                    await download(location.toString(), localPath, prog => {
+                        downloaded += prog.progress;
+                        progress?.(prog.total ? (100 * downloaded / prog.total) : undefined, 'Downloading IPK to computer...');
+                    });
+                    break;
+                }
             }
-            default: {
-                localPath = await this.localFile.tempPath('.ipk');
-                deleteLocal = true;
-                progress?.(undefined, 'Downloading IPK to computer...');
-                let downloaded: number = 0;
-                await download(location.toString(), localPath, prog => {
-                    downloaded += prog.progress;
-                    progress?.(prog.total ? (100 * downloaded / prog.total) : undefined, 'Downloading IPK to computer...');
+            progress?.(undefined, 'Sending IPK to device...');
+            try {
+                await this.file.put(device, targetPath, localPath, (copied, total) => {
+                    progress?.(total ? copied / total * 100 : undefined, 'Sending IPK to device...');
                 });
-                break;
+            } catch (error) {
+                // A failed put can leave a partial remote file. This operation
+                // owns its unique path until it hands it to the installer.
+                await this.file.rm(device, targetPath, false).catch(cleanupError =>
+                    console.warn('Failed to remove partially uploaded IPK', cleanupError));
+                throw error;
+            }
+            return targetPath;
+        } finally {
+            // URL downloads own a local temporary path, including on failure.
+            // A user-selected source always remains owned by the user.
+            if (deleteLocal && localPath) {
+                await this.localFile.remove(localPath).catch(error =>
+                    console.warn('Failed to remove downloaded temporary IPK', error));
             }
         }
-        progress?.(undefined, 'Sending IPK to device...');
-        await this.file.put(device, targetPath, localPath, (copied, total) => {
-            progress?.(total ? copied / total * 100 : undefined, 'Sending IPK to device...');
-        }).finally(() =>
-            deleteLocal && this.localFile.remove(localPath).catch(noop));
-        return targetPath;
     }
 
     private async devInstall(device: Device, path: string, progress?: InstallProgressHandler): Promise<void> {
