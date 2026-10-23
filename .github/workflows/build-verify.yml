@@ -43,7 +43,7 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential curl wget file libssl-dev libayatana-appindicator3-dev \
+          sudo apt-get install -y build-essential curl wget file zsync libssl-dev libayatana-appindicator3-dev \
             librsvg2-dev libwebkit2gtk-4.1-0=2.44.0-2 libwebkit2gtk-4.1-dev=2.44.0-2 \
             libjavascriptcoregtk-4.1-0=2.44.0-2 libjavascriptcoregtk-4.1-dev=2.44.0-2 \
             gir1.2-javascriptcoregtk-4.1=2.44.0-2 gir1.2-webkit2-4.1=2.44.0-2
@@ -99,7 +99,9 @@ jobs:
 
       - name: Verify AppImage updates
         if: runner.os == 'Linux'
-        run: python3 scripts/verify-appimage-update.py target/*/bundle/appimage/*.AppImage
+        run: |
+          sh scripts/appimage-zsync.sh target/*/bundle/appimage/*.AppImage
+          python3 scripts/verify-appimage-update.py target/*/bundle/appimage/*.AppImage
 
   build-android:
     if: ${{ !github.event.inputs.build-for || github.event.inputs.build-for == 'android' }}
