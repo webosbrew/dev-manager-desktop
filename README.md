@@ -16,6 +16,14 @@ your system
 | Linux (Debian/Ubuntu)             | web-os-dev-manager_[VERSION]_amd64.deb      | web-os-dev-manager_[VERSION]_arm64.deb        | Not available                             |
 | Linux (Other distros)             | web-os-dev-manager_[VERSION]_amd64.AppImage | web-os-dev-manager_[VERSION]_aarch64.AppImage | Not available                             |
 
+### Scheduled Developer Mode renewal
+
+The generated renewal shell script requires `curl`, `jq`, and OpenSSH (`ssh`
+and `ssh-keygen`) on the machine that runs it. Install these with its package
+manager before scheduling the script (including on OpenWrt). The script uses
+a persistent token cache when the TV is unreachable and exits with an error
+if the request fails or the server does not report success.
+
 ## Features
 
 - No need to install LG SDK or IDE
