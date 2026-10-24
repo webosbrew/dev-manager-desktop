@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, catchError, EmptyError, firstValueFrom, lastValueFrom, mergeMap, noop, Observable, Subject, throwError, timeout} from 'rxjs';
+import {BehaviorSubject, EmptyError, firstValueFrom, noop, Observable, Subject, throwError, timeout} from 'rxjs';
 import {Device, PackageInfo, RawPackageInfo} from '../../types';
 import {
     LunaResponse,
@@ -13,7 +13,6 @@ import {RemoteCommandService} from "./remote-command.service";
 import {filter, map} from "rxjs/operators";
 import {remoteFileUri, RemoteFileService, ServeInstance} from "./remote-file.service";
 import {IncompatibleReason, PackageManifest, RepositoryItem} from "./apps-repo.service";
-import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {LocalFileService} from "./local-file.service";
 import {get} from "lodash-es";
 import {APP_ID_HBCHANNEL} from "../../shared/constants";
@@ -23,8 +22,8 @@ import {download} from "@tauri-apps/plugin-upload";
 
 /** Where an IPK waits on the device while appinstalld reads it. */
 const TEMP_IPK_DIR = '/media/developer/temp';
-// Large installs can take minutes; every response renews this inactivity window.
-const INSTALL_RESPONSE_TIMEOUT_MS = 10 * 60 * 1_000;
+// App operations can take minutes; every response renews this inactivity window.
+const APP_OPERATION_RESPONSE_TIMEOUT_MS = 10 * 60 * 1_000;
 
 @Injectable({
     providedIn: 'root'
@@ -127,14 +126,7 @@ export class AppManagerService {
         const luna = await this.luna.subscribe(device, 'luna://com.webos.appInstallService/dev/remove', {
             id, subscribe: true,
         });
-        await lastValueFrom(luna.asObservable().pipe(
-            map(v => mapAppinstalldResponse(v, /removed/i)),
-            filter(v => v)/* Only pick finish event */,
-            mergeMap(() => luna.unsubscribe()) /* Unsubscribe when done */,
-            catchError((e) => fromPromise(luna.unsubscribe().then(() => {
-                throw e;
-            })))/* Unsubscribe when failed, and throw the error */)
-        );
+        await waitForAppOperationResult(luna, v => mapAppinstalldResponse(v, /removed/i), 'Uninstallation');
         await this.load(device);
     }
 
@@ -257,7 +249,7 @@ export class AppManagerService {
             ipkUrl: path,
             subscribe: true,
         });
-        await waitForInstallResult(luna, v => mapAppinstalldResponse(v, /installed/i));
+        await waitForAppOperationResult(luna, v => mapAppinstalldResponse(v, /installed/i));
     }
 
     private async hbChannelInstall(device: Device, url: string, sha256sum?: string, progress?: InstallProgressHandler) {
@@ -267,7 +259,7 @@ export class AppManagerService {
             subscribe: true,
         });
         try {
-            await waitForInstallResult(luna, (v: LunaResponse): boolean => {
+            await waitForAppOperationResult(luna, (v: LunaResponse): boolean => {
                 if (v.returnValue === false) {
                     throw new LunaResponseError(v);
                 } else if (v['finished']) {
@@ -290,23 +282,24 @@ export class AppManagerService {
 
 }
 
-async function waitForInstallResult(luna: LunaSubscription<LunaResponse>,
-                                    mapResponse: (response: LunaResponse) => boolean): Promise<void> {
+async function waitForAppOperationResult(luna: LunaSubscription<LunaResponse>,
+                                         mapResponse: (response: LunaResponse) => boolean,
+                                         operation: 'Installation' | 'Uninstallation' = 'Installation'): Promise<void> {
     try {
         await firstValueFrom(luna.asObservable().pipe(
             // Apply before filtering progress, so all Luna messages reset the timer.
-            timeout({each: INSTALL_RESPONSE_TIMEOUT_MS, with: () => throwError(() =>
-                new Error('No installation response from the TV for 10 minutes. Check the TV connection and Developer Mode.'))}),
+            timeout({each: APP_OPERATION_RESPONSE_TIMEOUT_MS, with: () => throwError(() =>
+                new Error(`No ${operation.toLowerCase()} response from the TV for 10 minutes. Check the TV connection and Developer Mode.`))}),
             map(mapResponse),
             filter(Boolean),
         ));
     } catch (error) {
         if (error instanceof EmptyError) {
-            throw new Error('Installation connection closed before the TV reported a result.');
+            throw new Error(`${operation} connection closed before the TV reported a result.`);
         }
         throw error;
     } finally {
-        await luna.unsubscribe().catch(error => console.warn('Failed to close installation subscription', error));
+        await luna.unsubscribe().catch(error => console.warn(`Failed to close ${operation.toLowerCase()} subscription`, error));
     }
 }
 
