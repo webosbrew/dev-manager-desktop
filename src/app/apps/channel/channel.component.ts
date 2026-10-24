@@ -1,5 +1,5 @@
 import {Component, Host, Input, OnInit, ChangeDetectionStrategy} from '@angular/core';
-import {Observable} from 'rxjs';
+import {catchError, Observable, of} from 'rxjs';
 import {AppsRepoService, RepositoryPage} from '../../core/services';
 import {AppsComponent} from '../apps.component';
 import {RawPackageInfo} from "../../types";
@@ -14,7 +14,9 @@ import {RawPackageInfo} from "../../types";
 export class ChannelComponent implements OnInit {
 
   page = 1;
-  repoPage$?: Observable<RepositoryPage>;
+  repoPage$?: Observable<RepositoryPage | null>;
+  repoError?: Error;
+  private loadGeneration = 0;
 
   @Input()
   installed?: Record<string, RawPackageInfo>;
@@ -29,6 +31,14 @@ export class ChannelComponent implements OnInit {
   }
 
   loadPage(page: number): void {
-    this.repoPage$ = this.appsRepo.allApps$(page);
+    const generation = ++this.loadGeneration;
+    this.page = page;
+    this.repoError = undefined;
+    this.repoPage$ = this.appsRepo.allApps$(page).pipe(catchError(error => {
+      if (generation === this.loadGeneration) {
+        this.repoError = error instanceof Error ? error : new Error(String(error));
+      }
+      return of(null);
+    }));
   }
 }

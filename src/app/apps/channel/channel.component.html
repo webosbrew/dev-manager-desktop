@@ -1,5 +1,7 @@
 @let repoPage = repoPage$ | async;
-@if (repoPage) {
+@if (repoError) {
+  <app-error-card title="Unable to load available apps" [error]="repoError" (retry)="loadPage(page)"/>
+} @else if (repoPage) {
   <ul class="list-group list-group-flush">
     @for (item of repoPage.packages; track item) {
       <li class="list-group-item app-item d-flex flex-row align-items-center" (click)="parent.openDetails(item)"

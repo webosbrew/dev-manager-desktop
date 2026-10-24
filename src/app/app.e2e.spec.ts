@@ -45,7 +45,7 @@ describe('App (mocked backend e2e)', () => {
                     url: /api\.github\.com\/.*\/releases\/latest$/,
                     response: {body: {tag_name: 'v0.0.1', html_url: 'https://example.invalid', body: ''}},
                 },
-                {url: /repo\.webosbrew\.org\/api\//, response: {body: {packages: [], paging: {page: 1, count: 0}}}},
+                {url: /repo\.webosbrew\.org\/api\//, response: {body: {packages: [], paging: {page: 1, count: 0, maxPage: 0, itemsTotal: 0}}}},
             ]),
             'device-manager/list': () => devices,
         };

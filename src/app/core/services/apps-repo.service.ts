@@ -9,6 +9,57 @@ import {HomebrewChannelConfiguration} from "../../types/luna-apis";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 
 const baseUrl = 'https://repo.webosbrew.org/api';
+const requestTimeoutMs = 30_000;
+
+/** One deadline covers both response headers and the complete JSON body. */
+async function requestJson(url: string): Promise<any> {
+    const controller = new AbortController();
+    const timeoutError = new Error('Repository request timed out after 30 seconds. Please try again.');
+    let timedOut = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const deadline = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+            timedOut = true;
+            reject(timeoutError);
+            controller.abort();
+        }, requestTimeoutMs);
+    });
+    const request = async () => {
+        const response = await fetch(url, {signal: controller.signal});
+        if (!response.ok) {
+            // Do not wait for an error body (or its cleanup) before reporting the status.
+            void response.body?.cancel().catch(() => undefined);
+            throw new Error(`Repository request failed (HTTP ${response.status}). Please try again.`);
+        }
+        try {
+            return await response.json();
+        } catch (error) {
+            if ((error as Error)?.name === 'SyntaxError') {
+                throw new Error('Invalid JSON received from the repository. Please try again.');
+            }
+            throw error;
+        }
+    };
+    try {
+        return await Promise.race([request(), deadline]);
+    } catch (error) {
+        if (timedOut) throw timeoutError;
+        throw error instanceof Error ? error : new Error(String(error));
+    } finally {
+        clearTimeout(timer!);
+    }
+}
+
+function validatePage(data: any): asserts data is RepositoryPage {
+    const paging = data?.paging;
+    if (!data || Array.isArray(data) || !paging ||
+        !['page', 'count', 'maxPage', 'itemsTotal'].every(key =>
+            Number.isSafeInteger(paging[key]) && paging[key] >= 0) ||
+        !Array.isArray(data.packages) ||
+        !data.packages.every((item: unknown) => item !== null && typeof item === 'object' && !Array.isArray(item))) {
+        throw new Error('Invalid repository page received. Please try again.');
+    }
+}
 
 @Injectable({
     providedIn: 'root'
@@ -20,7 +71,7 @@ export class AppsRepoService {
 
     async showApp(id: string): Promise<RepositoryItem | undefined> {
         const url = `${baseUrl}/apps/${id}/releases/latest.json`;
-        return fetch(url).then(async response => new RepositoryItem(await response.json(), url))
+        return requestJson(url).then(data => new RepositoryItem(data, url))
             .catch(() => undefined);
     }
 
@@ -37,7 +88,10 @@ export class AppsRepoService {
     allApps$(page = 0): Observable<RepositoryPage> {
         const suffix = page > 1 ? `apps/${page}.json` : 'apps.json';
         const url = `${baseUrl}/${suffix}`;
-        return fromPromise(fetch(url).then(async response => new RepositoryPage(await response.json(), url)));
+        return fromPromise(requestJson(url).then(data => {
+            validatePage(data);
+            return new RepositoryPage(data, url);
+        }));
     }
 }
 
