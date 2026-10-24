@@ -42,7 +42,7 @@ export class RemoteLogService {
         if (!line) {
             return null;
         }
-        const match = line.match(/^(?<datetime>[\w:.\-]+) \[(?<monotonic>\d+\.\d+)] (?<facility>\S+)\.(?<level>\S+) (?<process>\S+) \[((?<pid>\S):(?<tid>\S))?] (?<context>\S+) (?<msgid>\S+) (?<remaining>\{.+)$/);
+        const match = line.match(/^(?<datetime>[\w:.\-]+) \[(?<monotonic>\d+\.\d+)] (?<facility>\S+)\.(?<level>\S+) (?<process>\S+) \[((?<pid>\S+):(?<tid>\S+))?] (?<context>\S+) (?<msgid>\S+) (?<remaining>\{.+)$/);
         if (!match) {
             const now = DateTime.now();
             return {
