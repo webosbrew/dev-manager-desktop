@@ -90,7 +90,9 @@ export function mockHttp(routes: HttpRoute[]): CommandHandlers {
                 return [1];
             }
             request.bodyRead = true;
-            return [...bodyBytes(request.response), 1];
+            // The plugin discards the entire end-of-stream chunk. Send data first,
+            // followed by a separate EOF on the next read.
+            return [...bodyBytes(request.response), 0];
         },
         'http/fetch_cancel': () => null,
         'http/fetch_cancel_body': () => null,
