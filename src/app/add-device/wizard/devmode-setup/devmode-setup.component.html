@@ -4,12 +4,16 @@
                                  [(done)]="prepareAccountDone">
   </app-devmode-setup-step-header>
   <div class="card-body" [ngbCollapse]="prepareAccountDone">
-    <p>
-      You'll need a developer account to use Developer Mode.
-      Please read <a href="https://web.archive.org/web/20231005025611/https://webostv.developer.lge.com/develop/getting-started/preparing-lg-account"
-                     appExternalLink>
-      Preparing LG Account</a> for creating one.
-    </p>
+    <p>You'll need an LG Developer account to use Developer Mode.</p>
+    <ol>
+      <li>In your browser, open
+        <a href="https://webostv.developer.lge.com/develop/getting-started/developer-mode-app" appExternalLink>
+          LG's Developer Mode guide</a>.
+      </li>
+      <li>Select "SIGN IN" at the top right of the page.</li>
+      <li>Create an LG Developer account, or sign in if you already have one.</li>
+    </ol>
+    <p>Then return here and continue with the TV setup below.</p>
   </div>
 </div>
 <div class="card mt-3">
@@ -17,7 +21,7 @@
   </app-devmode-setup-step-header>
   <div class="card-body" [ngbCollapse]="installAppDone">
     <ol>
-      <li>Open LG Content Store</li>
+      <li>On your TV, open LG Apps (LG Content Store)</li>
       <li>Search for "Developer Mode"</li>
       <li>Select "Install"</li>
     </ol>
