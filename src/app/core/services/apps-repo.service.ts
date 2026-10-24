@@ -55,18 +55,9 @@ export class PackageManifest {
     }
 
     hasUpdate(version?: string): boolean | null {
-        if (!version) return null;
-        let v1 = this.version, v2 = version;
-        const segs1 = this.version.split('.', 4), segs2 = version.split('.', 4);
-        let suffix1 = '', suffix2 = '';
-        if (segs1.length > 3) {
-            v1 = segs1.slice(0, 3).join('.');
-            suffix1 = segs1[3];
-        }
-        if (segs2.length > 3) {
-            v2 = segs2.slice(0, 3).join('.');
-            suffix2 = segs2[3];
-        }
+        const available = parsePackageVersion(this.version), installed = parsePackageVersion(version);
+        if (!available || !installed) return null;
+        const [v1, suffix1] = available, [v2, suffix2] = installed;
         if ((suffix1 || suffix2) && semverEq(v1, v2, true)) {
             const snum1 = Number(suffix1), snum2 = Number(suffix2);
             if (!isNaN(snum1) && !isNaN(snum2)) {
@@ -76,6 +67,16 @@ export class PackageManifest {
         }
         return semverGt(v1, v2);
     }
+}
+
+function parsePackageVersion(value: unknown): [version: string, suffix: string] | null {
+    if (typeof value !== 'string') return null;
+    // Dots inside valid prerelease/build metadata are not legacy fourth components.
+    if (semver.valid(value)) return [value, ''];
+    const parts = value.split('.');
+    if (parts.length !== 4 || !parts[3]) return null;
+    const base = parts.slice(0, 3).join('.');
+    return semver.valid(base) ? [base, parts[3]] : null;
 }
 
 export class RepositoryItem {
