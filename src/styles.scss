@@ -2,11 +2,11 @@
 @use 'bootstrap-icons';
 @use '@xterm/xterm';
 
-@import './styles/no-select';
-@import './styles/app-item';
-@import './styles/overflow';
-@import './styles/terminal';
-@import './styles/shared';
+@use './styles/no-select';
+@use './styles/app-item';
+@use './styles/overflow';
+@use './styles/terminal';
+@use './styles/shared';
 
 
 @import 'highlight.js/scss/github.scss' screen and (prefers-color-scheme: light);
@@ -32,4 +32,7 @@ body {
 
 .bg-panel {
   @extend .bg-dark-subtle;
+}
+.ng-touched.ng-invalid {
+  @extend .is-invalid;
 }
