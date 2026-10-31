@@ -98,6 +98,13 @@
     "typescript": "6.0.3",
     "vitest": "4.1.10"
   },
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true,
+    "lmdb@3.5.4": true,
+    "msgpackr-extract@3.0.4": true
+  },
   "browserslist": [
     "chrome >= 66",
     "safari >= 15"

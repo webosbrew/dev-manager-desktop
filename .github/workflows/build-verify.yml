@@ -37,7 +37,7 @@ jobs:
     runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-24.04' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Required Packages
         if: ${{ runner.os == 'Linux' }}
@@ -60,7 +60,7 @@ jobs:
           cache-on-failure: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -77,7 +77,7 @@ jobs:
         run: npm test
 
       - name: Setup JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         if: github.event.inputs.build-for == 'android'
         with:
           java-version: '17'
@@ -85,7 +85,7 @@ jobs:
 
       - name: Setup Android SDK
         if: github.event.inputs.build-for == 'android'
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4.0.4
         with:
           packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-34"
 
@@ -118,7 +118,7 @@ jobs:
     runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-24.04' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -130,7 +130,7 @@ jobs:
           cache-on-failure: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -139,13 +139,13 @@ jobs:
         run: npm ci
 
       - name: Setup JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4.0.4
         with:
           packages: "build-tools;34.0.0 ndk;${{ env.ANDROID_NDK_VERSION }} platforms;android-33"
 
@@ -168,7 +168,7 @@ jobs:
           bundler-cache: 'true'
 
       - name: Build for Android
-        uses: maierj/fastlane-action@v3.1.0
+        uses: maierj/fastlane-action@v3.2.0
         with:
           lane: build
         env:

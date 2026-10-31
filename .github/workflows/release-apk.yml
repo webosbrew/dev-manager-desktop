@@ -14,11 +14,16 @@ jobs:
     name: Upload Signed APK
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.x
 
       - name: Extract Version
         id: pkg-version
-        uses: saionaro/extract-package-version@v1.3.0
+        run: echo "version=$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -28,7 +33,7 @@ jobs:
 
       - name: Download APK
         id: download-apk
-        uses: maierj/fastlane-action@v3.1.0
+        uses: maierj/fastlane-action@v3.2.0
         with:
           lane: download_apk
           verbose: ${{ runner.debug }}
