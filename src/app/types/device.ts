@@ -14,6 +14,7 @@ export declare interface Device {
 }
 
 export enum NewDeviceAuthentication {
+    None = 'none',
     Password = 'password',
     LocalKey = 'localKey',
     AppKey = 'appKey',
@@ -57,7 +58,8 @@ export declare interface NewDeviceWithDevicePrivateKey extends NewDeviceBase {
 }
 
 export type NewDevice =
-    NewDeviceWithPassword
+    NewDeviceBase
+    | NewDeviceWithPassword
     | NewDeviceWithLocalPrivateKey
     | NewDeviceWithAppPrivateKey
     | NewDeviceWithDevicePrivateKey;

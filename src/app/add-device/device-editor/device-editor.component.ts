@@ -214,6 +214,8 @@ export class DeviceEditorComponent implements OnInit {
             username: value.sshUsername,
         };
         switch (value.sshAuth.type) {
+            case NewDeviceAuthentication.None:
+                return base;
             case NewDeviceAuthentication.Password: {
                 return {
                     ...base,
@@ -263,6 +265,8 @@ export class DeviceEditorComponent implements OnInit {
 
     private async validateAuthInfo(auth: SetupAuthInfoUnion): Promise<null | ValidationErrors> {
         switch (auth.type) {
+            case NewDeviceAuthentication.None:
+                return null;
             case NewDeviceAuthentication.Password:
                 return auth.value ? null : {PasswordRequired: true};
             case NewDeviceAuthentication.LocalKey:
@@ -390,6 +394,11 @@ export interface SetupAuthInfoPassword extends SetupAuthInfoBase {
     value: string;
 }
 
+export interface SetupAuthInfoNone extends SetupAuthInfoBase {
+    type: NewDeviceAuthentication.None;
+    value: null;
+}
+
 export interface SetupAuthInfoLocalKey extends SetupAuthInfoBase {
     type: NewDeviceAuthentication.LocalKey;
     value: LocalKeyValue;
@@ -406,7 +415,8 @@ export interface SetupAuthInfoDevMode extends SetupAuthInfoBase {
 }
 
 export type SetupAuthInfoUnion =
-    SetupAuthInfoPassword
+    SetupAuthInfoNone
+    | SetupAuthInfoPassword
     | SetupAuthInfoLocalKey
     | SetupAuthInfoAppKey
     | SetupAuthInfoDevMode;

@@ -30,6 +30,8 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy, ITerminal
 
     private termListeners: IDisposable[] = [];
 
+    private pendingWrite: Promise<void> = Promise.resolve();
+
     constructor(private shells: RemoteShellService) {
         this.term = new Terminal({
             scrollback: 1000,
@@ -55,6 +57,8 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy, ITerminal
 
     ngAfterViewInit(): void {
         this.term.open(this.termwin.nativeElement);
+        // Mobile keyboards may otherwise replace the last word when Enter is pressed.
+        this.term.textarea?.setAttribute('autocomplete', 'off');
         const token = this.token;
         if (token) {
             this.openDefaultShell(token).catch(e => this.connError(e));
@@ -118,8 +122,11 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy, ITerminal
     }
 
     async sendData(key: string): Promise<void> {
-        // if (!this.shell || await this.shell.closed) return;
-        await this.shell?.write(key);
+        // Preserve key order across asynchronous Tauri calls, including Enter after IME input.
+        this.pendingWrite = this.pendingWrite.then(() => this.shell?.write(key)).catch(error => {
+            console.error('Failed to write terminal input', error);
+        });
+        await this.pendingWrite;
     }
 
     async sendKey(event: KeyboardEvent): Promise<void> {
@@ -129,7 +136,7 @@ export class PtyComponent implements OnInit, AfterViewInit, OnDestroy, ITerminal
         ) {
             const text = await navigator.clipboard.readText();
             console.info('pasting text', text);
-            await this.shell?.write(text);
+            await this.sendData(text);
         } else if (
             (event.key === 'Insert' && event.ctrlKey) ||
             (event.key === 'c' && event.ctrlKey && event.shiftKey)
