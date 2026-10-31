@@ -6,6 +6,7 @@ import {AddDeviceComponent} from './add-device.component';
 import {AddDeviceModule} from '../../add-device.module';
 import {DeviceConnectionMode} from '../mode-select/mode-select.component';
 import {CommandHandler, mockBackend} from '../../../../testing/tauri-mock';
+import {NewDeviceAuthentication} from '../../../types';
 
 
 describe('AddDeviceComponent addresses', () => {
@@ -97,5 +98,27 @@ describe('AddDeviceComponent addresses', () => {
         expect(fetchKey).not.toHaveBeenCalled();
         expect(execute).not.toHaveBeenCalled();
         expect(save).not.toHaveBeenCalled();
+    });
+
+    it('adds a rooted device without password or key when no authentication is selected', async () => {
+        const rootedFixture = TestBed.createComponent(AddDeviceComponent);
+        rootedFixture.componentRef.setInput('mode', DeviceConnectionMode.Rooted);
+        rootedFixture.detectChanges();
+        const editor = rootedFixture.componentInstance.deviceEditor;
+        editor.formGroup.controls.name.setValue('rooted-tv');
+        editor.formGroup.controls.address.setValue('tv.local');
+        editor.formGroup.controls.sshAuth.controls.type.setValue(NewDeviceAuthentication.None);
+        rootedFixture.detectChanges();
+        await rootedFixture.whenStable();
+
+        await vi.waitFor(() => expect(editor.valid).toBe(true));
+        await rootedFixture.componentInstance.submit();
+
+        expect(fetchKey).not.toHaveBeenCalled();
+        expect(execute).toHaveBeenCalled();
+        const savedDevice = save.mock.calls[0][0]['device'];
+        expect(savedDevice).toMatchObject({name: 'rooted-tv', username: 'root', host: 'tv.local'});
+        expect(savedDevice).not.toHaveProperty('password');
+        expect(savedDevice).not.toHaveProperty('privateKey');
     });
 });

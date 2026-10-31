@@ -1,7 +1,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {InlineEditorComponent} from './inline-editor.component';
-import {Device} from "../../types";
+import {Device, NewDeviceAuthentication} from "../../types";
 import {mockBackend} from "../../../testing/tauri-mock";
 
 describe('InlineEditorComponent', async () => {
@@ -36,5 +36,15 @@ describe('InlineEditorComponent', async () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('selects no authentication for a device without a password or key', () => {
+    const device = {...component.device, username: 'prisoner', privateKey: undefined};
+    fixture = TestBed.createComponent(InlineEditorComponent);
+    component = fixture.componentInstance;
+    component.device = device;
+    expect(component.deviceAuth).toEqual({type: NewDeviceAuthentication.None, value: null});
+    fixture.detectChanges();
+    expect((fixture.nativeElement.querySelector('#authMethod') as HTMLSelectElement).value).toBe('none');
   });
 });

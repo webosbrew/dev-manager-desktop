@@ -31,7 +31,7 @@ export class InlineEditorComponent {
     get deviceAuth(): SetupAuthInfoUnion {
         if (this.device.password) {
             return {type: NewDeviceAuthentication.Password, value: this.device.password};
-        } else if (this.device.username === 'prisoner') {
+        } else if (this.device.username === 'prisoner' && this.device.privateKey) {
             return {
                 type: NewDeviceAuthentication.DevKey,
                 value: this.device.passphrase!
@@ -41,11 +41,13 @@ export class InlineEditorComponent {
                 type: NewDeviceAuthentication.AppKey,
                 value: null,
             };
-        } else {
+        } else if (this.device.privateKey) {
             return {
                 type: NewDeviceAuthentication.LocalKey,
-                value: new OpenSshLocalKeyValue(this.device.privateKey!.openSsh, this.device.passphrase),
+                value: new OpenSshLocalKeyValue(this.device.privateKey.openSsh, this.device.passphrase),
             }
+        } else {
+            return {type: NewDeviceAuthentication.None, value: null};
         }
     }
 

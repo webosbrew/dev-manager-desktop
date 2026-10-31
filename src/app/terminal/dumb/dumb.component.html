@@ -20,6 +20,7 @@
   <div class="d-flex flex-row align-items-baseline prompt">
     <label class="mx-1 text-secondary">&gt;</label>
     <textarea class="flex-fill text-light term-focus" wrap="soft" autosize autofocus spellcheck="false"
+              autocomplete="off" autocorrect="off" autocapitalize="off"
               [disabled]="readonly || working"
               [placeholder]="working ? 'Please wait for the command to finish' : 'Input command here'"
               (keydown.enter)="$event.preventDefault(); send(input.value); input.value=''" #input></textarea>
