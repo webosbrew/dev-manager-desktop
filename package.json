@@ -79,7 +79,7 @@
     "@angular/build": "^22.0.8",
     "@angular/cli": "22.0.8",
     "@angular/compiler-cli": "^22.0.8",
-    "@tauri-apps/cli": "2.11.4",
+    "@tauri-apps/cli": "2.12.4",
     "@types/jasmine": "5.1.9",
     "@types/karma": "6.3.9",
     "@types/lodash-es": "4.17.12",

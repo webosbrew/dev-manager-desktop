@@ -175,6 +175,14 @@ jobs:
           sh scripts/appimage-zsync.sh target/*/bundle/appimage/*.AppImage
           python3 scripts/verify-appimage-update.py --channel "$UPDATE_CHANNEL" target/*/bundle/appimage/*.AppImage
 
+      - name: Verify AppImage packaging
+        if: startsWith(matrix.target, 'linux')
+        # A bundled libwayland-client breaks the host's Mesa EGL ICD under
+        # Wayland (EGL_BAD_PARAMETER abort, see issue #369); the host must
+        # supply it. Fails the release if a bundler change re-introduces it.
+        run: |
+          python3 scripts/verify-appimage-packaging.py target/*/bundle/appimage/*.AppImage
+
       - name: Build the app (macOS)
         if: startsWith(matrix.target, 'macos')
         run: |
