@@ -113,6 +113,10 @@ jobs:
           sh scripts/appimage-zsync.sh target/*/bundle/appimage/*.AppImage
           python3 scripts/verify-appimage-update.py target/*/bundle/appimage/*.AppImage
 
+      - name: Verify macOS signature
+        if: runner.os == 'macOS'
+        run: sh scripts/verify-macos-signature.sh target/release/bundle/macos/*.app
+
   build-android:
     if: ${{ !github.event.inputs.build-for || github.event.inputs.build-for == 'android' }}
     runs-on: ${{ github.event.inputs.runner-type || 'ubuntu-24.04' }}
