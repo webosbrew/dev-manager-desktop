@@ -191,6 +191,10 @@ jobs:
         env:
           CI: true
 
+      - name: Verify macOS signature
+        if: startsWith(matrix.target, 'macos')
+        run: sh scripts/verify-macos-signature.sh target/universal-apple-darwin/release/bundle/macos/*.app
+
       - name: Tauri init (Android)
         if: startsWith(matrix.target, 'android')
         run: npm run tauri android init
