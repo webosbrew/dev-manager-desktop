@@ -1,6 +1,33 @@
 .full-description {
+  // Images keep their width and height attributes. height: auto keeps the
+  // aspect ratio when max-width shrinks them.
   img {
     max-width: 100%;
+    height: auto;
+  }
+
+  // The repository wraps screenshots in a gallery that it lays out with inline
+  // styles. The Angular sanitizer removes style attributes, so the layout is here.
+  .webosbrew-screenshots {
+    display: flex;
+    gap: .5rem;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+  }
+
+  .webosbrew-screenshot {
+    flex: none;
+    margin: 0;
+    scroll-snap-align: start;
+
+    img {
+      display: block;
+      width: auto;
+      max-width: none;
+      height: min(240px, 45vw);
+    }
   }
 }
 
