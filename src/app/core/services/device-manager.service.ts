@@ -152,14 +152,35 @@ export class DeviceManagerService extends BackendClient {
             method: method,
             format: "PNG"
         };
-        await (this.luna.call(device, 'luna://com.webos.service.capture/executeOneShot', param, false)
-            .catch((e) => {
-                if (LunaResponseError.isCompatible(e) && e['errorText']?.includes('Service does not exist')) {
-                    return this.legacyScreenshot(device, param);
-                }
+        try {
+            await this.luna.call(device, 'luna://com.webos.service.capture/executeOneShot', param, false)
+                .catch((e) => {
+                    if (LunaResponseError.isCompatible(e) && e['errorText']?.includes('Service does not exist')) {
+                        return this.legacyScreenshot(device, param);
+                    }
+                    throw e;
+                });
+        } catch (e) {
+            if (method === 'VIDEO' || !LunaResponseError.isCompatible(e)) {
                 throw e;
-            }));
+            }
+            await this.compositorScreenshot(device, tmpPath).catch((fallbackError) => {
+                console.warn('compositor capture failed', fallbackError);
+                throw e;
+            });
+        }
         return tmpPath;
+    }
+
+    /**
+     * Capture with `com.webos.surfacemanager/captureCompositorOutput`, for models where the capture services
+     * fail. On webOS 4.4, for example, `executeOneShot` answers `ERROR_07` ("Cannot allocate memory").
+     *
+     * The compositor output has the graphic plane only, without video.
+     */
+    private async compositorScreenshot(device: DeviceLike, path: string): Promise<void> {
+        await this.luna.call(device, 'luna://com.webos.surfacemanager/captureCompositorOutput',
+            {output: path, format: 'PNG'}, false);
     }
 
     /**
