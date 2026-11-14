@@ -1,0 +1,49 @@
+.updates { max-width: 900px; }
+.min-w-0 { min-width: 0; }
+.flex-none { flex: none; }
+
+.app-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: contain;
+  flex: none;
+
+  &.big { width: 56px; height: 56px; }
+
+  &.letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bs-secondary-bg);
+    color: var(--bs-primary);
+    font-weight: 600;
+    font-size: 1.2rem;
+  }
+
+  &.big.letter { font-size: 1.6rem; }
+}
+
+.notes {
+  font-size: .9rem;
+
+  ::ng-deep {
+    ul { padding-left: 1.2rem; margin: 4px 0; }
+    li { margin: 3px 0; }
+    p { margin: 4px 0; }
+    .note-head { font-weight: 600; margin: 10px 0 4px; }
+  }
+}
+
+// every package of the release, tap one to use it
+.pkg-list {
+  .pkg-file { word-break: break-all; }
+  .bi-circle { color: var(--bs-secondary-color); }
+
+  .selected {
+    background: rgba(var(--bs-primary-rgb), .12);
+    border-color: rgba(var(--bs-primary-rgb), .5);
+    z-index: 1;
+    .bi { color: var(--bs-primary); }
+  }
+}
