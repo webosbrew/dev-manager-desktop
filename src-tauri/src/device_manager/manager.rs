@@ -1,13 +1,12 @@
-
 use crate::device_manager::privkey::PrivateKeyExt;
 use crate::device_manager::{
     Device, DeviceCheckConnection, DeviceManager, PrivateKey, PrivateKeyInfo,
 };
 use crate::error::Error;
-use ares_connection_lib::setup::{fetch_key, NOVACOM_KEY_PORT};
+use ares_connection_lib::net::connect_host;
+use ares_connection_lib::setup::{fetch_key_with, NOVACOM_KEY_PORT};
 use ares_device_lib::DeviceManager as SharedDeviceManager;
 use libssh_rs::{PublicKeyHashType, SshKey};
-use port_check::is_port_reachable_with_timeout;
 use std::io::{Error as IoError, ErrorKind};
 use std::time::Duration;
 use tokio::fs::File;
@@ -88,15 +87,16 @@ impl DeviceManager {
 
     pub async fn novacom_getkey(&self, address: &str, passphrase: &str) -> Result<String, Error> {
         let host = address.to_string();
-        let content =
-            tauri::async_runtime::spawn_blocking(move || fetch_key(&host, NOVACOM_KEY_PORT))
-                .await
-                .unwrap()
-                .map_err(|e| match e.kind() {
-                    // The device answered, but not with a key.
-                    ErrorKind::NotFound => Error::NotFound,
-                    _ => e.into(),
-                })?;
+        let content = tauri::async_runtime::spawn_blocking(move || {
+            fetch_key_with(&host, NOVACOM_KEY_PORT, tauri_plugin_local_network::connect)
+        })
+        .await
+        .unwrap()
+        .map_err(|e| match e.kind() {
+            // The device answered, but not with a key.
+            ErrorKind::NotFound => Error::NotFound,
+            _ => e.into(),
+        })?;
 
         match SshKey::from_privkey_base64(&content, Some(passphrase)) {
             Ok(_) => Ok(content),
@@ -128,16 +128,20 @@ impl DeviceManager {
 
     pub async fn check_connection(&self, host: &str) -> Result<DeviceCheckConnection, Error> {
         Ok(DeviceCheckConnection {
-            ssh_22: is_port_reachable_with_timeout(format!("{host}:22"), Duration::from_secs(10)),
-            ssh_9922: is_port_reachable_with_timeout(
-                format!("{host}:9922"),
-                Duration::from_secs(10),
-            ),
-            key_server: is_port_reachable_with_timeout(
-                format!("{host}:9991"),
-                Duration::from_secs(10),
-            ),
+            ssh_22: is_port_reachable(host, 22),
+            ssh_9922: is_port_reachable(host, 9922),
+            key_server: is_port_reachable(host, NOVACOM_KEY_PORT),
         })
     }
 }
 
+/// Probe a port over the same network that the SSH and key connections use.
+fn is_port_reachable(host: &str, port: u16) -> bool {
+    connect_host(
+        host,
+        port,
+        Duration::from_secs(10),
+        tauri_plugin_local_network::connect,
+    )
+    .is_ok()
+}

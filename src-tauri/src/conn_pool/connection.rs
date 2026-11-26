@@ -4,7 +4,7 @@ use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::sync::Mutex;
 
-use ares_connection_lib::session::{authenticate, connect, SshConnection};
+use ares_connection_lib::session::{authenticate, connect_with, SshConnection};
 use libssh_rs::Session;
 use regex::Regex;
 use uuid::Uuid;
@@ -16,7 +16,7 @@ use crate::error::Error;
 
 impl DeviceConnection {
     pub(crate) fn new(device: Device, ssh_dir: Option<&Path>) -> Result<DeviceConnection, Error> {
-        let session = connect(&device)?;
+        let session = connect_with(&device, tauri_plugin_local_network::connect)?;
         // The key is read here, not by the shared code: this app resolves a key
         // name against its own SSH directory, and falls back to the parent
         // directory on mobile.
@@ -50,7 +50,6 @@ impl DeviceConnection {
             .lock()
             .expect("Failed to lock DeviceConnection::last_ok") = true;
     }
-
 }
 
 impl SshConnection for DeviceConnection {
