@@ -5,7 +5,8 @@ plugins {
 
 android {
     namespace = "org.webosbrew.devman.localnetwork"
-    compileSdk = 34
+    // tauri-android requires the libraries that use it to compile against 36+.
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 28
