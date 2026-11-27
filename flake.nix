@@ -69,7 +69,7 @@
           cargoLock = {
             lockFile = ./Cargo.lock;
             outputHashes = {
-              "ares-connection-lib-0.7.1" = "sha256-9x1mdeEccQxQQyDIaeVrMrfPEYZDOYb+VwuD0Z3bJkE=";
+              "ares-connection-lib-0.7.2" = "sha256-dgzKeIrHBlkMx3AnJjNF6KN6d7zkxwRsBwnPHe3EGPs=";
               "r2d2-0.8.10" = "sha256-7bWbepxcaLbN0909s46ftHmtDUKrp4RCCKMZG0EiFG4=";
             };
           };

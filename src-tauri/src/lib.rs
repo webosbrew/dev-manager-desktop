@@ -34,6 +34,7 @@ pub fn run() {
     builder = optional_setup(builder);
     let result = builder
         .plugin(tauri_plugin_log::Builder::new().build())
+        .plugin(tauri_plugin_local_network::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_os::init())
@@ -154,4 +155,3 @@ impl<R: Runtime> GetAppSshKeyDir for AppHandle<R> {
             })
     }
 }
-

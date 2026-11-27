@@ -66,7 +66,7 @@ mod test {
 {
   "profile": "ose",
   "name": "test",
-  "host": "0.0.0.0",
+  "host": "192.0.2.1",
   "port": 22,
   "username": "root",
   "password": "12345678"

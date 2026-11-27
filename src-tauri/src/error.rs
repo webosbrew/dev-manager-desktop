@@ -224,7 +224,17 @@ impl From<SessionError> for Error {
             // Reuse the SSH mapping, so a bad key still becomes
             // Error::BadPrivateKey and a dropped connection Error::Disconnected.
             SessionError::LibSsh(e) => e.into(),
-            SessionError::Io(e) => e.into(),
+            // The TCP connect fails this way. Map it like libssh's own connect
+            // errors below.
+            SessionError::Io(e) => match e.kind() {
+                ErrorKind::TimedOut => Error::Timeout,
+                ErrorKind::ConnectionRefused => Error::IO {
+                    code: ErrorKind::ConnectionRefused,
+                    message: "Connection refused by host".to_string(),
+                    unhandled: false,
+                },
+                _ => e.into(),
+            },
         }
     }
 }
